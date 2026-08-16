@@ -106,6 +106,23 @@ import { automaticUiScale, automaticWorldZoom, type UiScale } from './responsive
 import { ThreeWorldSurface } from './ThreeWorldSurface';
 import type { RendererKind } from './renderer-selection';
 import { inflatedViewport } from './three25/inflation';
+import { isScreenPointInsideMapTilted, screenToTileTilted, worldToScreenTilted } from './three25/projection';
+
+/**
+ * `worldToScreenTilted` deliberately does not round — rounding mid-chain would break its inverse.
+ * `worldToScreen` does, because these values become CSS `left`/`top` on pixel-art overlays and a
+ * fractional position blurs them off the pixel grid. This wrapper puts the rounding back at the
+ * boundary, so both renderers position overlays the same way.
+ *
+ * Module scope, so the reference is stable in a dependency array.
+ */
+function worldToScreenTiltedRounded(
+  camera: CameraState,
+  world: Readonly<{ x: number; y: number }>,
+): Readonly<{ x: number; y: number }> {
+  const screen = worldToScreenTilted(camera, world);
+  return { x: Math.round(screen.x), y: Math.round(screen.y) };
+}
 import { measureResponsiveEvidence } from './responsive-evidence';
 import { buildSmokeGeometryEvidence } from './smoke-geometry';
 import { parseVfxEvidence } from './vfx/evidence';
@@ -313,6 +330,13 @@ export function WorldScene({
   // different projection for picking, and a different camera clamp; each of those branches off
   // this one flag rather than calling the selector again.
   const renderer2_5d = rendererKind === 'threejs-2-5d';
+  // Screen space is not the same shape in the two renderers: the tilted view compresses the depth
+  // axis, so a click at the same pixel lands on a different tile. Every projection, unprojection
+  // and hit test goes through one of these three, chosen once. All six are module-level functions,
+  // so the chosen reference is stable and safe in a dependency array.
+  const project = renderer2_5d ? worldToScreenTiltedRounded : worldToScreen;
+  const unproject = renderer2_5d ? screenToTileTilted : screenToTile;
+  const insideMap = renderer2_5d ? isScreenPointInsideMapTilted : isScreenPointInsideMap;
   const reducedMotion = useReducedMotion();
   const playVocalCue = useVocalCues();
   const initialTile = useMemo(() => ({
@@ -994,12 +1018,12 @@ export function WorldScene({
 
   const handlePrimary = useCallback((point: Readonly<{ x: number; y: number }>) => {
     if (conversationNpcId || questOfferOpen || openPanel) return;
-    if (!isScreenPointInsideMap(camera, point, MAP_PIXELS)) return;
+    if (!insideMap(camera, point, MAP_PIXELS)) return;
     const visibleNpc = Object.entries(npcTiles)
       .sort(([left], [right]) => left.localeCompare(right, 'en'))
       .find(([, actor]) => {
         const foot = actor.visualFoot ?? tileFootPoint(actor.tile);
-        const screen = worldToScreen(camera, foot);
+        const screen = project(camera, foot);
         return point.x >= screen.x - 12 * camera.zoom && point.x <= screen.x + 12 * camera.zoom &&
           point.y >= screen.y - 27 * camera.zoom && point.y <= screen.y + 3 * camera.zoom;
       });
@@ -1008,7 +1032,7 @@ export function WorldScene({
       setRuntime((current) => ({ ...current, movement: cancelMovement(current.movement) }));
       return;
     }
-    const tile = screenToTile(camera, point);
+    const tile = unproject(camera, point);
     if (tile.x < 0 || tile.y < 0 || tile.x >= map.source.width || tile.y >= map.source.height) return;
     const candidates = worldClickCandidates(
       map,
@@ -1057,7 +1081,7 @@ export function WorldScene({
       emitTransientCue(WATER_GROUND_SPRITES.has(ground.sprite) ? 'ripple' : 'dust', center, 'strong');
     }
     if (resolved.tile) requestTile(resolved.tile);
-  }, [camera, conversationNpcId, emitTransientCue, map, npcTiles, openPanel, questOfferOpen, requestTile, runtime.movement.player, runtime.worldState, selectCharacter]);
+  }, [camera, conversationNpcId, emitTransientCue, insideMap, map, npcTiles, openPanel, project, questOfferOpen, requestTile, runtime.movement.player, runtime.worldState, selectCharacter, unproject]);
 
   useEffect(() => {
     if (!destinationMarker || rendererSuspended || rendererParityPulseFrozen) return;
@@ -1128,8 +1152,8 @@ export function WorldScene({
     };
   }, [cameraDirector, onCameraDirector]);
   const isPointInteractive = useCallback(
-    (point: Readonly<{ x: number; y: number }>) => isScreenPointInsideMap(camera, point, MAP_PIXELS),
-    [camera],
+    (point: Readonly<{ x: number; y: number }>) => insideMap(camera, point, MAP_PIXELS),
+    [camera, insideMap],
   );
   const cancel = useCallback(() => {
     if (questOfferOpen) {
@@ -1490,7 +1514,7 @@ export function WorldScene({
       .map(({ id }) => id)
       .sort((left, right) => left.localeCompare(right, 'en')),
   }) : '', [doorPhases, runtime.movement, smokeMode, worldFrame]);
-  const selectedScreen = worldToScreen(renderCamera, {
+  const selectedScreen = project(renderCamera, {
     x: worldFrame.selectionRing.worldX,
     y: worldFrame.selectionRing.worldY,
   });
@@ -1508,7 +1532,7 @@ export function WorldScene({
       : runtime.npcMovements[selected]?.status === 'moving',
   );
   const feedbackScreen = worldFrame.failureMarker
-    ? worldToScreen(renderCamera, { x: worldFrame.failureMarker.worldX, y: worldFrame.failureMarker.worldY })
+    ? project(renderCamera, { x: worldFrame.failureMarker.worldX, y: worldFrame.failureMarker.worldY })
     : undefined;
   const portalZones = useMemo(() => map.source.portals.map((portal) => ({
     id: portal.id,
@@ -1518,13 +1542,13 @@ export function WorldScene({
   const zoneGates = portalZones.map((zone) => {
     const top = Math.min(...zone.tiles.map(({ y }) => y));
     const centerX = (Math.min(...zone.tiles.map(({ x }) => x)) + Math.max(...zone.tiles.map(({ x }) => x)) + 1) / 2;
-    const anchor = worldToScreen(renderCamera, { x: centerX * TILE_SIZE, y: top * TILE_SIZE });
+    const anchor = project(renderCamera, { x: centerX * TILE_SIZE, y: top * TILE_SIZE });
     return {
       id: zone.id,
       label: zone.label,
       armed: armedPortalId === zone.id,
       cells: zone.tiles.map((tile) => {
-        const screen = worldToScreen(renderCamera, { x: tile.x * TILE_SIZE, y: tile.y * TILE_SIZE });
+        const screen = project(renderCamera, { x: tile.x * TILE_SIZE, y: tile.y * TILE_SIZE });
         return { key: `${tile.x},${tile.y}`, left: screen.x, top: screen.y };
       }),
       labelX: anchor.x,

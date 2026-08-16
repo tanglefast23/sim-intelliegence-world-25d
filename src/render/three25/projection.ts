@@ -1,5 +1,5 @@
 import type { TilePoint } from '../../world/maps/schema';
-import type { CameraState } from '../camera';
+import type { CameraState, ViewportSize } from '../camera';
 
 /**
  * Elevation of the 2.5D camera above the ground plane, in degrees.
@@ -51,6 +51,21 @@ export function screenToTileTilted(
 ): TilePoint {
   const world = screenToWorldTilted(camera, screen);
   return { x: Math.floor(world.x / tileSize), y: Math.floor(world.y / tileSize) };
+}
+
+/**
+ * Mirrors `isScreenPointInsideMap` for the tilted view.
+ *
+ * Unprojects with `screenToWorldTilted` and bounds-checks against the map, so a click below the
+ * horizon of a short map is rejected the same way the 2D path rejects one past the map edge.
+ */
+export function isScreenPointInsideMapTilted(
+  camera: CameraState,
+  screen: Readonly<{ x: number; y: number }>,
+  mapPixels: ViewportSize,
+): boolean {
+  const world = screenToWorldTilted(camera, screen);
+  return world.x >= 0 && world.y >= 0 && world.x < mapPixels.width && world.y < mapPixels.height;
 }
 
 /**
