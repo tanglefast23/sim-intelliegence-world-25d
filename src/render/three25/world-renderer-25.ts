@@ -55,6 +55,12 @@ export type WorldRenderer25Evidence = Readonly<{
   shadowPath: ShadowPath;
   /** Whether the lit path's shadow map is live. Derived from the renderer, not from the flag. */
   shadowMapEnabled: boolean;
+  /**
+   * Draw calls spent on ATLAS-textured batches alone: floors, boxes and character billboards.
+   * The skirt and the blob shadows are untextured, and the shadow pass is not a colour pass, so
+   * `drawCalls` alone cannot be compared against an atlas budget.
+   */
+  atlasDrawCalls: number;
 }>;
 
 export type WorldRenderer25 = Readonly<{
@@ -721,6 +727,9 @@ export async function createWorldRenderer25(
       yawDegrees,
       shadowPath,
       shadowMapEnabled: renderer.shadowMap.enabled,
+      atlasDrawCalls: [floorMesh, boxMesh, billboardMesh]
+        .filter((mesh) => mesh.visible && mesh.geometry.getIndex() !== null && mesh.geometry.getIndex()!.count > 0)
+        .length,
     }),
     dispose: () => {
       running = false;

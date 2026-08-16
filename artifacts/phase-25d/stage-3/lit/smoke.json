@@ -1,7 +1,8 @@
 {
   "schemaVersion": 1,
   "shadowPath": "lit",
-  "ceiling": 12,
+  "ceiling": 8,
+  "atlasCeiling": 5,
   "scenes": [
     {
       "name": "villa-lit",
@@ -14,7 +15,8 @@
         "meshCount": 2120,
         "yawDegrees": 0,
         "shadowPath": "lit",
-        "shadowMapEnabled": true
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3
       }
     }
   ]

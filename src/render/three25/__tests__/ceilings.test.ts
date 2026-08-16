@@ -2,8 +2,11 @@ import { ATLAS_DRAW_CALL_CEILING, DRAW_CALL_CEILING } from '../ceilings';
 
 describe('2.5D draw-call ceilings', () => {
   test('are tighter than the provisional numbers once measured', () => {
+    // The plan's provisional guesses were 40 and 16. The measured maxima are 6 and 3.
     expect(DRAW_CALL_CEILING).toBeLessThanOrEqual(40);
     expect(ATLAS_DRAW_CALL_CEILING).toBeLessThanOrEqual(16);
+    expect(DRAW_CALL_CEILING).toBeLessThan(12);
+    expect(ATLAS_DRAW_CALL_CEILING).toBeLessThan(8);
   });
 
   test('leave room for the lit path shadow pass', () => {
@@ -16,6 +19,9 @@ describe('2.5D draw-call ceilings', () => {
    * correct frame.
    */
   test('clear the batches the renderer actually draws', () => {
-    expect(DRAW_CALL_CEILING).toBeGreaterThanOrEqual(5);
+    // Five batches plus the lit path's shadow pass is six, and the ceiling must clear that or a
+    // correct frame fails its own smoke.
+    expect(DRAW_CALL_CEILING).toBeGreaterThanOrEqual(6);
+    expect(ATLAS_DRAW_CALL_CEILING).toBeGreaterThanOrEqual(3);
   });
 });

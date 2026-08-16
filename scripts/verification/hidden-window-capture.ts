@@ -40,6 +40,7 @@ export type SceneEvidence = Readonly<{
     yawDegrees: number;
     shadowPath: string;
     shadowMapEnabled: boolean;
+    atlasDrawCalls: number;
   }>;
 }>;
 

@@ -1,7 +1,8 @@
 {
   "schemaVersion": 1,
   "shadowPath": "fallback",
-  "ceiling": 12,
+  "ceiling": 8,
+  "atlasCeiling": 5,
   "scenes": [
     {
       "name": "villa-fallback",
@@ -14,7 +15,8 @@
         "meshCount": 2120,
         "yawDegrees": 0,
         "shadowPath": "fallback",
-        "shadowMapEnabled": false
+        "shadowMapEnabled": false,
+        "atlasDrawCalls": 3
       }
     }
   ]

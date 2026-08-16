@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "ceiling": 8,
+  "atlasCeiling": 5,
+  "maximumDrawCalls": 6,
+  "maximumAtlasDrawCalls": 3,
+  "maximumDescriptors": 2120,
+  "recommendedCeiling": 8,
+  "recommendedAtlasCeiling": 5,
+  "scenes": [
+    {
+      "name": "measure-yaw0-fallback",
+      "yawDegrees": 0,
+      "shadowPath": "fallback",
+      "drawCalls": 5,
+      "atlasDrawCalls": 3,
+      "descriptors": 2120,
+      "screenshot": "measure-yaw0-fallback.png"
+    },
+    {
+      "name": "measure-yaw0-lit",
+      "yawDegrees": 0,
+      "shadowPath": "lit",
+      "drawCalls": 6,
+      "atlasDrawCalls": 3,
+      "descriptors": 2120,
+      "screenshot": "measure-yaw0-lit.png"
+    },
+    {
+      "name": "measure-yaw35-fallback",
+      "yawDegrees": 35,
+      "shadowPath": "fallback",
+      "drawCalls": 5,
+      "atlasDrawCalls": 3,
+      "descriptors": 2120,
+      "screenshot": "measure-yaw35-fallback.png"
+    },
+    {
+      "name": "measure-yaw35-lit",
+      "yawDegrees": 35,
+      "shadowPath": "lit",
+      "drawCalls": 6,
+      "atlasDrawCalls": 3,
+      "descriptors": 2120,
+      "screenshot": "measure-yaw35-lit.png"
+    }
+  ]
+}

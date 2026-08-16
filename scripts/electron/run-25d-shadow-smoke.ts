@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { captureScenes } from '../verification/hidden-window-capture';
 import { resolveEvidenceOutputRoot } from '../verification/evidence-output';
-import { DRAW_CALL_CEILING } from '../../src/render/three25/ceilings';
+import { ATLAS_DRAW_CALL_CEILING, DRAW_CALL_CEILING } from '../../src/render/three25/ceilings';
 
 /**
  * One smoke per shadow path, so neither path can rot into dead code.
@@ -62,6 +62,11 @@ async function main(): Promise<void> {
         `${scene.name} used ${String(scene.evidence.drawCalls)} draw calls, over the ceiling of ${String(DRAW_CALL_CEILING)}.`,
       );
     }
+    if (scene.evidence.atlasDrawCalls > ATLAS_DRAW_CALL_CEILING) {
+      throw new Error(
+        `${scene.name} used ${String(scene.evidence.atlasDrawCalls)} atlas draw calls, over the ceiling of ${String(ATLAS_DRAW_CALL_CEILING)}.`,
+      );
+    }
     if (scene.evidence.meshCount < MINIMUM_DESCRIPTORS) {
       throw new Error(
         `${scene.name} drew only ${String(scene.evidence.meshCount)} descriptors; a villa frame emits thousands.`,
@@ -72,7 +77,13 @@ async function main(): Promise<void> {
     }
   }
 
-  const report = { schemaVersion: 1 as const, shadowPath: path, ceiling: DRAW_CALL_CEILING, scenes };
+  const report = {
+    schemaVersion: 1 as const,
+    shadowPath: path,
+    ceiling: DRAW_CALL_CEILING,
+    atlasCeiling: ATLAS_DRAW_CALL_CEILING,
+    scenes,
+  };
   const output = join(evidenceRoot, 'smoke.json');
   writeFileSync(output, `${JSON.stringify(report, null, 2)}\n`);
   console.log(`Wrote ${output}`);
