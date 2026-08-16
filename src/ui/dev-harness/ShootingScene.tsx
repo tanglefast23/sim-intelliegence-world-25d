@@ -191,7 +191,7 @@ export function ShootingScene({
 
   return (
     <View nativeID="shooting-scene" style={[styles.root, surface]}>
-      <ThreeWorldSurface frame={frame} onContextStateChange={() => undefined} onReady={() => undefined} />
+      <ThreeWorldSurface frame={frame} onContextStateChange={() => undefined} onReady={() => undefined} surface={surface} />
       <View
         accessibilityLabel={evidence}
         nativeID="world-shooting-scene-state"

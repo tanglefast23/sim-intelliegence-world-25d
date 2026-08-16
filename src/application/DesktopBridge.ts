@@ -20,6 +20,7 @@ import type { CameraDirector } from '../render/camera-motion';
 import type { MapId } from '../world/maps/catalog';
 import type { RendererKind, ToneMappingKind } from '../render/renderer-selection';
 import type { ThreeRendererEvidence } from '../render/three/world-renderer';
+import type { WorldRenderer25Evidence } from '../render/three25/world-renderer-25';
 
 export type DesktopBridge = ConversationPort & Readonly<{
   getRuntimeInfo: () => Promise<RuntimeInfo>;
@@ -79,6 +80,12 @@ declare global {
     siWorldFreezeRendererParityFrame?: () => void;
     siWorldSetRendererTestZoom?: (zoom: number) => void;
     siWorldThreeRendererEvidence?: () => ThreeRendererEvidence;
+    /**
+     * The 2.5D renderer's own evidence hook. Separate from `siWorldThreeRendererEvidence` because
+     * `ThreeRendererEvidence.rendererKind` is the literal `'threejs-2d'` in a frozen file, and main
+     * only collects that hook for the 2D renderer.
+     */
+    siWorld25dEvidence?: () => WorldRenderer25Evidence;
   }
 }
 

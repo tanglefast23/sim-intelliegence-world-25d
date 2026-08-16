@@ -31,6 +31,7 @@
     "save:qualify": "tsx scripts/qualification/write-save-evidence.ts",
     "qualify:renderer": "tsx scripts/qualification/compare-renderer-frames.ts",
     "capture:2d-baseline": "tsx scripts/verification/capture-2d-baseline.ts",
+    "capture:yaw-comparison": "tsx scripts/verification/capture-yaw-comparison.ts",
     "model:smoke": "tsx scripts/model/run-package-model-smoke.ts",
     "art:atlas": "tsx scripts/art/build-world-atlas.ts",
     "art:baseline": "tsx scripts/art/write-pixel-baseline.ts",

@@ -51,6 +51,26 @@ export function toneMappingForEnvironment(input: Readonly<{
   return local && (requested === 'none' || requested === 'aces') ? requested : 'aces';
 }
 
+/**
+ * Camera yaw for the 2.5D renderer, in degrees.
+ *
+ * Production ships yaw 0. This is a localhost-only `?testYaw=` override so the comparison capture
+ * can render the spike angle from the same scene without a new Electron flag. Clamped to 0-60:
+ * beyond that the ground projection in `three25/projection.ts` no longer describes what is drawn.
+ */
+export function yawForEnvironment(input: Readonly<{ hostname: string; search: string }>): number {
+  const local = input.hostname === 'localhost' || input.hostname === '127.0.0.1';
+  if (!local) return 0;
+  const requested = Number.parseFloat(new URLSearchParams(input.search).get('testYaw') ?? '');
+  if (!Number.isFinite(requested)) return 0;
+  return Math.min(60, Math.max(0, requested));
+}
+
+export function selectedYawDegrees(): number {
+  if (typeof window === 'undefined' || !window.location) return 0;
+  return yawForEnvironment({ hostname: window.location.hostname, search: window.location.search });
+}
+
 export function selectedToneMapping(): ToneMappingKind {
   if (typeof window === 'undefined' || !window.location) return 'aces';
   return toneMappingForEnvironment({

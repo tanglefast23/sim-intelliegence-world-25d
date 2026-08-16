@@ -1575,6 +1575,7 @@ export function WorldScene({
               frame={worldFrame}
               onContextStateChange={handleRendererContextState}
               onReady={onWorldReady}
+              surface={surface}
             />
             <ZoneGateOverlay
               accent={lighting.accent}
