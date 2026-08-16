@@ -46,11 +46,12 @@ export const RendererReadySchema = z.union([
     phase: z.literal('shell'),
     shellReady: z.literal(true),
   }).strict(),
-  // Stage 7 removed the Skia world variant with CanvasKit itself.
+  // Both renderers report through one world variant. webgl2Ready and worldFrameReady stay literal:
+  // neither is renderer-specific, and both must be proven.
   z.object({
     ...RendererReadyCommon,
     phase: z.literal('world'),
-    rendererKind: z.literal('threejs-2d'),
+    rendererKind: z.enum(['threejs-2d', 'threejs-2-5d']),
     webgl2Ready: z.literal(true),
     worldFrameReady: z.literal(true),
   }).strict(),

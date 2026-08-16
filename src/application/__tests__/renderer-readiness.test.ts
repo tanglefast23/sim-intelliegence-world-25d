@@ -23,13 +23,20 @@ describe('renderer readiness measurements', () => {
     });
   });
 
-  // Stage 7 removed the Skia world variant with CanvasKit itself, so one world report remains.
+  // The report echoes the measured renderer kind. Both renderers need a real WebGL 2 context and
+  // a presented frame, so those two stay literal.
   test.each([
     {
       rendererKind: 'threejs-2d' as const,
       webgl2Ready: true,
       worldFramePresented: true,
       expected: { rendererKind: 'threejs-2d', webgl2Ready: true },
+    },
+    {
+      rendererKind: 'threejs-2-5d' as const,
+      webgl2Ready: true,
+      worldFramePresented: true,
+      expected: { rendererKind: 'threejs-2-5d', webgl2Ready: true },
     },
   ])('creates the strict $rendererKind world report', ({ expected, ...renderer }) => {
     expect(createRendererWorldReadyReport({

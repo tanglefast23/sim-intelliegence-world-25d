@@ -127,7 +127,9 @@ export default function GameSurfaceShell({ assetsLoaded }: GameSurfaceShellProps
           rendererKind,
           // worldReady is set by the renderer surface after it presents, so this is measured.
           worldFramePresented: worldReady,
-          webgl2Ready: rendererKind === 'threejs-2d' && canvas.getContext('webgl2') !== null,
+          // Both renderers require WebGL 2, so the renderer-kind check added nothing and reported
+          // false for every 2.5D run.
+          webgl2Ready: canvas.getContext('webgl2') !== null,
         });
         return bridge.reportRendererReady(report);
       })

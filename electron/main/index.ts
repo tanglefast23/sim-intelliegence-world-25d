@@ -117,8 +117,8 @@ if (smokeVfxMode !== undefined && (!smokeMode || !['circle', 'procedural'].inclu
 if (smokeToneMapping !== undefined && (!smokeMode || !['none', 'aces'].includes(smokeToneMapping))) {
   throw new Error('SI_WORLD_TEST_TONE_MAPPING requires smoke mode and must be none or aces.');
 }
-if (smokeRenderer !== undefined && (!smokeMode || !['skia', 'threejs-2d'].includes(smokeRenderer))) {
-  throw new Error('Test renderer is available only to smoke runs as skia or threejs-2d.');
+if (smokeRenderer !== undefined && (!smokeMode || !['threejs-2d', 'threejs-2-5d'].includes(smokeRenderer))) {
+  throw new Error('Test renderer is available only to smoke runs as threejs-2d or threejs-2-5d.');
 }
 
 if (naturalMovementReducedMode || proceduralVfxReducedMode) {

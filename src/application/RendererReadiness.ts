@@ -89,5 +89,5 @@ export function createRendererWorldReadyReport(
     throw new Error('The world renderer has not presented a frame, so world readiness is unproven.');
   }
   if (measurements.webgl2Ready !== true) throw new Error('Three.js did not create a WebGL 2 context.');
-  return { ...common, rendererKind: 'threejs-2d', webgl2Ready: true };
+  return { ...common, rendererKind: measurements.rendererKind, webgl2Ready: true };
 }
