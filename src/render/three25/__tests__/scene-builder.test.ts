@@ -1,4 +1,5 @@
 import { ATLAS_INDEX } from '../../atlas';
+import { hiddenWallTiles } from '../occlusion';
 import { WALL_HEIGHT_TILES, isResolved, recipeFor } from '../recipes';
 import {
   buildDoorBoxes,
@@ -46,11 +47,23 @@ describe('floor quads', () => {
 describe('wall boxes', () => {
   const frame = indoorFrame();
 
-  // Task 17 adds near-wall culling inside buildWallBoxes. When it does, it MUST update the
-  // assertion below to subtract hiddenWallTiles(frame).size, or this test goes red at Task 17's
-  // commit. The default fixture spawns the protagonist indoors, so culling is active.
-  test('emits one box per wall placement', () => {
-    expect(buildWallBoxes(frame)).toHaveLength(frame.walls.length);
+  // The default fixture spawns the protagonist indoors, so near-wall culling is active here.
+  test('emits one box per wall placement, less the culled near walls', () => {
+    expect(hiddenWallTiles(frame).size).toBeGreaterThan(0);
+    expect(buildWallBoxes(frame)).toHaveLength(frame.walls.length - hiddenWallTiles(frame).size);
+  });
+
+  test('emits every wall when the player is outdoors and nothing is culled', () => {
+    const outdoors = outdoorFrame();
+    expect(hiddenWallTiles(outdoors).size).toBe(0);
+    expect(buildWallBoxes(outdoors)).toHaveLength(outdoors.walls.length);
+  });
+
+  test('never emits a box for a culled tile', () => {
+    const hidden = hiddenWallTiles(frame);
+    for (const box of buildWallBoxes(frame)) {
+      expect(hidden.has(`${box.x - 0.5},${box.z - 0.5}`)).toBe(false);
+    }
   });
 
   test('stands every wall at the same height, centred on its half', () => {

@@ -65,3 +65,36 @@ export function wallRoofGroups(frame: WorldFrameState): ReadonlyMap<string, stri
 
   return groups;
 }
+
+/**
+ * The wall tiles between the camera and the interior the player is standing in.
+ *
+ * At yaw 0 the camera looks from the map-south, so the near wall of a room is its SOUTH PERIMETER:
+ * the wall row one tile below the shelter rectangle, at `rect.y + rect.height`.
+ *
+ * **Not "the wall with the greatest tile.y in its column".** Those two rules agree only on a solid
+ * ring. `compileWalls` removes opening tiles, so a column containing a door has no south wall at
+ * all — and the per-column maximum then falls through to an interior partition further north. On
+ * the villa that culled tile (17,14), a partition in the middle of the building, because the front
+ * door sits at (17,24).
+ *
+ * Only the OCCUPIED group is culled. Walls of a building the player is not inside stay up: hiding
+ * them would open a hole into a room that is still roofed.
+ *
+ * ponytail: culls the single perimeter row. A double-thick south wall would keep its inner course,
+ * which no current map has. Widen the row test if one appears.
+ */
+export function hiddenWallTiles(frame: WorldFrameState): ReadonlySet<string> {
+  const occupied = frame.hiddenRoofGroupId;
+  if (occupied === undefined) return new Set();
+
+  const groups = wallRoofGroups(frame);
+  const hidden = new Set<string>();
+  for (const wall of frame.walls) {
+    if (groups.get(tileKey(wall.tile)) !== occupied) continue;
+    const onSouthPerimeter = frame.shelterCells.some((cell) =>
+      bordersRect(wall.tile, cell) && wall.tile.y === cell.y + cell.height);
+    if (onSouthPerimeter) hidden.add(tileKey(wall.tile));
+  }
+  return hidden;
+}

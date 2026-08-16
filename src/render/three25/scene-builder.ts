@@ -1,5 +1,6 @@
 import type { AtlasRectangle } from '../atlas';
 import type { WorldFloorPlacement, WorldFrameState } from '../world-frame';
+import { hiddenWallTiles, tileKey } from './occlusion';
 import { WALL_HEIGHT_TILES, recipeFor } from './recipes';
 
 /**
@@ -65,13 +66,17 @@ export function buildFloorQuads(frame: WorldFrameState): readonly QuadDescriptor
  * `frame.walls` today. It costs one Set lookup and it stops a future frame change from putting
  * walls back into doorways.
  *
+ * The near walls of the occupied roof group are culled, so the player can see into the room they
+ * are standing in instead of looking at the back of its south wall.
+ *
  * ponytail: per-tile boxes, O(walls) meshes. Merge runs by `adjacencyMask` if Task 20 shows a
  * draw-call problem — the mask is already on the placement when that time comes.
  */
 export function buildWallBoxes(frame: WorldFrameState): readonly BoxDescriptor[] {
   const doorTiles = new Set(frame.doors.map((door) => `${door.tile.x},${door.tile.y}`));
+  const hidden = hiddenWallTiles(frame);
   return frame.walls
-    .filter((wall) => !doorTiles.has(`${wall.tile.x},${wall.tile.y}`))
+    .filter((wall) => !doorTiles.has(`${wall.tile.x},${wall.tile.y}`) && !hidden.has(tileKey(wall.tile)))
     .map((wall) => ({
       id: wall.id,
       sprite: wall.sprite,
