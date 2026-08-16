@@ -350,3 +350,12 @@ describe('secure Electron boundary', () => {
     expect(workflow).toContain('timeout-minutes: 2');
   });
 });
+
+describe('smoke renderer whitelist', () => {
+  test('the preload renderer whitelist accepts both renderers and no dead values', () => {
+    const source = readFileSync(resolve('electron/preload/index.ts'), 'utf8');
+    expect(source).toContain("smokeRenderer === 'threejs-2d'");
+    expect(source).toContain("smokeRenderer === 'threejs-2-5d'");
+    expect(source).not.toContain("smokeRenderer === 'skia'");
+  });
+});

@@ -103,7 +103,7 @@ if (process.argv.includes('--si-world-smoke-mode=1') && (smokeVfxMode === 'circl
   contextBridge.exposeInMainWorld('siWorldVfxMode', smokeVfxMode);
 }
 const smokeRenderer = process.argv.find((argument) => argument.startsWith('--si-world-test-renderer='))?.split('=')[1];
-if (process.argv.includes('--si-world-smoke-mode=1') && (smokeRenderer === 'skia' || smokeRenderer === 'threejs-2d')) {
+if (process.argv.includes('--si-world-smoke-mode=1') && (smokeRenderer === 'threejs-2d' || smokeRenderer === 'threejs-2-5d')) {
   contextBridge.exposeInMainWorld('siWorldTestRenderer', smokeRenderer);
 }
 const smokeToneMapping = process.argv.find((argument) => argument.startsWith('--si-world-test-tone-mapping='))?.split('=')[1];
