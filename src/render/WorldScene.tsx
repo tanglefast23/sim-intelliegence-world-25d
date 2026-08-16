@@ -105,6 +105,7 @@ import {
 import { automaticUiScale, automaticWorldZoom, type UiScale } from './responsive-layout';
 import { ThreeWorldSurface } from './ThreeWorldSurface';
 import type { RendererKind } from './renderer-selection';
+import { inflatedViewport } from './three25/inflation';
 import { measureResponsiveEvidence } from './responsive-evidence';
 import { buildSmokeGeometryEvidence } from './smoke-geometry';
 import { parseVfxEvidence } from './vfx/evidence';
@@ -308,6 +309,10 @@ export function WorldScene({
   rendererKind = 'threejs-2d',
   surface,
 }: WorldSceneProps) {
+  // Declared once, above every consumer. The tilted renderer needs a taller frame request, a
+  // different projection for picking, and a different camera clamp; each of those branches off
+  // this one flag rather than calling the selector again.
+  const renderer2_5d = rendererKind === 'threejs-2-5d';
   const reducedMotion = useReducedMotion();
   const playVocalCue = useVocalCues();
   const initialTile = useMemo(() => ({
@@ -1361,7 +1366,7 @@ export function WorldScene({
       stopProgress: gaitStopProgress(runtime.movement),
     }, {
       camera: renderCamera,
-      viewport: surface,
+      viewport: renderer2_5d ? inflatedViewport(surface, renderCamera.zoom) : surface,
       devicePixelRatio: dpr,
       artMode,
       movements: [runtime.movement, ...Object.values(runtime.npcMovements)],
@@ -1376,7 +1381,7 @@ export function WorldScene({
       transientEffects: transientFrame.rects,
       transientGlows: transientFrame.glows,
     }),
-    [artMode, renderCamera, destinationMarker, destinationPulseElapsedMs, dpr, map, npcTiles, playerVisualFoot, poseFrame, reactionId, reducedMotion, rendererParityPulseFrozen, runtime.movement, runtime.npcMovements, runtime.worldState, selected, selectedFoot, surface, transientFrame, vfxAgeStep, vfxMode],
+    [artMode, renderCamera, destinationMarker, destinationPulseElapsedMs, dpr, map, npcTiles, playerVisualFoot, poseFrame, reactionId, reducedMotion, renderer2_5d, rendererParityPulseFrozen, runtime.movement, runtime.npcMovements, runtime.worldState, selected, selectedFoot, surface, transientFrame, vfxAgeStep, vfxMode],
   );
   const propById = new Map(worldFrame.props.map((prop) => [prop.id, prop]));
   const characterById = new Map(worldFrame.characters.map((character) => [character.id, character]));
