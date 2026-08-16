@@ -1,9 +1,11 @@
 import {
   ACESFilmicToneMapping,
+  BasicShadowMap,
   BufferAttribute,
   BufferGeometry,
   ClampToEdgeWrapping,
   Color,
+  DirectionalLight,
   HemisphereLight,
   Mesh,
   MeshBasicMaterial,
@@ -12,6 +14,7 @@ import {
   PlaneGeometry,
   NoToneMapping,
   OrthographicCamera,
+  PointLight,
   SRGBColorSpace,
   Scene,
   Texture,
@@ -27,6 +30,7 @@ import { ACES_EXPOSURE } from '../three/world-renderer';
 import type { ViewportSize } from '../camera';
 import type { WorldFrameState } from '../world-frame';
 import { buildBillboards, type BillboardDescriptor } from './billboards';
+import { DEFAULT_SHADOW_PATH, blobShadows, lampLights, type ShadowPath } from './lighting';
 import { SceneCache } from './mesh-cache';
 import { GROUND_TILT_DEGREES, GROUND_Z_SCALE } from './projection';
 import { buildScene, type BoxDescriptor, type QuadDescriptor, type SceneDescriptor } from './scene-builder';
@@ -83,7 +87,7 @@ export function frameCamera(
   frame: WorldFrameState,
   surface: ViewportSize,
   yawDegrees: number,
-): void {
+): Readonly<{ x: number; z: number }> {
   const zoom = frame.camera.zoom;
   const halfWidthTiles = surface.width / (2 * zoom * TILE_SIZE);
   const halfHeightTiles = surface.height / (2 * zoom * TILE_SIZE);
@@ -108,6 +112,10 @@ export function frameCamera(
   );
   camera.lookAt(targetX, 0, targetZ);
   camera.updateProjectionMatrix();
+  // Returned because the sun and its shadow camera must aim at what is ON SCREEN. The camera's own
+  // position sits CAMERA_DISTANCE_TILES back along the view axis - aiming the sun there points it
+  // nearly 200 tiles behind the visible footprint, and the shadow map covers nothing.
+  return { x: targetX, z: targetZ };
 }
 
 async function loadAtlasTexture(atlasUrl: string): Promise<Texture> {
@@ -420,9 +428,10 @@ export async function createWorldRenderer25(
   onReady: () => void,
   onContextStateChange: (state: 'lost' | 'restored' | 'timed-out') => void,
   toneMapping: ToneMappingKind = 'aces',
-  options: Readonly<{ yawDegrees?: number }> = {},
+  options: Readonly<{ yawDegrees?: number; shadowPath?: ShadowPath }> = {},
 ): Promise<WorldRenderer25> {
   const yawDegrees = options.yawDegrees ?? 0;
+  const shadowPath = options.shadowPath ?? DEFAULT_SHADOW_PATH;
 
   // Request WebGL 2 explicitly, the way the 2D path does. `new WebGLRenderer({ canvas })` may hand
   // back WebGL 1, and GameSurfaceShell reports webgl2Ready from canvas.getContext('webgl2') — a
@@ -453,8 +462,49 @@ export async function createWorldRenderer25(
 
   // Stage 1 ships lights. MeshStandardMaterial with no light source renders pure black, so without
   // this the villa is an empty frame and every capture is worthless.
-  const hemisphere = new HemisphereLight('#f5dcb0', '#202824', 1.7);
+  const hemisphere = new HemisphereLight('#f5dcb0', '#202824', shadowPath === 'lit' ? 1.1 : 1.7);
   scene.add(hemisphere);
+
+  /**
+   * The lit path adds a directional sun and a hard shadow map. `BasicShadowMap` at 256 is
+   * deliberate: soft PCF shadows read as smooth 3D and break the pixel rules in spec section 9.
+   *
+   * The fallback path ships neither, which is why it is deterministic and holds 60 FPS everywhere.
+   * Blob shadows draw in BOTH paths - see `blobShadows`.
+   */
+  const sun = shadowPath === 'lit' ? new DirectionalLight('#ffefdb', 3.2) : undefined;
+  if (sun) {
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = BasicShadowMap;
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(256, 256);
+    // The shadow camera has to cover the visible footprint, not three's tiny default box.
+    sun.shadow.camera.left = -40;
+    sun.shadow.camera.right = 40;
+    sun.shadow.camera.top = 40;
+    sun.shadow.camera.bottom = -40;
+    sun.shadow.camera.near = 0.5;
+    sun.shadow.camera.far = 120;
+    // Without this three keeps its default -5..5 box and every frustum value above is dead, so
+    // only props near the centre of the view cast at all.
+    sun.shadow.camera.updateProjectionMatrix();
+    scene.add(sun, sun.target);
+  }
+
+  /** Point lights at lamp props. Rebuilt only when the lamp set changes, not every frame. */
+  const lamps = new Map<string, PointLight>();
+
+  /**
+   * Character blob shadows: one flat quad each, in both paths. Billboards cannot cast into a
+   * shadow map, so this is the only shadow a character ever gets.
+   */
+  // `vertexColors` is what lets the baked colour attribute reach the pixels; without it every blob
+  // ignores the frame's shadow tint and draws white.
+  const blobMaterial = new MeshBasicMaterial({ transparent: true, depthWrite: false, vertexColors: true });
+  const blobMesh = new Mesh(new BufferGeometry(), blobMaterial);
+  blobMesh.frustumCulled = false;
+  blobMesh.renderOrder = 1;
+  scene.add(blobMesh);
 
   /**
    * One material for every sprite. `alphaTest` rather than `transparent` keeps the atlas cutout
@@ -479,6 +529,13 @@ export async function createWorldRenderer25(
   floorMesh.frustumCulled = false;
   boxMesh.frustumCulled = false;
   billboardMesh.frustumCulled = false;
+  // Enabling the shadow map is not enough: without these the sun has nothing to cast from and
+  // nothing to cast onto, and the lit path renders identically to the fallback minus the ambient.
+  // Boxes cast and receive; floors only receive; billboards do neither - a camera-facing card has
+  // no meaningful silhouette from the sun, which is why characters get blobs in both paths.
+  boxMesh.castShadow = shadowPath === 'lit';
+  boxMesh.receiveShadow = shadowPath === 'lit';
+  floorMesh.receiveShadow = shadowPath === 'lit';
   scene.add(floorMesh, boxMesh, billboardMesh);
 
   // Hoisted: extractBasis writes into these every frame, and allocating three vectors per frame
@@ -521,7 +578,7 @@ export async function createWorldRenderer25(
     const buffer = threeDrawingBufferSize(surface, next.devicePixelRatio);
     renderer.setSize(buffer.width, buffer.height, false);
 
-    frameCamera(camera, next, surface, yawDegrees);
+    const lookAt = frameCamera(camera, next, surface, yawDegrees);
 
     // Cover the whole visible footprint plus a wide margin, centred on what the camera looks at.
     // Cheaper and steadier than fitting it to the map: one quad, no rebuild, no seam at the edge.
@@ -554,6 +611,51 @@ export async function createWorldRenderer25(
       descriptorCount = built.floors.length + built.boxes.length;
       signature = nextSignature;
     }
+
+    // Lamp lights: add and remove by id so a pan does not churn the light list.
+    const wanted = new Map(lampLights(next).map((light) => [light.id, light]));
+    for (const [id, light] of lamps) {
+      if (wanted.has(id)) continue;
+      scene.remove(light);
+      light.dispose();
+      lamps.delete(id);
+    }
+    for (const [id, descriptor] of wanted) {
+      let light = lamps.get(id);
+      if (!light) {
+        light = new PointLight('#ffffff', 1, 6, 2);
+        lamps.set(id, light);
+        scene.add(light);
+      }
+      light.color.setStyle(descriptor.color.slice(0, 7));
+      light.color.convertSRGBToLinear();
+      light.intensity = descriptor.intensity;
+      light.position.set(descriptor.x, 1.1, descriptor.z);
+    }
+
+    if (sun) {
+      // Aim the sun along the frame's own shadow vector, so the lit path agrees with the 2D
+      // renderer about where the light comes from.
+      sun.target.position.set(lookAt.x, 0, lookAt.z);
+      sun.target.updateMatrixWorld(true);
+      sun.position.set(
+        lookAt.x - (next.lighting.sun.shadowX / TILE_SIZE) * 6,
+        14 + next.lighting.sun.elevation * 12,
+        lookAt.z - (next.lighting.sun.shadowY / TILE_SIZE) * 6,
+      );
+      sun.intensity = 0.8 + next.lighting.sun.elevation * 2.6;
+    }
+
+    // Blob shadows are flat ground quads, so they bake with the same helper the floors use.
+    const blobs = blobShadows(next);
+    blobMesh.geometry.dispose();
+    blobMesh.geometry = bakeSceneGeometry({ floors: blobs, boxes: [] }, atlasWidth, atlasHeight).floors;
+    blobMesh.visible = blobs.length > 0;
+    // The bake carries RGB only, so the shadow colour's alpha has to reach the material directly.
+    // Dropping it would stamp a solid dark oval under every character instead of a soft contact
+    // shadow.
+    const blobAlpha = blobs[0]?.tint.length === 9 ? Number.parseInt(blobs[0].tint.slice(7), 16) / 255 : 0.45;
+    blobMaterial.opacity = blobAlpha;
 
     // Characters turn to face the camera's bearing, so their quads are rebuilt from the camera
     // basis every frame rather than kept in the world batch. Only the horizontal component of the
@@ -616,6 +718,17 @@ export async function createWorldRenderer25(
       floorMesh.geometry.dispose();
       boxMesh.geometry.dispose();
       billboardMesh.geometry.dispose();
+      blobMesh.geometry.dispose();
+      blobMaterial.dispose();
+      for (const light of lamps.values()) {
+        scene.remove(light);
+        light.dispose();
+      }
+      lamps.clear();
+      if (sun) {
+        scene.remove(sun, sun.target);
+        sun.dispose();
+      }
       skirt.geometry.dispose();
       skirtMaterial.dispose();
       material.dispose();

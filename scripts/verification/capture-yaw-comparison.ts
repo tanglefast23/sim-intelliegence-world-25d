@@ -104,9 +104,9 @@ function ensureWindow() {
   return sharedWindow;
 }
 
-async function captureYaw(yaw) {
+async function captureYaw(yaw, shadowPath = 'fallback') {
   const window = ensureWindow();
-  await window.loadURL(\`http://127.0.0.1:${PORT}/?testRenderer=2-5d&testYaw=\${yaw}\`);
+  await window.loadURL(\`http://127.0.0.1:${PORT}/?testRenderer=2-5d&testYaw=\${yaw}&testShadowPath=\${shadowPath}\`);
 
   // The web export boots to the title screen, so the world - and the renderer - do not exist until
   // a new game starts. Served over http there is no desktop bridge, so starting one is a pure
@@ -148,14 +148,15 @@ async function captureYaw(yaw) {
   // Two paints after readiness, so the capture is of a presented frame.
   await new Promise((r) => setTimeout(r, 750));
   const image = await window.webContents.capturePage(undefined, { stayHidden: true });
-  writeFileSync(join(outputDirectory, \`yaw-\${yaw}.png\`), image.toPNG());
+  writeFileSync(join(outputDirectory, \`yaw-\${yaw}-\${shadowPath}.png\`), image.toPNG());
   return evidence;
 }
 
 app.whenReady().then(async () => {
   const report = [];
   try {
-    for (const yaw of yaws) report.push({ yaw, evidence: await captureYaw(yaw) });
+    for (const yaw of yaws) report.push({ yaw, shadowPath: 'fallback', evidence: await captureYaw(yaw, 'fallback') });
+    report.push({ yaw: 0, shadowPath: 'lit', evidence: await captureYaw(0, 'lit') });
     console.log('SI_WORLD_YAW_COMPARISON_RESULT ' + JSON.stringify(report));
     app.exit(0);
   } catch (error) {
@@ -204,7 +205,8 @@ async function main(): Promise<void> {
       join(evidenceRoot, 'yaw-comparison.json'),
       `${JSON.stringify({ schemaVersion: 1, viewport: VIEWPORT, captures: JSON.parse(report) }, null, 2)}\n`,
     );
-    for (const yaw of YAWS) console.log(`Wrote ${join(evidenceRoot, `yaw-${yaw}.png`)}`);
+    for (const yaw of YAWS) console.log(`Wrote ${join(evidenceRoot, `yaw-${yaw}-fallback.png`)}`);
+    console.log(`Wrote ${join(evidenceRoot, 'yaw-0-lit.png')}`);
     console.log(`Wrote ${join(evidenceRoot, 'yaw-comparison.json')}`);
   } finally {
     await new Promise<void>((done) => server.close(() => done()));

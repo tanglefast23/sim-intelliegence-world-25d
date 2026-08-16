@@ -20,6 +20,7 @@ import type { CameraDirector } from '../render/camera-motion';
 import type { MapId } from '../world/maps/catalog';
 import type { RendererKind, ToneMappingKind } from '../render/renderer-selection';
 import type { ThreeRendererEvidence } from '../render/three/world-renderer';
+import type { ShadowPath } from '../render/three25/lighting';
 import type { WorldRenderer25Evidence } from '../render/three25/world-renderer-25';
 
 export type DesktopBridge = ConversationPort & Readonly<{
@@ -50,6 +51,8 @@ declare global {
     siWorldPinShootingScene?: (timeMs: number) => number;
     siWorldSmokeMode?: boolean;
     siWorldTestRenderer?: RendererKind;
+    /** Explicit 2.5D shadow path for a packaged smoke. Never an FPS probe. */
+    siWorldShadowPath?: ShadowPath;
     siWorldTestToneMapping?: ToneMappingKind;
     siWorldFreezeNpcMotion?: true;
     siWorldOpenConversationFixture?: (characterId: CharacterId) => void;

@@ -106,6 +106,10 @@ const smokeRenderer = process.argv.find((argument) => argument.startsWith('--si-
 if (process.argv.includes('--si-world-smoke-mode=1') && (smokeRenderer === 'threejs-2d' || smokeRenderer === 'threejs-2-5d')) {
   contextBridge.exposeInMainWorld('siWorldTestRenderer', smokeRenderer);
 }
+const smokeShadowPath = process.argv.find((argument) => argument.startsWith('--si-world-shadow-path='))?.split('=')[1];
+if (process.argv.includes('--si-world-smoke-mode=1') && (smokeShadowPath === 'lit' || smokeShadowPath === 'fallback')) {
+  contextBridge.exposeInMainWorld('siWorldShadowPath', smokeShadowPath);
+}
 const smokeToneMapping = process.argv.find((argument) => argument.startsWith('--si-world-test-tone-mapping='))?.split('=')[1];
 if (process.argv.includes('--si-world-smoke-mode=1') && (smokeToneMapping === 'none' || smokeToneMapping === 'aces')) {
   contextBridge.exposeInMainWorld('siWorldTestToneMapping', smokeToneMapping);

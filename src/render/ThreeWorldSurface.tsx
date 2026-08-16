@@ -6,6 +6,7 @@ import type { ViewportSize } from './camera';
 import type { WorldFrameState } from './world-frame';
 import { selectedRenderer, selectedToneMapping, selectedYawDegrees } from './renderer-selection';
 import { ThreeWorldRenderer } from './three/world-renderer';
+import { selectedShadowPath } from './three25/lighting';
 import { createWorldRenderer25, type WorldRenderer25 } from './three25/world-renderer-25';
 
 const atlasImage = require('../../assets/generated/world-atlas.png') as number;
@@ -64,7 +65,7 @@ export function ThreeWorldSurface({
         () => onReadyRef.current(),
         (state) => onContextStateChangeRef.current(state),
         selectedToneMapping(),
-        { yawDegrees: selectedYawDegrees() },
+        { yawDegrees: selectedYawDegrees(), shadowPath: selectedShadowPath() },
       )
       : ThreeWorldRenderer.create(
         canvas,
