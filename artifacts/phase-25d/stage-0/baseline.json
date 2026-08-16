@@ -1,0 +1,15 @@
+{
+  "commit": "d502b5c0d6fc8ac7166c0e0ca6ac4b19c4e28879",
+  "renderer": "threejs-2d",
+  "mapId": "northwest_residential",
+  "drawCounts": {
+    "floor": 3913,
+    "prop": 110,
+    "shadow": 1,
+    "character": 1,
+    "effect": 8,
+    "wall": 129,
+    "roof": 0,
+    "total": 4162
+  }
+}
