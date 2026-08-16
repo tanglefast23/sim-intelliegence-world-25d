@@ -1,9 +1,10 @@
 import { Vector3 } from 'three';
 
 import { rendererForEnvironment } from '../../renderer-selection';
+import { buildBillboards } from '../billboards';
 import { GROUND_TILT_DEGREES, screenToWorldTilted, worldToScreenTilted } from '../projection';
 import { buildScene } from '../scene-builder';
-import { bakeSceneGeometry, cameraForYaw, frameCamera } from '../world-renderer-25';
+import { bakeBillboardGeometry, bakeSceneGeometry, cameraForYaw, frameCamera } from '../world-renderer-25';
 import { indoorFrame } from './fixtures';
 
 describe('2.5D camera placement', () => {
@@ -159,5 +160,83 @@ describe('frameCamera agrees with the ground projection', () => {
     // NDC x of -1..1 spans the full surface width.
     expect((ndc.x + 1) / 2 * SURFACE.width).toBeCloseTo(screen.x, 4);
     expect((1 - ndc.y) / 2 * SURFACE.height).toBeCloseTo(screen.y, 4);
+  });
+});
+
+describe('character billboards bake into one upright batch', () => {
+  // The camera's right vector flattened onto the ground, and world up. Not the camera's up.
+  const RIGHT = { x: 1, y: 0, z: 0 } as const;
+  const UP = { x: 0, y: 1, z: 0 } as const;
+  const billboards = buildBillboards(indoorFrame());
+
+  test('emits four vertices and six indices per character', () => {
+    const geometry = bakeBillboardGeometry(billboards, RIGHT, UP, 1024, 1024);
+    expect(geometry.getAttribute('position').count).toBe(billboards.length * 4);
+    expect(geometry.getIndex()!.count).toBe(billboards.length * 6);
+  });
+
+  test('stands the quad ON its anchor rather than centring it', () => {
+    const geometry = bakeBillboardGeometry(billboards, RIGHT, UP, 1024, 1024);
+    const position = geometry.getAttribute('position');
+    // Corners 0 and 1 are the bottom edge and sit on the ground plane.
+    expect(position.getY(0)).toBeCloseTo(0, 6);
+    expect(position.getY(1)).toBeCloseTo(0, 6);
+    // Corners 2 and 3 are the top edge and stand above it.
+    expect(position.getY(2)).toBeGreaterThan(0);
+    expect(position.getY(3)).toBeGreaterThan(0);
+  });
+
+  /**
+   * The card stands straight up. Leaning it into the view plane would stop it being parallel to
+   * the vertical wall and door faces beside it, and a character in a doorway would read as
+   * falling toward the viewer.
+   */
+  test('keeps the quad world-vertical, never leaning into the view plane', () => {
+    const geometry = bakeBillboardGeometry(billboards, RIGHT, UP, 1024, 1024);
+    const position = geometry.getAttribute('position');
+    // Bottom-left and top-left share a column: same x and same z, differing only in height.
+    expect(position.getZ(3)).toBeCloseTo(position.getZ(0), 6);
+    expect(position.getX(3)).toBeCloseTo(position.getX(0), 6);
+    expect(position.getY(3)).toBeGreaterThan(position.getY(0));
+  });
+
+  test('turns to the camera bearing on the horizontal axis', () => {
+    const bearing = { x: Math.SQRT1_2, y: 0, z: -Math.SQRT1_2 } as const;
+    const geometry = bakeBillboardGeometry(billboards, bearing, UP, 1024, 1024);
+    const position = geometry.getAttribute('position');
+    // Yawed right vector, so the bottom edge runs diagonally across the ground plane...
+    expect(position.getZ(1)).not.toBeCloseTo(position.getZ(0), 3);
+    // ...while the card still stands straight up.
+    expect(position.getZ(3)).toBeCloseTo(position.getZ(0), 6);
+  });
+
+  test('draws the sprite at its authored world height, uncorrected for tilt', () => {
+    const geometry = bakeBillboardGeometry(billboards, RIGHT, UP, 1024, 1024);
+    const position = geometry.getAttribute('position');
+    // Every vertical surface in the scene foreshortens by the same factor, so characters keep
+    // their proportion against the walls. Compensating only characters would break that.
+    expect(position.getY(3) - position.getY(0)).toBeCloseTo(billboards[0]!.height, 6);
+  });
+
+  test('centres the quad horizontally on the contact point', () => {
+    const geometry = bakeBillboardGeometry(billboards, RIGHT, UP, 1024, 1024);
+    const position = geometry.getAttribute('position');
+    const anchor = billboards[0]!;
+    expect((position.getX(0) + position.getX(1)) / 2).toBeCloseTo(anchor.x, 6);
+  });
+
+  test('twenty characters still bake into one geometry', () => {
+    const frame = indoorFrame();
+    const many = {
+      ...frame,
+      characters: Array.from({ length: 20 }, (_, index) => ({ ...frame.characters[0]!, id: `npc-${index}` })),
+    };
+    const geometry = bakeBillboardGeometry(buildBillboards(many), RIGHT, UP, 1024, 1024);
+    expect(geometry.getAttribute('position').count).toBe(80);
+  });
+
+  test('an empty cast bakes without error', () => {
+    const geometry = bakeBillboardGeometry([], RIGHT, UP, 1024, 1024);
+    expect(geometry.getAttribute('position').count).toBe(0);
   });
 });

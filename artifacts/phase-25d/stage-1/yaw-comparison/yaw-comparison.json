@@ -9,7 +9,7 @@
       "yaw": 0,
       "evidence": {
         "rendererKind": "threejs-2-5d",
-        "drawCalls": 2,
+        "drawCalls": 3,
         "meshCount": 1801,
         "yawDegrees": 0
       }
@@ -18,7 +18,7 @@
       "yaw": 35,
       "evidence": {
         "rendererKind": "threejs-2-5d",
-        "drawCalls": 2,
+        "drawCalls": 3,
         "meshCount": 1801,
         "yawDegrees": 35
       }

@@ -14,6 +14,7 @@ import {
   Scene,
   Texture,
   TextureLoader,
+  Vector3,
   WebGLRenderer,
 } from 'three';
 
@@ -23,6 +24,7 @@ import { threeDrawingBufferSize } from '../three/coordinate-contract';
 import { ACES_EXPOSURE } from '../three/world-renderer';
 import type { ViewportSize } from '../camera';
 import type { WorldFrameState } from '../world-frame';
+import { buildBillboards, type BillboardDescriptor } from './billboards';
 import { SceneCache } from './mesh-cache';
 import { GROUND_TILT_DEGREES, GROUND_Z_SCALE } from './projection';
 import { buildScene, type BoxDescriptor, type QuadDescriptor, type SceneDescriptor } from './scene-builder';
@@ -273,6 +275,90 @@ function bakeGeometry(
   return geometry;
 }
 
+/**
+ * Bakes upright character quads into one geometry.
+ *
+ * **World-vertical, yaw-facing — not view-plane facing.** `right` is the camera's right vector
+ * flattened onto the ground plane; up is world `+Y`. A quad tilted into the view plane would lean
+ * 40 degrees toward the camera and stop being parallel to the vertical wall and door faces beside
+ * it, so a character standing in a doorway reads as falling at the viewer. That is the failure
+ * mode "upright billboard" exists to prevent.
+ *
+ * The 24% vertical foreshortening that comes with staying vertical is not corrected. Every
+ * vertical surface in the scene — walls, doors, prop sides — foreshortens by exactly the same
+ * factor, so characters keep their proportion against the world. Compensating only the characters
+ * would make them the one thing in the frame drawn to a different rule.
+ *
+ * The quad stands ON its anchor: the contact point is the bottom edge, not the centre.
+ *
+ * Rebaked every frame, unlike floors and boxes — characters move every frame, and a handful of
+ * quads is nothing next to the thousands in the world batch.
+ */
+export function bakeBillboardGeometry(
+  billboards: readonly BillboardDescriptor[],
+  right: Readonly<{ x: number; y: number; z: number }>,
+  up: Readonly<{ x: number; y: number; z: number }>,
+  atlasWidth: number,
+  atlasHeight: number,
+): BufferGeometry {
+  const positions = new Float32Array(billboards.length * 4 * 3);
+  const normals = new Float32Array(billboards.length * 4 * 3);
+  const uvs = new Float32Array(billboards.length * 4 * 2);
+  const colors = new Float32Array(billboards.length * 4 * 3);
+  const indices = new Uint32Array(billboards.length * 6);
+
+  // right x up points back out of the quad toward the camera, so the sprite is lit from the front
+  // rather than edge-on and the counter-clockwise winding below is the visible face.
+  const normal: readonly [number, number, number] = [
+    right.y * up.z - right.z * up.y,
+    right.z * up.x - right.x * up.z,
+    right.x * up.y - right.y * up.x,
+  ];
+
+  billboards.forEach((billboard, billboardIndex) => {
+    const cell = atlasCell(billboard.source, atlasWidth, atlasHeight);
+    const tint = linearTint(billboard.tint);
+    // Bottom-left, bottom-right, top-right, top-left — matching FACE_UVS.
+    const corners: readonly (readonly [number, number])[] = [
+      [-billboard.width / 2, 0],
+      [billboard.width / 2, 0],
+      [billboard.width / 2, billboard.height],
+      [-billboard.width / 2, billboard.height],
+    ];
+    corners.forEach((corner, cornerIndex) => {
+      const vertex = billboardIndex * 4 + cornerIndex;
+      const uv = FACE_UVS[cornerIndex]!;
+      positions[vertex * 3] = billboard.x + right.x * corner[0] + up.x * corner[1];
+      positions[vertex * 3 + 1] = right.y * corner[0] + up.y * corner[1];
+      positions[vertex * 3 + 2] = billboard.z + right.z * corner[0] + up.z * corner[1];
+      normals[vertex * 3] = normal[0];
+      normals[vertex * 3 + 1] = normal[1];
+      normals[vertex * 3 + 2] = normal[2];
+      uvs[vertex * 2] = cell.u0 + uv[0] * (cell.u1 - cell.u0);
+      uvs[vertex * 2 + 1] = cell.v0 + uv[1] * (cell.v1 - cell.v0);
+      colors[vertex * 3] = tint[0];
+      colors[vertex * 3 + 1] = tint[1];
+      colors[vertex * 3 + 2] = tint[2];
+    });
+    const first = billboardIndex * 4;
+    const index = billboardIndex * 6;
+    indices[index] = first;
+    indices[index + 1] = first + 1;
+    indices[index + 2] = first + 2;
+    indices[index + 3] = first;
+    indices[index + 4] = first + 2;
+    indices[index + 5] = first + 3;
+  });
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(positions, 3));
+  geometry.setAttribute('normal', new BufferAttribute(normals, 3));
+  geometry.setAttribute('uv', new BufferAttribute(uvs, 2));
+  geometry.setAttribute('color', new BufferAttribute(colors, 3));
+  geometry.setIndex(new BufferAttribute(indices, 1));
+  return geometry;
+}
+
 /** Exposed for tests: the baked geometry is the one thing a Jest run can check without WebGL. */
 export function bakeSceneGeometry(
   scene: SceneDescriptor,
@@ -384,9 +470,22 @@ export async function createWorldRenderer25(
   const cache = new SceneCache();
   const floorMesh = new Mesh(new BufferGeometry(), material);
   const boxMesh = new Mesh(new BufferGeometry(), material);
+  // Characters are their own batch because they move every frame while the world does not.
+  const billboardMesh = new Mesh(new BufferGeometry(), material);
+  // The baked geometry is already in world space, so three's own bounding sphere would sit at the
+  // origin and cull the whole batch.
   floorMesh.frustumCulled = false;
   boxMesh.frustumCulled = false;
-  scene.add(floorMesh, boxMesh);
+  billboardMesh.frustumCulled = false;
+  scene.add(floorMesh, boxMesh, billboardMesh);
+
+  // Hoisted: extractBasis writes into these every frame, and allocating three vectors per frame
+  // for a value that never escapes is pure garbage.
+  const cameraRight = new Vector3();
+  const cameraUp = new Vector3();
+  const cameraBack = new Vector3();
+  const billboardRight = new Vector3();
+  const BILLBOARD_UP = new Vector3(0, 1, 0);
 
   let frame: WorldFrameState | undefined;
   let descriptorCount = 0;
@@ -420,6 +519,23 @@ export async function createWorldRenderer25(
       descriptorCount = built.floors.length + built.boxes.length;
       signature = nextSignature;
     }
+
+    // Characters turn to face the camera's bearing, so their quads are rebuilt from the camera
+    // basis every frame rather than kept in the world batch. Only the horizontal component of the
+    // camera's right vector is used — the quads stay world-vertical.
+    camera.updateMatrixWorld(true);
+    camera.matrixWorld.extractBasis(cameraRight, cameraUp, cameraBack);
+    billboardRight.set(cameraRight.x, 0, cameraRight.z);
+    if (billboardRight.lengthSq() === 0) billboardRight.set(1, 0, 0);
+    billboardRight.normalize();
+    billboardMesh.geometry.dispose();
+    billboardMesh.geometry = bakeBillboardGeometry(
+      buildBillboards(next),
+      billboardRight,
+      BILLBOARD_UP,
+      atlasWidth,
+      atlasHeight,
+    );
   };
 
   const onLost = (event: Event): void => { event.preventDefault(); onContextStateChange('lost'); };
@@ -464,6 +580,7 @@ export async function createWorldRenderer25(
       canvas.removeEventListener('webglcontextrestored', onRestored);
       floorMesh.geometry.dispose();
       boxMesh.geometry.dispose();
+      billboardMesh.geometry.dispose();
       material.dispose();
       texture.dispose();
       renderer.dispose();
