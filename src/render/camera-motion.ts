@@ -6,10 +6,12 @@ import {
 } from '../world/movement/motion-clock';
 import { stableTupleHash } from '../world/presentation/material-selection';
 import {
+  CAMERA_DEAD_ZONE_RATIO,
   clampCamera,
   followWindowTarget,
   frameCameraOn,
   type CameraState,
+  type ClampFn,
   type ScreenInsets,
   type ViewportSize,
 } from './camera';
@@ -93,6 +95,11 @@ export type CameraDirectorInput = Readonly<{
   viewport: ViewportSize;
   mapPixels: ViewportSize;
   reducedMotion: boolean;
+  /**
+   * How the director clamps to the map. Defaults to `clampCamera`, so the 2D path and every
+   * existing test are unchanged; the tilted renderer passes `clampCameraTilted`.
+   */
+  clamp?: ClampFn;
 }>;
 
 export type CameraDirectorSample = Readonly<{
@@ -222,8 +229,9 @@ function focusCamera(
     input.viewport,
     input.mapPixels,
     shot.insets,
+    input.clamp ?? clampCamera,
   );
-  return clampCamera({
+  return (input.clamp ?? clampCamera)({
     zoom: targetZoom,
     x: from.x + (target.x - from.x) * eased,
     y: from.y + (target.y - from.y) * eased,
@@ -280,7 +288,10 @@ export function sampleCameraDirector(
   } else if (shots.length === 0) {
     if (motion.shots.length > 0) followArmed = motion.followRestore;
     if (followArmed) {
-      const target = followWindowTarget(nextCamera, input.followPoint, input.viewport, input.mapPixels);
+      const target = followWindowTarget(
+        nextCamera, input.followPoint, input.viewport, input.mapPixels,
+        CAMERA_DEAD_ZONE_RATIO, input.clamp ?? clampCamera,
+      );
       const errorX = target.x - nextCamera.x;
       const errorY = target.y - nextCamera.y;
       const errorScreenPx = Math.hypot(errorX, errorY) * nextCamera.zoom;
@@ -289,7 +300,7 @@ export function sampleCameraDirector(
         // the screen-pixel lattice and the camera stalls short of the target for good.
         const travelPx = Math.max(1, errorScreenPx * (1 - Math.exp(-CAMERA_FOLLOW_DECAY_PER_SECOND * seconds)));
         const ratio = Math.min(1, travelPx / errorScreenPx);
-        nextCamera = clampCamera({
+        nextCamera = (input.clamp ?? clampCamera)({
           ...nextCamera,
           x: nextCamera.x + errorX * ratio,
           y: nextCamera.y + errorY * ratio,
@@ -318,7 +329,10 @@ export function sampleCameraDirector(
   // lattice can leave the focus a fraction outside the window edge, and an equality test would
   // then keep the clock awake forever.
   const settledTarget = followArmed && shots.length === 0
-    ? followWindowTarget(nextCamera, input.followPoint, input.viewport, input.mapPixels)
+    ? followWindowTarget(
+      nextCamera, input.followPoint, input.viewport, input.mapPixels,
+      CAMERA_DEAD_ZONE_RATIO, input.clamp ?? clampCamera,
+    )
     : nextCamera;
   const followSettled = Math.hypot(settledTarget.x - nextCamera.x, settledTarget.y - nextCamera.y) *
     nextCamera.zoom <= CAMERA_SETTLE_SCREEN_PX;

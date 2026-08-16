@@ -6,8 +6,10 @@ import {
   Color,
   HemisphereLight,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   NearestFilter,
+  PlaneGeometry,
   NoToneMapping,
   OrthographicCamera,
   SRGBColorSpace,
@@ -481,6 +483,23 @@ export async function createWorldRenderer25(
 
   // Hoisted: extractBasis writes into these every frame, and allocating three vectors per frame
   // for a value that never escapes is pure garbage.
+  /**
+   * One large flat quad under the floor tiles, filling everything outside the map bounds.
+   *
+   * At zoom 1 the tilted footprint is taller than the map, so no clamp can avoid seeing past the
+   * edge — `clampCameraTilted` centres the oversized axis rather than pretending otherwise. The
+   * skirt is what the player sees there instead of the clear colour.
+   *
+   * Untextured and unlit-flat: it is ground that continues past the map, not a surface anything
+   * stands on. It sits fractionally below y = 0 so it never z-fights the real floor quads.
+   */
+  const skirtMaterial = new MeshBasicMaterial({ color: '#b77945' });
+  const skirt = new Mesh(new PlaneGeometry(1, 1).rotateX(-Math.PI / 2), skirtMaterial);
+  skirt.position.y = -0.02;
+  skirt.frustumCulled = false;
+  skirt.renderOrder = -1;
+  scene.add(skirt);
+
   const cameraRight = new Vector3();
   const cameraUp = new Vector3();
   const cameraBack = new Vector3();
@@ -503,6 +522,22 @@ export async function createWorldRenderer25(
     renderer.setSize(buffer.width, buffer.height, false);
 
     frameCamera(camera, next, surface, yawDegrees);
+
+    // Cover the whole visible footprint plus a wide margin, centred on what the camera looks at.
+    // Cheaper and steadier than fitting it to the map: one quad, no rebuild, no seam at the edge.
+    const visibleTiles = Math.max(
+      surface.width / next.camera.zoom,
+      surface.height / (next.camera.zoom * GROUND_Z_SCALE),
+    ) / TILE_SIZE;
+    skirt.scale.set(visibleTiles * 4, 1, visibleTiles * 4);
+    skirt.position.x = next.camera.x / TILE_SIZE + surface.width / (2 * next.camera.zoom) / TILE_SIZE;
+    skirt.position.z = next.camera.y / TILE_SIZE
+      + surface.height / (2 * next.camera.zoom * GROUND_Z_SCALE) / TILE_SIZE;
+    // Tinted from the district accent and darkened well below it: the skirt should read as land
+    // continuing past the edge, not as a lit surface competing with the map.
+    skirtMaterial.color.setStyle(next.lighting.accent.slice(0, 7));
+    skirtMaterial.color.convertSRGBToLinear();
+    skirtMaterial.color.multiplyScalar(0.16);
 
     const built = buildScene(next);
     const delta = cache.sync(built, next.mapHash);
@@ -581,6 +616,8 @@ export async function createWorldRenderer25(
       floorMesh.geometry.dispose();
       boxMesh.geometry.dispose();
       billboardMesh.geometry.dispose();
+      skirt.geometry.dispose();
+      skirtMaterial.dispose();
       material.dispose();
       texture.dispose();
       renderer.dispose();

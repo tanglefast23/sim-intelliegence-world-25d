@@ -106,6 +106,7 @@ import { automaticUiScale, automaticWorldZoom, type UiScale } from './responsive
 import { ThreeWorldSurface } from './ThreeWorldSurface';
 import type { RendererKind } from './renderer-selection';
 import { inflatedViewport } from './three25/inflation';
+import { clampCameraTilted } from './three25/clamp';
 import { isScreenPointInsideMapTilted, screenToTileTilted, worldToScreenTilted } from './three25/projection';
 
 /**
@@ -337,6 +338,10 @@ export function WorldScene({
   const project = renderer2_5d ? worldToScreenTiltedRounded : worldToScreen;
   const unproject = renderer2_5d ? screenToTileTilted : screenToTile;
   const insideMap = renderer2_5d ? isScreenPointInsideMapTilted : isScreenPointInsideMap;
+  // The tilted view sees further down the map, so it has to stop panning sooner. Threaded into
+  // every camera helper rather than branched inside them, so `camera.ts` never learns that a
+  // second renderer exists.
+  const clamp = renderer2_5d ? clampCameraTilted : clampCamera;
   const reducedMotion = useReducedMotion();
   const playVocalCue = useVocalCues();
   const initialTile = useMemo(() => ({
@@ -357,8 +362,8 @@ export function WorldScene({
   const [camera, setCamera] = useState<CameraState>(() => {
     const saved = initialPresentationPreferences.camera;
     return !newGame && saved?.mapId === initialMapId
-      ? clampCamera({ x: saved.x, y: saved.y, zoom: initialZoom }, surface, MAP_PIXELS)
-      : centerCameraOnTile(initialAnchor, initialZoom, surface, MAP_PIXELS);
+      ? clamp({ x: saved.x, y: saved.y, zoom: initialZoom }, surface, MAP_PIXELS)
+      : centerCameraOnTile(initialAnchor, initialZoom, surface, MAP_PIXELS, clamp);
   });
   const [explicitWorldZoom, setExplicitWorldZoom] = useState(initialPresentationPreferences.worldZoom !== null);
   const [uiScale, setUiScale] = useState<UiScale>(() => initialPresentationPreferences.uiScale ?? automaticUiScale(surface));
@@ -414,6 +419,10 @@ export function WorldScene({
   followPointRef.current = runtime.movement.visualFoot;
   const reducedMotionRef = useRef(reducedMotion);
   reducedMotionRef.current = reducedMotion;
+  // The director runs inside a requestAnimationFrame loop whose effect does not re-subscribe on
+  // every render, so it reads the clamp through a ref like every other live value in there.
+  const clampRef = useRef(clamp);
+  clampRef.current = clamp;
   const [cameraMotionView, setCameraMotionView] = useState(() => ({
     offset: { x: 0, y: 0 },
     label: cameraMotionLabel(INITIAL_CAMERA_MOTION),
@@ -436,6 +445,7 @@ export function WorldScene({
         viewport: surfaceRef.current,
         mapPixels: MAP_PIXELS,
         reducedMotion: reducedMotionRef.current,
+        clamp: clampRef.current,
       });
       cameraMotionRef.current = sample.motion;
       if (sample.camera !== cameraRef.current) {
@@ -621,10 +631,10 @@ export function WorldScene({
     const previous = previousSurface.current;
     if (previous.width === surface.width && previous.height === surface.height) return;
     const nextZoom = explicitWorldZoom ? camera.zoom : automaticWorldZoom(surface);
-    setCamera((current) => resizeCameraPreservingCenter(current, previous, surface, nextZoom, MAP_PIXELS));
+    setCamera((current) => resizeCameraPreservingCenter(current, previous, surface, nextZoom, MAP_PIXELS, clamp));
     if (!explicitUiScale) setUiScale(automaticUiScale(surface));
     previousSurface.current = surface;
-  }, [camera.zoom, explicitUiScale, explicitWorldZoom, surface]);
+  }, [camera.zoom, clamp, explicitUiScale, explicitWorldZoom, surface]);
 
   useEffect(() => {
     // A director shot must never be persisted. A `hold` keeps the camera still, so a queue holding
@@ -678,6 +688,7 @@ export function WorldScene({
         { x: surfaceRef.current.width / 2, y: surfaceRef.current.height / 2 },
         surfaceRef.current,
         MAP_PIXELS,
+        clamp,
       ));
     };
     window.siWorldSetAuthoredDialogueFixture = (characterId) => {
@@ -744,7 +755,7 @@ export function WorldScene({
           },
         }),
       }));
-      setCamera((current) => centerCameraOnTile({ x: 23, y: 28 }, current.zoom, surfaceRef.current, MAP_PIXELS));
+      setCamera((current) => centerCameraOnTile({ x: 23, y: 28 }, current.zoom, surfaceRef.current, MAP_PIXELS, clamp));
       updateCameraMotion(suspendFollow);
     };
     window.siWorldOpenRendererMotionFixture = (fixture) => {
@@ -785,6 +796,7 @@ export function WorldScene({
         current.zoom,
         surfaceRef.current,
         MAP_PIXELS,
+        clamp,
       ));
       updateCameraMotion(suspendFollow);
     };
@@ -860,7 +872,7 @@ export function WorldScene({
           worldState,
         };
       });
-      setCamera((current) => centerCameraOnTile(effectTile, current.zoom, surfaceRef.current, MAP_PIXELS));
+      setCamera((current) => centerCameraOnTile(effectTile, current.zoom, surfaceRef.current, MAP_PIXELS, clamp));
       updateCameraMotion(suspendFollow);
     };
     return () => {
@@ -985,7 +997,7 @@ export function WorldScene({
       }).then((result) => {
         const tile = { x: result.state.protagonist.worldPosition.tileX, y: result.state.protagonist.worldPosition.tileY };
         setRuntime({ movement: createMovementState(tile), npcMovements: npcMovementState(result.state), worldState: result.state });
-        setCamera((current) => centerCameraOnTile(tile, current.zoom, surfaceRef.current, MAP_PIXELS));
+        setCamera((current) => centerCameraOnTile(tile, current.zoom, surfaceRef.current, MAP_PIXELS, clamp));
         setSelected('protagonist');
         setDestinationMarker(undefined);
         const arrivalPortal = portalAtTile(result.map, tile);
@@ -1104,8 +1116,8 @@ export function WorldScene({
     // Panning means the player is looking at something. Follow stays off until Center says
     // otherwise; an idle timer would yank the view back out from under them.
     updateCameraMotion(suspendFollow);
-    setCamera((current) => panCamera(current, delta, surface, MAP_PIXELS));
-  }, [conversationNpcId, openPanel, questOfferOpen, surface, updateCameraMotion]);
+    setCamera((current) => panCamera(current, delta, surface, MAP_PIXELS, clamp));
+  }, [clamp, conversationNpcId, openPanel, questOfferOpen, surface, updateCameraMotion]);
   const handleZoom = useCallback((direction: -1 | 1, anchor: Readonly<{ x: number; y: number }>) => {
     if (conversationNpcId || questOfferOpen || openPanel) return;
     setExplicitWorldZoom(true);
@@ -1115,13 +1127,14 @@ export function WorldScene({
       anchor,
       surface,
       MAP_PIXELS,
+      clamp,
     ));
-  }, [conversationNpcId, openPanel, questOfferOpen, surface]);
+  }, [clamp, conversationNpcId, openPanel, questOfferOpen, surface]);
   const center = useCallback(() => {
     if (conversationNpcId || questOfferOpen || openPanel) return;
-    setCamera((current) => centerCameraOnWorld(runtime.movement.visualFoot, current.zoom, surface, MAP_PIXELS));
+    setCamera((current) => centerCameraOnWorld(runtime.movement.visualFoot, current.zoom, surface, MAP_PIXELS, clamp));
     updateCameraMotion(armFollow);
-  }, [conversationNpcId, openPanel, questOfferOpen, runtime.movement.visualFoot, surface, updateCameraMotion]);
+  }, [clamp, conversationNpcId, openPanel, questOfferOpen, runtime.movement.visualFoot, surface, updateCameraMotion]);
   const changeWorldZoom = useCallback((direction: -1 | 1) => {
     setExplicitWorldZoom(true);
     setCamera((current) => zoomCameraAt(
@@ -1130,8 +1143,9 @@ export function WorldScene({
       { x: surface.width / 2, y: surface.height / 2 },
       surface,
       MAP_PIXELS,
+      clamp,
     ));
-  }, [surface]);
+  }, [clamp, surface]);
   const selectUiScale = useCallback((scale: UiScale) => {
     setExplicitUiScale(true);
     setUiScale(scale);
@@ -1337,12 +1351,12 @@ export function WorldScene({
   const renderCamera = useMemo(
     () => cameraMotionView.offset.x === 0 && cameraMotionView.offset.y === 0
       ? camera
-      : clampCamera({
+      : clamp({
         ...camera,
         x: camera.x + cameraMotionView.offset.x,
         y: camera.y + cameraMotionView.offset.y,
       }, surface, MAP_PIXELS),
-    [camera, cameraMotionView.offset, surface],
+    [camera, cameraMotionView.offset, clamp, surface],
   );
   /**
    * Sampled here rather than in the animation loop so the palette comes from the same lighting the
@@ -1772,7 +1786,7 @@ export function WorldScene({
           availableWidth={surface.width}
           compact={selected === 'protagonist' && reactionId !== 'protagonist'}
           onCenter={() => {
-            setCamera((current) => centerCameraOnWorld(selectedFoot, current.zoom, surface, MAP_PIXELS));
+            setCamera((current) => centerCameraOnWorld(selectedFoot, current.zoom, surface, MAP_PIXELS, clamp));
             updateCameraMotion(selected === 'protagonist' ? armFollow : suspendFollow);
           }}
           onTalk={selectedNpcId && !conversationNpcId && !questOfferOpen && !openPanel

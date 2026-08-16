@@ -34,6 +34,17 @@ function cameraAxisBounds(viewportPixels: number, mapPixels: number, zoom: numbe
  * already round to whole screen pixels, so this puts the camera on the lattice the render path
  * always used.
  */
+/**
+ * How a camera is clamped to the map. Threaded rather than branched on a boolean so the tilted
+ * renderer can supply its own rule without any camera helper knowing a renderer kind exists.
+ * Every parameter defaults to `clampCamera`, so existing callers and tests are untouched.
+ */
+export type ClampFn = (
+  camera: CameraState,
+  viewport: ViewportSize,
+  mapPixels: ViewportSize,
+) => CameraState;
+
 export function clampCamera(
   camera: CameraState,
   viewport: ViewportSize,
@@ -55,10 +66,11 @@ export function resizeCameraPreservingCenter(
   nextViewport: ViewportSize,
   nextZoom: number,
   mapPixels: ViewportSize,
+  clamp: ClampFn = clampCamera,
 ): CameraState {
   const centerWorldX = camera.x + oldViewport.width / camera.zoom / 2;
   const centerWorldY = camera.y + oldViewport.height / camera.zoom / 2;
-  return clampCamera({
+  return clamp({
     zoom: nextZoom,
     x: centerWorldX - nextViewport.width / nextZoom / 2,
     y: centerWorldY - nextViewport.height / nextZoom / 2,
@@ -70,9 +82,12 @@ export function centerCameraOnTile(
   zoom: number,
   viewport: ViewportSize,
   mapPixels: ViewportSize,
+  // BEFORE tileSize on purpose. Appended after it, every existing caller that omits both would be
+  // fine, but a caller passing `clamp` would be passing a function where a number is expected.
+  clamp: ClampFn = clampCamera,
   tileSize = 32,
 ): CameraState {
-  return centerCameraOnWorld({ x: tile.x * tileSize + tileSize / 2, y: tile.y * tileSize + tileSize / 2 }, zoom, viewport, mapPixels);
+  return centerCameraOnWorld({ x: tile.x * tileSize + tileSize / 2, y: tile.y * tileSize + tileSize / 2 }, zoom, viewport, mapPixels, clamp);
 }
 
 export function centerCameraOnWorld(
@@ -80,8 +95,9 @@ export function centerCameraOnWorld(
   zoom: number,
   viewport: ViewportSize,
   mapPixels: ViewportSize,
+  clamp: ClampFn = clampCamera,
 ): CameraState {
-  return clampCamera({
+  return clamp({
     zoom,
     x: point.x - viewport.width / zoom / 2,
     y: point.y - viewport.height / zoom / 2,
@@ -98,6 +114,7 @@ export function frameCameraOn(
   viewport: ViewportSize,
   mapPixels: ViewportSize,
   insets: ScreenInsets = ZERO_SCREEN_INSETS,
+  clamp: ClampFn = clampCamera,
 ): CameraState {
   if (points.length === 0) throw new RangeError('Framing needs at least one world point.');
   const xs = points.map(({ x }) => x);
@@ -106,7 +123,7 @@ export function frameCameraOn(
   const centerWorldY = (Math.min(...ys) + Math.max(...ys)) / 2;
   const freeCenterX = (insets.left + viewport.width - insets.right) / 2;
   const freeCenterY = (insets.top + viewport.height - insets.bottom) / 2;
-  return clampCamera({
+  return clamp({
     zoom,
     x: centerWorldX - freeCenterX / zoom,
     y: centerWorldY - freeCenterY / zoom,
@@ -124,13 +141,14 @@ export function followWindowTarget(
   viewport: ViewportSize,
   mapPixels: ViewportSize,
   deadZoneRatio: number = CAMERA_DEAD_ZONE_RATIO,
+  clamp: ClampFn = clampCamera,
 ): CameraState {
   const offsetX = (focus.x - camera.x) * camera.zoom - viewport.width / 2;
   const offsetY = (focus.y - camera.y) * camera.zoom - viewport.height / 2;
   const overflowX = Math.sign(offsetX) * Math.max(0, Math.abs(offsetX) - viewport.width * deadZoneRatio);
   const overflowY = Math.sign(offsetY) * Math.max(0, Math.abs(offsetY) - viewport.height * deadZoneRatio);
   if (overflowX === 0 && overflowY === 0) return camera;
-  return clampCamera({
+  return clamp({
     ...camera,
     x: camera.x + overflowX / camera.zoom,
     y: camera.y + overflowY / camera.zoom,
@@ -142,8 +160,9 @@ export function panCamera(
   screenDelta: Readonly<{ x: number; y: number }>,
   viewport: ViewportSize,
   mapPixels: ViewportSize,
+  clamp: ClampFn = clampCamera,
 ): CameraState {
-  return clampCamera({
+  return clamp({
     ...camera,
     x: camera.x - screenDelta.x / camera.zoom,
     y: camera.y - screenDelta.y / camera.zoom,
@@ -156,11 +175,12 @@ export function zoomCameraAt(
   anchor: Readonly<{ x: number; y: number }>,
   viewport: ViewportSize,
   mapPixels: ViewportSize,
+  clamp: ClampFn = clampCamera,
 ): CameraState {
   const nextZoom = assertWorldZoom(nextZoomCandidate);
   const worldX = camera.x + anchor.x / camera.zoom;
   const worldY = camera.y + anchor.y / camera.zoom;
-  return clampCamera({
+  return clamp({
     zoom: nextZoom,
     x: worldX - anchor.x / nextZoom,
     y: worldY - anchor.y / nextZoom,
