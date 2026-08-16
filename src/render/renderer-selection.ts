@@ -1,12 +1,36 @@
-export type RendererKind = 'threejs-2d';
+export type RendererKind = 'threejs-2d' | 'threejs-2-5d';
 
-export function rendererForEnvironment(): RendererKind {
-  // Stage 7 removed Skia, so there is nothing left to select.
-  return 'threejs-2d';
+const RENDERER_QUERY: Readonly<Record<string, RendererKind>> = {
+  '2d': 'threejs-2d',
+  '2-5d': 'threejs-2-5d',
+};
+
+/**
+ * Mirrors `toneMappingForEnvironment` below: the override is unsaved, local-or-smoke only, and
+ * production always gets the shipping renderer. The 2D path stays the rollback path until the
+ * 2.5D acceptance gate in docs/specs/2026-08-16-threejs-2-5d-renderer.md section 16 passes.
+ */
+export function rendererForEnvironment(input: Readonly<{
+  hostname: string;
+  search: string;
+  smokeMode: boolean;
+  smokeRenderer?: RendererKind;
+}>): RendererKind {
+  if (input.smokeMode && input.smokeRenderer) return input.smokeRenderer;
+  const local = input.hostname === 'localhost' || input.hostname === '127.0.0.1';
+  if (!local) return 'threejs-2d';
+  const requested = new URLSearchParams(input.search).get('testRenderer');
+  return (requested !== null ? RENDERER_QUERY[requested] : undefined) ?? 'threejs-2d';
 }
 
 export function selectedRenderer(): RendererKind {
-  return 'threejs-2d';
+  if (typeof window === 'undefined' || !window.location) return 'threejs-2d';
+  return rendererForEnvironment({
+    hostname: window.location.hostname,
+    search: window.location.search,
+    smokeMode: window.siWorldSmokeMode === true,
+    smokeRenderer: window.siWorldTestRenderer,
+  });
 }
 
 /**

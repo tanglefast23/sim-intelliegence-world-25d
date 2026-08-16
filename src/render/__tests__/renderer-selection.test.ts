@@ -1,9 +1,25 @@
 import { rendererForEnvironment, selectedRenderer, toneMappingForEnvironment } from '../renderer-selection';
 
-describe('renderer selection after Skia removal', () => {
-  // Stage 7 deleted the temporary selector. There is one renderer and no way to ask for another.
-  test('always reports the only renderer', () => {
-    expect(rendererForEnvironment()).toBe('threejs-2d');
+describe('renderer selection', () => {
+  const base = { hostname: 'localhost', search: '', smokeMode: false } as const;
+
+  test('production always gets the 2D renderer', () => {
+    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example' })).toBe('threejs-2d');
+    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example', search: '?testRenderer=2-5d' })).toBe('threejs-2d');
+  });
+
+  test('honours the local development override', () => {
+    expect(rendererForEnvironment({ ...base, search: '?testRenderer=2-5d' })).toBe('threejs-2-5d');
+    expect(rendererForEnvironment({ ...base, search: '?testRenderer=2d' })).toBe('threejs-2d');
+    expect(rendererForEnvironment({ ...base, search: '?testRenderer=bogus' })).toBe('threejs-2d');
+  });
+
+  test('honours the packaged smoke override only in smoke mode', () => {
+    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example', smokeMode: true, smokeRenderer: 'threejs-2-5d' })).toBe('threejs-2-5d');
+    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example', smokeRenderer: 'threejs-2-5d' })).toBe('threejs-2d');
+  });
+
+  test('defaults to the 2D renderer with no window', () => {
     expect(selectedRenderer()).toBe('threejs-2d');
   });
 });

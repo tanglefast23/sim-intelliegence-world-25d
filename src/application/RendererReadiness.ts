@@ -1,4 +1,5 @@
 import type { RendererReadyReport } from '../../electron/ipc/contracts';
+import type { RendererKind } from '../render/renderer-selection';
 
 const EXPECTED_BRIDGE_KEYS = [
   'abortConversation',
@@ -60,9 +61,8 @@ export function createRendererShellReadyReport(
 }
 
 export function createRendererWorldReadyReport(
-  // Stage 7 removed Skia, so there is one world variant left.
   measurements: RendererReadinessMeasurements & Readonly<{
-    rendererKind: 'threejs-2d';
+    rendererKind: RendererKind;
     webgl2Ready?: boolean;
     /**
      * Set only when the renderer has actually presented a world frame. Previously worldFrameReady
