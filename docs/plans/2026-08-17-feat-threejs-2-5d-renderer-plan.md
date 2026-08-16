@@ -2,8 +2,8 @@
 title: Three.js 2.5D renderer
 type: feat
 date: 2026-08-17
-revision: 3
-status: revised-after-audit-round-2
+revision: 4
+status: revised-after-three-audit-rounds
 spec: docs/specs/2026-08-16-threejs-2-5d-renderer.md
 gating: none — every decision is pre-made in section 1
 ---
@@ -495,8 +495,7 @@ writeFileSync(
 console.log(`Wrote ${join(OUTPUT_ROOT, 'baseline.json')}`);
 ```
 
-`capturedAt` is `null` on purpose — the smoke driver fills it. Do not call `Date.now()` here; this
-repo's determinism rules forbid unseeded time in generated output.
+Do not call `Date.now()` here; this repo's determinism rules forbid unseeded time in generated output. Step 4 replaces this stub body with the real capture.
 
 - [ ] **Step 2: Add the npm script**
 
@@ -523,7 +522,7 @@ visible-window suite, which is the wrong tool for a draw-count baseline.
 Build the frame in process instead — no Electron, no window, no packaging:
 
 ```ts
-import { WORLD_MAP_CATALOG } from '../../src/world/maps/catalog';
+import { WORLD_MAP_CATALOG } from '../../src/application/runtime/map-catalog';
 import { createInitialState } from '../../src/domain/state/initial-state';
 import { buildWorldFrameState } from '../../src/render/world-frame';
 
@@ -948,7 +947,7 @@ stays flat.
 - [ ] **Step 6: Run test to verify it passes**
 
 Run: `npx jest --runInBand --runTestsByPath src/render/three25/__tests__/recipes.test.ts`
-Expected: PASS, 6 tests, `unresolved` and `orphans` both empty.
+Expected: PASS, 7 tests, `unresolved` and `orphans` both empty.
 
 - [ ] **Step 7: Commit**
 
@@ -1131,8 +1130,12 @@ Create `src/render/three25/__tests__/fixtures.ts` with the real pattern, copied 
 `src/render/__tests__/world-frame.test.ts:32-37` and `:187`:
 
 ```ts
-import { WORLD_MAP_CATALOG } from '../../../world/maps/catalog';
+// WORLD_MAP_CATALOG lives in src/application/runtime/map-catalog.ts, NOT src/world/maps/catalog.ts.
+// That file exports a builder, not the catalog.
+import { WORLD_MAP_CATALOG } from '../../../application/runtime/map-catalog';
 import { createInitialState } from '../../../domain/state/initial-state';
+import { WorldStateSchema } from '../../../domain/state/schema';
+import type { MovementDirection } from '../../atlas';
 import { buildWorldFrameState, type WorldFrameState } from '../../world-frame';
 
 export const FIXTURE_MAP = WORLD_MAP_CATALOG.northwest_residential;
@@ -1143,26 +1146,29 @@ export const FIXTURE_MAP = WORLD_MAP_CATALOG.northwest_residential;
  * 'protagonist-villa-roof' and `visibleRoofGroupIds` EMPTY — there is only one roof group on this
  * map. Do not write a test that reads `visibleRoofGroupIds[0]`; it is `undefined`.
  */
-export function indoorFrame(): WorldFrameState {
-  return buildWorldFrameState(FIXTURE_MAP, createInitialState(), {}, 'down', 0);
+export function indoorFrame(facing: MovementDirection = 'down'): WorldFrameState {
+  return buildWorldFrameState(FIXTURE_MAP, createInitialState(), {}, facing, 0);
 }
 
-/** Same map, protagonist moved outside the villa, so no roof group is occupied. */
-export function outdoorFrame(): WorldFrameState {
-  const state = createInitialState();
-  const outside = {
-    ...state,
+/**
+ * Same map, protagonist outside the villa, so no roof group is occupied.
+ *
+ * `worldPosition` is `{ mapId, tileX, tileY }` — not `{ x, y }`. Spreading the wrong keys compiles
+ * and silently leaves the protagonist indoors, which makes Task 17's outdoor test fail with a
+ * misleading count. Tile (17,25) is the outside variant used at `world-frame.test.ts:41-48`.
+ */
+export function outdoorFrame(facing: MovementDirection = 'down'): WorldFrameState {
+  const initial = createInitialState();
+  const outside = WorldStateSchema.parse({
+    ...initial,
     protagonist: {
-      ...state.protagonist,
-      worldPosition: { ...state.protagonist.worldPosition, x: 4, y: 4 },
+      ...initial.protagonist,
+      worldPosition: { mapId: 'northwest_residential', tileX: 17, tileY: 25 },
     },
-  };
-  return buildWorldFrameState(FIXTURE_MAP, outside, {}, 'down', 0);
+  });
+  return buildWorldFrameState(FIXTURE_MAP, outside, {}, facing, 0);
 }
 ```
-
-Read `world-frame.test.ts:41-48` before writing `outdoorFrame` and match how that file builds a
-moved-protagonist state. If the `worldPosition` shape differs, follow the file, not this snippet.
 
 **Every later task uses `indoorFrame()` or `outdoorFrame()`.** Replace every
 `buildWorldFrameState(loadFixtureMap(), loadFixtureState(), {}, 'down', 0)` in Tasks 7 through 18
@@ -1389,7 +1395,7 @@ describe('prop boxes', () => {
   test('never guesses a box for an unknown sprite', () => {
     for (const prop of frame.props) {
       if (recipeFor(prop.sprite) === undefined) {
-        expect(FLAT_SPRITES.has(prop.sprite)).toBe(true);
+        expect(isResolved(prop.sprite)).toBe(true);
       }
     }
   });
@@ -1510,8 +1516,7 @@ test('doors fill their gap and open doors sit lower', () => {
 });
 ```
 
-Update the `buildScene` count assertion to include `buildDoorBoxes(frame).length`, and the expected
-test total to `16`.
+Update the `buildScene` count assertion to include `buildDoorBoxes(frame).length`.
 
 **Roof lids, added after audit.** Revision 1 had no task building roof geometry at all, while
 Stage 3's gate exercises roof hiding. Lids sit just above wall height so a roof reads as capping
@@ -1691,7 +1696,8 @@ git commit -m "feat(three25): diff scene descriptors into add/remove deltas"
 - Produces:
   - `cameraForYaw(yawDegrees: number, distance: number): OrthographicCamera`
   - `createWorldRenderer25(canvas, atlasUrl, onReady, onContextStateChange, toneMapping, options?): Promise<WorldRenderer25>`
-  - `type WorldRenderer25 = { setFrame(frame: WorldFrameState): void; start(): void; evidence(): ThreeRendererEvidence & { drawCalls: number }; dispose(): void }`
+  - `type WorldRenderer25Evidence = { rendererKind: 'threejs-2-5d'; drawCalls: number; meshCount: number; yawDegrees: number }`
+  - `type WorldRenderer25 = { setFrame(frame: WorldFrameState): void; start(): void; evidence(): WorldRenderer25Evidence; dispose(): void }`
 
 **Signature note, corrected twice.** Mirror `ThreeWorldRenderer.create` at
 `src/render/three/world-renderer.ts:562`, which takes
@@ -1812,9 +1818,9 @@ export async function createWorldRenderer25(
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = toneMapping === 'aces' ? ACESFilmicToneMapping : NoToneMapping;
 
-  const texture = await loadAtlasTexture(atlasUrl);   // NearestFilter, generateMipmaps false
+  const texture = await loadAtlasTexture(atlasUrl);
   const scene = new Scene();
-  const camera = cameraForYaw(yawDegrees, 12);
+  let camera = cameraForYaw(yawDegrees, 12);
 
   // Stage 1 ships lights. MeshStandardMaterial with no light source renders pure black, so
   // without this the villa is an empty frame and every capture task is worthless.
@@ -1827,9 +1833,37 @@ export async function createWorldRenderer25(
 
   const applyFrame = (next: WorldFrameState): void => {
     frame = next;
+
+    // 1. Match the drawing buffer to the frame, exactly as the 2D path does at
+    //    src/render/three/world-renderer.ts:708-710. Without this the canvas stays 300x150.
+    const buffer = threeDrawingBufferSize(next.viewport, next.devicePixelRatio);
+    renderer.setSize(buffer.width, buffer.height, false);
+
+    // 2. Place the camera over the frame's visible window. cameraForYaw looks at the ORIGIN, so
+    //    on its own it shows the north-west corner of the map, never the protagonist.
+    const halfWidth = next.viewport.width / next.camera.zoom / TILE_SIZE / 2;
+    const centreX = next.camera.x / TILE_SIZE + halfWidth;
+    const centreZ = next.camera.y / TILE_SIZE + next.viewport.height / next.camera.zoom / TILE_SIZE / 2;
+    camera = cameraForYaw(yawDegrees, Math.max(halfWidth, 4));
+    camera.position.x += centreX;
+    camera.position.z += centreZ;
+    camera.lookAt(centreX, 0, centreZ);
+    camera.updateProjectionMatrix();
+
+    // 3. Add and remove only the delta.
     const delta = cache.sync(buildScene(next), next.mapHash);
-    for (const id of delta.removed) { /* scene.remove + geometry.dispose, drop from `meshes` */ }
-    for (const id of delta.added) { /* build Mesh from the descriptor, scene.add, store in `meshes` */ }
+    for (const id of delta.removed) {
+      const mesh = meshes.get(id);
+      if (!mesh) continue;
+      scene.remove(mesh);
+      mesh.geometry.dispose();
+      meshes.delete(id);
+    }
+    for (const descriptor of addedDescriptors(next, delta.added)) {
+      const mesh = buildMesh(descriptor, texture, material);
+      scene.add(mesh);
+      meshes.set(descriptor.id, mesh);
+    }
   };
 
   const onLost = (event: Event): void => { event.preventDefault(); onContextStateChange('lost'); };
@@ -1842,8 +1876,13 @@ export async function createWorldRenderer25(
     start: () => {
       if (running) return;
       running = true;
-      renderer.setAnimationLoop(() => { renderer.render(scene, camera); });
-      onReady();                       // after the first presented frame
+      let presented = false;
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera);
+        // onReady means "a frame is on screen", and readiness reports worldFramePresented from it.
+        // Calling it inside start() lets a smoke screenshot an empty canvas.
+        if (!presented) { presented = true; onReady(); }
+      });
     },
     evidence: () => ({
       rendererKind: 'threejs-2-5d',
@@ -1865,8 +1904,74 @@ export async function createWorldRenderer25(
 }
 ```
 
-Every material is `new MeshStandardMaterial({ flatShading: true, roughness: 0.88, metalness: 0, map: texture })`.
-Every texture is `NearestFilter` with `generateMipmaps = false`. Render at a low internal
+**The three helpers the body calls, written out.** An agent will not invent a correct atlas UV
+unwrap for `BoxGeometry`, so it is specified here.
+
+```ts
+async function loadAtlasTexture(atlasUrl: string): Promise<Texture> {
+  const texture = await new TextureLoader().loadAsync(atlasUrl);
+  texture.colorSpace = SRGBColorSpace;
+  texture.magFilter = NearestFilter;
+  texture.minFilter = NearestFilter;
+  texture.generateMipmaps = false;
+  texture.wrapS = ClampToEdgeWrapping;
+  texture.wrapT = ClampToEdgeWrapping;
+  return texture;
+}
+
+/**
+ * Rewrites a geometry's UV attribute so every face samples one atlas cell.
+ * `PlaneGeometry` has 4 vertices; `BoxGeometry` has 24 (4 per face), so the same remap covers both
+ * — every face gets the same cell, which is what a top-textured box wants.
+ */
+function applyAtlasUvs(geometry: BufferGeometry, source: AtlasRectangle, atlas: Texture): void {
+  const width = atlas.image.width as number;
+  const height = atlas.image.height as number;
+  const u0 = source.x / width;
+  const u1 = (source.x + source.width) / width;
+  const v0 = 1 - (source.y + source.height) / height;
+  const v1 = 1 - source.y / height;
+  const uv = geometry.getAttribute('uv');
+  for (let index = 0; index < uv.count; index += 1) {
+    uv.setXY(index, u0 + uv.getX(index) * (u1 - u0), v0 + uv.getY(index) * (v1 - v0));
+  }
+  uv.needsUpdate = true;
+}
+
+function buildMesh(
+  descriptor: QuadDescriptor | BoxDescriptor,
+  atlas: Texture,
+  material: MeshStandardMaterial,
+): Mesh {
+  const isBox = 'height' in descriptor;
+  const geometry = isBox
+    ? new BoxGeometry(descriptor.width, descriptor.height, descriptor.depth)
+    : new PlaneGeometry(descriptor.width, descriptor.depth).rotateX(-Math.PI / 2);
+  applyAtlasUvs(geometry, descriptor.source, atlas);
+  const mesh = new Mesh(geometry, material);
+  mesh.position.set(descriptor.x, isBox ? descriptor.y : 0, descriptor.z);
+  return mesh;
+}
+```
+
+**`x` and `z` are the mesh CENTRE in tile units, for floors and boxes alike.** `buildFloorQuads`
+in Task 7 emits `x: placement.tile.x`, which is the tile *corner*. Change it to
+`placement.tile.x + 0.5` and `placement.tile.y + 0.5` in the same commit as this step, or floors sit
+half a tile north-west of the furniture standing on them.
+
+**Request a WebGL 2 context explicitly**, the way the 2D path does at `world-renderer.ts:570-576`,
+and throw if it is missing. `new WebGLRenderer({ canvas })` may hand back WebGL 1, and after Task 2b
+`GameSurfaceShell.tsx:130` reports `webgl2Ready: canvas.getContext('webgl2') !== null` — a WebGL 1
+context makes that `null` and every packaged 2.5D run fails readiness.
+
+Imports for this file: `WebGLRenderer, Scene, Mesh, BoxGeometry, PlaneGeometry, BufferGeometry,
+MeshStandardMaterial, HemisphereLight, OrthographicCamera, TextureLoader, Texture, NearestFilter,
+ClampToEdgeWrapping, SRGBColorSpace, ACESFilmicToneMapping, NoToneMapping` from `three`, plus
+`WorldFrameState` from `../world-frame`, `ToneMappingKind` from `../renderer-selection`,
+`AtlasRectangle` from `../atlas`, and `threeDrawingBufferSize` from `../three/coordinate-contract`.
+
+Every material is `new MeshStandardMaterial({ flatShading: true, roughness: 0.88, metalness: 0, map: texture })`,
+built once and shared by every mesh — one material, not one per box. Render at a low internal
 resolution and scale by an integer factor. `renderer.setAnimationLoop` is the loop — do not write a
 bare `requestAnimationFrame`, it will not stop on dispose.
 
@@ -1973,9 +2078,22 @@ so its presence proves the branch was taken. Task 19's packaged smokes assert it
 `yawDegrees: 0`, once at `35` — and writes both PNGs plus a side-by-side to
 `artifacts/phase-25d/stage-1/yaw-comparison/`.
 
+**Serve the web export on `127.0.0.1`; do not load the packaged app.** `selectedYawDegrees()` and
+`?testRenderer` are localhost-only overrides, and a packaged build loads over `app://game/` where
+the hostname is `'game'`. Loading the package would produce two identical yaw-0 images and the
+morning comparison would be made on wrong evidence.
+
+```bash
+npm run export:web
+npx http-server dist -p 8099 &     # any static server; the hidden window loads 127.0.0.1:8099
+```
+
+Then load `http://127.0.0.1:8099/?testRenderer=2-5d&testYaw=0` and again with `testYaw=35`. Both
+overrides work, and no Electron flag is needed.
+
 Follow the hidden-window rules in `AGENTS.md`: `show: false`, background throttling disabled,
-audio muted before load, capture with `stayHidden: true`, and close every Electron process on both
-success and failure.
+audio muted before load, capture with `stayHidden: true`, and close every Electron process and the
+static server on both success and failure.
 
 - [ ] **Step 9: Run it**
 
@@ -1992,7 +2110,7 @@ Expected: green.
 - [ ] **Step 11: Commit**
 
 ```bash
-git add src/render/three25/world-renderer-25.ts src/render/three25/__tests__/world-renderer-25.test.ts src/render/ThreeWorldSurface.tsx scripts/verification/capture-yaw-comparison.ts artifacts/phase-25d/stage-1
+git add src/render/three25/ src/render/ThreeWorldSurface.tsx src/render/renderer-selection.ts src/application/DesktopBridge.ts scripts/verification/capture-yaw-comparison.ts artifacts/phase-25d/stage-1
 git commit -m "feat(three25): mount the tilted orthographic renderer and capture the yaw comparison"
 ```
 
@@ -2328,17 +2446,50 @@ The full list, from `src/render/WorldScene.tsx`:
 plus `camera-motion.ts:226`, `:292`, and `followWindowTarget` → `clampCamera` (`camera.ts:133`),
 used by `sampleCameraDirector` at `WorldScene.tsx:404-410`.
 
-**Thread one clamp function, not a boolean.** Add an optional last parameter
-`clamp: ClampFn = clampCamera` to each of those `camera.ts` exports, where
+**Thread one clamp function, not a boolean.** Add an optional
+`clamp: ClampFn = clampCamera` parameter to each of those `camera.ts` exports, where
 `type ClampFn = (camera: CameraState, viewport: ViewportSize, mapPixels: ViewportSize) => CameraState`.
 Existing callers and every existing test compile untouched because the default is the current
-behaviour. In `WorldScene.tsx`, define once:
+behaviour.
+
+**Not always last.** `centerCameraOnTile` already ends with `tileSize = 32` (`camera.ts:68-74`).
+Appending `clamp` after it means `WorldScene.tsx` passes a function where `tileSize` is expected,
+and typecheck fails. Put `clamp` **before** `tileSize`:
+
+```ts
+export function centerCameraOnTile(
+  tile: TilePoint,
+  zoom: number,
+  viewport: ViewportSize,
+  mapPixels: ViewportSize,
+  clamp: ClampFn = clampCamera,
+  tileSize = 32,
+): CameraState
+```
+
+`followWindowTarget` has the same shape — its existing optional `deadZoneRatio` precedes the new
+parameter, so its two call sites in `camera-motion.ts` (`:283`, `:321`) must pass `deadZoneRatio`
+explicitly.
+
+**`CameraDirectorInput` needs a `clamp` field.** `camera-motion.ts:90-96` has none, so
+`sampleCameraDirector` cannot receive one. Add `clamp?: ClampFn`, default it to `clampCamera`, and
+thread it. Do **not** hard-switch `:226`/`:292` to `clampCameraTilted` — that turns
+`camera-motion.test.ts` red.
+
+In `WorldScene.tsx`, define the pair once **at the top of the component**, beside the existing
+`rendererKind` prop at `:288`:
 
 ```tsx
+  const renderer2_5d = rendererKind === 'threejs-2-5d';
   const clamp = renderer2_5d ? clampCameraTilted : clampCamera;
 ```
 
-and pass `clamp` at all fourteen sites plus the two in `camera-motion.ts`. Verify none are missed:
+It must be above line 331, which is the first clamp site. Task 6 introduced `renderer2_5d` near
+`:1350` for the inflation branch — move that definition here rather than declaring it twice, and do
+not call `selectedRenderer()` a second time. `rendererKind` is already a prop and is currently
+declared but unread.
+
+Then pass `clamp` at all fourteen sites plus the two in `camera-motion.ts`. Verify none are missed:
 
 ```bash
 grep -cn "clampCamera\|panCamera\|zoomCameraAt\|centerCameraOn\|resizeCameraPreservingCenter\|followWindowTarget" src/render/WorldScene.tsx src/render/camera-motion.ts
@@ -2353,7 +2504,7 @@ In `world-renderer-25.ts`, add one large ground quad below the floor tiles, tint
 
 ```bash
 npm test && npm run typecheck && npm run check:boundaries
-git add src/render/three25/clamp.ts src/render/three25/__tests__/clamp.test.ts src/render/camera-motion.ts src/render/three25/world-renderer-25.ts
+git add src/render/three25/clamp.ts src/render/three25/__tests__/clamp.test.ts src/render/camera.ts src/render/camera-motion.ts src/render/WorldScene.tsx src/render/three25/world-renderer-25.ts
 git commit -m "feat(three25): tilted camera clamp with skirt fill"
 ```
 
@@ -2583,10 +2734,38 @@ test('the 2.5D lamp set matches the 2D renderer source', () => {
 The count assertion is what catches drift: adding a lamp to the 2D set without adding it here fails
 the build.
 
-- [ ] **Step 2: Run, implement, run, commit**
+- [ ] **Step 2: Run, implement, run**
+
+- [ ] **Step 3: Wire it into the renderer — building the descriptors is not enough**
+
+`lampLights` and `blobShadows` are pure functions. Nothing calls them, so on its own this task
+changes no pixels and Task 19's lit smoke cannot prove spec 8.7.
+
+In `world-renderer-25.ts`, inside `applyFrame`:
+
+```ts
+    const path = shadowPathForEnvironment(...);   // 'lit' | 'fallback', from Task 19 Step 1
+    syncLampLights(scene, lampLights(next), path);
+    syncBlobShadows(scene, blobShadows(next));    // BOTH paths — billboards cannot cast
+```
+
+and at construction, when `path === 'lit'`, add the directional sun and enable the shadow map:
+
+```ts
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = BasicShadowMap;     // hard, aliased, reads as pixel art
+    const sun = new DirectionalLight(next.lighting.sun.light, 3.2);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(256, 256);
+```
+
+`BasicShadowMap` at 256 is deliberate. Soft PCF shadows read as smooth 3D and break the pixel-art
+rules in section 9.
+
+- [ ] **Step 4: Commit**
 
 ```bash
-git add src/render/three25/lighting.ts src/render/three25/__tests__/lighting.test.ts
+git add src/render/three25/lighting.ts src/render/three25/__tests__/lighting.test.ts src/render/three25/world-renderer-25.ts
 git commit -m "feat(three25): lamp-prop lights and blob shadows in both paths"
 ```
 
@@ -2606,10 +2785,30 @@ git commit -m "feat(three25): lamp-prop lights and blob shadows in both paths"
 Path selection is **explicit**, never a runtime FPS probe. It mirrors `siWorldTestRenderer`:
 a localhost query parameter plus a smoke-mode global.
 
-- [ ] **Step 1: Add the selector with tests**
+- [ ] **Step 1: Add the selector and its flag plumbing**
 
 `shadowPathForEnvironment(input)` in `lighting.ts`, same shape as `rendererForEnvironment`.
 Test production default, localhost override, smoke override.
+
+**The smoke flag needs three edits, all in already-owned files.** Copy the `smokeVfxMode` pattern
+at `electron/preload/index.ts:101-104`:
+
+```ts
+const smokeShadowPath = process.argv.find((argument) => argument.startsWith('--si-world-shadow-path='))?.split('=')[1];
+if (process.argv.includes('--si-world-smoke-mode=1') && (smokeShadowPath === 'lit' || smokeShadowPath === 'fallback')) {
+  contextBridge.exposeInMainWorld('siWorldShadowPath', smokeShadowPath);
+}
+```
+
+Then declare `siWorldShadowPath?: ShadowPath` on the `Window` interface in
+`src/application/DesktopBridge.ts`, beside `siWorldTestRenderer` at `:51`.
+
+`electron/preload/index.ts` is already on the owned list — the `:106` annotation there names the
+line Task 2 changes, not a limit on the file. `DesktopBridge.ts` is not frozen. No main-process
+change is needed: main only validates flags it forwards, and this one is read in the renderer.
+
+`security.test.ts`'s bridge-key assertions are unaffected; this is a window global, not a bridge
+method.
 
 - [ ] **Step 2: Write both smoke scripts**
 
@@ -2725,20 +2924,37 @@ Run: `npx tsx scripts/verification/capture-art04-25d.ts --output-root artifacts/
 Render the protagonist walking left and right across a lit interior, eight frames each, at zoom 1,
 in both renderers side by side.
 
-- [ ] **Step 2: Apply the fallback unconditionally — no human judgment**
+- [ ] **Step 2: Capture only — do not regenerate art in this run**
 
-Revision 2 said "judge it against the 2D baseline". That is a human checkpoint, and an unattended
-agent would stop there.
+Revision 2 said "judge it against the 2D baseline", which is a human checkpoint. Revision 3 swung
+the other way and applied the mirrored three-quarter fallback unconditionally. **Both were wrong.**
 
-**The decision is pre-made: always apply the mirrored three-quarter head.** The tilt increases how
-much movement reads as sideways, `ART-04` was already unresolved in the shipped 2D game, and the
-fallback is cheap and reversible. Applying it unconditionally removes the judgment call and costs
-one atlas regeneration.
+Regenerating the atlas is the highest-blast-radius change in the whole plan:
 
-Capture the board in Step 1 regardless. It is evidence for a human to look at in the morning, not
-a gate.
+- Global Constraints say "No character sprite is created or modified. `art:check` must stay green
+  with no regeneration." Regenerating contradicts the plan's own rule.
+- `tests/fixtures/rendering/world-frame-v1.json` pins `atlasHash` per case. Any regeneration turns
+  `src/render/__tests__/world-frame.test.ts` red, breaking "the 2D suite stays green after every
+  task."
+- `art:check` runs the builder then `git diff --exit-code`, so Task 22's closeout fails unless the
+  regenerated output, `scripts/art/character-source.ts`, and the refreshed fixtures all land in one
+  commit.
 
-- [ ] **Step 3: Apply the mirrored three-quarter head**
+**The decision is pre-made: capture the board, change no art.** Nothing downstream in this plan
+consumes the `ART-04` verdict except the closeout report. Deferring the fallback to a follow-up
+plan removes the judgment call *and* the blast radius, which is what the no-gates rule actually
+wants — an agent that never stops, not an agent that makes an expensive change unsupervised.
+
+Record the verdict in the Task 22 report as `art04: 'captured, not judged'`. A human decides in the
+morning from the board.
+
+- [ ] **Step 3: Do not apply the mirrored three-quarter head in this run**
+
+If a later plan applies it, `spec.md:321` names it: a mirrored three-quarter head and hair over the
+existing front torso and lateral legs, in `scripts/art/character-source.ts`, regenerated with
+`npm run art:atlas`. That commit must also refresh `tests/fixtures/rendering/world-frame-v1.json`.
+
+**Do not** author a full side-facing body. Out of scope in the spec and in `CLAUDE.md`.
 
 `spec.md:321` names the fallback: a mirrored three-quarter head and hair over the existing front
 torso and lateral legs. Add it in `scripts/art/character-source.ts`, regenerate with
@@ -2781,7 +2997,7 @@ Expected: empty. Any output here is a boundary breach — fix the boundary, not 
 - [ ] **Step 3: Write the report**
 
 `artifacts/phase-25d/stage-4/REPORT.md` records: the yaw comparison images, measured draw calls for
-both shadow paths, frame timings against the Task 3 baseline, the ART-04 verdict, and every
+both shadow paths, `drawCounts` against the Task 3 baseline, the ART-04 board as `captured, not judged`, and every
 acceptance checkbox from spec section 16 that is now true.
 
 - [ ] **Step 4: Commit — do not push**
@@ -2876,6 +3092,36 @@ introduced new failures. Every finding below was re-verified against the repo be
 destination pulse are listed in spec 8.3 but have no task after 14. They are React overlays today
 and survive Task 14's picking branch, so Stage 1–4 renders without them; a later plan adds them as
 2.5D geometry if the yaw images justify continuing.
+
+### Revision 3 → 4, after the final round
+
+Both reviewers returned REVISE again. Both confirmed the round-2 structural fixes landed —
+including that the mount branch compiles against the real `ThreeWorldSurface.tsx`, that all
+fourteen `ClampFn` line numbers are exact, and that `northwest` really does have one roof group.
+What remained were symbol and completeness errors that would still have stopped an unattended run.
+
+| Finding | Reviewer | Fix |
+|---|---|---|
+| `WORLD_MAP_CATALOG` is exported from `src/application/runtime/map-catalog.ts:19`, not `src/world/maps/catalog.ts`. Tasks 3 and 7 would not compile | Grok | both imports corrected |
+| `outdoorFrame` spread `{ x, y }`; the real shape is `{ mapId, tileX, tileY }`, so it compiled and stayed **indoors** | both | copied the `world-frame.test.ts:41-48` outside variant, tile (17,25) |
+| `indoorFrame('up')` called a zero-argument function | both | `indoorFrame(facing: MovementDirection = 'down')` |
+| Task 9's never-guesses test asserted `FLAT_SPRITES`, but consumed siblings live in `CONSUMED_SPRITES` | Grok | asserts `isResolved` |
+| `centerCameraOnTile` already ends with `tileSize = 32`; appending `ClampFn` would pass a function as `tileSize` | Grok | `clamp` goes **before** `tileSize`; `CameraDirectorInput` gains `clamp?: ClampFn` |
+| Task 15's commit omitted `camera.ts` and `WorldScene.tsx`, so `ClampFn` never reached git | Grok | both added |
+| Task 11's renderer body was still comments: no `loadAtlasTexture`, no mesh build, no UVs, no imports | Grok | all three helpers written out, including the `BoxGeometry` UV remap |
+| Camera never followed the frame — `cameraForYaw` looks at the origin, showing the wrong corner of the map | Grok | `applyFrame` places the camera from `frame.camera` and calls `setSize` |
+| Floors used tile corners, props used tile centres — a half-tile offset | Grok | both are centres |
+| No WebGL 2 context request; a WebGL 1 context would fail readiness after Task 2b | Grok | explicit request, mirroring `world-renderer.ts:570-576` |
+| `onReady()` fired inside `start()` before any frame presented | both | fires after the first `renderer.render` |
+| Task 18 built `lampLights` and `blobShadows` and never called them | Grok | new Step 3 wires both into `applyFrame`, plus the lit `DirectionalLight` |
+| The yaw-35 capture used localhost-only overrides against a packaged `app://game` build, producing two identical yaw-0 images | Fable | serves `export:web` on `127.0.0.1` instead |
+| Task 19's shadow-path flag had no plumbing | both | preload block and `DesktopBridge` declaration specified |
+| **Task 21 regenerated character art unconditionally**, contradicting the Global Constraints and breaking `world-frame-v1.json`'s pinned `atlasHash` | Fable | capture only; the fallback moves to a follow-up plan |
+| Task 22 still claimed frame timings Task 3 does not produce | both | compares `drawCounts` only |
+| Task 11's commit omitted `renderer-selection.ts` and `DesktopBridge.ts` | Grok | added |
+
+Three review rounds are spent. The remaining risk is concentrated in Task 11's renderer body,
+which is the one place a reviewer cannot fully verify without running it.
 
 ## 5. Self-review notes
 
