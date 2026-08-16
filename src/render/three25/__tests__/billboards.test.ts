@@ -1,4 +1,4 @@
-import { buildBillboards } from '../billboards';
+import { buildBillboards, tintForLighting } from '../billboards';
 import { indoorFrame } from './fixtures';
 
 describe('character billboards', () => {
@@ -28,9 +28,10 @@ describe('character billboards', () => {
     }
   });
 
-  test('carries the character tint through', () => {
+  // Task 13 folds district lighting into this tint, so the descriptor carries the LIT colour.
+  test('carries the character colour under the frame lighting', () => {
     const billboard = buildBillboards(frame)[0]!;
-    expect(billboard.tint).toBe(frame.characters[0]!.color);
+    expect(billboard.tint).toBe(tintForLighting(frame.characters[0]!.color, frame.lighting));
   });
 
   /**
@@ -51,5 +52,58 @@ describe('character billboards', () => {
     expect(buildBillboards(many)).toHaveLength(20);
     expect(new Set(buildBillboards(many).map((billboard) => billboard.source.sourceId)).size)
       .toBeLessThanOrEqual(1);
+  });
+});
+
+describe('billboard tint', () => {
+  const frame = indoorFrame();
+
+  /**
+   * At yaw 0 the camera shares the world axis the frame already picked the atlas cell against, so
+   * facing selection needs no 2.5D branch at all. This asserts that rather than writing code.
+   */
+  test('facing needs no 2.5D branch at yaw 0', () => {
+    const rear = indoorFrame('up');
+    expect(buildBillboards(rear)[0]!.source).not.toEqual(buildBillboards(frame)[0]!.source);
+  });
+
+  const withElevation = (elevation: number) =>
+    ({ ...frame.lighting, sun: { ...frame.lighting.sun, elevation } });
+
+  test('darkens as the sun drops', () => {
+    expect(tintForLighting('#ffffffff', withElevation(0)))
+      .not.toBe(tintForLighting('#ffffffff', withElevation(1)));
+  });
+
+  test('is identity at solar noon', () => {
+    expect(tintForLighting('#ffffffff', withElevation(1))).toBe('#ffffffff');
+  });
+
+  test('never returns a colour brighter than the input', () => {
+    const tinted = tintForLighting('#808080ff', withElevation(0));
+    expect(Number.parseInt(tinted.slice(1, 3), 16)).toBeLessThanOrEqual(0x80);
+  });
+
+  /**
+   * `sun.shadowColor` is translucent. Mixing all four bytes would fade the cast out as the sun
+   * sets rather than darkening it, which is a different and much more visible bug.
+   */
+  test('darkens without fading: alpha survives the mix', () => {
+    expect(tintForLighting('#ffffffff', withElevation(0)).slice(7)).toBe('ff');
+    expect(tintForLighting('#ffffff80', withElevation(0)).slice(7)).toBe('80');
+    expect(tintForLighting('#ffffff', withElevation(0))).toHaveLength(7);
+  });
+
+  test('darkens monotonically as the sun falls', () => {
+    const red = (elevation: number) =>
+      Number.parseInt(tintForLighting('#ffffffff', withElevation(elevation)).slice(1, 3), 16);
+    expect(red(0)).toBeLessThan(red(0.5));
+    expect(red(0.5)).toBeLessThan(red(1));
+  });
+
+  test('the built billboards carry the lit tint, not the raw character colour', () => {
+    const night = { ...frame, lighting: withElevation(0) };
+    expect(buildBillboards(night)[0]!.tint)
+      .toBe(tintForLighting(frame.characters[0]!.color, withElevation(0)));
   });
 });

@@ -1,4 +1,6 @@
 import type { AtlasRectangle } from '../atlas';
+import { mixHex } from '../atmosphere';
+import type { DistrictLighting } from '../district-lighting';
 import type { WorldFrameState } from '../world-frame';
 
 const TILE_SIZE = 32;
@@ -33,6 +35,27 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
     z: character.shadowWorldY / TILE_SIZE,
     width: (character.source.width * character.scale) / TILE_SIZE,
     height: (character.source.height * character.scale) / TILE_SIZE,
-    tint: character.color,
+    tint: tintForLighting(character.color, frame.lighting),
   }));
+}
+
+/**
+ * Darkens a billboard tint as the sun drops.
+ *
+ * Unlit billboards need this or characters stay full-bright at night while the boxes around them
+ * go dark. The 2D path gets the same effect from its own tint attribute.
+ *
+ * Mixes toward `sun.shadowColor`, NOT toward `lighting.accent`. Accents are bright — northwest is
+ * `'#ffc45c'` — so mixing toward the accent would make billboards *brighter* at night, which is
+ * the opposite of the intent. `mixHex` is identity at amount `0`, so solar noon returns the input
+ * unchanged.
+ *
+ * Only the RGB is mixed. `sun.shadowColor` is a translucent `'#2f223e51'`, and mixing all four
+ * bytes would drag the character's alpha toward `0x51` — fading the cast out as the sun sets
+ * instead of darkening it.
+ */
+export function tintForLighting(base: string, lighting: DistrictLighting): string {
+  const alpha = base.length > 7 ? base.slice(7) : '';
+  const mixed = mixHex(base.slice(0, 7), lighting.sun.shadowColor.slice(0, 7), 1 - lighting.sun.elevation);
+  return `${mixed}${alpha}`;
 }
