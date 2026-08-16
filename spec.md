@@ -63,7 +63,7 @@ The following decisions are currently locked:
 - Characters use a simple, cute, stylized 2D design with small animated legs rather than realistic human art.
 - The software stack follows the existing Life Sim project: Expo, React Native, strict TypeScript, React Native Web, React Native Skia, Reanimated, Zustand, Zod, React Native StyleSheet, and Expo Audio.
 - Only the Life Sim software stack is reused. Its story, autonomous queue mechanics, home layout, pacing, and binding art rules are not SI World requirements.
-- The world uses a top-down orthographic 2D tile map with free camera panning and zooming, in the broad interaction category of RimWorld and Prison Architect.
+- The world uses an orthographic tile map with free camera panning and zooming, in the broad interaction category of RimWorld and Prison Architect. The shipping renderer is top-down 2D; `docs/specs/2026-08-16-threejs-2-5d-renderer.md` adds a tilted-orthographic 2.5D renderer alongside it. The tile grid, coordinates, and camera state are identical in both.
 - The version-one world contains four `64×48`-tile neighborhoods arranged as a connected `2×2` square: northwest, northeast, southwest, and southeast.
 - The northwest neighborhood is a quiet residential and relaxation district with villas, spas, massage businesses, and a beach.
 - The protagonist starts the game in the northwest residential and relaxation neighborhood.
@@ -292,7 +292,7 @@ Prototype desktop qualification uses non-distribution test signing: macOS artifa
 
 ### 4.0.1 World presentation
 
-The world is a top-down orthographic 2D tile map divided into four `64×48`-tile neighborhoods. The neighborhoods form a connected `2×2` grid:
+The world is an orthographic tile map divided into four `64×48`-tile neighborhoods. The shipping renderer draws it top-down 2D; the 2.5D renderer in `docs/specs/2026-08-16-threejs-2-5d-renderer.md` draws the same grid under a tilted orthographic camera. The neighborhoods form a connected `2×2` grid:
 
 ```text
 Residential and relaxation ↔ Downtown entertainment

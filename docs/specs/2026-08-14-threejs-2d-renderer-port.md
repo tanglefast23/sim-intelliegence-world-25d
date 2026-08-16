@@ -69,13 +69,18 @@ The production port must prove all of those items before cutover.
 
 ## 4. Non-goals
 
+> **Amended 2026-08-17.** `docs/specs/2026-08-16-threejs-2-5d-renderer.md` amends the three items
+> marked below. They remain non-goals **for this 2D port and for the shipping 2D renderer**. They
+> are in scope for the separate 2.5D renderer, which is a second display path and does not modify
+> the 2D one. Every other item on this list stands unchanged for both renderers.
+
 The port will not add:
 
-- an isometric or perspective camera;
-- 2.5D room geometry;
-- 3D models, physics, navigation, or collision;
+- an isometric or perspective camera; *(2.5D uses a tilted **orthographic** camera; perspective and isometric stay banned in both)*
+- 2.5D room geometry; *(amended — in scope for the 2.5D renderer only)*
+- 3D models, physics, navigation, or collision; *(imported model files stay banned in both; 2.5D uses generated box geometry only)*
 - PBR materials, bloom, depth of field, or post-processing chains;
-- dynamic Three.js lights or real-time shadow maps;
+- dynamic Three.js lights or real-time shadow maps; *(amended — in scope for the 2.5D lit path only, with a mandatory no-lights fallback)*
 - a map editor;
 - React Three Fiber or another scene framework;
 - new map geometry, props, routes, interactions, quests, or NPC logic;
