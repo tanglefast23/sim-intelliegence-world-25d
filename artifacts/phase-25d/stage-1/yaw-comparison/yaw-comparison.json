@@ -1,38 +1,46 @@
 {
   "schemaVersion": 1,
-  "viewport": {
-    "width": 1280,
-    "height": 720
-  },
   "captures": [
     {
-      "yaw": 0,
+      "name": "yaw-0-fallback",
+      "yawDegrees": 0,
       "shadowPath": "fallback",
+      "screenshot": "yaw-0-fallback.png",
       "evidence": {
         "rendererKind": "threejs-2-5d",
         "drawCalls": 5,
         "meshCount": 2120,
-        "yawDegrees": 0
+        "yawDegrees": 0,
+        "shadowPath": "fallback",
+        "shadowMapEnabled": false
       }
     },
     {
-      "yaw": 35,
+      "name": "yaw-35-fallback",
+      "yawDegrees": 35,
       "shadowPath": "fallback",
+      "screenshot": "yaw-35-fallback.png",
       "evidence": {
         "rendererKind": "threejs-2-5d",
         "drawCalls": 5,
         "meshCount": 2120,
-        "yawDegrees": 35
+        "yawDegrees": 35,
+        "shadowPath": "fallback",
+        "shadowMapEnabled": false
       }
     },
     {
-      "yaw": 0,
+      "name": "yaw-0-lit",
+      "yawDegrees": 0,
       "shadowPath": "lit",
+      "screenshot": "yaw-0-lit.png",
       "evidence": {
         "rendererKind": "threejs-2-5d",
         "drawCalls": 6,
         "meshCount": 2120,
-        "yawDegrees": 0
+        "yawDegrees": 0,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true
       }
     }
   ]

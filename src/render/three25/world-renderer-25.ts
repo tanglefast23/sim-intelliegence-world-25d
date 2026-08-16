@@ -45,6 +45,16 @@ export type WorldRenderer25Evidence = Readonly<{
   drawCalls: number;
   meshCount: number;
   yawDegrees: number;
+  /**
+   * The path the renderer actually built, not the one that was asked for.
+   *
+   * Without this a per-path smoke can only report the query string it sent. If the override were
+   * ever ignored, both smokes would run the fallback, both would pass, and the lit path could rot
+   * unnoticed — which is the exact failure having two smokes exists to prevent.
+   */
+  shadowPath: ShadowPath;
+  /** Whether the lit path's shadow map is live. Derived from the renderer, not from the flag. */
+  shadowMapEnabled: boolean;
 }>;
 
 export type WorldRenderer25 = Readonly<{
@@ -709,6 +719,8 @@ export async function createWorldRenderer25(
       drawCalls: renderer.info.render.calls,
       meshCount: descriptorCount,
       yawDegrees,
+      shadowPath,
+      shadowMapEnabled: renderer.shadowMap.enabled,
     }),
     dispose: () => {
       running = false;

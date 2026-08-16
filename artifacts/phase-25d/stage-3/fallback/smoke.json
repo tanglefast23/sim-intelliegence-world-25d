@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "shadowPath": "fallback",
+  "ceiling": 12,
+  "scenes": [
+    {
+      "name": "villa-fallback",
+      "yawDegrees": 0,
+      "shadowPath": "fallback",
+      "screenshot": "villa-fallback.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 5,
+        "meshCount": 2120,
+        "yawDegrees": 0,
+        "shadowPath": "fallback",
+        "shadowMapEnabled": false
+      }
+    }
+  ]
+}
