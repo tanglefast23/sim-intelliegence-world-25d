@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "verdict": "captured, not judged",
+  "question": "Does the tilted camera make front-facing horizontal walk read worse than 2D?",
+  "artChanged": false,
+  "scenes": [
+    {
+      "name": "art04-yaw0-fallback",
+      "yawDegrees": 0,
+      "shadowPath": "fallback",
+      "screenshot": "art04-yaw0-fallback.png"
+    },
+    {
+      "name": "art04-yaw0-lit",
+      "yawDegrees": 0,
+      "shadowPath": "lit",
+      "screenshot": "art04-yaw0-lit.png"
+    },
+    {
+      "name": "art04-yaw35-fallback",
+      "yawDegrees": 35,
+      "shadowPath": "fallback",
+      "screenshot": "art04-yaw35-fallback.png"
+    }
+  ]
+}
