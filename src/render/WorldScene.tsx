@@ -384,6 +384,8 @@ export function WorldScene({
   const [audioCaption, setAudioCaption] = useState<string>();
   const [responsiveEvidence, setResponsiveEvidence] = useState('');
   const [vfxAgeStep, setVfxAgeStep] = useState(0);
+  /** Set by the smoke hook only. While it holds a step, the ambient loop must not move off it. */
+  const pinnedVfxStep = useRef<number | undefined>(undefined);
   const [destinationMarker, setDestinationMarker] = useState<TilePoint>();
   const [destinationPulseElapsedMs, setDestinationPulseElapsedMs] = useState(0);
   const [rendererParityPulseFrozen, setRendererParityPulseFrozen] = useState(false);
@@ -599,7 +601,9 @@ export function WorldScene({
         running: transientRunning,
         resumedFromSuspension,
       });
-      const nextAgeStep = Math.floor(vfxClock.current.ageMilliseconds / VFX_STEP_MILLISECONDS);
+      // A pinned step wins outright. Without this the loop overwrites it on the very next frame.
+      const nextAgeStep = pinnedVfxStep.current
+        ?? Math.floor(vfxClock.current.ageMilliseconds / VFX_STEP_MILLISECONDS);
       setVfxAgeStep((current) => current === nextAgeStep ? current : nextAgeStep);
       const nextTransientStep = Math.floor(
         transientClock.current.ageMilliseconds / TRANSIENT_VFX_STEP_MILLISECONDS,
@@ -819,7 +823,16 @@ export function WorldScene({
      * which is exactly the timing noise a frame-diffing scorer must not have. Setting the step
      * directly is deterministic and representative at the same time.
      */
-    window.siWorldSetVfxStep = (step) => { setVfxAgeStep(step); };
+    window.siWorldSetVfxStep = (step) => {
+      // Write the CLOCK, not just the React state, and latch it. Setting the state alone lasted
+      // exactly one frame: the ambient loop below recomputes the step from `vfxClock` every frame
+      // while the world is running, so a capture that pinned step 2 was still scored at whatever
+      // step the clock had wandered to — and the lamp flicker rides the same step, so the numbers
+      // included a random blink.
+      pinnedVfxStep.current = step;
+      vfxClock.current = { ...vfxClock.current, ageMilliseconds: step * VFX_STEP_MILLISECONDS };
+      setVfxAgeStep(step);
+    };
     /**
      * Stand the protagonist on a chosen tile of the map they are already on.
      *

@@ -4,7 +4,6 @@ import { hiddenWallTiles, tileKey } from './occlusion';
 import { mixHex } from '../atmosphere';
 import { readableTint } from './billboards';
 import {
-  LAMP_GLOW_COLORS,
   PROP_CORES,
   PROP_FLAT_COLORS,
   WALL_HEIGHT_TILES,
@@ -241,6 +240,17 @@ const FLOOR_LUMINANCE: Readonly<Record<string, number>> = Object.freeze({
 /** What a ground sprite should read at. Chosen so a dark street stays a dark street. */
 const FLOOR_TARGET_LUMINANCE = 80;
 
+/**
+ * Only art DARKER than this is lifted at all.
+ *
+ * The gain exists for ground too dark to read — asphalt at 41.7, neon floor at 47.7. Applying it to
+ * a merely middling floor lifts a scene that had no problem: the bazaar's `tile.sunset-floor` at
+ * 62.3 was being pushed to 80, then lamps, additive pools and the night key stacked on top, and the
+ * courtyard measured mean luminance 94 at midnight — brighter than the villa at noon, with no
+ * pocket anywhere in it. The whole look is a dark world with bright objects; the floor is the world.
+ */
+const FLOOR_LIFT_CEILING = 52;
+
 /** Never more than double. Past that the lift stops reading as light and starts reading as paint. */
 const MAX_FLOOR_GAIN = 2;
 
@@ -266,10 +276,16 @@ const NEVER_LIFTED: ReadonlySet<string> = new Set(['tile.harbor-water']);
  * district's night frame sat within a few levels of the void clear colour.
  */
 function floorGain(sprite: string): number | undefined {
-  if (NEVER_LIFTED.has(sprite)) return undefined;
-  const luminance = FLOOR_LUMINANCE[sprite];
-  if (luminance === undefined || luminance >= FLOOR_TARGET_LUMINANCE) return undefined;
-  return Math.min(MAX_FLOOR_GAIN, FLOOR_TARGET_LUMINANCE / luminance);
+  // Key on the sprite actually DRAWN. `FLOOR_SOURCE_OVERRIDES` swaps the villa's floor for the
+  // boardwalk, so keying the authored id lifted 67.1's worth of art that renders at 75.8.
+  const drawn = FLOOR_SOURCE_OVERRIDES[sprite] ?? sprite;
+  if (NEVER_LIFTED.has(drawn)) return undefined;
+  const luminance = FLOOR_LUMINANCE[drawn];
+  if (luminance === undefined || luminance >= FLOOR_LIFT_CEILING) return undefined;
+  // In LINEAR, because the shader applies the gain after the sRGB decode. An 0-255 sRGB ratio
+  // applied to linear values is a different, smaller number than the one it looks like: prop cores
+  // already convert, and floors were the one place still comparing the two spaces directly.
+  return Math.min(MAX_FLOOR_GAIN, toLinear(FLOOR_TARGET_LUMINANCE / 255) / toLinear(luminance / 255));
 }
 
 function floorSource(placement: WorldFloorPlacement): AtlasRectangle {
@@ -291,6 +307,22 @@ function floorSource(placement: WorldFloorPlacement): AtlasRectangle {
  * keeps its paint. The falloff is measured in tiles from the nearest emitter, so the shape follows
  * where the lamps actually are rather than a vignette on the screen.
  */
+/**
+ * The sprites that actually put light on the floor.
+ *
+ * Mirrors `LAMP_SPRITE_IDS_25D` in `lighting.ts`, which drives the point lights and the pools. It
+ * is duplicated rather than imported because `lighting.ts` imports this module's types, and a value
+ * import back would close the cycle; a test pins the two lists to each other.
+ */
+export const GROUND_LIGHTING_SPRITES: ReadonlySet<string> = new Set([
+  'tile.fixture-lamp',
+  'tile.fixture-dock-lamp-amber',
+  'tile.fixture-dock-lamp-cold',
+  'tile.fixture-festival-lantern',
+  'tile.fixture-neon-lamp-cyan',
+  'tile.fixture-neon-lamp-magenta',
+]);
+
 const LIGHT_FALLOFF_INNER_TILES = 4;
 const LIGHT_FALLOFF_OUTER_TILES = 15;
 
@@ -346,10 +378,21 @@ function litGroundTint(
     + (tint.length > 7 ? tint.slice(7) : '');
 }
 
-/** Tiles of every prop that emits light. Any recipe with a glow box qualifies. */
+/**
+ * Tiles of every prop that lights the GROUND.
+ *
+ * Lamps only — not every prop with a glow box. A neon sign glows, but it has no point light and no
+ * floor pool: it lights itself, by design. Counting signs here made the crush model and the light
+ * model disagree about what a light is, and ground next to a sign kept its full paint while
+ * receiving none of its light.
+ *
+ * That inconsistency is what floods the bazaar. Its market signs and lamps together put almost
+ * every courtyard tile inside the inner radius, so the crush never engaged and the district
+ * measured mean luminance 94 at midnight — brighter than the villa at noon, with no pocket in it.
+ */
 function emitterTiles(frame: WorldFrameState): readonly Readonly<{ x: number; y: number }>[] {
   return frame.props
-    .filter((prop) => LAMP_GLOW_COLORS[prop.sprite] !== undefined)
+    .filter((prop) => GROUND_LIGHTING_SPRITES.has(prop.sprite))
     .map((prop) => ({ x: prop.tile.x + 0.5, y: prop.tile.y + 0.5 }));
 }
 

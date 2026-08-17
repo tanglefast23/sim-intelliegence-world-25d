@@ -173,7 +173,7 @@ export const LAMP_KEY_THRESHOLD = 0.6;
  */
 export function nightKeyOrigin(
   frame: WorldFrameState,
-): Readonly<{ x: number; z: number; color: string }> | undefined {
+): Readonly<{ x: number; z: number }> | undefined {
   if (frame.lighting.sun.lampMix < LAMP_KEY_THRESHOLD) return undefined;
   const lamps = lampLights(frame);
   if (lamps.length === 0) return undefined;
@@ -183,9 +183,10 @@ export function nightKeyOrigin(
     x += lamp.x;
     z += lamp.z;
   }
-  // The brightest lamp lends its colour, so the key agrees with the pool it casts out of.
-  const brightest = lamps.reduce((best, lamp) => lamp.intensity > best.intensity ? lamp : best);
-  return { x: x / lamps.length, z: z / lamps.length, color: brightest.color };
+  // Deliberately NO colour. Tinting the key to the lamps was measured and cost the harbour 0.18
+  // saturation, because amber on amber kills the warm-on-cool contrast that district reads by.
+  // Returning a colour nobody uses is one hookup away from undoing that.
+  return { x: x / lamps.length, z: z / lamps.length };
 }
 
 /**
@@ -243,6 +244,15 @@ export function blobCastOffset(
 const PROP_SHADOW_ANCHOR_OFFSET = 25;
 
 /**
+ * Half a tile, added back after removing the anchor offset.
+ *
+ * Removing the 25px recovers the southernmost sprite's own origin, which is the tile's NORTH edge,
+ * not its centre. Boxes stand on tile centres, so a stain placed at the edge covers only the far
+ * 27% of the object it belongs to — the same detached-stain failure as before, half a tile smaller.
+ */
+const HALF_TILE = TILE_SIZE / 2;
+
+/**
  * A dark contact stain under every prop that stands on the floor.
  *
  * The single most visible amateur tell in the 2.5D frames was that nothing sat on the ground. A
@@ -266,7 +276,7 @@ export function propContactShadows(frame: WorldFrameState): readonly QuadDescrip
     // every other descriptor in this file carries — every stain lands low and to the right of the
     // object it belongs to, detached from it. That is exactly how it looked.
     x: (shadow.worldX + shadow.width / 2) / TILE_SIZE,
-    z: (shadow.worldY - PROP_SHADOW_ANCHOR_OFFSET) / TILE_SIZE,
+    z: (shadow.worldY - PROP_SHADOW_ANCHOR_OFFSET + HALF_TILE) / TILE_SIZE,
     // Deliberately smaller than the lamp pool it sits inside. A stain wider than the object reads
     // as a cast shadow from a light that is not there. `long` marks the tall casters - lamps, neon,
     // planters, palms - which get a slightly bigger stain because they meet the ground on a stem.

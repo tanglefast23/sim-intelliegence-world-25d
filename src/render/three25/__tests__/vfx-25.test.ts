@@ -1,4 +1,6 @@
 import type { WorldFrameState } from '../../world-frame';
+import { declaredVfxBounds } from '../../vfx/procedural-effects';
+import { VFX_KINDS } from '../../vfx/types';
 import { vfxGlowPools, vfxQuads } from '../vfx-25';
 import { outdoorFrame } from './fixtures';
 
@@ -146,5 +148,37 @@ describe('transient glows', () => {
 
   test('a frame with no glows produces none', () => {
     expect(vfxGlowPools(outdoorFrame())).toHaveLength(0);
+  });
+});
+
+/**
+ * `BOUNDS_BOTTOM_EXTENT` is a hand copy of the extent table in `procedural-effects.ts`. A copy with
+ * no guard is a copy that drifts, and a drifted extent silently mis-anchors every effect of that
+ * kind — it does not throw, it just puts the steam in the wrong place.
+ */
+describe('the bounds extent table does not drift', () => {
+  test('every kind anchors at its own tile centre, whatever its cull box is', () => {
+    for (const kind of VFX_KINDS) {
+      const tile = { x: 10, y: 20 };
+      const bounds = declaredVfxBounds({ kind, tile });
+      const centreY = tile.y * 32 + 16;
+      const frame = {
+        ...outdoorFrame(),
+        effectRoleColors: { [`${kind}-primary`]: '#ffffffff' },
+        effects: [{
+          emitterId: 'probe',
+          kind,
+          recipeId: `${kind}-v1`,
+          ageStep: 0,
+          bounds,
+          // A rect sitting exactly ON the tile centre: a correctly anchored `rise` kind puts it at
+          // the floor, and a correctly anchored `spread` kind puts it at the emitter's own depth.
+          rects: [{ role: `${kind}-primary`, x: tile.x * 32 + 15, y: centreY - 1, width: 2, height: 2 }],
+        }],
+      } as unknown as WorldFrameState;
+      const [quad] = [...vfxQuads(frame).additive, ...vfxQuads(frame).alpha];
+      expect(quad).toBeDefined();
+      expect(quad!.z).toBeCloseTo(centreY / 32, 5);
+    }
   });
 });

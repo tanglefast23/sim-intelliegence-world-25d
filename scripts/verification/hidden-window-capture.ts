@@ -381,6 +381,14 @@ async function capture(scene) {
     click = await window.webContents.executeJavaScript(clickScript);
   }
 
+  // Re-read the evidence for the frame ACTUALLY PHOTOGRAPHED. The wait loop above runs before
+  // zoom, district, minute, staging and the VFX pin, so every district was reporting the villa's
+  // spawn frame: four different scenes with identical draw calls and descriptor counts, and a
+  // ceiling breach in any of them would never have shown up.
+  const shotEvidence = await window.webContents.executeJavaScript(
+    'window.siWorld25dEvidence ? window.siWorld25dEvidence() : null',
+  ) || evidence;
+
   // Pinned to the requested viewport. capturePage returns DEVICE pixels, and a host whose display
   // scale is not 1 hands back a 2x image even with --force-device-scale-factor=1. That silently
   // doubled a district round: the frame scorer's crop was still in 1280x720 pixels, so it measured
@@ -395,7 +403,14 @@ async function capture(scene) {
     : raw.resize({ width: viewport.width, height: viewport.height, quality: 'good' });
   const screenshot = scene.name + '.png';
   writeFileSync(join(outputDirectory, screenshot), image.toPNG());
-  return { name: scene.name, yawDegrees: evidence.yawDegrees, shadowPath, screenshot, evidence, click };
+  return {
+    name: scene.name,
+    yawDegrees: shotEvidence.yawDegrees,
+    shadowPath,
+    screenshot,
+    evidence: shotEvidence,
+    click,
+  };
 }
 
 app.whenReady().then(async () => {

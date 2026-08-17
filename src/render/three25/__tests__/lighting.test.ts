@@ -15,6 +15,7 @@ import {
   shadowPathForEnvironment,
 } from '../lighting';
 import { LAMP_GLOW_COLORS } from '../recipes';
+import { GROUND_LIGHTING_SPRITES } from '../scene-builder';
 import { indoorFrame, outdoorFrame } from './fixtures';
 
 describe('2.5D lighting', () => {
@@ -157,16 +158,42 @@ describe('prop contact shadows', () => {
   });
 
   /**
-   * `worldX` is the cluster's LEFT EDGE and `worldY` is its base pushed 25px south, because the 2D
-   * renderer draws this record as a strip anchored under a sprite. Reading either as a centre put
-   * every stain low and to the right of its object, detached, which is how it shipped once.
+   * Asserted against the PROP, not against the formula.
+   *
+   * The previous version recomputed the same expression the code uses and compared it to itself,
+   * so it passed while every stain sat half a tile north of its object — behind it at yaw 45,
+   * where the box hides it. The visible symptom went away and the feature quietly stopped working.
+   * A shadow test has to know where the object is.
    */
-  test('centres on the prop rather than on the 2D strip anchor', () => {
+  test('lands on the prop it belongs to, not beside it', () => {
+    const byObject = new Map<string, { x: number; y: number }[]>();
+    for (const prop of frame.props) {
+      const tiles = byObject.get(prop.objectId) ?? [];
+      tiles.push(prop.tile);
+      byObject.set(prop.objectId, tiles);
+    }
+    let checked = 0;
+    for (const contact of propContactShadows(frame)) {
+      // `propShadows` ids are `<objectId>-<clusterIndex>`.
+      const objectId = contact.id.replace(/^contact-/u, '').replace(/-\d+$/u, '');
+      const tiles = byObject.get(objectId);
+      if (!tiles || tiles.length === 0) continue;
+      checked += 1;
+      // The centre must sit inside the object's own tile footprint, with half a tile of slack for
+      // a cluster whose parts straddle a boundary.
+      expect(contact.x).toBeGreaterThanOrEqual(Math.min(...tiles.map((tile) => tile.x)) - 0.5);
+      expect(contact.x).toBeLessThanOrEqual(Math.max(...tiles.map((tile) => tile.x)) + 1.5);
+      expect(contact.z).toBeGreaterThanOrEqual(Math.min(...tiles.map((tile) => tile.y)) - 0.5);
+      expect(contact.z).toBeLessThanOrEqual(Math.max(...tiles.map((tile) => tile.y)) + 1.5);
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  /** Specifically south of the tile's north boundary, which is what the raw record encodes. */
+  test('sits at the tile centre, not on the boundary the 2D record points at', () => {
     for (const contact of propContactShadows(frame)) {
       const shadow = frame.propShadows.find((one) => contact.id === `contact-${one.id}`)!;
-      expect(contact.x).toBeCloseTo((shadow.worldX + shadow.width / 2) / 32, 6);
-      expect(contact.z).toBeCloseTo((shadow.worldY - 25) / 32, 6);
-      // And specifically NOT the raw record, which is the bug this test exists to catch.
+      expect(contact.z).toBeGreaterThan((shadow.worldY - 25) / 32);
       expect(contact.z).toBeLessThan(shadow.worldY / 32);
     }
   });
@@ -307,5 +334,24 @@ describe('lamp flicker', () => {
         6,
       );
     }
+  });
+});
+
+/**
+ * Two lists, one meaning. `GROUND_LIGHTING_SPRITES` decides which props carve the outdoor night
+ * crush and `LAMP_SPRITE_IDS_25D` decides which get a point light and a floor pool. If they drift,
+ * the renderer disagrees with itself about what a light is — which is exactly what flooded the
+ * bazaar, where signs counted as lights for the crush while lighting nothing.
+ */
+describe('what counts as a light', () => {
+  test('the crush and the lights agree, exactly', () => {
+    expect([...GROUND_LIGHTING_SPRITES].sort()).toEqual([...LAMP_SPRITE_IDS_25D].sort());
+  });
+
+  /** A sign glows but lights nothing, so it must never appear in either list. */
+  test('a glowing sign is not a light', () => {
+    expect(LAMP_GLOW_COLORS['tile.sign-neon']).toBeDefined();
+    expect(LAMP_SPRITE_IDS_25D.has('tile.sign-neon')).toBe(false);
+    expect(GROUND_LIGHTING_SPRITES.has('tile.sign-neon')).toBe(false);
   });
 });

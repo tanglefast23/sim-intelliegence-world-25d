@@ -746,14 +746,20 @@ function sceneSignature(scene: SceneDescriptor): number {
   const mixText = (value: string): void => {
     for (let index = 0; index < value.length; index += 1) mix(value.charCodeAt(index));
   };
+  // `gain` is hashed too. It is static today, so this is a guard rather than a fix: the next
+  // lift that varies with time would otherwise never trigger a rebake.
   for (const quad of scene.floors) {
     mix(quad.source.x);
     mix(quad.source.y);
+    // `gain` too. It is static today, so this is a guard rather than a fix: the next lift that
+    // varies with time would otherwise never trigger a rebake and would silently freeze.
+    mix((quad.gain ?? 1) * 1024);
     mixText(quad.tint);
   }
   for (const box of scene.boxes) {
     mix(box.source.x);
     mix(box.source.y);
+    mix((box.gain ?? 1) * 1024);
     mix(box.width * 64);
     mix(box.height * 64);
     mix(box.depth * 64);

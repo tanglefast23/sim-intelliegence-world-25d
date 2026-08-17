@@ -37,6 +37,11 @@ const VFX_STEP = 2;
  * Density alone is not enough. A first pass picked the densest windows and ignored the lamps, and
  * dropped the harbour's mean luminance by 50 - a dense corner with no light in it is a dark corner.
  * The scene is built around pooled light, so the player has to stand in a pool.
+ *
+ * These are DISTRICT shots, not effect shots. A pass that moved the harbour back beside its steam
+ * fixture put the cargo on the frame's edge and cost 0.95 of detail for a plume two pixels wide.
+ * The fixture is only how a capture reaches a map. `capture-25d-vfx.ts` frames the effects
+ * themselves and asserts they render; this file is judged on composition.
  */
 
 void captureScenes(
