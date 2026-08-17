@@ -30,6 +30,16 @@ export type FrameScore = Readonly<{
   deadFraction: number;
   /** Fraction of 8x8 blocks whose BRIGHTEST pixel is still under the cut: a true black plate. */
   flatDeadFraction: number;
+  /**
+   * How POOLED the light is: the 90th-percentile block luminance over the median block's.
+   *
+   * The other four measures cannot see a flood. Every lighting lever raises `meanLuminance` and
+   * cuts `deadFraction`, so a district that lit its whole courtyard evenly scored BEST of four
+   * while looking worst against the rubric's own premise — a dark world with bright objects and one
+   * warm pocket. Nothing measured the pocket. This does: an evenly lit scene sits near 1, and a
+   * scene with real pools sits well above it.
+   */
+  poolingRatio: number;
   meanLuminance: number;
   meanSaturation: number;
   detail: number;
@@ -88,20 +98,31 @@ export function scoreFrame(name: string, pngBytes: Buffer): FrameScore {
   const BLOCK = 8;
   let deadBlocks = 0;
   let blocks = 0;
+  const blockLuminance: number[] = [];
   for (let y = top; y + BLOCK <= bottom; y += BLOCK) {
     for (let x = left; x + BLOCK <= right; x += BLOCK) {
       let peak = 0;
+      let sum = 0;
       for (let dy = 0; dy < BLOCK; dy += 1) {
-        for (let dx = 0; dx < BLOCK; dx += 1) peak = Math.max(peak, luminanceAt(x + dx, y + dy));
+        for (let dx = 0; dx < BLOCK; dx += 1) {
+          const value = luminanceAt(x + dx, y + dy);
+          peak = Math.max(peak, value);
+          sum += value;
+        }
       }
       blocks += 1;
+      blockLuminance.push(sum / (BLOCK * BLOCK));
       if (peak < 20) deadBlocks += 1;
     }
   }
+  const sorted = [...blockLuminance].sort((left, right) => left - right);
+  const at = (share: number): number => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * share))] ?? 0;
+  const median = at(0.5);
   return {
     name,
     deadFraction: round(dead / count),
     flatDeadFraction: round(deadBlocks / Math.max(1, blocks)),
+    poolingRatio: round(median <= 1 ? 0 : at(0.9) / median),
     meanLuminance: round(luminanceTotal / count),
     meanSaturation: round(saturationTotal / count),
     detail: round(stepTotal / Math.max(1, stepCount)),
@@ -125,7 +146,7 @@ function main(): void {
 
   const pad = (value: string, width: number): string => value.padEnd(width);
   const num = (value: number, width: number): string => value.toFixed(3).padStart(width);
-  console.log(`${pad('frame', 24)}${pad('dead', 9)}${pad('flat', 9)}${pad('lum', 9)}${pad('sat', 9)}detail`);
+  console.log(`${pad('frame', 24)}${pad('dead', 9)}${pad('flat', 9)}${pad('pool', 9)}${pad('lum', 9)}${pad('sat', 9)}detail`);
   for (const one of current) {
     const before = previous?.get(one.name);
     const delta = (now: number, then: number | undefined): string =>
@@ -134,6 +155,7 @@ function main(): void {
       pad(one.name, 24)
       + num(one.deadFraction, 6) + delta(one.deadFraction, before?.deadFraction) + '  '
       + num(one.flatDeadFraction, 6) + delta(one.flatDeadFraction, before?.flatDeadFraction) + '  '
+      + num(one.poolingRatio, 6) + delta(one.poolingRatio, before?.poolingRatio) + '  '
       + num(one.meanLuminance, 7) + delta(one.meanLuminance, before?.meanLuminance) + '  '
       + num(one.meanSaturation, 6) + delta(one.meanSaturation, before?.meanSaturation) + '  '
       + num(one.detail, 6) + delta(one.detail, before?.detail),

@@ -43,3 +43,6 @@ saves/
 .idea/
 .vscode/
 .worktrees
+
+# Worktrees are local scratch checkouts, never repository content.
+.claude/worktrees/

@@ -58,12 +58,28 @@ export type SceneRequest = Readonly<{
    * frame-diffing scorer must not have.
    */
   vfxStep?: number;
+  /**
+   * Draw no procedural VFX, for a control frame.
+   *
+   * The point of a control is to prove an effect is VISIBLE, not merely requested. Logging draw
+   * calls proved nothing - the descriptor count covers floors and boxes, so no effect ever entered
+   * it, and the 2.5D path shipped with no VFX at all underneath exactly that kind of check.
+   */
+  suppressVfx?: boolean;
   /** World zoom, through the app's own test hook. Use 3 to frame an interior. */
   zoom?: 1 | 2 | 3;
   /** Absolute world minute, to capture a scene at night rather than at the 08:00 spawn. */
   minute?: number;
   /** Centre the camera on the protagonist, so the shot frames the room they are standing in. */
   centreOnPlayer?: boolean;
+  /**
+   * Stand the protagonist on this tile before framing.
+   *
+   * Where an effect happens to be is not where a district photographs best. Applied after
+   * `district`, so a capture can reach a map through its VFX fixture and then walk to the part of
+   * it worth photographing.
+   */
+  standOnTile?: Readonly<{ x: number; y: number }>;
   /**
    * Relocate the protagonist to another map, through the app's own VFX fixture.
    *
@@ -86,6 +102,13 @@ export type SceneEvidence = Readonly<{
     shadowPath: string;
     shadowMapEnabled: boolean;
     atlasDrawCalls: number;
+    /** VFX primitives built for the captured frame, split by batch. */
+    vfxAdditiveQuads: number;
+    vfxAlphaQuads: number;
+    /** CPU milliseconds per rendered frame over a rolling window. 60 FPS is a 16.7ms budget. */
+    frameMedianMs: number;
+    frameP95Ms: number;
+    frameSamples: number;
   }>;
   /** Present only when the scene asked for a click. */
   click?: Readonly<{
@@ -190,6 +213,10 @@ function ensureWindow() {
   if (sharedWindow) return sharedWindow;
   sharedWindow = new BrowserWindow({
     show: false,
+    // CONTENT size, not frame size. Without this the page is 1280x688 for a 1280x720 window, the
+    // capture comes back 32 rows short, and the resize below smooth-filters every pixel-art frame -
+    // silently, on every capture, for a reason that has nothing to do with the render.
+    useContentSize: true,
     width: ${viewport.width},
     height: ${viewport.height},
     webPreferences: {
@@ -286,6 +313,15 @@ async function capture(scene) {
     await new Promise((r) => setTimeout(r, 900));
   }
 
+  if (scene.standOnTile) {
+    const stood = await window.webContents.executeJavaScript(
+      'typeof window.siWorldStandOnTile === "function"'
+      + ' ? (window.siWorldStandOnTile(' + String(scene.standOnTile.x) + ', ' + String(scene.standOnTile.y) + '), true) : false',
+    );
+    if (!stood) throw new Error('siWorldStandOnTile is missing.');
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
   if (scene.centreOnPlayer) {
     // The app's own Center control, driven by its key binding: the surface listens for "f".
     await window.webContents.executeJavaScript(
@@ -294,6 +330,11 @@ async function capture(scene) {
       + ' window.dispatchEvent(new KeyboardEvent("keyup", e)); return true; })()',
     );
     await new Promise((r) => setTimeout(r, 900));
+  }
+
+  if (scene.suppressVfx) {
+    await window.webContents.executeJavaScript("window.siWorldVfxMode = 'circle'; true");
+    await new Promise((r) => setTimeout(r, 400));
   }
 
   if (scene.vfxStep !== undefined) {
@@ -364,6 +405,14 @@ async function capture(scene) {
     click = await window.webContents.executeJavaScript(clickScript);
   }
 
+  // Re-read the evidence for the frame ACTUALLY PHOTOGRAPHED. The wait loop above runs before
+  // zoom, district, minute, staging and the VFX pin, so every district was reporting the villa's
+  // spawn frame: four different scenes with identical draw calls and descriptor counts, and a
+  // ceiling breach in any of them would never have shown up.
+  const shotEvidence = await window.webContents.executeJavaScript(
+    'window.siWorld25dEvidence ? window.siWorld25dEvidence() : null',
+  ) || evidence;
+
   // Pinned to the requested viewport. capturePage returns DEVICE pixels, and a host whose display
   // scale is not 1 hands back a 2x image even with --force-device-scale-factor=1. That silently
   // doubled a district round: the frame scorer's crop was still in 1280x720 pixels, so it measured
@@ -375,10 +424,27 @@ async function capture(scene) {
   const size = raw.getSize();
   const image = (size.width === viewport.width && size.height === viewport.height)
     ? raw
+    // 'best' is a smooth filter and would blur pixel art on any host whose display scale is not 1,
+    // moving every score for a reason that has nothing to do with the render. Resizing is a
+    // fallback for a mismatched host, not something a normal run should ever hit.
     : raw.resize({ width: viewport.width, height: viewport.height, quality: 'good' });
+  if (size.width !== viewport.width || size.height !== viewport.height) {
+    console.error(
+      'SI_WORLD_25D_CAPTURE_RESIZED ' + scene.name + ' ' + size.width + 'x' + size.height
+      + ' -> ' + viewport.width + 'x' + viewport.height
+      + ' (display scale is not 1; pixel art is filtered and scores are not comparable)',
+    );
+  }
   const screenshot = scene.name + '.png';
   writeFileSync(join(outputDirectory, screenshot), image.toPNG());
-  return { name: scene.name, yawDegrees: evidence.yawDegrees, shadowPath, screenshot, evidence, click };
+  return {
+    name: scene.name,
+    yawDegrees: shotEvidence.yawDegrees,
+    shadowPath,
+    screenshot,
+    evidence: shotEvidence,
+    click,
+  };
 }
 
 app.whenReady().then(async () => {

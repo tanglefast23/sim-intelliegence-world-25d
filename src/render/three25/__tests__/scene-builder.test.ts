@@ -1,4 +1,5 @@
-import { ATLAS_INDEX } from '../../atlas';
+import { ATLAS_INDEX, atlasRectangle } from '../../atlas';
+import { isStandingDecal } from '../billboards';
 import { hiddenWallTiles } from '../occlusion';
 import { WALL_HEIGHT_TILES, isResolved, recipeFor } from '../recipes';
 import {
@@ -15,8 +16,15 @@ import { indoorFrame, outdoorFrame } from './fixtures';
 describe('floor quads', () => {
   const frame = indoorFrame();
 
-  test('emits one quad per floor placement', () => {
-    expect(buildFloorQuads(frame)).toHaveLength(frame.floors.length + frame.groundDetails.length);
+  /**
+   * Floors and the FLAT ground details. Vegetation decals are drawn standing by `buildBillboards`,
+   * and leaving them here as well would draw every tree twice - once upright and once lying on the
+   * grass beneath itself.
+   */
+  test('emits one quad per floor and per flat ground detail', () => {
+    const flatDetails = frame.groundDetails.filter((detail) => !isStandingDecal(detail.sprite));
+    expect(buildFloorQuads(frame)).toHaveLength(frame.floors.length + flatDetails.length);
+    expect(flatDetails.length).toBeLessThan(frame.groundDetails.length);
   });
 
   test('places quads on tile CENTRES, not tile corners', () => {
@@ -242,7 +250,7 @@ describe('prop, door and roof boxes', () => {
 
   test('buildScene returns floors and every box source', () => {
     const scene = buildScene(frame);
-    expect(scene.floors).toHaveLength(frame.floors.length + frame.groundDetails.length);
+    expect(scene.floors).toHaveLength(buildFloorQuads(frame).length);
     expect(scene.boxes.length).toBe(
       buildWallBoxes(frame).length
       + buildPropBoxes(frame).length
@@ -440,5 +448,53 @@ describe('per-prop brightness variation', () => {
     }
     expect(byGlowSprite.size).toBeGreaterThan(0);
     for (const [, tints] of byGlowSprite) expect(tints.size).toBe(1);
+  });
+});
+
+/**
+ * The floor gain is the one lever that can brighten dark ground art, and it had no test at all -
+ * which is how it shipped comparing an sRGB ratio against linear values, and keyed to the authored
+ * sprite rather than the one actually drawn.
+ */
+describe('floor albedo gain', () => {
+  const gainOf = (sprite: string): number | undefined =>
+    buildFloorQuads({
+      ...outdoorFrame(),
+      floors: [{
+        ...outdoorFrame().floors[0]!,
+        sprite,
+        source: atlasRectangle(sprite),
+      }],
+      groundDetails: [],
+    } as unknown as Parameters<typeof buildFloorQuads>[0])[0]?.gain;
+
+  test('lifts ground too dark to read', () => {
+    const gain = gainOf('tile.dark-asphalt');
+    expect(gain).toBeDefined();
+    expect(gain!).toBeGreaterThan(1);
+  });
+
+  /** A middling floor needs no help, and lifting one is what flooded a district. */
+  test('leaves a floor that already reads alone', () => {
+    expect(gainOf('tile.sunset-floor')).toBeUndefined();
+    expect(gainOf('tile.warm-sand')).toBeUndefined();
+  });
+
+  /** Water at night is a black surface with highlights on it, not a wet car park. */
+  test('never lifts water', () => {
+    expect(gainOf('tile.harbor-water')).toBeUndefined();
+  });
+
+  /**
+   * Keyed to the sprite DRAWN, not the one authored. The villa's floor is swapped for the boardwalk
+   * by `FLOOR_SOURCE_OVERRIDES`, so keying the authored id lifted art that renders brighter.
+   */
+  test('follows a source override to the sprite actually drawn', () => {
+    expect(gainOf('tile.villa-floor')).toBe(gainOf('tile.boardwalk'));
+  });
+
+  /** In LINEAR, because the shader applies it after the sRGB decode. */
+  test('is a linear ratio, which is larger than the sRGB one it is easy to write by mistake', () => {
+    expect(gainOf('tile.dark-asphalt')!).toBeGreaterThan(80 / 41.7);
   });
 });

@@ -60,8 +60,13 @@ export type LampLight = Readonly<{
 export function lampLights(frame: WorldFrameState): readonly LampLight[] {
   return frame.props
     .filter((prop) => LAMP_SPRITE_IDS_25D.has(prop.sprite))
-    .map((prop) => ({
-      id: `lamp-${prop.id}`,
+    .map((prop) => {
+      // One id, used for BOTH the light and its pool. Hashing the prop id here and the descriptor
+      // id in `lampPools` gave a lamp and the light on the floor under it two different flickers,
+      // which reads as two lights rather than one.
+      const id = `lamp-${prop.id}`;
+      return {
+      id,
       x: prop.tile.x + 0.5,
       z: prop.tile.y + 0.5,
       // The lamp's OWN glow colour, not the district accent. Under the accent an amber dock lamp
@@ -71,8 +76,10 @@ export function lampLights(frame: WorldFrameState): readonly LampLight[] {
       color: LAMP_GLOW_COLORS[prop.sprite] ?? frame.lighting.accent,
       // Strong at night, near-off in daylight. A lamp has to be the brightest thing in a
       // dark frame, or the scene reads as uniformly dim rather than pooled.
-      intensity: 0.2 + frame.lighting.sun.lampMix * 11,
-    }));
+      intensity: (0.2 + frame.lighting.sun.lampMix * 11)
+        * lampFlicker(id, frame.vfxAgeStep),
+      };
+    });
 }
 
 /**
@@ -100,16 +107,58 @@ export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
     // Blobs are untextured: the renderer draws them with a plain material, so the source rect is
     // only here to satisfy the shared descriptor shape.
     source: { x: 0, y: 0, width: 0, height: 0 } as QuadDescriptor['source'],
-    x: (shadow.worldX + cast.x) / TILE_SIZE,
-    z: (shadow.worldY + cast.y) / TILE_SIZE,
-    width: 0.82,
-    depth: 0.5,
+    // HALF the cast, so the ellipse still touches the feet while reaching away from the light. A
+    // full offset translates the whole blob off the character: at four tiles from a lamp they get a
+    // detached oval and nothing under them, which is worse than the symmetric blob it replaced.
+    x: (shadow.worldX + cast.x / 2) / TILE_SIZE,
+    z: (shadow.worldY + cast.y / 2) / TILE_SIZE,
+    // And it lengthens along the cast rather than staying a fixed oval, which is what "stretches
+    // away from the light" has to mean: a shadow gets longer as the light gets lower and further.
+    width: 0.82 + Math.abs(cast.x) / TILE_SIZE,
+    depth: 0.5 + Math.abs(cast.y) / TILE_SIZE,
     tint: shadow.color,
     opacity: 1,
     };
   });
 }
 
+
+
+/**
+ * How far a lamp's brightness swings, as a fraction of its steady value.
+ *
+ * Small on purpose. A still night scene reads as a render rather than a place, and a lamp that
+ * never varies is the largest single reason why — but a lamp that swings hard reads as a fault in
+ * the lamp. 12% is enough to notice out of the corner of an eye and not enough to look broken.
+ */
+const LAMP_FLICKER_RANGE = 0.12;
+
+/**
+ * A deterministic brightness multiplier for one lamp at one animation step.
+ *
+ * Deterministic twice over. Same lamp and same step always give the same number, so a capture is
+ * reproducible and a frame-diffing smoke does not see noise; and the value is stepped on the VFX
+ * lattice rather than continuous, so the flicker is a pixel-art blink rather than a smooth fade.
+ *
+ * **Never apply this to a glow box's tint.** `sceneSignature` hashes box tints, so flickering one
+ * would force a full rebake of the merged world every step — the most expensive operation in the
+ * renderer, run several times a second, to make a lamp head wobble. The light and its floor pool
+ * carry the flicker instead; both are rebuilt every frame anyway, so they cost nothing.
+ */
+export function lampFlicker(id: string, ageStep: number): number {
+  let hash = 0x81_1c_9d_c5;
+  const mix = (value: number): void => {
+    hash = Math.imul(hash ^ (value | 0), 0x01_00_01_93);
+  };
+  for (let index = 0; index < id.length; index += 1) mix(id.charCodeAt(index));
+  mix(ageStep);
+  // >>> 0 first: the multiply leaves a signed 32-bit value, and a negative would bias the result.
+  // Centred on 1, so the swing averages out. A one-sided flicker is not an animation, it is a
+  // brightness cut: measured, dimming only cost every district 1-2.5 mean luminance and lifted
+  // saturation by up to 0.10, which is the signature of a global exposure change rather than of a
+  // lamp that blinks.
+  return 1 + (((hash >>> 0) % 1000) / 1000 - 0.5) * LAMP_FLICKER_RANGE;
+}
 
 /** Above this lamp mix the lamps own the scene, so they own its shadows and its key light too. */
 export const LAMP_KEY_THRESHOLD = 0.6;
@@ -129,7 +178,7 @@ export const LAMP_KEY_THRESHOLD = 0.6;
  */
 export function nightKeyOrigin(
   frame: WorldFrameState,
-): Readonly<{ x: number; z: number; color: string }> | undefined {
+): Readonly<{ x: number; z: number }> | undefined {
   if (frame.lighting.sun.lampMix < LAMP_KEY_THRESHOLD) return undefined;
   const lamps = lampLights(frame);
   if (lamps.length === 0) return undefined;
@@ -139,9 +188,10 @@ export function nightKeyOrigin(
     x += lamp.x;
     z += lamp.z;
   }
-  // The brightest lamp lends its colour, so the key agrees with the pool it casts out of.
-  const brightest = lamps.reduce((best, lamp) => lamp.intensity > best.intensity ? lamp : best);
-  return { x: x / lamps.length, z: z / lamps.length, color: brightest.color };
+  // Deliberately NO colour. Tinting the key to the lamps was measured and cost the harbour 0.18
+  // saturation, because amber on amber kills the warm-on-cool contrast that district reads by.
+  // Returning a colour nobody uses is one hookup away from undoing that.
+  return { x: x / lamps.length, z: z / lamps.length };
 }
 
 /**
@@ -199,6 +249,15 @@ export function blobCastOffset(
 const PROP_SHADOW_ANCHOR_OFFSET = 25;
 
 /**
+ * Half a tile, added back after removing the anchor offset.
+ *
+ * Removing the 25px recovers the southernmost sprite's own origin, which is the tile's NORTH edge,
+ * not its centre. Boxes stand on tile centres, so a stain placed at the edge covers only the far
+ * 27% of the object it belongs to — the same detached-stain failure as before, half a tile smaller.
+ */
+const HALF_TILE = TILE_SIZE / 2;
+
+/**
  * A dark contact stain under every prop that stands on the floor.
  *
  * The single most visible amateur tell in the 2.5D frames was that nothing sat on the ground. A
@@ -222,7 +281,7 @@ export function propContactShadows(frame: WorldFrameState): readonly QuadDescrip
     // every other descriptor in this file carries — every stain lands low and to the right of the
     // object it belongs to, detached from it. That is exactly how it looked.
     x: (shadow.worldX + shadow.width / 2) / TILE_SIZE,
-    z: (shadow.worldY - PROP_SHADOW_ANCHOR_OFFSET) / TILE_SIZE,
+    z: (shadow.worldY - PROP_SHADOW_ANCHOR_OFFSET + HALF_TILE) / TILE_SIZE,
     // Deliberately smaller than the lamp pool it sits inside. A stain wider than the object reads
     // as a cast shadow from a light that is not there. `long` marks the tall casters - lamps, neon,
     // planters, palms - which get a slightly bigger stain because they meet the ground on a stem.
@@ -256,7 +315,9 @@ export function lampPools(frame: WorldFrameState): readonly QuadDescriptor[] {
     width: 3.2,
     depth: 3.2,
     tint: lamp.color,
-    opacity: 0.5 * strength,
+    // The pool dims with its own lamp. A lamp that flickers while the light on the floor under it
+    // holds steady reads as two lights, not one.
+    opacity: 0.5 * strength * lampFlicker(lamp.id, frame.vfxAgeStep),
   }));
 }
 

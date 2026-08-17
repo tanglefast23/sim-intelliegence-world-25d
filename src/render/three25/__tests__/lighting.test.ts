@@ -7,12 +7,15 @@ import {
   LAMP_SPRITE_IDS_25D,
   blobCastOffset,
   blobShadows,
+  lampFlicker,
+  lampPools,
   nightKeyOrigin,
   lampLights,
   propContactShadows,
   shadowPathForEnvironment,
 } from '../lighting';
 import { LAMP_GLOW_COLORS } from '../recipes';
+import { GROUND_LIGHTING_SPRITES } from '../scene-builder';
 import { indoorFrame, outdoorFrame } from './fixtures';
 
 describe('2.5D lighting', () => {
@@ -50,12 +53,30 @@ describe('2.5D lighting', () => {
     expect(blobShadows(frame).length).toBeGreaterThan(0);
   });
 
-  test('a blob sits at the contact point plus the frame cast offset', () => {
+  /**
+   * The blob still TOUCHES the feet. It leans toward the cast by half the offset and lengthens by
+   * the rest, rather than translating: a full offset slides the whole ellipse off the character,
+   * so at four tiles from a lamp they get a detached oval and nothing under them — worse than the
+   * symmetric blob it replaced.
+   */
+  test('a blob leans toward the cast without leaving the feet', () => {
     const shadow = frame.characterShadows[0]!;
     const blob = blobShadows(frame)[0]!;
-    expect(blob.x).toBeCloseTo((shadow.worldX + shadow.castX) / 32, 6);
-    expect(blob.z).toBeCloseTo((shadow.worldY + shadow.castY) / 32, 6);
     expect(blob.tint).toBe(shadow.color);
+    const leanX = blob.x - shadow.worldX / 32;
+    const leanZ = blob.z - shadow.worldY / 32;
+    // Same direction as the frame's cast, and no further than half of it.
+    if (shadow.castX !== 0) {
+      expect(Math.sign(leanX)).toBe(Math.sign(shadow.castX));
+      expect(Math.abs(leanX)).toBeLessThanOrEqual(Math.abs(shadow.castX / 32) / 2 + 1e-6);
+    }
+    if (shadow.castY !== 0) {
+      expect(Math.sign(leanZ)).toBe(Math.sign(shadow.castY));
+      expect(Math.abs(leanZ)).toBeLessThanOrEqual(Math.abs(shadow.castY / 32) / 2 + 1e-6);
+    }
+    // The feet stay covered: the lean never exceeds the ellipse's own half-extent.
+    expect(Math.abs(leanX)).toBeLessThan(blob.width / 2);
+    expect(Math.abs(leanZ)).toBeLessThan(blob.depth / 2);
   });
 
   test('the default path is the lit path', () => {
@@ -155,16 +176,42 @@ describe('prop contact shadows', () => {
   });
 
   /**
-   * `worldX` is the cluster's LEFT EDGE and `worldY` is its base pushed 25px south, because the 2D
-   * renderer draws this record as a strip anchored under a sprite. Reading either as a centre put
-   * every stain low and to the right of its object, detached, which is how it shipped once.
+   * Asserted against the PROP, not against the formula.
+   *
+   * The previous version recomputed the same expression the code uses and compared it to itself,
+   * so it passed while every stain sat half a tile north of its object — behind it at yaw 45,
+   * where the box hides it. The visible symptom went away and the feature quietly stopped working.
+   * A shadow test has to know where the object is.
    */
-  test('centres on the prop rather than on the 2D strip anchor', () => {
+  test('lands on the prop it belongs to, not beside it', () => {
+    const byObject = new Map<string, { x: number; y: number }[]>();
+    for (const prop of frame.props) {
+      const tiles = byObject.get(prop.objectId) ?? [];
+      tiles.push(prop.tile);
+      byObject.set(prop.objectId, tiles);
+    }
+    let checked = 0;
+    for (const contact of propContactShadows(frame)) {
+      // `propShadows` ids are `<objectId>-<clusterIndex>`.
+      const objectId = contact.id.replace(/^contact-/u, '').replace(/-\d+$/u, '');
+      const tiles = byObject.get(objectId);
+      if (!tiles || tiles.length === 0) continue;
+      checked += 1;
+      // The centre must sit inside the object's own tile footprint, with half a tile of slack for
+      // a cluster whose parts straddle a boundary.
+      expect(contact.x).toBeGreaterThanOrEqual(Math.min(...tiles.map((tile) => tile.x)) - 0.5);
+      expect(contact.x).toBeLessThanOrEqual(Math.max(...tiles.map((tile) => tile.x)) + 1.5);
+      expect(contact.z).toBeGreaterThanOrEqual(Math.min(...tiles.map((tile) => tile.y)) - 0.5);
+      expect(contact.z).toBeLessThanOrEqual(Math.max(...tiles.map((tile) => tile.y)) + 1.5);
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  /** Specifically south of the tile's north boundary, which is what the raw record encodes. */
+  test('sits at the tile centre, not on the boundary the 2D record points at', () => {
     for (const contact of propContactShadows(frame)) {
       const shadow = frame.propShadows.find((one) => contact.id === `contact-${one.id}`)!;
-      expect(contact.x).toBeCloseTo((shadow.worldX + shadow.width / 2) / 32, 6);
-      expect(contact.z).toBeCloseTo((shadow.worldY - 25) / 32, 6);
-      // And specifically NOT the raw record, which is the bug this test exists to catch.
+      expect(contact.z).toBeGreaterThan((shadow.worldY - 25) / 32);
       expect(contact.z).toBeLessThan(shadow.worldY / 32);
     }
   });
@@ -253,5 +300,76 @@ describe('character blobs follow the light that is on', () => {
     const frame = atLampMix(1);
     const shadow = frame.characterShadows[0]!;
     expect(blobCastOffset(frame, shadow, true)).toEqual({ x: shadow.castX, y: shadow.castY });
+  });
+});
+
+/**
+ * A still night scene reads as a render rather than a place, and a lamp that never varies is the
+ * largest single reason why.
+ */
+describe('lamp flicker', () => {
+  test('is deterministic: the same lamp at the same step always gives the same value', () => {
+    expect(lampFlicker('lamp-a', 7)).toBe(lampFlicker('lamp-a', 7));
+  });
+
+  test('varies across steps and across lamps, so a street does not blink in unison', () => {
+    const steps = new Set([0, 1, 2, 3, 4].map((step) => lampFlicker('lamp-a', step)));
+    expect(steps.size).toBeGreaterThan(1);
+    const lamps = new Set(['a', 'b', 'c', 'd'].map((id) => lampFlicker(`lamp-${id}`, 3)));
+    expect(lamps.size).toBeGreaterThan(1);
+  });
+
+  /**
+   * Hard enough to notice, soft enough not to read as a fault in the lamp, and CENTRED on 1 so the
+   * swing averages out. A one-sided flicker is not an animation, it is a brightness cut - the
+   * first version only dimmed and cost every district 1-2.5 mean luminance.
+   */
+  test('swings both ways by no more than a sixteenth, and averages to no change', () => {
+    let total = 0;
+    let count = 0;
+    for (const id of ['a', 'b', 'c', 'd', 'e', 'f']) {
+      for (let step = 0; step < 60; step += 1) {
+        const value = lampFlicker(`lamp-${id}`, step);
+        expect(value).toBeGreaterThanOrEqual(0.94);
+        expect(value).toBeLessThanOrEqual(1.06);
+        total += value;
+        count += 1;
+      }
+    }
+    expect(total / count).toBeCloseTo(1, 2);
+  });
+
+  test('the light and its floor pool flicker together, not apart', () => {
+    const frame = outdoorFrame();
+    const night = { ...frame, lighting: { ...frame.lighting, sun: { ...frame.lighting.sun, lampMix: 1 } } };
+    const lights = new Map(lampLights(night).map((light) => [light.id, light]));
+    for (const pool of lampPools(night)) {
+      const light = lights.get(pool.id.replace(/^pool-/u, ''))!;
+      expect(light).toBeDefined();
+      // Both scale by the same factor, so the ratio between them is the steady-state ratio.
+      expect(pool.opacity / light.intensity).toBeCloseTo(
+        (0.5 * night.lighting.sun.lampMix) / (0.2 + night.lighting.sun.lampMix * 11),
+        6,
+      );
+    }
+  });
+});
+
+/**
+ * Two lists, one meaning. `GROUND_LIGHTING_SPRITES` decides which props carve the outdoor night
+ * crush and `LAMP_SPRITE_IDS_25D` decides which get a point light and a floor pool. If they drift,
+ * the renderer disagrees with itself about what a light is — which is exactly what flooded the
+ * bazaar, where signs counted as lights for the crush while lighting nothing.
+ */
+describe('what counts as a light', () => {
+  test('the crush and the lights agree, exactly', () => {
+    expect([...GROUND_LIGHTING_SPRITES].sort()).toEqual([...LAMP_SPRITE_IDS_25D].sort());
+  });
+
+  /** A sign glows but lights nothing, so it must never appear in either list. */
+  test('a glowing sign is not a light', () => {
+    expect(LAMP_GLOW_COLORS['tile.sign-neon']).toBeDefined();
+    expect(LAMP_SPRITE_IDS_25D.has('tile.sign-neon')).toBe(false);
+    expect(GROUND_LIGHTING_SPRITES.has('tile.sign-neon')).toBe(false);
   });
 });

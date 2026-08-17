@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "scenes": [
+    {
+      "name": "northwest-villa",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "northwest-villa.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 1060,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.7,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "northeast-downtown",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "northeast-downtown.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 1088,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.9,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "southwest-commercial",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "southwest-commercial.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 781,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.9,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "southeast-docks",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "southeast-docks.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 810,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 10,
+        "frameSamples": 120
+      }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "maxP95OverMedian": 1.5,
+  "note": "Interval between frames. A dropped-frame check, not a cost measure.",
+  "rows": [
+    {
+      "name": "downtown-lit",
+      "shadowPath": "lit",
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 8.9,
+      "frameSamples": 120,
+      "drawCalls": 10
+    },
+    {
+      "name": "downtown-fallback",
+      "shadowPath": "fallback",
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 9.1,
+      "frameSamples": 120,
+      "drawCalls": 8
+    },
+    {
+      "name": "harbour-lit",
+      "shadowPath": "lit",
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 8.6,
+      "frameSamples": 120,
+      "drawCalls": 10
+    },
+    {
+      "name": "harbour-fallback",
+      "shadowPath": "fallback",
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 8.9,
+      "frameSamples": 120,
+      "drawCalls": 8
+    }
+  ]
+}

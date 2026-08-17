@@ -3,6 +3,7 @@ import {
   UNLIT_NIGHT_STRENGTH,
   buildBillboards,
   isBlinking,
+  isStandingDecal,
   readableTint,
   tintForLighting,
 } from '../billboards';
@@ -18,8 +19,11 @@ describe('character billboards', () => {
     expect(frame.characters.length).toBeGreaterThan(0);
   });
 
-  test('emits one billboard per character', () => {
-    expect(buildBillboards(frame)).toHaveLength(frame.characters.length);
+  /** Characters, plus any vegetation decal that has to stand up rather than lie on the grass. */
+  test('emits one billboard per character, plus the standing decals', () => {
+    const standing = frame.groundDetails.filter((detail) => isStandingDecal(detail.sprite)).length;
+    expect(buildBillboards(frame)).toHaveLength(frame.characters.length + standing);
+    expect(buildBillboards(frame).filter((one) => one.id.startsWith('decal-'))).toHaveLength(standing);
   });
 
   test('anchors at the contact point, not the quad corner', () => {
@@ -55,6 +59,7 @@ describe('character billboards', () => {
   test('every character shares one atlas source, so one batch can hold them all', () => {
     const many = {
       ...frame,
+      groundDetails: [],
       characters: Array.from({ length: 20 }, (_, index) => ({
         ...frame.characters[0]!,
         id: `npc-${index}`,
@@ -63,6 +68,20 @@ describe('character billboards', () => {
     expect(buildBillboards(many)).toHaveLength(20);
     expect(new Set(buildBillboards(many).map((billboard) => billboard.source.sourceId)).size)
       .toBeLessThanOrEqual(1);
+  });
+
+  /**
+   * A tree authored as a ground decal reads fine from directly overhead and lies down like a felled
+   * log under a corner camera. Vegetation stands up; sand ripples and leaf litter do not.
+   */
+  test('vegetation stands up and ground marks stay flat', () => {
+    expect(isStandingDecal('tile.decal-canopy-tree')).toBe(true);
+    expect(isStandingDecal('tile.decal-young-palm')).toBe(true);
+    expect(isStandingDecal('tile.decal-sapling')).toBe(true);
+    expect(isStandingDecal('tile.decal-flowering-shrub')).toBe(true);
+    expect(isStandingDecal('tile.decal-sand-ripple')).toBe(false);
+    expect(isStandingDecal('tile.decal-leaf-litter')).toBe(false);
+    expect(isStandingDecal('tile.decal-sand-pebbles')).toBe(false);
   });
 });
 

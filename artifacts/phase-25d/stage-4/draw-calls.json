@@ -4,7 +4,7 @@
   "atlasCeiling": 5,
   "maximumDrawCalls": 10,
   "maximumAtlasDrawCalls": 3,
-  "maximumDescriptors": 4000,
+  "maximumDescriptors": 4027,
   "recommendedCeiling": 12,
   "recommendedAtlasCeiling": 5,
   "scenes": [
@@ -14,7 +14,7 @@
       "shadowPath": "fallback",
       "drawCalls": 8,
       "atlasDrawCalls": 3,
-      "descriptors": 4000,
+      "descriptors": 4027,
       "screenshot": "measure-yaw0-fallback.png"
     },
     {
@@ -23,7 +23,7 @@
       "shadowPath": "lit",
       "drawCalls": 10,
       "atlasDrawCalls": 3,
-      "descriptors": 4000,
+      "descriptors": 4027,
       "screenshot": "measure-yaw0-lit.png"
     },
     {
@@ -32,7 +32,7 @@
       "shadowPath": "fallback",
       "drawCalls": 8,
       "atlasDrawCalls": 3,
-      "descriptors": 4000,
+      "descriptors": 4027,
       "screenshot": "measure-yaw35-fallback.png"
     },
     {
@@ -41,7 +41,7 @@
       "shadowPath": "lit",
       "drawCalls": 10,
       "atlasDrawCalls": 3,
-      "descriptors": 4000,
+      "descriptors": 4027,
       "screenshot": "measure-yaw35-lit.png"
     }
   ]

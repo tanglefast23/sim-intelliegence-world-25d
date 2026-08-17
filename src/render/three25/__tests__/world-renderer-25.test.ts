@@ -8,6 +8,7 @@ import {
   screenToWorldTilted,
   worldToScreenTilted,
 } from '../projection';
+import { PROP_RECIPES } from '../recipes';
 import { buildScene } from '../scene-builder';
 import {
   bakeGroundStains, bakeBillboardGeometry, bakeLampPools, bakeSceneGeometry, cameraForYaw, frameCamera } from '../world-renderer-25';
@@ -75,11 +76,15 @@ describe('baked scene geometry', () => {
    * or a sofa as `glow`, it renders at full brightness in a dark room and the pooled-light read
    * the whole scene depends on is gone.
    */
-  test('only lamp fixtures opt out of lighting', () => {
-    const glowSprites = new Set(scene.boxes.filter((box) => box.glow === true)
-      .map((box) => box.sprite));
-    expect(glowSprites.size).toBeGreaterThan(0);
-    for (const sprite of glowSprites) expect(sprite).toMatch(/lamp|lantern/u);
+  test('only lamps and lit signs opt out of lighting', () => {
+    // Derived from the recipes, not from one fixture's props: the villa frame has no neon, so a
+    // guard checked against it alone passed while downtown's fourteen glowing signs went unchecked.
+    for (const [sprite, recipe] of Object.entries(PROP_RECIPES)) {
+      if (!recipe.boxes.some((box) => box.glow === true)) continue;
+      expect(sprite).toMatch(/lamp|lantern|sign-neon|sign-sunset-market/u);
+    }
+    expect(Object.values(PROP_RECIPES).filter((recipe) =>
+      recipe.boxes.some((box) => box.glow === true)).length).toBeGreaterThan(6);
   });
 
   test('carries uv and vertex colour so one material can tint every sprite', () => {
@@ -261,6 +266,8 @@ describe('character billboards bake into one upright batch', () => {
     const frame = restingFrame();
     const many = {
       ...frame,
+      // No ground details: this asserts the CHARACTER count, and vegetation shares the batch.
+      groundDetails: [],
       characters: Array.from({ length: 20 }, (_, index) => ({ ...frame.characters[0]!, id: `npc-${index}` })),
     };
     const geometry = bakeBillboardGeometry(buildBillboards(many), RIGHT, UP, 1024, 1024);

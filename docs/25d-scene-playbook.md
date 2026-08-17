@@ -113,6 +113,25 @@ A location looks good when its objects have mass. That comes from box recipes in
 
 ---
 
+### The frame carries more than you are drawing
+
+**Before anything else, list the fields on `WorldFrameState` and check which ones your renderer
+actually reads.** The 2.5D path silently ignored three of them for its entire life:
+
+| Field | What was lost |
+|---|---|
+| `effects` | Every ambient VFX. Club neon, courtyard steam, yard steam, water glint, patio fire. |
+| `transientEffects` | Footfall dust, click ripples, blood, muzzle flashes. |
+| `transientGlows` | Every one-shot light. |
+| `propShadows` | Every prop's ground contact, so the whole scene floated. |
+
+Three of the four district captures are deliberately framed on a VFX fixture. One caption read
+`COURTYARD-STEAM-WEST` over a courtyard with no steam, for months, and nobody noticed because the
+evidence label counted rects the renderer never drew. `grep` for each field name under your renderer
+directory. A field with zero hits is a feature you are not shipping.
+
+---
+
 ## 5. Phase 3 — Colour
 
 This is where criterion 6 is won or lost. **Every surface class must take the same light and the
@@ -154,7 +173,7 @@ The reference look is **dark world, bright objects, one warm pocket**. Four ligh
    - The GROUND colour is what lights a VERTICAL face — a hemisphere light blends sky and ground by
      the face normal, so lamp posts, crate sides and sofa arms all sit near the midpoint. Too dark
      a ground colour crushes every vertical to black.
-   - **Night floor 0.62 of day**, not 0.09. This is the only thing between a prop far from any lamp
+   - **Night floor 0.78 of day**, not 0.09. This is the only thing between a prop far from any lamp
      and pure black. Curve: `day * (0.62 + 0.38 * elevation)`.
 2. **Directional sun**, `'#ffefdb'` at `0.15 + elevation * 3.2`. Three things must be set or it
    does nothing, and each failed silently once:
@@ -163,7 +182,7 @@ The reference look is **dark world, bright objects, one warm pocket**. Four ligh
      axis; aiming at it puts the sun far behind the visible footprint.
    - Call `sun.shadow.camera.updateProjectionMatrix()` after setting the frustum. Without it three
      keeps its default −5..5 box and every value you set is dead.
-3. **Shadow map: `BasicShadowMap` at 256, frustum ±40 tiles.** Hard and aliased on purpose. PCF
+3. **Shadow map: `BasicShadowMap` at 1024, frustum ±22 tiles.** Hard and aliased on purpose. PCF
    reads as smooth 3D and breaks the pixel rules. Set `normalBias` (0.35) for thin geometry.
 4. **Point lights at lamps.** `distance 11, decay 1.4`, intensity `0.2 + lampMix * 11`. A lamp must
    be the brightest thing in a dark frame or the scene reads as uniformly dim. Distance and decay
@@ -172,11 +191,13 @@ The reference look is **dark world, bright objects, one warm pocket**. Four ligh
    the glow box in the lamp's own recipe (`LAMP_GLOW_COLORS`). Taking the district accent made an
    amber dock lamp throw a teal pool, and the whole harbour read as one cold monochrome with warm
    dots floating in it. This was the largest single gain of the district pass.
-6. **Skyglow: after dusk, tint the sky light by the average colour of the LAMPS IN FRAME.** A neon
+6. **Skyglow: after dusk, tint the sky light by the MOST SATURATED lamp in frame.** A neon
    street lights its own sky. Two traps, both measured:
    - Do not tint by the district accent. It gained saturation in three districts and lost more than
      it gained in the harbour, whose accent is teal while its lamps are amber. Tinting a scene's sky
      with the complement of the light in it cancels the warm-on-cool contrast that makes it read.
+   - Do not AVERAGE the lamps either. A neon street's cyan and magenta lamps average to grey, so the
+     most colourful scene in the game tinted its own sky with no colour at all.
    - Rescale the glow colour to the day sky's brightness before mixing. An accent or lamp tint is
      chosen to be saturated, not bright, so a raw mix moves EXPOSURE as well as hue: it cost 2-5
      luminance everywhere and raised the dead fraction it was added to cut.
@@ -197,8 +218,62 @@ The reference look is **dark world, bright objects, one warm pocket**. Four ligh
    silhouette from the sun's direction, so it can never cast into the shadow map. Blobs are the
    only shadow a character gets. Give the blob material `vertexColors` or every blob ignores the
    frame's shadow tint and draws white.
-11. **Ship a no-lights fallback path.** It must hold 60 FPS and carry its own packaged smoke. Path
+11. **Whatever lights the scene must cast its shadows.** After dusk the lamps do the lighting, so
+    the lamps must own the shadow direction — otherwise objects sit in a warm pool with a hard
+    shadow pointing away from a light that is not lighting them, which is worse than no shadow.
+    Move the ONE directional to the CENTROID of the lamps in frame. A centroid moves smoothly on a
+    pan; a nearest-lamp pick jumps every shadow in the scene the moment the ranking changes. Never
+    give a point light `castShadow` — that is a second shadow map, and a lamp head sits inside its
+    own light and self-shadows.
+12. **The key MOVES to the lamps; it does not take their colour.** Measured: tinting it to match
+    cost the harbour 0.18 saturation, because amber on amber kills the warm-on-cool contrast that
+    district reads by. A key bright enough to carve a shadow is bright enough to repaint everything
+    it touches. Colour belongs to the point lights and the pools, which are per-lamp and local.
+13. **Character blobs must follow the same light.** They are a required companion of the night key,
+    not an alternative: box shadows radiating from the lamps while every blob points along a dead
+    sun contradicts itself more loudly than either error alone. Keep the short indoor blob inside
+    shelter cells — a room is lit from a fixture overhead, which rakes nothing.
+14. **A ground mark fades at the rim.** Bake stains and blobs as radial fans with a FOUR-component
+    colour attribute, so the rim is transparent while the centre is not. Baked as square quads with
+    one flat colour they read as a dark tile someone forgot to remove: nothing else in a scene has a
+    hard straight edge like that. With an RGB attribute the only alpha is a material-wide scalar,
+    and every mark in the frame has to share it.
+15. **A shadow record authored for a 2D overlay is not a 3D centre.** `propShadows.worldX` is the
+    cluster's LEFT EDGE and `worldY` its base pushed 25px south, because the 2D renderer draws it as
+    a strip under a sprite. Read as a centre, every stain lands low and to the right of its object,
+    detached, with nothing above it.
+16. **Flicker the light and its pool, never the glow-box tint.** `sceneSignature` hashes box tints,
+    so a tint flicker forces a full rebake of the merged world every step. Hash from (lamp id,
+    animation step) so it is deterministic for smokes, and use ONE id for both the light and its
+    pool — hashing two different keys gives a lamp and the light on the floor under it separate
+    flickers, which reads as two lights. **Centre the swing on 1.** A one-sided flicker is not an
+    animation, it is an exposure cut, and it measures like one.
+17. **Ship a no-lights fallback path.** It must hold 60 FPS and carry its own packaged smoke. Path
    selection is explicit, never a runtime FPS probe.
+
+**Converting 2D VFX to 2.5D is per KIND, never one rule.** The 2D kit is authored in screen space
+for a top-down camera, where "up the screen", "north" and "up in the air" are one direction. Under a
+corner camera they are three, and which one an effect meant is a property of that effect:
+
+- `rise` — the authored vertical offset is HEIGHT. Fire and steam go up.
+- `spread` — it is north-south POSITION. Two fireflies one above the other in 2D are two fireflies a
+  stride apart on the ground. Same for a band of water glints. Spending that offset on height turned
+  a harbour's shoreline into a fence of light standing on the water.
+- `fixed` — the effect belongs at a known height on the object it decorates. Derive it from that
+  object's recipe, never guess: a neon sign panel centres at 1.01 tiles, a palm canopy at 1.65.
+
+**Additive is for light; alpha is for matter.** This is not a look preference. Forcing everything
+additive DELETES marks — blood is `#5e1a18` and dust is drawn in the shadow colour, and a dark colour
+added to a lit floor contributes nothing at all. Two marks the spec calls critical were vanishing
+structurally, not merely looking faint.
+
+**An emitter's `bounds` is a cull box, not a ground contact.** Its bottom extent differs per kind.
+Using it as the ground line slides every effect south, which at yaw 45 is toward the camera.
+
+**Pin the ambient phase for captures; do not force the clock.** The VFX clock only advances while
+time runs, so a paused capture always shows step 0 — no steam risen, no flame flickered. Forcing the
+clock to run instead makes the frame depend on when the screenshot landed, which is exactly the
+timing noise a frame-diffing scorer must not have.
 
 **Two darkeners will stack if you let them.** `FACE_SHADE` (`[0.82, 0.82, 1, 0.6, 0.66, 0.66]`)
 fakes lighting by darkening a box's sides so it reads as a box with no light in the scene.
@@ -231,7 +306,13 @@ A correct render of a boring frame still scores badly. Criterion 8 is about comp
 3. **A skirt fills everything outside the map bounds.** At zoom 1 the tilted footprint is taller
    than the map, so no clamp can avoid seeing past the edge. The skirt is what the player sees
    there instead of the clear colour.
-4. **Frame the dense part of the location.** Centre on the player and pick a time of day. Night at
+4. **Stand the player in the light, in the dense part.** Where a VFX fixture happens to be is not
+   where a district photographs best — one capture framed 70% empty yard with its cargo half out of
+   shot. Pick the tile by counting render parts and lamps inside the window the frame actually
+   shows, and require it within about three tiles of a lamp. Density alone dropped one district's
+   mean luminance by 50: a dense corner with no light in it is a dark corner. And a count is not a
+   composition — the densest lamp-lit window in one district is an empty plaza. Look at the result.
+5. **Frame the dense part of the location.** Centre on the player and pick a time of day. Night at
    minute 1245 gives the pooled-light look; noon proves colour correctness. Capture both — noon is
    your control when something looks wrong.
 
@@ -271,6 +352,26 @@ One round came back doubled; the scorer's fixed 1280×720 crop then sat over the
 mostly HUD, and reported an art regression that had not happened. The harness now resizes to the
 requested viewport and the scorer crops by fraction. A scorer that is wrong about WHERE it is
 looking is worse than no scorer, because its numbers still look like measurements.
+
+**Your metrics cannot see a flood, so add one that can.** Every lighting lever raises mean luminance
+and cuts dead pixels. A district that lit its whole courtyard evenly therefore measured BEST of four
+while looking worst against the rubric's own premise — dark world, bright objects, one warm pocket —
+because nothing measured the pocket. Report a pooling ratio: the 90th-percentile block luminance
+over the median block's. An even flood sits near 1.4; a scene with real pools sits above 2. Treat any
+change that raises luminance and cuts dead pixels together as suspect until the ratio agrees.
+
+**A test that recomputes the code's own formula tests nothing.** A contact-shadow test asserted the
+same expression the renderer uses and compared it to itself. It passed for two rounds while every
+stain sat half a tile behind its object — the visible symptom disappeared and the feature quietly
+stopped rendering. Assert against the WORLD: the stain must land inside the prop's own footprint.
+
+**A hook existing is not its output reaching a pixel.** The capture pipeline asserted that every
+smoke hook was present and never that the frame changed. The renderer drew no VFX at all for its
+entire life underneath that. Capture the thing itself and look at it.
+
+**Read the evidence at SHOT time.** It was read once at boot, before zoom, district, minute, staging
+and the VFX pin, so four different districts reported identical draw calls and descriptor counts —
+the spawn frame — and a ceiling breach in any of them would never have surfaced.
 
 **A null result needs a positive control.** "I changed X and nothing moved" has two causes: X does
 nothing, or the change never reached the render. Distinguish them before drawing a conclusion. The
@@ -323,6 +424,21 @@ Every one of these cost a capture round. The right-hand column is what settled i
 | Walls darker than furniture | The lit face table was applied to the flat batch only | The double-darkener stayed on every wall in the game |
 | Metrics swing wildly with no visible change | The capture resolution doubled; the scorer's crop is in pixels | Compare PNG dimensions before believing a delta |
 | A box reads flat at night | Face shade within 3% of 1 — below notice | Only the two visible SIDES need to differ |
+| A whole feature is missing | The renderer never reads that frame field | `grep` each `WorldFrameState` field; zero hits is a feature not shipped |
+| A shadow floats near its object | A 2D strip anchor read as a 3D centre | Left edge, and 25px south of the base |
+| A shadow ends on a hard straight edge | Baked as a square quad with one flat colour | Radial fan, four-component colour, transparent rim |
+| Blood and dust vanish | Drawn additively; a dark colour adds nothing to a lit floor | Matter needs alpha, light needs additive |
+| Water glints stand up | One orientation rule applied to every effect kind | The offset is depth for `spread` kinds, height for `rise` |
+| A neon bloom sits at knee height | Anchored to the cull box bottom instead of the sign | Derive the height from the object's own recipe |
+| A capture framed on a fixture shows no effect | The VFX clock is paused, so the phase is 0 | Pin the step; do not force the clock |
+| Flicker changes the whole frame's exposure | One-sided swing — it only dims | Centre it on 1 |
+| A lamp and its pool blink separately | Two different hash keys for one lamp | One id for both |
+| Staging by density goes dark | A dense corner with no lamp is a dark corner | Require the tile near a light |
+| A pinned animation phase drifts | The render loop recomputes it from the clock every frame | The HUD clock in the capture read 3 minutes past the request |
+| Evidence is identical across scenes | It was read at boot, before any staging | Four districts, one descriptor count |
+| A stain hides behind its prop | The 2D anchor recovers the tile's NORTH edge, not its centre | Add half a tile |
+| A test passes while the feature is broken | It recomputes the code's own formula | Assert against the world, not the expression |
+| A courtyard floods and nothing complains | Signs counted as lights for the crush but light nothing | The crush and the lights must share one definition |
 | Flat-shade colour wrong | UV landed on a texel boundary | Snap to texel centre |
 
 **Reviewers are not oracles.** A reviewer once diagnosed dark props as shadow acne; measurement
@@ -364,8 +480,8 @@ evidence, not the verdict.
 | Face shade, unlit | `[0.82, 0.82, 1, 0.6, 0.66, 0.66]` | `three25/world-renderer-25.ts` |
 | Sky light | `#f5dcb0` over `#4a4a44`, 1.1 lit / 1.7 fallback | `three25/world-renderer-25.ts` |
 | Sky night floor | 0.78 of day | `three25/world-renderer-25.ts` |
-| Sun | `#ffefdb`, `0.15 + elevation * 3.2` | `three25/world-renderer-25.ts` |
-| Shadow map | `BasicShadowMap` 256, frustum ±40, normalBias 0.35 | `three25/world-renderer-25.ts` |
+| Sun | `#ffefdb`, `0.15 + elevation * 3.2` by day; 1.6 grazing at night | `three25/world-renderer-25.ts` |
+| Shadow map | `BasicShadowMap` 1024, frustum ±22, normalBias 0.06 | `three25/world-renderer-25.ts` |
 | Lamp point light | distance 11, decay 1.4, `0.2 + lampMix * 11` | `three25/lighting.ts` |
 | Lamp pool | radius 3.2 tiles, opacity `0.5 * lampMix`, additive | `three25/lighting.ts` |
 | Void colour | `#07070b` | `three25/world-renderer-25.ts`, `three25/scene-builder.ts` |
@@ -385,5 +501,14 @@ evidence, not the verdict.
 | Neon sign glow | `#d98cff` downtown, `#ffc46b` market | `three25/recipes.ts` |
 | Frame scorer | `score-25d-frames.ts <dir> [previous]` | `scripts/verification/` |
 | Capture size | pinned to the requested viewport | `hidden-window-capture.ts` |
+| Night key | lamp centroid above `lampMix` 0.6, day colour, 1.6, grazing at 20° | `three25/world-renderer-25.ts` |
+| Lamp flicker | ±6% centred on 1, on light and pool only | `three25/lighting.ts` |
+| VFX modes | `rise` / `spread` / `fixed` per kind | `three25/vfx-25.ts` |
+| Prop core threshold | 0.45 tiles; smaller stays flat-shaded | `three25/scene-builder.ts` |
+| Outdoor night crush | 0.46 over 4→15 tiles from the nearest emitter | `three25/scene-builder.ts` |
+| Capture VFX step | 2 | `capture-25d-districts.ts` |
+| Floor lift ceiling | only art below luminance 52 is lifted | `three25/scene-builder.ts` |
+| Pooling ratio | 90th-percentile block over median; flood ≈1.4, pocket >2 | `score-25d-frames.ts` |
+| VFX proof capture | `capture-25d-vfx.ts` | `scripts/verification/` |
 | Renderer bundle | `dist/_expo/static/js/web/__common-*.js` | — |
 | Night capture minute | 1245 | `scripts/verification/capture-25d-districts.ts` |

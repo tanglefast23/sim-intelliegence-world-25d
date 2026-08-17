@@ -9,9 +9,10 @@
  * yaw 0 and yaw 35: **5 total / 3 atlas on the fallback path, 6 total / 3 atlas on the lit path**,
  * from 2120 descriptors. The extra lit call is the shadow pass.
  *
- * The numbers are structural rather than view-dependent: the renderer bakes five batches - floors,
- * boxes, billboards, the skirt and blob shadows - so the count moves only when a batch, a pass or
- * a material is added. That is why the headroom is small.
+ * The numbers are structural rather than view-dependent: the count moves only when a batch, a pass
+ * or a material is added, never when geometry does. The lit path is eight colour meshes - floors,
+ * textured boxes, flat boxes, glow boxes, billboards, ground stains, lamp pools and the skirt -
+ * plus the shadow pass and its two casters. That is why the headroom is small.
  *
  * A breach therefore means a NEW pass, a new material, or a mesh that stopped being merged. It
  * does not mean too much geometry. Fold the work into the existing batches before raising these.

@@ -384,6 +384,8 @@ export function WorldScene({
   const [audioCaption, setAudioCaption] = useState<string>();
   const [responsiveEvidence, setResponsiveEvidence] = useState('');
   const [vfxAgeStep, setVfxAgeStep] = useState(0);
+  /** Set by the smoke hook only. While it holds a step, the ambient loop must not move off it. */
+  const pinnedVfxStep = useRef<number | undefined>(undefined);
   const [destinationMarker, setDestinationMarker] = useState<TilePoint>();
   const [destinationPulseElapsedMs, setDestinationPulseElapsedMs] = useState(0);
   const [rendererParityPulseFrozen, setRendererParityPulseFrozen] = useState(false);
@@ -515,8 +517,13 @@ export function WorldScene({
   const metrics = useMemo(() => uiMetrics(uiScale), [uiScale]);
 
   useEffect(() => {
-    vfxClock.current = INITIAL_AMBIENT_VFX_CLOCK;
-    setVfxAgeStep(0);
+    // A pinned step survives a map change. Without this a capture that pins and then travels drops
+    // silently back to step 0 - the phase where no steam has risen - and reports it as pinned.
+    const pinned = pinnedVfxStep.current;
+    vfxClock.current = pinned === undefined
+      ? INITIAL_AMBIENT_VFX_CLOCK
+      : { ...INITIAL_AMBIENT_VFX_CLOCK, ageMilliseconds: pinned * VFX_STEP_MILLISECONDS };
+    setVfxAgeStep(pinned ?? 0);
     // Spec section 3.3: a map transition clears transient one-shots. The destination rebuilds only
     // its ambient emitters.
     transientClock.current = INITIAL_AMBIENT_VFX_CLOCK;
@@ -599,7 +606,9 @@ export function WorldScene({
         running: transientRunning,
         resumedFromSuspension,
       });
-      const nextAgeStep = Math.floor(vfxClock.current.ageMilliseconds / VFX_STEP_MILLISECONDS);
+      // A pinned step wins outright. Without this the loop overwrites it on the very next frame.
+      const nextAgeStep = pinnedVfxStep.current
+        ?? Math.floor(vfxClock.current.ageMilliseconds / VFX_STEP_MILLISECONDS);
       setVfxAgeStep((current) => current === nextAgeStep ? current : nextAgeStep);
       const nextTransientStep = Math.floor(
         transientClock.current.ageMilliseconds / TRANSIENT_VFX_STEP_MILLISECONDS,
@@ -819,7 +828,48 @@ export function WorldScene({
      * which is exactly the timing noise a frame-diffing scorer must not have. Setting the step
      * directly is deterministic and representative at the same time.
      */
-    window.siWorldSetVfxStep = (step) => { setVfxAgeStep(step); };
+    window.siWorldSetVfxStep = (step) => {
+      // Write the CLOCK, not just the React state, and latch it. Setting the state alone lasted
+      // exactly one frame: the ambient loop below recomputes the step from `vfxClock` every frame
+      // while the world is running, so a capture that pinned step 2 was still scored at whatever
+      // step the clock had wandered to — and the lamp flicker rides the same step, so the numbers
+      // included a random blink.
+      pinnedVfxStep.current = step;
+      vfxClock.current = { ...vfxClock.current, ageMilliseconds: step * VFX_STEP_MILLISECONDS };
+      setVfxAgeStep(step);
+    };
+    /**
+     * Stand the protagonist on a chosen tile of the map they are already on.
+     *
+     * The district captures reach a map through `siWorldOpenVfxFixture`, which stands the player
+     * next to the effect it opened. That framed the harbour on 70% empty yard with its cargo half
+     * out of shot, and put the villa's protagonist in half-dark at the frame's edge while the warm
+     * pocket sat centre-right. Where an effect happens to be is not where a district photographs
+     * best, and composition is a rubric criterion.
+     */
+    window.siWorldStandOnTile = (tileX, tileY) => {
+      setRuntime((current) => {
+        const mapId = current.worldState.protagonist.worldPosition.mapId;
+        // Fail loudly. A blocked tile used to be accepted silently and the capture came back framed
+        // on somewhere else entirely - which is how a VFX fixture ended up photographed with its
+        // effect out of shot and nobody could tell that from an effect that does not render.
+        const standing = WORLD_MAP_CATALOG[mapId as MapId];
+        if (standing.blockedKeys.has(tileKey({ x: tileX, y: tileY }))) {
+          throw new Error(`siWorldStandOnTile: ${mapId} tile ${String(tileX)},${String(tileY)} is blocked.`);
+        }
+        return {
+          ...current,
+          movement: createMovementState({ x: tileX, y: tileY }),
+          worldState: parseWorldState({
+            ...current.worldState,
+            protagonist: {
+              ...current.worldState.protagonist,
+              worldPosition: { mapId, tileX, tileY },
+            },
+          }),
+        };
+      });
+    };
     window.siWorldOpenVfxFixture = (fixtureMapId, effectId, forcedMinute) => {
       const fixtureMap = WORLD_MAP_CATALOG[fixtureMapId];
       const effect = fixtureMap.source.effects.find(({ id }) => id === effectId);
@@ -892,6 +942,7 @@ export function WorldScene({
       delete window.siWorldOpenVfxFixture;
       delete window.siWorldSetSmokeMinute;
       delete window.siWorldSetVfxStep;
+      delete window.siWorldStandOnTile;
       delete window.siWorldStartNaturalMovementFixture;
       delete window.siWorldOpenRendererFeedbackFixture;
       delete window.siWorldOpenRendererMotionFixture;
