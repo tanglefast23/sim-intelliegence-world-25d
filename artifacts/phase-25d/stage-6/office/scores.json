@@ -6,9 +6,9 @@
       "deadFraction": 0.09,
       "flatDeadFraction": 0.004,
       "poolingRatio": 2.596,
-      "meanLuminance": 50.139,
+      "meanLuminance": 50.12,
       "meanSaturation": 0.335,
-      "detail": 2.395
+      "detail": 2.394
     },
     {
       "name": "cubicles-night",
@@ -22,20 +22,20 @@
     {
       "name": "cubicles-noon",
       "deadFraction": 0.077,
-      "flatDeadFraction": 0.025,
+      "flatDeadFraction": 0.026,
       "poolingRatio": 1.798,
-      "meanLuminance": 67.174,
+      "meanLuminance": 67.143,
       "meanSaturation": 0.27,
-      "detail": 3.241
+      "detail": 3.248
     },
     {
       "name": "hall-night",
       "deadFraction": 0.032,
       "flatDeadFraction": 0.002,
-      "poolingRatio": 1.647,
-      "meanLuminance": 64.829,
+      "poolingRatio": 1.648,
+      "meanLuminance": 64.747,
       "meanSaturation": 0.287,
-      "detail": 2.977
+      "detail": 2.975
     }
   ]
 }

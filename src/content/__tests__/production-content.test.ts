@@ -9,6 +9,7 @@ import { FileCharacterWritingStore } from '../../ai/registry/file-writing-store'
 import { buildSceneRegistry } from '../../ai/registry/scene-registry';
 import { BROWSER_NAMED_WRITING } from '../../ai/registry/generated-browser-writing';
 import { visualIdForNpc } from '../../render/character-visuals';
+import { LAMP_SPRITE_IDS_25D } from '../../render/three25/lighting';
 import {
   PRODUCTION_AMBIENT_RESIDENTS,
   PRODUCTION_CAST_COUNTS,
@@ -277,14 +278,60 @@ describe('Ledger Annex staff', () => {
     }
   });
 
-  test('keeps every clerk at their desk through the whole working day', () => {
+  /**
+   * EVERY block, not just the work one.
+   *
+   * The first version of this test checked the `work` block alone and passed while the clerks were
+   * on a resident schedule that sent all thirteen of them to one shared social tile at midday. The
+   * office emptied at lunch and the assertion never noticed, because it asserted the block that had
+   * been built rather than the behaviour the scene needs.
+   */
+  test('keeps every clerk on their own desk tile in all four blocks', () => {
     const schedules = createProductionSchedules();
-    for (const staff of PRODUCTION_OFFICE_STAFF.filter(({ id }) => id.startsWith('clerk_'))) {
+    const occupiedAt = new Map<number, string[]>();
+    for (const staff of PRODUCTION_OFFICE_STAFF) {
       const blocks = schedules[`${staff.id}_daily`]!.blocks;
-      expect(blocks).toHaveLength(4);
-      const work = blocks.find(({ activityId }) => activityId === 'work')!;
-      expect({ x: work.tileX, y: work.tileY }).toEqual({ x: staff.work.x, y: staff.work.y });
-      expect(blocks.every(({ mapId }) => mapId === 'west_office')).toBe(true);
+      expect(blocks.map(({ startMinuteOfDay }) => startMinuteOfDay)).toEqual([0, 480, 720, 1_320]);
+      for (const block of blocks) {
+        expect({ x: block.tileX, y: block.tileY }).toEqual({ x: staff.work.x, y: staff.work.y });
+        expect(block.mapId).toBe('west_office');
+        expect(block.locationId).toBe('ledger_annex');
+        const key = `${block.startMinuteOfDay}`;
+        occupiedAt.set(block.startMinuteOfDay, [
+          ...(occupiedAt.get(block.startMinuteOfDay) ?? []),
+          `${block.tileX},${block.tileY}#${key}`,
+        ]);
+      }
     }
+    // No two members of the office staff may be sent to the same tile at the same time.
+    for (const [, tiles] of occupiedAt) {
+      expect(new Set(tiles).size).toBe(tiles.length);
+    }
+  });
+
+  test('never plants a lamp post in the car park', () => {
+    // Spec 11.6: the lot falls toward the void at night on purpose, and a lamp post is not neutral
+    // filler — it carries a point light and a floor pool.
+    const lot = WORLD_MAP_CATALOG.west_office.source.objects.find(({ areaId }) => areaId === 'annex-lot');
+    expect(lot).toBeDefined();
+    for (const part of lot!.renderParts) {
+      expect(LAMP_SPRITE_IDS_25D.has(part.sprite)).toBe(false);
+    }
+  });
+});
+
+/**
+ * The load path rewrites a save whenever this repair reports a change, and it decides that by
+ * comparing `JSON.stringify`. So a repair that is not a byte-level no-op on an already-current
+ * state makes every clean load re-save — and the way that happened was field ORDER, not data: one
+ * schedule builder emitted `activityId` before `locationId` and every clean load called itself
+ * migrated.
+ */
+describe('the production cast repair', () => {
+  test('is a no-op on a state that is already current', () => {
+    const initial = createInitialState();
+    const repaired = migrateProductionSchedules(initial);
+    expect(JSON.stringify(repaired.schedules)).toBe(JSON.stringify(initial.schedules));
+    expect(JSON.stringify(repaired.npcs)).toBe(JSON.stringify(initial.npcs));
   });
 });

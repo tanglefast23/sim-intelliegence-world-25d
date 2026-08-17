@@ -1311,7 +1311,12 @@ function westMap(): WorldMapV2 {
       { x: 55, y: 20, sprite: 'tile.fixture-planter', solid: true },
       { x: 55, y: 28, sprite: 'tile.fixture-planter' },
       // The spec's lot is seven cells; the placeholder gate wants eight. This is the eighth.
-      { x: 58, y: 30, sprite: 'tile.fixture-lamp' },
+      //
+      // A PLANTER, not the lamp post that was here first. Spec 11.6 is explicit: there are no lot
+      // lamps in v1, the lot is meant to fall toward the void at night, and the building is the
+      // stage. A post here is not a neutral filler — it carries a point light and a floor pool, so
+      // it lights the car park the spec deliberately leaves dark.
+      { x: 58, y: 30, sprite: 'tile.fixture-planter' },
     ],
   });
   // Aisle troffers, between the module rows rather than inside them.

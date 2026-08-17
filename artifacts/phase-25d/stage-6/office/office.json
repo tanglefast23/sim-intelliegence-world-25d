@@ -16,8 +16,8 @@
         "atlasDrawCalls": 3,
         "vfxAdditiveQuads": 0,
         "vfxAlphaQuads": 0,
-        "frameMedianMs": 100.3,
-        "frameP95Ms": 109.1,
+        "frameMedianMs": 97.3,
+        "frameP95Ms": 110,
         "frameSamples": 67
       }
     },
@@ -36,9 +36,9 @@
         "atlasDrawCalls": 3,
         "vfxAdditiveQuads": 0,
         "vfxAlphaQuads": 0,
-        "frameMedianMs": 94.4,
-        "frameP95Ms": 108.4,
-        "frameSamples": 70
+        "frameMedianMs": 100.8,
+        "frameP95Ms": 110.1,
+        "frameSamples": 69
       }
     },
     {
@@ -56,9 +56,9 @@
         "atlasDrawCalls": 3,
         "vfxAdditiveQuads": 0,
         "vfxAlphaQuads": 8,
-        "frameMedianMs": 99.8,
-        "frameP95Ms": 110.6,
-        "frameSamples": 66
+        "frameMedianMs": 96.5,
+        "frameP95Ms": 110.4,
+        "frameSamples": 71
       }
     },
     {
@@ -76,9 +76,9 @@
         "atlasDrawCalls": 3,
         "vfxAdditiveQuads": 0,
         "vfxAlphaQuads": 0,
-        "frameMedianMs": 86.6,
-        "frameP95Ms": 107,
-        "frameSamples": 81
+        "frameMedianMs": 98.5,
+        "frameP95Ms": 109.4,
+        "frameSamples": 71
       }
     }
   ]

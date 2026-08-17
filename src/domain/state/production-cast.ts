@@ -252,6 +252,40 @@ function residentSchedule(
   };
 }
 
+/**
+ * Four blocks, all of them on the clerk's own stand tile.
+ *
+ * Deliberately NOT `residentSchedule`. That one sends everyone to a social tile at midday, and the
+ * office staff share one — so at 12:00 all thirteen clerks walked out of their cubicles and piled
+ * onto a single tile beside the water cooler. The spec's whole staging is that they stay at their
+ * desks; an office whose workers abandon it at lunch is not the scene that was asked for.
+ *
+ * Sleeping at the desk is a staging lie the spec takes on purpose: it is cheaper than thirteen
+ * homes on Sunward, and it keeps a night capture populated. A later pass may give them homes and a
+ * commute, and that pass also has to stop `routeBetween('west_office', 'southeast_docks')` from
+ * throwing.
+ */
+function officeSchedule(id: string, desk: Place): ScheduleState {
+  // Field order matters, which is not obvious and cost a debugging round. The load path decides
+  // whether a save needs rewriting by comparing `JSON.stringify` of the schedules, so a block that
+  // carries identical DATA in a different key order reads as changed. Emitting `activityId` before
+  // `locationId` here made every clean load report itself migrated and re-save. Keep this in the
+  // same order as `residentSchedule` above.
+  const at = (startMinuteOfDay: number, activityId: string) => ({
+    startMinuteOfDay,
+    locationId: desk.locationId,
+    activityId,
+    mapId: desk.mapId,
+    tileX: desk.x,
+    tileY: desk.y,
+  });
+  return {
+    id: `${id}_daily`,
+    npcId: id,
+    blocks: [at(0, 'sleep'), at(480, 'work'), at(720, 'work'), at(1_320, 'evening')],
+  };
+}
+
 export function createProductionSchedules(): Record<string, ScheduleState> {
   const named = PRODUCTION_FULL_AI_CAST.map((character) => {
     const life = NAMED_LIFE[character.id]!;
@@ -271,7 +305,7 @@ export function createProductionSchedules(): Record<string, ScheduleState> {
     return [schedule.id, schedule] as const;
   });
   const office = PRODUCTION_OFFICE_STAFF.map((staff) => {
-    const schedule = residentSchedule(staff.id, staff.position, staff.work, staff.social);
+    const schedule = officeSchedule(staff.id, staff.work);
     return [schedule.id, schedule] as const;
   });
   return Object.fromEntries([...named, ...ambient, ...office]);

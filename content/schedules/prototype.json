@@ -1276,13 +1276,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
-        "tileX": 25,
-        "tileY": 31
+        "tileX": 10,
+        "tileY": 10
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1314,13 +1314,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
-        "tileX": 25,
-        "tileY": 31
+        "tileX": 15,
+        "tileY": 10
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1352,13 +1352,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
-        "tileX": 25,
-        "tileY": 31
+        "tileX": 20,
+        "tileY": 10
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1390,13 +1390,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
         "tileX": 25,
-        "tileY": 31
+        "tileY": 10
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1428,13 +1428,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
-        "tileX": 25,
-        "tileY": 31
+        "tileX": 10,
+        "tileY": 15
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1466,13 +1466,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
-        "tileX": 25,
-        "tileY": 31
+        "tileX": 15,
+        "tileY": 15
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1504,13 +1504,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
-        "tileX": 25,
-        "tileY": 31
+        "tileX": 20,
+        "tileY": 15
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1542,13 +1542,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
         "tileX": 25,
-        "tileY": 31
+        "tileY": 15
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1580,13 +1580,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
-        "tileX": 25,
-        "tileY": 31
+        "tileX": 10,
+        "tileY": 20
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1618,13 +1618,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
-        "tileX": 25,
-        "tileY": 31
+        "tileX": 15,
+        "tileY": 20
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1656,13 +1656,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
-        "tileX": 25,
-        "tileY": 31
+        "tileX": 20,
+        "tileY": 20
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1694,13 +1694,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
         "tileX": 25,
-        "tileY": 31
+        "tileY": 20
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",
@@ -1732,13 +1732,13 @@
       {
         "startMinuteOfDay": 720,
         "locationId": "ledger_annex",
-        "activityId": "socialize",
+        "activityId": "work",
         "mapId": "west_office",
-        "tileX": 25,
-        "tileY": 31
+        "tileX": 12,
+        "tileY": 32
       },
       {
-        "startMinuteOfDay": 1080,
+        "startMinuteOfDay": 1320,
         "locationId": "ledger_annex",
         "activityId": "evening",
         "mapId": "west_office",

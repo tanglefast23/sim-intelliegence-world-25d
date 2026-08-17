@@ -5890,7 +5890,7 @@
         },
         {
           "id": "annex-lot-fixtures-part-08",
-          "sprite": "tile.fixture-lamp",
+          "sprite": "tile.fixture-planter",
           "offset": {
             "x": 2,
             "y": 20
