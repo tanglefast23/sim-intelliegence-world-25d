@@ -347,7 +347,15 @@ function bakeGeometry(
     const sideCell = box.sideSource === undefined
       ? topCell
       : atlasCell(box.sideSource, atlasWidth, atlasHeight);
-    const tint = linearTint(box.tint);
+    // Same gain as a floor quad, and for the same reason: a hex tint cannot exceed 1.0, so it can
+    // only ever darken the sprite it multiplies. A textured prop needs the opposite — the tint is
+    // the colour the prop should AVERAGE, and the gain is what cancels the sprite's own brightness
+    // so that average comes out right instead of the two multiplying into mud.
+    const baseTint = linearTint(box.tint);
+    const boxGain = box.gain ?? 1;
+    const tint: readonly [number, number, number] = boxGain === 1
+      ? baseTint
+      : [baseTint[0] * boxGain, baseTint[1] * boxGain, baseTint[2] * boxGain];
     BOX_FACES.forEach((face, faceIndex) => {
       const first = vertex;
       const horizontal = face.normal[1] !== 0;

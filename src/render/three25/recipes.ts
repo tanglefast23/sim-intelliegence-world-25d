@@ -358,6 +358,65 @@ export const LAMP_GLOW_COLORS: Readonly<Record<string, string>> = Object.freeze(
   ),
 );
 
+/**
+ * The largest fully-OPAQUE rectangle inside each prop sprite, and that rectangle's mean luminance.
+ *
+ * Measured by `npx tsx scripts/art/measure-prop-cores.ts`. Re-run it if the atlas is regenerated.
+ *
+ * This is what lets furniture carry grain instead of being a flat plastic colour. Mapping the whole
+ * sprite onto a box is the obvious way to do that and does not work: prop sprites have transparent
+ * margins, and `alphaTest` turns those into holes punched straight through the furniture. A core
+ * has no transparent texel in it by construction, so a face UV'd to the core samples grain and can
+ * never sample a hole.
+ *
+ * `luminance` is not decoration. The mapped material multiplies texture by vertex colour, so a
+ * sprite at luminance 97 would darken the intended paint to a third of itself. The builder divides
+ * it back out, which is why the field is stored next to the rectangle it belongs to.
+ */
+export const PROP_CORES: Readonly<Record<string, Readonly<{
+  x: number; y: number; width: number; height: number; luminance: number;
+}>>> = Object.freeze({
+  'tile.bed-head': { x: 3, y: 3, width: 26, height: 29, luminance: 134.4 },
+  'tile.cargo-crane-nw': { x: 21, y: 4, width: 9, height: 28, luminance: 82.4 },
+  'tile.cargo-stack-left': { x: 2, y: 7, width: 30, height: 23, luminance: 97.7 },
+  'tile.cargo-stack-right': { x: 0, y: 7, width: 30, height: 23, luminance: 97.7 },
+  'tile.counter-left': { x: 2, y: 9, width: 30, height: 22, luminance: 135.8 },
+  'tile.counter-right': { x: 0, y: 9, width: 30, height: 22, luminance: 135.8 },
+  'tile.dock-bench': { x: 3, y: 13, width: 26, height: 13, luminance: 74.2 },
+  'tile.fixture-dock-lamp-amber': { x: 10, y: 3, width: 12, height: 10, luminance: 71.1 },
+  'tile.fixture-dock-lamp-cold': { x: 10, y: 3, width: 12, height: 10, luminance: 84.2 },
+  'tile.fixture-festival-lantern': { x: 10, y: 3, width: 12, height: 12, luminance: 95.2 },
+  'tile.fixture-lamp': { x: 14, y: 4, width: 4, height: 28, luminance: 95.4 },
+  'tile.fixture-neon-lamp-cyan': { x: 10, y: 3, width: 12, height: 10, luminance: 74.4 },
+  'tile.fixture-neon-lamp-magenta': { x: 10, y: 3, width: 12, height: 10, luminance: 81.3 },
+  'tile.fixture-planter': { x: 7, y: 9, width: 18, height: 22, luminance: 71.7 },
+  'tile.flowering-market-planter': { x: 7, y: 13, width: 18, height: 18, luminance: 95.0 },
+  'tile.food-stall-left': { x: 3, y: 7, width: 29, height: 23, luminance: 88.4 },
+  'tile.food-stall-right': { x: 0, y: 7, width: 29, height: 23, luminance: 88.4 },
+  'tile.landmark-ferry-left': { x: 3, y: 7, width: 29, height: 22, luminance: 122.1 },
+  'tile.landmark-ferry-right': { x: 0, y: 7, width: 29, height: 22, luminance: 122.1 },
+  'tile.landmark-fountain-nw': { x: 4, y: 5, width: 28, height: 27, luminance: 138.1 },
+  'tile.market-canopy-nw': { x: 3, y: 5, width: 29, height: 21, luminance: 125.9 },
+  'tile.mooring-bollard': { x: 10, y: 12, width: 12, height: 20, luminance: 76.4 },
+  'tile.pallet-rack-nw': { x: 4, y: 5, width: 28, height: 27, luminance: 89.9 },
+  'tile.parked-car-coral-left': { x: 2, y: 5, width: 30, height: 23, luminance: 87.4 },
+  'tile.parked-car-cyan-left': { x: 2, y: 5, width: 30, height: 23, luminance: 86.9 },
+  'tile.plant-palm': { x: 3, y: 0, width: 22, height: 16, luminance: 85.9 },
+  'tile.produce-stall-left': { x: 3, y: 8, width: 29, height: 22, luminance: 89.2 },
+  'tile.produce-stall-right': { x: 0, y: 8, width: 29, height: 22, luminance: 89.2 },
+  'tile.sign-civic': { x: 5, y: 3, width: 22, height: 20, luminance: 118.0 },
+  'tile.sign-harbor': { x: 4, y: 4, width: 24, height: 18, luminance: 96.4 },
+  'tile.sign-market': { x: 4, y: 4, width: 24, height: 18, luminance: 109.6 },
+  'tile.sign-neon': { x: 3, y: 5, width: 26, height: 20, luminance: 90.7 },
+  'tile.sign-spa': { x: 4, y: 3, width: 24, height: 17, luminance: 118.3 },
+  'tile.sign-sunset-market': { x: 4, y: 4, width: 24, height: 18, luminance: 107.8 },
+  'tile.sofa-left': { x: 3, y: 7, width: 29, height: 23, luminance: 98.0 },
+  'tile.sunset-fountain-nw': { x: 4, y: 7, width: 28, height: 25, luminance: 137.9 },
+  'tile.sunset-market-bench': { x: 3, y: 13, width: 26, height: 13, luminance: 87.6 },
+  'tile.table-left': { x: 3, y: 5, width: 29, height: 22, luminance: 111.3 },
+  'tile.table-right': { x: 0, y: 5, width: 29, height: 22, luminance: 111.3 },
+});
+
 export const FLAT_SPRITES: ReadonlySet<string> = new Set<string>([
   'tile.market-detail-chalk',
   'tile.market-detail-herbs',

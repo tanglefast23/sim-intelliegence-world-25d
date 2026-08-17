@@ -297,10 +297,44 @@ describe('face texturing', () => {
     expect(box.sideSource).not.toEqual(box.source);
   });
 
-  test('furniture draws flat-shaded, walls and roofs do not', () => {
-    for (const box of buildPropBoxes(frame)) expect(box.flatShade).toBe(true);
+  /**
+   * Small furniture is flat-shaded and large furniture carries its sprite's grain. The split is by
+   * SIZE because a 32-pixel core stretched across a 0.07-tile lamp post is mud, while the same core
+   * across a near-full-tile crate is the texture that separates a crate from a painted block.
+   */
+  test('small furniture is flat-shaded, big furniture is textured, walls and roofs never flat', () => {
+    const props = buildPropBoxes(frame);
+    for (const box of props) {
+      expect(box.flatShade).toBe(box.width < 0.45 || box.depth < 0.45 || box.gain === undefined);
+    }
     for (const box of buildWallBoxes(frame)) expect(box.flatShade).toBeUndefined();
     for (const box of buildRoofBoxes(outdoorFrame())) expect(box.flatShade).toBeUndefined();
+  });
+
+  /**
+   * A textured box samples the sprite's largest fully-OPAQUE rectangle, never the whole cell. The
+   * cell has transparent margins, and `alphaTest` would turn those into holes punched straight
+   * through the furniture.
+   */
+  test('a textured prop samples a strict sub-rectangle of its sprite cell', () => {
+    const textured = buildPropBoxes(outdoorFrame()).filter((box) => box.gain !== undefined);
+    expect(textured.length).toBeGreaterThan(0);
+    for (const box of textured) {
+      const cell = ATLAS_INDEX.sprites[box.sprite]!;
+      expect(box.source.x).toBeGreaterThanOrEqual(cell.x);
+      expect(box.source.y).toBeGreaterThanOrEqual(cell.y);
+      expect(box.source.x + box.source.width).toBeLessThanOrEqual(cell.x + cell.width);
+      expect(box.source.y + box.source.height).toBeLessThanOrEqual(cell.y + cell.height);
+      // The gain has to lift, never darken: it cancels the sprite's own brightness out of the tint.
+      expect(box.gain!).toBeGreaterThan(1);
+    }
+  });
+
+  /** An authored colour must render as authored, so it can never be multiplied by a sprite. */
+  test('authored tints and glow boxes are never textured', () => {
+    for (const box of buildPropBoxes(outdoorFrame())) {
+      if (box.glow === true) expect(box.gain).toBeUndefined();
+    }
   });
 });
 

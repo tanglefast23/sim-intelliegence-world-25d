@@ -3,7 +3,7 @@ import type { WorldFloorPlacement, WorldFrameState } from '../world-frame';
 import { hiddenWallTiles, tileKey } from './occlusion';
 import { mixHex } from '../atmosphere';
 import { readableTint } from './billboards';
-import { PROP_FLAT_COLORS, WALL_HEIGHT_TILES, recipeFor } from './recipes';
+import { PROP_CORES, PROP_FLAT_COLORS, WALL_HEIGHT_TILES, recipeFor } from './recipes';
 
 /**
  * A flat one-tile lid on the ground plane.
@@ -62,6 +62,8 @@ export type BoxDescriptor = Readonly<{
    * that must glow. Glow boxes draw through the unlit material with their authored tint intact.
    */
   glow?: boolean;
+  /** Linear albedo multiplier applied on top of `tint`. Above 1 brightens. See `QuadDescriptor`. */
+  gain?: number;
   x: number;
   y: number;
   z: number;
@@ -87,6 +89,48 @@ function wallSideSource(sprite: string): AtlasRectangle | undefined {
   const solid = `${sprite.replace(/-[0-9a-f]$/u, '')}-f`;
   if (solid === sprite || !(solid in ATLAS_INDEX.sprites)) return undefined;
   return atlasRectangle(solid);
+}
+
+/**
+ * How wide and deep a box must be before its faces are worth texturing, in tiles.
+ *
+ * A sprite core stretched across a 0.07-tile lamp post is mud, not grain — that is the objection
+ * that made every prop flat-shaded in the first place, and it is correct for small geometry. It is
+ * not correct for a crate body or a stall counter, which are near a full tile across.
+ */
+const TEXTURED_BOX_MINIMUM_TILES = 0.45;
+
+/** sRGB to linear, the same transfer three.js uses, so the gain cancels what the shader applies. */
+function toLinear(channel: number): number {
+  return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+}
+
+/**
+ * The albedo gain that cancels a sprite core's own brightness.
+ *
+ * The mapped material multiplies texture by vertex colour. Without this a crate whose core sits at
+ * luminance 97 would render at a third of its intended paint, because the paint and the sprite
+ * would multiply into each other. Dividing the core's linear luminance back out makes the tint mean
+ * exactly what it says while the sprite's variation around that mean survives as grain.
+ */
+function coreGain(luminance: number): number {
+  return 1 / Math.max(0.02, toLinear(luminance / 255));
+}
+
+/**
+ * Whether this box should be drawn with its sprite's opaque core rather than one flat colour.
+ *
+ * Authored tints are excluded on purpose. A sofa cushion, a crate lid rim and a lamp head are
+ * colours somebody chose, and multiplying a sprite into them would be a different colour than the
+ * one authored. Only boxes taking the sprite's own measured paint can carry the sprite's own grain.
+ */
+function texturedCore(
+  sprite: string,
+  box: Readonly<{ width: number; depth: number; tint?: string; glow?: boolean }>,
+): Readonly<{ x: number; y: number; width: number; height: number; luminance: number }> | undefined {
+  if (box.glow === true || box.tint !== undefined) return undefined;
+  if (box.width < TEXTURED_BOX_MINIMUM_TILES || box.depth < TEXTURED_BOX_MINIMUM_TILES) return undefined;
+  return PROP_CORES[sprite];
 }
 
 /**
@@ -299,12 +343,23 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
     const recipe = recipeFor(prop.sprite);
     if (recipe === undefined) continue;
     recipe.boxes.forEach((box, index) => {
+      const core = texturedCore(prop.sprite, box);
+      // Spread the real rect so the atlas metadata rides along; only the window moves.
+      const coreRectangle = core === undefined ? undefined : {
+        ...prop.source,
+        x: prop.source.x + core.x,
+        y: prop.source.y + core.y,
+        width: core.width,
+        height: core.height,
+      };
       boxes.push({
         id: `${prop.id}#${index}`,
         sprite: prop.sprite,
-        source: prop.source,
-        // Furniture reads as flat-shaded volumes, not as a sprite squashed onto every face.
-        flatShade: true,
+        source: coreRectangle ?? prop.source,
+        gain: core === undefined ? undefined : coreGain(core.luminance),
+        // Furniture reads as flat-shaded volumes UNLESS the box is big enough to carry the
+        // sprite's own grain, in which case the opaque core is mapped across it instead.
+        flatShade: core === undefined,
         x: prop.tile.x + 0.5 + box.x,
         y: box.y,
         z: prop.tile.y + 0.5 + box.z,
