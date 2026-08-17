@@ -217,10 +217,58 @@ async function cameraMotionLabel(window: BrowserWindow): Promise<string> {
   ) as Promise<string>;
 }
 
+/**
+ * Why this timeout reports so much.
+ *
+ * `package-windows-x64` has failed every recorded CI run with a single line: "Camera motion never
+ * matched. Last label: Camera follow suspended; shake 0.24; shot none; queue 0". That message names
+ * neither which wait failed nor why, and five different waits share it, so reading it cost an hour
+ * and still produced a wrong first diagnosis.
+ *
+ * The `shake 0.24` is the tell. Trauma starts at 0 and the only impulse in the smoke is `0.8`, so
+ * `0.8 - (1000 / IMPACT_MAX_DURATION_MS) * seconds = 0.24` puts the freeze about 101 ms after that
+ * impulse — which is the `shake 0.00` wait, not the `follow armed` wait it was assumed to be.
+ * Trauma above zero also keeps `sampleCameraDirector` returning `active`, so the clock should have
+ * kept running. Something stopped the frames, and none of the three candidates — a lost GL context,
+ * a dead `requestAnimationFrame`, or a swallowed key — can be told apart from the message alone.
+ *
+ * So on timeout this asks the renderer directly. It never runs on a passing wait.
+ */
+async function cameraMotionDiagnostics(window: BrowserWindow): Promise<string> {
+  try {
+    return await window.webContents.executeJavaScript(`new Promise((resolve) => {
+      const overlay = document.querySelector('#world-renderer-recovery-overlay');
+      const started = Date.now();
+      let frames = 0;
+      const tick = () => {
+        frames += 1;
+        if (frames < 2 && Date.now() - started < 500) { requestAnimationFrame(tick); return; }
+        resolve([
+          'recoveryOverlay=' + (overlay ? JSON.stringify(overlay.textContent ?? '') : 'absent'),
+          'framesIn500ms=' + frames,
+          'documentHidden=' + document.hidden,
+          'visibility=' + document.visibilityState,
+        ].join(' '));
+      };
+      requestAnimationFrame(tick);
+      // requestAnimationFrame never firing is itself the answer, so this cannot wait on it alone.
+      setTimeout(() => resolve([
+        'recoveryOverlay=' + (overlay ? JSON.stringify(overlay.textContent ?? '') : 'absent'),
+        'framesIn500ms=' + frames,
+        'documentHidden=' + document.hidden,
+        'visibility=' + document.visibilityState,
+      ].join(' ')), 600);
+    })`, true) as string;
+  } catch (error: unknown) {
+    return `diagnostics failed: ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
+
 async function waitForCameraMotion(
   window: BrowserWindow,
   matches: (label: string) => boolean,
   timeoutMilliseconds = 4_000,
+  waitName = 'unnamed',
 ): Promise<string> {
   const deadline = Date.now() + timeoutMilliseconds;
   let label = '';
@@ -229,7 +277,11 @@ async function waitForCameraMotion(
     if (matches(label)) return label;
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 50));
   }
-  throw new Error(`Camera motion never matched. Last label: ${label}`);
+  const diagnostics = await cameraMotionDiagnostics(window);
+  throw new Error(
+    `Camera motion never matched "${waitName}" within ${timeoutMilliseconds}ms. ` +
+    `Last label: ${label} | ${diagnostics}`,
+  );
 }
 
 /**
@@ -1974,7 +2026,7 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
   // correctly stay put.
   await clickZoomButton(window, 2);
   sendKey(window, 'F');
-  const followArmedLabel = await waitForCameraMotion(window, (label) => label.includes('follow armed'));
+  const followArmedLabel = await waitForCameraMotion(window, (label) => label.includes('follow armed'), 4_000, 'follow armed');
   const cameraBeforeFollow = parseCameraLabel(await cameraLabel(window));
   await reachWorldTile(window, { x: 16, y: 25 });
   const cameraAfterFollow = parseCameraLabel(await cameraLabel(window));
@@ -1986,7 +2038,7 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
   // travel and both the x and y clauses drift.
   const cameraBeforePanSuspend = parseCameraLabel(await waitForCameraStill(window));
   await panWorld(window, 24, 0);
-  const followSuspendedLabel = await waitForCameraMotion(window, (label) => label.includes('follow suspended'));
+  const followSuspendedLabel = await waitForCameraMotion(window, (label) => label.includes('follow suspended'), 4_000, 'follow suspended');
   // Walking with follow suspended must leave the camera exactly where the pan left it. This also
   // returns the hero to 19,20, which the cancel check below depends on.
   await reachWorldTile(window, { x: 19, y: 20 });
@@ -2011,7 +2063,7 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
       resolve(document.querySelector('#world-camera-motion-state')?.getAttribute('aria-label') ?? '');
     }));
   })`, true) as string;
-  await waitForCameraMotion(window, (label) => label.includes('shake 0.00'), 2_000);
+  await waitForCameraMotion(window, (label) => label.includes('shake 0.00'), 2_000, 'shake decays to 0.00');
   // The impact offset is presentation only: the base camera, which is what gets persisted and
   // hit-tested, is untouched by it.
   const impactShake = shakenLabel.includes('shake 0.') && await cameraLabel(window) === cameraBeforeImpulse;
@@ -2020,8 +2072,8 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
     { kind: 'focus', points: [{ x: 23 * 32 + 16, y: 24 * 32 + 29 }], durationMs: 320, ease: 'in-out' },
     { kind: 'hold', durationMs: 80 },
   ])`, true);
-  const shotLabel = await waitForCameraMotion(window, (label) => label.includes('shot focus'));
-  await waitForCameraMotion(window, (label) => label.includes('shot none'), 4_000);
+  const shotLabel = await waitForCameraMotion(window, (label) => label.includes('shot focus'), 4_000, 'shot focus');
+  await waitForCameraMotion(window, (label) => label.includes('shot none'), 4_000, 'shot queue drains');
   const directedCamera = parseCameraLabel(await cameraLabel(window));
   const directedBounds = await surfaceBounds(window);
   const cameraDirector = shotLabel.includes('queue 2') &&
