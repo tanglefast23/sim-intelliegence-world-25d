@@ -810,6 +810,16 @@ export function WorldScene({
         }),
       }));
     };
+    /**
+     * Pin the ambient VFX phase, for captures.
+     *
+     * The ambient clock only advances while time is running, so a paused capture always sees step
+     * 0 — the phase where a steam plume has not risen and a fire has not flickered. Forcing the
+     * clock to run instead would make the captured frame depend on when the screenshot landed,
+     * which is exactly the timing noise a frame-diffing scorer must not have. Setting the step
+     * directly is deterministic and representative at the same time.
+     */
+    window.siWorldSetVfxStep = (step) => { setVfxAgeStep(step); };
     window.siWorldOpenVfxFixture = (fixtureMapId, effectId, forcedMinute) => {
       const fixtureMap = WORLD_MAP_CATALOG[fixtureMapId];
       const effect = fixtureMap.source.effects.find(({ id }) => id === effectId);
@@ -881,6 +891,7 @@ export function WorldScene({
       delete window.siWorldSetAuthoredDialogueFixture;
       delete window.siWorldOpenVfxFixture;
       delete window.siWorldSetSmokeMinute;
+      delete window.siWorldSetVfxStep;
       delete window.siWorldStartNaturalMovementFixture;
       delete window.siWorldOpenRendererFeedbackFixture;
       delete window.siWorldOpenRendererMotionFixture;

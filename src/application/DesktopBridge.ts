@@ -73,6 +73,8 @@ declare global {
      * its effect, which is no use for capturing an interior.
      */
     siWorldSetSmokeMinute?: (absoluteMinute: number) => void;
+    /** Pin the ambient VFX phase so a paused capture shows a representative frame, not step 0. */
+    siWorldSetVfxStep?: (step: number) => void;
     siWorldStartNaturalMovementFixture?: () => Readonly<{
       npcId: 'linda';
       source: 'fixture';

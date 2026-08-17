@@ -49,6 +49,15 @@ export type SceneRequest = Readonly<{
   clickPixel?: Readonly<{ x: number; y: number }>;
   /** Stop NPCs walking, so a tile filtered as NPC-free at selection time is still free at click. */
   freezeNpcMotion?: boolean;
+  /**
+   * Pin the ambient VFX phase.
+   *
+   * A paused capture always sees step 0, the phase where a steam plume has not risen and a fire has
+   * not flickered - so a capture framed on a steam fixture shows no steam. Forcing the clock to run
+   * would instead make the frame depend on when the screenshot landed, which is the timing noise a
+   * frame-diffing scorer must not have.
+   */
+  vfxStep?: number;
   /** World zoom, through the app's own test hook. Use 3 to frame an interior. */
   zoom?: 1 | 2 | 3;
   /** Absolute world minute, to capture a scene at night rather than at the 08:00 spawn. */
@@ -285,6 +294,15 @@ async function capture(scene) {
       + ' window.dispatchEvent(new KeyboardEvent("keyup", e)); return true; })()',
     );
     await new Promise((r) => setTimeout(r, 900));
+  }
+
+  if (scene.vfxStep !== undefined) {
+    const pinned = await window.webContents.executeJavaScript(
+      'typeof window.siWorldSetVfxStep === "function"'
+      + ' ? (window.siWorldSetVfxStep(' + String(scene.vfxStep) + '), true) : false',
+    );
+    if (!pinned) throw new Error('siWorldSetVfxStep is missing.');
+    await new Promise((r) => setTimeout(r, 400));
   }
 
   // Settle after readiness, so the capture is of a presented frame.

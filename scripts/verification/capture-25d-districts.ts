@@ -17,19 +17,28 @@ const evidenceRoot = resolveEvidenceOutputRoot(process.argv.slice(2), {
 
 const NIGHT = 1245;
 
+/**
+ * The ambient VFX phase to pin.
+ *
+ * Step 0 is the phase where nothing has happened yet: no steam has risen, no flame has flickered,
+ * no glint has moved. Three of these four captures are framed on a fixture, so scoring at step 0
+ * scores an effect that is not showing. Step 2 is mid-cycle for every recipe.
+ */
+const VFX_STEP = 2;
+
 void captureScenes(
   [
-    { name: 'northwest-villa', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true },
+    { name: 'northwest-villa', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true, vfxStep: VFX_STEP },
     {
-      name: 'northeast-downtown', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true,
+      name: 'northeast-downtown', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true, vfxStep: VFX_STEP,
       district: { mapId: 'northeast_downtown', effectId: 'club-neon-west' },
     },
     {
-      name: 'southwest-commercial', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true,
+      name: 'southwest-commercial', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true, vfxStep: VFX_STEP,
       district: { mapId: 'southwest_commercial', effectId: 'courtyard-steam-west' },
     },
     {
-      name: 'southeast-docks', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true,
+      name: 'southeast-docks', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true, vfxStep: VFX_STEP,
       district: { mapId: 'southeast_docks', effectId: 'yard-steam' },
     },
   ],

@@ -31,7 +31,7 @@ import { ACES_EXPOSURE } from '../three/world-renderer';
 import type { ViewportSize } from '../camera';
 import type { WorldFrameState } from '../world-frame';
 import { buildBillboards, type BillboardDescriptor } from './billboards';
-import { vfxQuads, type VfxQuad } from './vfx-25';
+import { vfxGlowPools, vfxQuads, type VfxQuad } from './vfx-25';
 import {
   DEFAULT_SHADOW_PATH,
   blobShadows,
@@ -609,14 +609,26 @@ export function bakeLampPools(
  * `width` and `depth` are diameters, so a mark is an ellipse: the depth axis is already compressed
  * by the camera, and these are authored to sit under a sprite.
  */
-export function bakeGroundStains(stains: readonly QuadDescriptor[]): BufferGeometry {
+export function bakeGroundStains(
+  stains: readonly QuadDescriptor[],
+  marks: readonly VfxQuad[] = [],
+  cameraRight: Readonly<{ x: number; z: number }> = { x: 1, z: 0 },
+): BufferGeometry {
   const SEGMENTS = 12;
   const perStain = SEGMENTS + 2;
-  const positions = new Float32Array(stains.length * perStain * 3);
-  const normals = new Float32Array(stains.length * perStain * 3);
-  const uvs = new Float32Array(stains.length * perStain * 2);
-  const colors = new Float32Array(stains.length * perStain * 4);
-  const indices = new Uint32Array(stains.length * SEGMENTS * 3);
+  // VFX that are MATTER rather than light ride here: steam, leaves, fronds, a dust smear, a blood
+  // stain. They need real alpha blending, which the additive pool batch cannot give them — a dark
+  // mark added to a lit floor contributes nothing at all — and this batch already blends normally
+  // with per-vertex alpha. Zero extra draw calls, and the ceiling has no room for a ninth mesh.
+  //
+  // Hard-edged, unlike the stains: a mark is pixel art with an outline, not a soft contact shadow.
+  const vertexCount = stains.length * perStain + marks.length * 4;
+  const indexCount = stains.length * SEGMENTS * 3 + marks.length * 6;
+  const positions = new Float32Array(vertexCount * 3);
+  const normals = new Float32Array(vertexCount * 3);
+  const uvs = new Float32Array(vertexCount * 2);
+  const colors = new Float32Array(vertexCount * 4);
+  const indices = new Uint32Array(indexCount);
 
   stains.forEach((stain, stainIndex) => {
     const first = stainIndex * perStain;
@@ -648,6 +660,38 @@ export function bakeGroundStains(stains: readonly QuadDescriptor[]): BufferGeome
       indices[index + 1] = first + 1 + step;
       indices[index + 2] = first + 2 + step;
     }
+  });
+
+  const markFirstVertex = stains.length * perStain;
+  const markFirstIndex = stains.length * SEGMENTS * 3;
+  marks.forEach((mark, markIndex) => {
+    const first = markFirstVertex + markIndex * 4;
+    const tint = linearTint(mark.tint);
+    const halfWidth = mark.width / 2;
+    const halfHeight = mark.height / 2;
+    const rightX = mark.upright ? cameraRight.x * halfWidth : halfWidth;
+    const rightZ = mark.upright ? cameraRight.z * halfWidth : 0;
+    const upY = mark.upright ? halfHeight : 0;
+    const upZ = mark.upright ? 0 : halfHeight;
+    const corners: readonly (readonly [number, number])[] = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+    corners.forEach((corner, cornerIndex) => {
+      const vertex = first + cornerIndex;
+      positions[vertex * 3] = mark.x + rightX * corner[0];
+      positions[vertex * 3 + 1] = mark.y + upY * corner[1];
+      positions[vertex * 3 + 2] = mark.z + rightZ * corner[0] + upZ * corner[1];
+      normals[vertex * 3 + 1] = 1;
+      colors[vertex * 4] = tint[0];
+      colors[vertex * 4 + 1] = tint[1];
+      colors[vertex * 4 + 2] = tint[2];
+      colors[vertex * 4 + 3] = mark.opacity;
+    });
+    const index = markFirstIndex + markIndex * 6;
+    indices[index] = first;
+    indices[index + 1] = first + 1;
+    indices[index + 2] = first + 2;
+    indices[index + 3] = first;
+    indices[index + 4] = first + 2;
+    indices[index + 5] = first + 3;
   });
 
   const geometry = new BufferGeometry();
@@ -1138,24 +1182,26 @@ export async function createWorldRenderer25(
     // Characters get a blob, props get a contact stain, and both are flat ground quads, so they
     // bake together into the batch that already exists. Zero draw calls for the thing that stops
     // every prop in the scene from floating a hair above its own tile.
-    const blobs = [...blobShadows(next), ...propContactShadows(next)];
-    blobMesh.geometry.dispose();
-    blobMesh.geometry = bakeGroundStains(blobs);
-    blobMesh.visible = blobs.length > 0;
-    // Alpha now rides per vertex in the bake, so there is no material-wide opacity to set.
-
-    // The camera basis has to be current before the VFX bake: upright effect quads turn to face the
-    // camera the same way character billboards do.
+    // The camera basis has to be current BEFORE either transparent batch bakes: upright VFX quads
+    // turn to face the camera the same way character billboards do.
     camera.matrixWorld.extractBasis(cameraRight, cameraUp, cameraBack);
     billboardRight.set(cameraRight.x, 0, cameraRight.z);
     if (billboardRight.lengthSq() === 0) billboardRight.set(1, 0, 0);
     billboardRight.normalize();
+    const basis = { x: billboardRight.x, z: billboardRight.z };
 
-    const pools = lampPools(next);
     const effects = vfxQuads(next);
+    const blobs = [...blobShadows(next), ...propContactShadows(next)];
+    blobMesh.geometry.dispose();
+    blobMesh.geometry = bakeGroundStains(blobs, effects.alpha, basis);
+    blobMesh.visible = blobs.length > 0 || effects.alpha.length > 0;
+    // Alpha now rides per vertex in the bake, so there is no material-wide opacity to set.
+
+    // Transient glows are stepped additive lights on the floor, which is what a lamp pool is.
+    const pools = [...lampPools(next), ...vfxGlowPools(next)];
     poolMesh.geometry.dispose();
-    poolMesh.geometry = bakeLampPools(pools, effects, { x: billboardRight.x, z: billboardRight.z });
-    poolMesh.visible = pools.length > 0 || effects.length > 0;
+    poolMesh.geometry = bakeLampPools(pools, effects.additive, basis);
+    poolMesh.visible = pools.length > 0 || effects.additive.length > 0;
 
     // Characters turn to face the camera's bearing, so their quads are rebuilt from the camera
     // basis every frame rather than kept in the world batch. Only the horizontal component of the
