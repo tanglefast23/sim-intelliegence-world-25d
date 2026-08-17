@@ -110,6 +110,18 @@ const outputDirectory = ${JSON.stringify(outputDirectory)};
 
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
 
+// Electron reports an uncaught main-process exception by opening a modal dialog. In a hidden-window
+// capture that both hangs the run - nothing is there to click OK - and puts a window on the user's
+// desktop, which the verification rules forbid. Exit loudly on stderr instead.
+process.on('uncaughtException', (error) => {
+  console.error('SI_WORLD_25D_CAPTURE_FAILURE ' + (error && error.message ? error.message : String(error)));
+  process.exit(1);
+});
+process.on('unhandledRejection', (error) => {
+  console.error('SI_WORLD_25D_CAPTURE_FAILURE ' + String(error));
+  process.exit(1);
+});
+
 // One window, reloaded per scene. Destroying and recreating raced the loopback server and the
 // second load failed with ERR_FAILED.
 let sharedWindow;
@@ -209,7 +221,11 @@ async function capture(scene) {
       '  await wait(1200);',
       '  return { at: { x: ' + String(scene.clickAt.x) + ', y: ' + String(scene.clickAt.y) + ' }, cameraLabel: cameraLabel, tileBefore: before, destination: tile() };',
       '})()',
-    ].join('\n');
+    // The doubled backslash is on purpose. This block lives inside the template literal that
+    // GENERATES main.js, so a single escape here emits a REAL newline into main.js and splits the
+    // string literal in half. That is a SyntaxError, and Electron reports one by opening a modal
+    // dialog on the desktop: a broken run and a broken hidden-window rule at the same time.
+    ].join('\\n');
     click = await window.webContents.executeJavaScript(clickScript);
   }
 
