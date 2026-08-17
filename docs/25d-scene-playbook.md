@@ -180,22 +180,41 @@ The reference look is **dark world, bright objects, one warm pocket**. Four ligh
    - Rescale the glow colour to the day sky's brightness before mixing. An accent or lamp tint is
      chosen to be saturated, not bright, so a raw mix moves EXPOSURE as well as hue: it cost 2-5
      luminance everywhere and raised the dead fraction it was added to cut.
-7. **Lamp heads must be UNLIT.** The point light sits inside the head box, so every face normal
+7. **Anything that IS a light must emit, and must take no face shade.** A glow box's authored tint
+   has to reach the pixels unchanged — that is the whole reason the unlit batch exists. Bake glow
+   boxes with a flat `[1,1,1,1,1,1]`; the default face shade drew every lamp head's two visible
+   faces at 82% and 66% of its glow. Then look for what ELSE should be emitting: neon signs, lit
+   windows, screens. Downtown had fourteen neon signs drawn as painted planks — more emitting
+   surface than all its lamp posts together. Give them a `glow` panel, but do NOT add them to the
+   lamp set: that set drives the point lights, and fourteen more would recompile every lit material
+   on the frame a lamp enters the window.
+8. **Lamp heads must be UNLIT.** The point light sits inside the head box, so every face normal
    points away from it and a lit head renders black. Give them an explicit `glow` flag and their
    own unlit batch. Guard it with a test: only lamp fixtures may set `glow`.
-8. **Additive light pools on the floor**, radius 3.2 tiles, opacity `0.5 * lampMix`, no depth write.
+9. **Additive light pools on the floor**, radius 3.2 tiles, opacity `0.5 * lampMix`, no depth write.
    Additive brightens the floor instead of painting a flat disc over it.
-9. **Blob shadows under characters, in BOTH paths.** A camera-facing billboard has no meaningful
+10. **Blob shadows under characters, in BOTH paths.** A camera-facing billboard has no meaningful
    silhouette from the sun's direction, so it can never cast into the shadow map. Blobs are the
    only shadow a character gets. Give the blob material `vertexColors` or every blob ignores the
    frame's shadow tint and draws white.
-10. **Ship a no-lights fallback path.** It must hold 60 FPS and carry its own packaged smoke. Path
+11. **Ship a no-lights fallback path.** It must hold 60 FPS and carry its own packaged smoke. Path
    selection is explicit, never a runtime FPS probe.
 
 **Two darkeners will stack if you let them.** `FACE_SHADE` (`[0.82, 0.82, 1, 0.6, 0.66, 0.66]`)
 fakes lighting by darkening a box's sides so it reads as a box with no light in the scene.
-Multiplied into a surface a real light already shades, it darkens twice. Lit boxes take
-`LIT_FACE_SHADE` (`[0.96, 0.96, 1, 0.9, 0.93, 0.93]`) — just enough for an edge.
+Multiplied into a surface a real light already shades, it darkens twice.
+
+**Every lit batch must take the lit table — check them all.** Fixing this for furniture and leaving
+it on walls means the double-darkener is still on every building in the game. Walls, doors and roofs
+are lit too.
+
+**But a lit box still needs a SIDE split, and only a side split.** `LIT_FACE_SHADE` is
+`[1, 1, 1, 1, 0.82, 0.82]`. A hemisphere light blends sky and ground by `normal.y`, so all four
+vertical faces of a box take an identical mix, and after dusk the sun is down to 0.15 and cannot
+separate them either — away from a lamp this table is the only thing giving a box two tones, and
+without it every prop at yaw 45 loses its vertical edge. Leave the TOP at 1: real lighting does
+separate a horizontal face from a vertical one, so shading it here as well is the double-darkening
+again. A first attempt kept every face within 3% of 1, which is below notice and separated nothing.
 
 ---
 
@@ -246,6 +265,13 @@ content loads, background throttling off, every process closed on success AND fa
 screen, foreground input, `moveTop` or always-on-top. Drive the UI through
 `webContents.executeJavaScript` and `sendInputEvent`, never the host keyboard or mouse.
 
+**Pin the capture size, and never crop by hardcoded pixels.** `capturePage` returns DEVICE pixels,
+so a host whose display scale is not 1 hands back a 2× image even with `--force-device-scale-factor=1`.
+One round came back doubled; the scorer's fixed 1280×720 crop then sat over the top-left quadrant,
+mostly HUD, and reported an art regression that had not happened. The harness now resizes to the
+requested viewport and the scorer crops by fraction. A scorer that is wrong about WHERE it is
+looking is worse than no scorer, because its numbers still look like measurements.
+
 **A null result needs a positive control.** "I changed X and nothing moved" has two causes: X does
 nothing, or the change never reached the render. Distinguish them before drawing a conclusion. The
 cheap control is one change that MUST be visible — move the skirt plane to `y = 5` so it covers the
@@ -292,6 +318,11 @@ Every one of these cost a capture round. The right-hand column is what settled i
 | Awning floats in mid-air | Recipe had a counter and a canopy and no posts | The eye catches this before it reads anything else |
 | A stack reads as one moulded mass | Identical sprites carry one measured colour | Per-prop brightness jitter hashed from the prop id |
 | "My change did nothing" | The probe never reached the render | Run the `y = 5` skirt positive control before believing it |
+| Lamp head looks dull | Glow boxes baked with the default `FACE_SHADE` | Two visible faces at 82% and 66% of the authored glow |
+| A neon district still reads dim | Signs drawn as painted planks, not emitters | 14 signs vs 20 lamp posts — more emitting surface unused |
+| Walls darker than furniture | The lit face table was applied to the flat batch only | The double-darkener stayed on every wall in the game |
+| Metrics swing wildly with no visible change | The capture resolution doubled; the scorer's crop is in pixels | Compare PNG dimensions before believing a delta |
+| A box reads flat at night | Face shade within 3% of 1 — below notice | Only the two visible SIDES need to differ |
 | Flat-shade colour wrong | UV landed on a texel boundary | Snap to texel centre |
 
 **Reviewers are not oracles.** A reviewer once diagnosed dark props as shadow acne; measurement
@@ -344,11 +375,15 @@ evidence, not the verdict.
 | Modal colour cutoff | exclude luminance < 55 | `three25/recipes.ts` |
 | Draw-call ceiling | 10 total, 5 atlas | `three25/ceilings.ts` |
 | Alpha cutout | `alphaTest: 0.5`, never `transparent` | `three25/world-renderer-25.ts` |
-| Face shade, lit | `[0.96, 0.96, 1, 0.9, 0.93, 0.93]` | `three25/world-renderer-25.ts` |
+| Face shade, lit (all lit batches) | `[1, 1, 1, 1, 0.82, 0.82]` | `three25/world-renderer-25.ts` |
 | Lamp light colour | the lamp's own recipe glow (`LAMP_GLOW_COLORS`) | `three25/recipes.ts` |
 | Skyglow | `0.45 * lampMix` toward the mean lamp colour, brightness-rescaled | `three25/world-renderer-25.ts` |
 | Prop jitter | ±8%, hashed from the prop id, glow boxes exempt | `three25/scene-builder.ts` |
 | Crate lid rim | `#d8c49a` | `three25/recipes.ts` |
+| Face shade, glow | `[1, 1, 1, 1, 1, 1]` — none | `three25/world-renderer-25.ts` |
+| Floor albedo gain | `tile.dark-asphalt` 1.9, `tile.neon-floor` 1.7 | `three25/scene-builder.ts` |
+| Neon sign glow | `#d98cff` downtown, `#ffc46b` market | `three25/recipes.ts` |
 | Frame scorer | `score-25d-frames.ts <dir> [previous]` | `scripts/verification/` |
+| Capture size | pinned to the requested viewport | `hidden-window-capture.ts` |
 | Renderer bundle | `dist/_expo/static/js/web/__common-*.js` | — |
 | Night capture minute | 1245 | `scripts/verification/capture-25d-districts.ts` |
