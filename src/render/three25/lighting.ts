@@ -60,8 +60,13 @@ export type LampLight = Readonly<{
 export function lampLights(frame: WorldFrameState): readonly LampLight[] {
   return frame.props
     .filter((prop) => LAMP_SPRITE_IDS_25D.has(prop.sprite))
-    .map((prop) => ({
-      id: `lamp-${prop.id}`,
+    .map((prop) => {
+      // One id, used for BOTH the light and its pool. Hashing the prop id here and the descriptor
+      // id in `lampPools` gave a lamp and the light on the floor under it two different flickers,
+      // which reads as two lights rather than one.
+      const id = `lamp-${prop.id}`;
+      return {
+      id,
       x: prop.tile.x + 0.5,
       z: prop.tile.y + 0.5,
       // The lamp's OWN glow colour, not the district accent. Under the accent an amber dock lamp
@@ -71,8 +76,10 @@ export function lampLights(frame: WorldFrameState): readonly LampLight[] {
       color: LAMP_GLOW_COLORS[prop.sprite] ?? frame.lighting.accent,
       // Strong at night, near-off in daylight. A lamp has to be the brightest thing in a
       // dark frame, or the scene reads as uniformly dim rather than pooled.
-      intensity: 0.2 + frame.lighting.sun.lampMix * 11,
-    }));
+      intensity: (0.2 + frame.lighting.sun.lampMix * 11)
+        * lampFlicker(id, frame.vfxAgeStep),
+      };
+    });
 }
 
 /**
@@ -110,6 +117,43 @@ export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
   });
 }
 
+
+
+/**
+ * How far a lamp's brightness swings, as a fraction of its steady value.
+ *
+ * Small on purpose. A still night scene reads as a render rather than a place, and a lamp that
+ * never varies is the largest single reason why — but a lamp that swings hard reads as a fault in
+ * the lamp. 12% is enough to notice out of the corner of an eye and not enough to look broken.
+ */
+const LAMP_FLICKER_RANGE = 0.12;
+
+/**
+ * A deterministic brightness multiplier for one lamp at one animation step.
+ *
+ * Deterministic twice over. Same lamp and same step always give the same number, so a capture is
+ * reproducible and a frame-diffing smoke does not see noise; and the value is stepped on the VFX
+ * lattice rather than continuous, so the flicker is a pixel-art blink rather than a smooth fade.
+ *
+ * **Never apply this to a glow box's tint.** `sceneSignature` hashes box tints, so flickering one
+ * would force a full rebake of the merged world every step — the most expensive operation in the
+ * renderer, run several times a second, to make a lamp head wobble. The light and its floor pool
+ * carry the flicker instead; both are rebuilt every frame anyway, so they cost nothing.
+ */
+export function lampFlicker(id: string, ageStep: number): number {
+  let hash = 0x81_1c_9d_c5;
+  const mix = (value: number): void => {
+    hash = Math.imul(hash ^ (value | 0), 0x01_00_01_93);
+  };
+  for (let index = 0; index < id.length; index += 1) mix(id.charCodeAt(index));
+  mix(ageStep);
+  // >>> 0 first: the multiply leaves a signed 32-bit value, and a negative would bias the result.
+  // Centred on 1, so the swing averages out. A one-sided flicker is not an animation, it is a
+  // brightness cut: measured, dimming only cost every district 1-2.5 mean luminance and lifted
+  // saturation by up to 0.10, which is the signature of a global exposure change rather than of a
+  // lamp that blinks.
+  return 1 + (((hash >>> 0) % 1000) / 1000 - 0.5) * LAMP_FLICKER_RANGE;
+}
 
 /** Above this lamp mix the lamps own the scene, so they own its shadows and its key light too. */
 export const LAMP_KEY_THRESHOLD = 0.6;
@@ -256,7 +300,9 @@ export function lampPools(frame: WorldFrameState): readonly QuadDescriptor[] {
     width: 3.2,
     depth: 3.2,
     tint: lamp.color,
-    opacity: 0.5 * strength,
+    // The pool dims with its own lamp. A lamp that flickers while the light on the floor under it
+    // holds steady reads as two lights, not one.
+    opacity: 0.5 * strength * lampFlicker(lamp.id, frame.vfxAgeStep),
   }));
 }
 

@@ -7,6 +7,8 @@ import {
   LAMP_SPRITE_IDS_25D,
   blobCastOffset,
   blobShadows,
+  lampFlicker,
+  lampPools,
   nightKeyOrigin,
   lampLights,
   propContactShadows,
@@ -253,5 +255,57 @@ describe('character blobs follow the light that is on', () => {
     const frame = atLampMix(1);
     const shadow = frame.characterShadows[0]!;
     expect(blobCastOffset(frame, shadow, true)).toEqual({ x: shadow.castX, y: shadow.castY });
+  });
+});
+
+/**
+ * A still night scene reads as a render rather than a place, and a lamp that never varies is the
+ * largest single reason why.
+ */
+describe('lamp flicker', () => {
+  test('is deterministic: the same lamp at the same step always gives the same value', () => {
+    expect(lampFlicker('lamp-a', 7)).toBe(lampFlicker('lamp-a', 7));
+  });
+
+  test('varies across steps and across lamps, so a street does not blink in unison', () => {
+    const steps = new Set([0, 1, 2, 3, 4].map((step) => lampFlicker('lamp-a', step)));
+    expect(steps.size).toBeGreaterThan(1);
+    const lamps = new Set(['a', 'b', 'c', 'd'].map((id) => lampFlicker(`lamp-${id}`, 3)));
+    expect(lamps.size).toBeGreaterThan(1);
+  });
+
+  /**
+   * Hard enough to notice, soft enough not to read as a fault in the lamp, and CENTRED on 1 so the
+   * swing averages out. A one-sided flicker is not an animation, it is a brightness cut - the
+   * first version only dimmed and cost every district 1-2.5 mean luminance.
+   */
+  test('swings both ways by no more than a sixteenth, and averages to no change', () => {
+    let total = 0;
+    let count = 0;
+    for (const id of ['a', 'b', 'c', 'd', 'e', 'f']) {
+      for (let step = 0; step < 60; step += 1) {
+        const value = lampFlicker(`lamp-${id}`, step);
+        expect(value).toBeGreaterThanOrEqual(0.94);
+        expect(value).toBeLessThanOrEqual(1.06);
+        total += value;
+        count += 1;
+      }
+    }
+    expect(total / count).toBeCloseTo(1, 2);
+  });
+
+  test('the light and its floor pool flicker together, not apart', () => {
+    const frame = outdoorFrame();
+    const night = { ...frame, lighting: { ...frame.lighting, sun: { ...frame.lighting.sun, lampMix: 1 } } };
+    const lights = new Map(lampLights(night).map((light) => [light.id, light]));
+    for (const pool of lampPools(night)) {
+      const light = lights.get(pool.id.replace(/^pool-/u, ''))!;
+      expect(light).toBeDefined();
+      // Both scale by the same factor, so the ratio between them is the steady-state ratio.
+      expect(pool.opacity / light.intensity).toBeCloseTo(
+        (0.5 * night.lighting.sun.lampMix) / (0.2 + night.lighting.sun.lampMix * 11),
+        6,
+      );
+    }
   });
 });
