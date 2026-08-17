@@ -302,6 +302,22 @@ describe('full-cast shared-source character art', () => {
       const frontOne = composeFrontFrame(source, 0);
       const frontTwo = composeFrontFrame(source, 1);
       expect(frontOne).not.toEqual(frontTwo);
+
+      // The stride swings an arm into [3,23] and [20,25], but ONLY where the cell is empty.
+      // Six looks already occupy one of those at idle: giant-gloves, single-bell-sleeve and
+      // towel-sleeve cover [3,23]; towel-sleeve, luggage-strap and guitar-case cover [20,25],
+      // and luggage-strap is the protagonist's own supporting feature. Costume pixels win.
+      for (const [x, y] of [[3, 23], [20, 25]] as const) {
+        const idleToken = frontOne[y]?.[x];
+        expect(frontTwo[y]?.[x]).toBe(idleToken === '.' ? 'L' : idleToken);
+      }
+      // resident-16 skips the row-24 hand stamp entirely, because its feature covers that row.
+      if (source.id !== 'resident-16') {
+        expect(frontTwo[24]?.[3]).toBe('L');
+        expect(frontTwo[24]?.[4]).toBe('S');
+        expect(frontTwo[24]?.[19]).toBe('S');
+        expect(frontTwo[24]?.[20]).toBe('L');
+      }
       // Lateral frame 1 is still identical to frame 0 until composeLateralFrame honours its
       // frame index; move those two entries into strideFrames when it does.
       const idleFrames = [

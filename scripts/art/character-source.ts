@@ -1000,6 +1000,39 @@ function staticWorldLayers(source: CharacterSource): readonly DrawCommand[][] {
 export const STRIDE_GAP = { row: 29, from: 10, to: 11 } as const;
 
 /**
+ * The stride's swinging arm pixels: one high on the left, one low on the right.
+ *
+ * `torsoAndClothing` is a `StaticLayerSchema` — one command list with no frame index — so the
+ * swing cannot live in that layer. These sit outside the torso rects, at rows the row-24 hand
+ * stamp does not touch, which is why the hands themselves never move.
+ */
+const WORLD_STRIDE_ARM_POINTS: readonly (readonly [number, number])[] = [[3, 23], [20, 25]];
+
+/**
+ * Paints a token only where the cell is still empty.
+ *
+ * Six looks already occupy a swing cell at idle: `giant-gloves` (A 2,18,6,7),
+ * `single-bell-sleeve` (C 2,17,6,8) and `towel-sleeve` (W 3,17,5,8) at [3,23];
+ * `towel-sleeve` (A 17,21,4,5), `luggage-strap` (A 17,20,5,8) and `guitar-case`
+ * (D 17,15,4,13) at [20,25]. Overwriting them would erase costume on every stride, and
+ * `luggage-strap` is the protagonist's own supporting feature. `towel-sleeve` occupies both,
+ * so mina-park swings neither arm and takes its walk from the feet alone.
+ */
+function paintEmptyPoints(
+  frame: TokenFrame,
+  token: string,
+  points: readonly (readonly [number, number])[],
+): void {
+  for (const [x, y] of points) {
+    const row = frame[y];
+    if (row === undefined || row[x] !== '.') continue;
+    const cells = [...row];
+    cells[x] = token;
+    frame[y] = cells.join('');
+  }
+}
+
+/**
  * Clears the stride gap after every layer has drawn.
  *
  * The legs layer draws first, so anything painting row 29 later fills the gap back in:
@@ -1021,7 +1054,10 @@ export function composeFrontFrame(source: CharacterSource, frameIndex: 0 | 1): T
   for (const commands of staticWorldLayers(source)) {
     drawTokenCommands(frame, commands);
   }
-  if (frameIndex === 1) carveStrideGap(frame);
+  if (frameIndex === 1) {
+    paintEmptyPoints(frame, 'L', WORLD_STRIDE_ARM_POINTS);
+    carveStrideGap(frame);
+  }
   const hairMask = emptyTokenFrame(WORLD_CELL.width, WORLD_CELL.height);
   drawTokenCommands(hairMask, source.sourceLayers.hair.commands);
   applyConnectedHairLighting(frame, hairMask, 21);
