@@ -511,9 +511,27 @@ function worldLegCommands(): CharacterSource['sourceLayers']['legs'] {
     rectCommand('D', 7, 28, 10, 1),
     rectCommand('K', 7, 29, 10, 1),
   ];
+  /**
+   * The stride pose.
+   *
+   * Row 28 stays one painted run so the contact shadow keeps a single anchor and
+   * `shadowWorldY` does not move. Row 29 splits into two feet with a two-pixel gap. That gap
+   * is the whole leg animation at this cell size, and it is enough because it alternates
+   * against the arm swing in `composeFrontFrame`.
+   *
+   * Before this, both frames were the same commands and every walk cell was a byte-for-byte
+   * duplicate of its pair — the "rounded floating movement" the old atlas check enforced.
+   */
+  const stride = [
+    rectCommand('D', 7, 28, 10, 1),
+    // Asymmetric on purpose: a 3px trailing foot and a 5px leading foot read as mid-stride,
+    // where an even split either side of centre just reads as standing with the feet apart.
+    rectCommand('K', 7, 29, 3, 1),
+    rectCommand('K', 12, 29, 5, 1),
+  ];
   return {
-    frontFrames: [[...roundedBase], [...roundedBase]],
-    lateralFrames: [[...roundedBase], [...roundedBase]],
+    frontFrames: [[...roundedBase], [...stride]],
+    lateralFrames: [[...roundedBase], [...stride]],
   };
 }
 
@@ -978,12 +996,32 @@ function staticWorldLayers(source: CharacterSource): readonly DrawCommand[][] {
   ];
 }
 
+/** The two-pixel gap that turns the rounded base into two feet on the stride frame. */
+export const STRIDE_GAP = { row: 29, from: 10, to: 11 } as const;
+
+/**
+ * Clears the stride gap after every layer has drawn.
+ *
+ * The legs layer draws first, so anything painting row 29 later fills the gap back in:
+ * `big-black-boots` emits `rect K 7,29,10,1` from a static layer and hid the split entirely
+ * for resident-02 and resident-09. Carving the gap last makes the stride survive whatever
+ * covers the contact row, the same way the hand stamp is applied last.
+ */
+function carveStrideGap(frame: TokenFrame): void {
+  const row = frame[STRIDE_GAP.row];
+  if (row === undefined) return;
+  const cells = [...row];
+  for (let x = STRIDE_GAP.from; x <= STRIDE_GAP.to; x += 1) cells[x] = '.';
+  frame[STRIDE_GAP.row] = cells.join('');
+}
+
 export function composeFrontFrame(source: CharacterSource, frameIndex: 0 | 1): TokenFrame {
   const frame = emptyTokenFrame(WORLD_CELL.width, WORLD_CELL.height);
   drawTokenCommands(frame, source.sourceLayers.legs.frontFrames[frameIndex]);
   for (const commands of staticWorldLayers(source)) {
     drawTokenCommands(frame, commands);
   }
+  if (frameIndex === 1) carveStrideGap(frame);
   const hairMask = emptyTokenFrame(WORLD_CELL.width, WORLD_CELL.height);
   drawTokenCommands(hairMask, source.sourceLayers.hair.commands);
   applyConnectedHairLighting(frame, hairMask, 21);

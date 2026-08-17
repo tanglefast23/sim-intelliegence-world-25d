@@ -149,7 +149,7 @@ describe('deterministic SI World atlas generation', () => {
       expect(Object.keys(source.sourceLayers)).toEqual([
         'legs', 'torsoAndClothing', 'headAndFace', 'hair', 'accessory', 'heldItem',
       ]);
-      expect(composeFrontFrame(source, 0)).toEqual(composeFrontFrame(source, 1));
+      expect(composeFrontFrame(source, 0)).not.toEqual(composeFrontFrame(source, 1));
       const frontBitmap = tokenFrameToBitmap(composeFrontFrame(source, 0), source.palette);
       const portraitBitmap = tokenFrameToBitmap(composePortrait(source), source.palette);
       const colors = new Set(Array.from({ length: frontBitmap.width * frontBitmap.height }, (_unused, pixel) =>

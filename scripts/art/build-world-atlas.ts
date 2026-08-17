@@ -117,9 +117,10 @@ export type AtlasGenerationReport = AtlasBudgetReport & Readonly<{
 
 function worldEntries(source: CharacterSource): Entry[] {
   const front = composeFrontFrame(source, 0);
+  const frontStride = composeFrontFrame(source, 1);
   const generatedFrames: Readonly<Record<ProtagonistReferenceFrameId, TokenFrame>> = {
     'front-1': front,
-    'front-2': front,
+    'front-2': frontStride,
     'rear-1': deriveRearFrame(front, source),
     'rear-2': deriveRearFrame(front, source),
     'left-1': composeLateralFrame(source, 'left', 0),

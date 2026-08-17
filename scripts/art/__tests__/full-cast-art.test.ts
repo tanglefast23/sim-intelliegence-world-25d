@@ -195,13 +195,17 @@ describe('full-cast shared-source character art', () => {
       expect([25, 26, 27].map((row) => paintedWidth(worldBody[row] as string)))
         .toEqual([14, 14, 12]);
 
-      for (const frameCommands of geometry.legs.frontFrames) {
-        const legs = commandFrame(frameCommands, WORLD_CELL.width, WORLD_CELL.height);
-        expect(paintedRuns(legs[28] as string)).toBe(1);
-        expect(paintedRuns(legs[29] as string)).toBe(1);
-      }
-      expect(geometry.legs.frontFrames[1]).toEqual(geometry.legs.frontFrames[0]);
-      expect(geometry.legs.lateralFrames[1]).toEqual(geometry.legs.lateralFrames[0]);
+      // Frame 0 is the idle pose and keeps one run on both rows. Frame 1 splits row 29 into
+      // two feet while row 28 stays a single run, so the contact shadow keeps one anchor and
+      // shadowWorldY does not move.
+      const [idleLegs, strideLegs] = geometry.legs.frontFrames.map(
+        (frameCommands) => commandFrame(frameCommands, WORLD_CELL.width, WORLD_CELL.height),
+      );
+      expect(paintedRuns(idleLegs![28] as string)).toBe(1);
+      expect(paintedRuns(idleLegs![29] as string)).toBe(1);
+      expect(paintedRuns(strideLegs![28] as string)).toBe(1);
+      expect(paintedRuns(strideLegs![29] as string)).toBe(2);
+      expect(geometry.legs.frontFrames[1]).not.toEqual(geometry.legs.frontFrames[0]);
     }
   });
 
@@ -297,21 +301,29 @@ describe('full-cast shared-source character art', () => {
     (_id, source) => {
       const frontOne = composeFrontFrame(source, 0);
       const frontTwo = composeFrontFrame(source, 1);
-      expect(frontOne).toEqual(frontTwo);
-      for (const frame of [
+      expect(frontOne).not.toEqual(frontTwo);
+      // Lateral frame 1 is still identical to frame 0 until composeLateralFrame honours its
+      // frame index; move those two entries into strideFrames when it does.
+      const idleFrames = [
         frontOne,
-        frontTwo,
         deriveRearFrame(frontOne, source),
-        deriveRearFrame(frontTwo, source),
         composeLateralFrame(source, 'left', 0),
         composeLateralFrame(source, 'left', 1),
         composeLateralFrame(source, 'right', 0),
         composeLateralFrame(source, 'right', 1),
-      ]) {
+      ];
+      const strideFrames = [frontTwo, deriveRearFrame(frontTwo, source)];
+      for (const frame of [...idleFrames, ...strideFrames]) {
         expect(painted(frame).size).toBeGreaterThan(40);
         expect([...frame[0] as string].every((token) => token === '.')).toBe(true);
-        expect(paintedRuns(frame[WORLD_CELL.height - 1] as string)).toBe(1);
         expect(frame.every((row) => row[0] === '.' && row[WORLD_CELL.width - 1] === '.')).toBe(true);
+      }
+      // Row 29 is the contact row: idle keeps one rounded run, the stride splits into two feet.
+      for (const frame of idleFrames) {
+        expect(paintedRuns(frame[WORLD_CELL.height - 1] as string)).toBe(1);
+      }
+      for (const frame of strideFrames) {
+        expect(paintedRuns(frame[WORLD_CELL.height - 1] as string)).toBe(2);
       }
       const portrait = composePortrait(source);
       expect(source.portraitCell).toEqual({ width: 24, height: 29 });

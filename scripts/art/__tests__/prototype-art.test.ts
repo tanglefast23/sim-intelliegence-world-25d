@@ -87,10 +87,17 @@ describe('Phase 28 hard Sunward prototype art', () => {
           frontMasks.add([...pixels].filter((_value, offset) => offset % 4 === 3).join(','));
         }
       }
+      // `front` is the walk cycle and its two cells must differ. The other directions stay
+      // identical until their stride art lands. The protagonist's cells are authored, so it
+      // keeps identical pairs for now.
       for (const direction of ['front', 'rear', 'left', 'right'] as const) {
         const first = cellPixels(atlas, built.index.sprites[`character.${characterId}.${direction}-1`]!);
         const second = cellPixels(atlas, built.index.sprites[`character.${characterId}.${direction}-2`]!);
-        expect(first).toEqual(second);
+        if (direction === 'front' && characterId !== 'protagonist') {
+          expect(first).not.toEqual(second);
+        } else {
+          expect(first).toEqual(second);
+        }
       }
       expect(built.index.sprites[`portrait.${characterId}`]).toMatchObject({
         width: 24,
