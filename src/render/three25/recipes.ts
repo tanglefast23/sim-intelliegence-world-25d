@@ -24,14 +24,24 @@ export type PropRecipe = Readonly<{
 /** Matches the spike wall box height. See spikes/001-threejs-pixel-villa/scene.js:109. */
 export const WALL_HEIGHT_TILES = 1.45;
 
+/** Warm lamp glow. Bright enough to read as a light source in a dark room. */
+const LAMP_GLOW = '#ffd9a0';
+/** The cold and neon fixtures glow their own colour rather than warm amber. */
+const LAMP_GLOW_COLD = '#bfe4ff';
+const LAMP_GLOW_CYAN = '#8ff2ea';
+const LAMP_GLOW_MAGENTA = '#ff9de0';
+
 /**
  * A lamp, lantern or bollard-style post: footing, stem, head. `headWidth` is what separates a
  * slim neon post from a wide dock lamp.
  */
-const post = (height: number, headWidth: number): readonly BoxRecipe[] => [
+const post = (height: number, headWidth: number, glow = LAMP_GLOW): readonly BoxRecipe[] => [
   { x: 0, y: 0.05, z: 0, width: 0.26, height: 0.1, depth: 0.26 },
   { x: 0, y: height / 2, z: 0, width: 0.07, height, depth: 0.07 },
-  { x: 0, y: height + 0.12, z: 0, width: headWidth, height: 0.24, depth: headWidth },
+  // The head carries its own bright tint. Flat furniture is drawn unlit, so a lamp cannot pick up
+  // its own point light the way a lit surface would - without this the one thing in the room that
+  // should glow is the same grey as the post holding it up.
+  { x: 0, y: height + 0.12, z: 0, width: headWidth, height: 0.24, depth: headWidth, tint: glow },
 ];
 
 /** A standing sign: one thin post carrying a flat panel that faces the camera at yaw 0. */
@@ -216,10 +226,10 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   // --- Lamps and lanterns -----------------------------------------------------------------
   'tile.fixture-lamp': { boxes: post(0.8, 0.32) },
   'tile.fixture-dock-lamp-amber': { boxes: post(1.15, 0.36) },
-  'tile.fixture-dock-lamp-cold': { boxes: post(1.15, 0.36) },
+  'tile.fixture-dock-lamp-cold': { boxes: post(1.15, 0.36, LAMP_GLOW_COLD) },
   'tile.fixture-festival-lantern': { boxes: post(0.95, 0.3) },
-  'tile.fixture-neon-lamp-cyan': { boxes: post(1.3, 0.22) },
-  'tile.fixture-neon-lamp-magenta': { boxes: post(1.3, 0.22) },
+  'tile.fixture-neon-lamp-cyan': { boxes: post(1.3, 0.22, LAMP_GLOW_CYAN) },
+  'tile.fixture-neon-lamp-magenta': { boxes: post(1.3, 0.22, LAMP_GLOW_MAGENTA) },
   'tile.fixture-planter': { boxes: planter(0.7) },
   'tile.plant-palm': {
     boxes: [

@@ -1,4 +1,4 @@
-import { buildBillboards, tintForLighting } from '../billboards';
+import { UNLIT_NIGHT_STRENGTH, buildBillboards, tintForLighting } from '../billboards';
 import { indoorFrame } from './fixtures';
 
 describe('character billboards', () => {
@@ -105,5 +105,29 @@ describe('billboard tint', () => {
     const night = { ...frame, lighting: withElevation(0) };
     expect(buildBillboards(night)[0]!.tint)
       .toBe(tintForLighting(frame.characters[0]!.color, withElevation(0)));
+  });
+});
+
+describe('unlit surfaces darken less', () => {
+  const frame = indoorFrame();
+  const night = { ...frame.lighting, sun: { ...frame.lighting.sun, elevation: 0 } };
+
+  /**
+   * A lit surface gets lifted back up by the scene's own lights, so a full mix is right for it.
+   * Flat-shaded furniture is unlit, so a full mix drove every piece to near-black and the room
+   * lost its colour entirely.
+   */
+  test('a capped strength keeps more of the base colour than a full mix', () => {
+    const full = tintForLighting('#5c9494', night);
+    const capped = tintForLighting('#5c9494', night, UNLIT_NIGHT_STRENGTH);
+    const green = (hex: string) => Number.parseInt(hex.slice(3, 5), 16);
+    expect(green(capped)).toBeGreaterThan(green(full));
+    expect(green(capped)).toBeGreaterThan(0x60);
+  });
+
+  test('strength still darkens, and is identity at solar noon', () => {
+    const noon = { ...frame.lighting, sun: { ...frame.lighting.sun, elevation: 1 } };
+    expect(tintForLighting('#5c9494', noon, UNLIT_NIGHT_STRENGTH)).toBe('#5c9494');
+    expect(tintForLighting('#5c9494', night, UNLIT_NIGHT_STRENGTH)).not.toBe('#5c9494');
   });
 });

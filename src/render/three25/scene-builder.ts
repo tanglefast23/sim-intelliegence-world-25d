@@ -1,6 +1,7 @@
 import { ATLAS_INDEX, atlasRectangle, type AtlasRectangle } from '../atlas';
 import type { WorldFloorPlacement, WorldFrameState } from '../world-frame';
 import { hiddenWallTiles, tileKey } from './occlusion';
+import { UNLIT_NIGHT_STRENGTH, tintForLighting } from './billboards';
 import { PROP_FLAT_COLORS, WALL_HEIGHT_TILES, recipeFor } from './recipes';
 
 /**
@@ -155,7 +156,15 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
         depth: box.depth,
         // An authored per-box tint wins, so a sofa's arms can differ from its seat. Otherwise the
         // sprite's measured dominant colour - never the frame colour, which is plain white here.
-        tint: box.tint ?? PROP_FLAT_COLORS[prop.sprite] ?? prop.color,
+        // Unlit material, so day and night have to reach the colour here. Same curve the
+        // billboards use, so furniture and characters darken together.
+        // An authored box tint is a light source or a deliberate accent, so it does NOT darken -
+        // a lamp that dims at night is not a lamp. Only the sprite's own paint follows the sun.
+        tint: box.tint ?? tintForLighting(
+          PROP_FLAT_COLORS[prop.sprite] ?? prop.color,
+          frame.lighting,
+          UNLIT_NIGHT_STRENGTH,
+        ),
       });
     });
   }

@@ -54,8 +54,23 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
  * bytes would drag the character's alpha toward `0x51` — fading the cast out as the sun sets
  * instead of darkening it.
  */
-export function tintForLighting(base: string, lighting: DistrictLighting): string {
+export function tintForLighting(
+  base: string,
+  lighting: DistrictLighting,
+  /**
+   * How far toward the shadow colour a moonless midnight is allowed to pull.
+   *
+   * 1 is right for a LIT surface, where the scene's own lights lift it back up. An UNLIT surface -
+   * flat-shaded furniture - has nothing to lift it, so a full mix drives every piece of furniture
+   * to near-black and the room loses its colour entirely. Cap it well short.
+   */
+  strength = 1,
+): string {
   const alpha = base.length > 7 ? base.slice(7) : '';
-  const mixed = mixHex(base.slice(0, 7), lighting.sun.shadowColor.slice(0, 7), 1 - lighting.sun.elevation);
+  const amount = (1 - lighting.sun.elevation) * strength;
+  const mixed = mixHex(base.slice(0, 7), lighting.sun.shadowColor.slice(0, 7), amount);
   return `${mixed}${alpha}`;
 }
+
+/** How far unlit furniture darkens at night. See `tintForLighting`. */
+export const UNLIT_NIGHT_STRENGTH = 0.4;

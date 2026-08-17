@@ -596,19 +596,20 @@ export async function createWorldRenderer25(
   });
 
   /**
-   * Flat-shaded furniture, unmapped.
+   * Flat-shaded furniture: unmapped AND unlit.
    *
-   * The atlas holds no white texel, so every colour drawn through `material` carries a sprite with
-   * it. Furniture wants its own measured dominant colour, flat, so it needs a material with no
-   * map. One extra draw call - 7 against the ceiling of 8 - and `ceilings.ts` asks a new material
-   * to be justified: this is the justification.
+   * Unmapped because the atlas holds no white texel, so every colour drawn through `material`
+   * carries a sprite with it, and an authored colour could never render true.
+   *
+   * Unlit because these sprites are drawn unlit in the 2D game — their authored paint IS their
+   * colour. Lighting them made a dark room turn every piece of furniture near-black, which is the
+   * opposite of the target: the reference room is dim, but its sofa is still plainly green. Day and
+   * night reach the colour through the descriptor tint instead, so the scene still darkens without
+   * the furniture disappearing into it.
+   *
+   * The per-face shade in `FACE_SHADE` is what keeps a box reading as a box without a light.
    */
-  const flatMaterial = new MeshStandardMaterial({
-    flatShading: true,
-    roughness: 0.88,
-    metalness: 0,
-    vertexColors: true,
-  });
+  const flatMaterial = new MeshBasicMaterial({ vertexColors: true });
 
   const cache = new SceneCache();
   const floorMesh = new Mesh(new BufferGeometry(), material);
