@@ -27,8 +27,33 @@ export type BillboardDescriptor = Readonly<{
  * drawn thing. These descriptors bake into one geometry sharing the atlas and one material, which
  * costs the same single draw call an `InstancedMesh` would.
  */
+/**
+ * Ground decals that are not flat things.
+ *
+ * A decal is a sprite stamped on a tile, and for sand ripples, pebbles, shells and leaf litter that
+ * is exactly right — they ARE marks on the ground. Vegetation is not. A tree authored as a decal
+ * reads perfectly under a top-down camera and lies down like a felled log under a corner one, which
+ * is what the residential district looked like: thirty trees, twenty-five palms, seventeen saplings
+ * and sixteen shrubs, all flat on the grass.
+ *
+ * They become upright billboards rather than boxes, for the same reason characters do: the sprite
+ * IS the art, and a tree extruded into a box would be a green cube. Standing the authored pixels up
+ * keeps every one of them.
+ */
+const STANDING_DECAL_SPRITES: ReadonlySet<string> = new Set([
+  'tile.decal-canopy-tree',
+  'tile.decal-young-palm',
+  'tile.decal-sapling',
+  'tile.decal-flowering-shrub',
+]);
+
+/** Whether this ground detail should stand up instead of lying on the floor. */
+export function isStandingDecal(sprite: string): boolean {
+  return STANDING_DECAL_SPRITES.has(sprite);
+}
+
 export function buildBillboards(frame: WorldFrameState): readonly BillboardDescriptor[] {
-  return frame.characters.map((character) => ({
+  const characters = frame.characters.map((character) => ({
     id: character.id,
     source: character.source,
     x: character.shadowWorldX / TILE_SIZE,
@@ -39,6 +64,23 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
     // protagonist who becomes a black silhouette after dusk is unusable.
     tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
   }));
+
+  // Vegetation joins the batch the characters already use, so standing it up costs no draw call.
+  const vegetation = frame.groundDetails
+    .filter((detail) => isStandingDecal(detail.sprite))
+    .map((detail) => ({
+      id: `decal-${detail.id}`,
+      source: detail.source,
+      // The tile's CONTACT point, not its origin: a billboard stands on the ground at the middle of
+      // its tile, and placing it at the corner would sink half the trunk into the neighbouring one.
+      x: detail.tile.x + 0.5,
+      z: detail.tile.y + 0.5,
+      width: detail.source.width / TILE_SIZE,
+      height: detail.source.height / TILE_SIZE,
+      tint: tintForLighting(detail.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
+    }));
+
+  return [...characters, ...vegetation];
 }
 
 /**

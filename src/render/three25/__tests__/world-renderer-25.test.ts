@@ -259,6 +259,8 @@ describe('character billboards bake into one upright batch', () => {
     const frame = indoorFrame();
     const many = {
       ...frame,
+      // No ground details: this asserts the CHARACTER count, and vegetation shares the batch.
+      groundDetails: [],
       characters: Array.from({ length: 20 }, (_, index) => ({ ...frame.characters[0]!, id: `npc-${index}` })),
     };
     const geometry = bakeBillboardGeometry(buildBillboards(many), RIGHT, UP, 1024, 1024);

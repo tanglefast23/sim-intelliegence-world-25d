@@ -2,7 +2,7 @@ import { ATLAS_INDEX, atlasRectangle, type AtlasRectangle } from '../atlas';
 import type { WorldFloorPlacement, WorldFrameState } from '../world-frame';
 import { hiddenWallTiles, tileKey } from './occlusion';
 import { mixHex } from '../atmosphere';
-import { readableTint } from './billboards';
+import { isStandingDecal, readableTint } from './billboards';
 import {
   PROP_CORES,
   PROP_FLAT_COLORS,
@@ -422,7 +422,9 @@ function floorQuad(
 
 export function buildFloorQuads(frame: WorldFrameState): readonly QuadDescriptor[] {
   const lights = emitterTiles(frame);
-  return [...frame.floors, ...frame.groundDetails]
+  // Vegetation details are drawn STANDING by `buildBillboards`. Leaving them here as well would
+  // draw every tree twice: once upright and once as its own shadow lying on the grass.
+  return [...frame.floors, ...frame.groundDetails.filter((detail) => !isStandingDecal(detail.sprite))]
     .map((placement) => floorQuad(placement, frame, lights));
 }
 
