@@ -131,7 +131,8 @@ describe('unlit surfaces darken less', () => {
     const capped = tintForLighting('#5c9494', night, UNLIT_NIGHT_STRENGTH);
     const green = (hex: string) => Number.parseInt(hex.slice(3, 5), 16);
     expect(green(capped)).toBeGreaterThan(green(full));
-    expect(green(capped)).toBeGreaterThan(0x60);
+    // The gentle curve keeps most of the base green rather than mixing it away.
+    expect(green(capped)).toBeGreaterThan(0x78);
   });
 
   test('strength still darkens, and is identity at solar noon', () => {
@@ -152,8 +153,8 @@ describe('unlit surfaces stay readable', () => {
     const lifted = readableTint('#1c2424');
     const luminance = (hex: string) =>
       ([1, 3, 5].reduce((total, at) => total + Number.parseInt(hex.slice(at, at + 2), 16), 0)) / 3;
-    expect(luminance(lifted)).toBeGreaterThanOrEqual(140);
-    expect(luminance('#1c2424')).toBeLessThan(140);
+    expect(luminance(lifted)).toBeGreaterThanOrEqual(180);
+    expect(luminance('#1c2424')).toBeLessThan(180);
   });
 
   test('keeps the hue: it scales rather than adding grey', () => {
@@ -165,7 +166,7 @@ describe('unlit surfaces stay readable', () => {
   });
 
   test('leaves an already-readable colour alone', () => {
-    expect(readableTint('#e8d8c0')).toBe('#e8d8c0');
+    expect(readableTint('#f0e8dc')).toBe('#f0e8dc');
   });
 
   test('never overflows a channel', () => {

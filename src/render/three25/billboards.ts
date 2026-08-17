@@ -74,8 +74,15 @@ export function tintForLighting(
   return `${mixed}${alpha}`;
 }
 
-/** How far unlit furniture darkens at night. See `tintForLighting`. */
-export const UNLIT_NIGHT_STRENGTH = 0.4;
+/**
+ * How far unlit furniture darkens at night. See `tintForLighting`.
+ *
+ * 0.18, not 0.4. An AUTHORED box tint skips this mix entirely - it is art direction, not paint -
+ * so at 0.4 the villa's authored furniture popped while every district's measured furniture went
+ * to mud, and the two halves of the city stopped matching. A gentle curve keeps them in the same
+ * range while still reading as night.
+ */
+export const UNLIT_NIGHT_STRENGTH = 0.18;
 
 /**
  * Lifts a colour until it is readable on an UNLIT surface.
@@ -92,8 +99,11 @@ export const UNLIT_NIGHT_STRENGTH = 0.4;
  * toward the shadow colour, then a face shade as low as 0.6, then ACES crushing the low end. A
  * cargo crate at luminance 116 survives all three as a near-black slab, which is why the harbour
  * read as empty ground with lamps in it.
+ *
+ * 190 is set against the villa's authored tints, which are the bar: pale timber sits at 155 and
+ * skips the night mix, so a measured colour has to start higher to land in the same place.
  */
-const READABLE_FLOOR = 150;
+const READABLE_FLOOR = 190;
 export function readableTint(tint: string, floor = READABLE_FLOOR): string {
   const alpha = tint.length > 7 ? tint.slice(7) : '';
   const channels = [1, 3, 5].map((at) => Number.parseInt(tint.slice(at, at + 2), 16));
