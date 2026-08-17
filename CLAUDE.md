@@ -24,6 +24,36 @@ In practice:
 - Smoke runs drive the UI through `webContents.executeJavaScript` and `sendInputEvent`, not through
   the host keyboard or mouse. Keep it that way.
 
+## `package-windows-x64` is red on main. It is not your change.
+
+**Before debugging any CI failure, check whether `main` already fails it.**
+
+```bash
+gh run list --branch main --limit 5
+gh run view <id> --json jobs --jq '.jobs[] | select(.conclusion=="failure") | .name'
+```
+
+`package-windows-x64` has failed **every recorded run** of this repository and has never passed. It
+always fails the same step, `Verify Windows x64 packaged art-quality world subset`, with the same
+message:
+
+```
+Camera motion never matched. Last label: Camera follow suspended; shake 0.24; shot none; queue 0
+```
+
+A green PR here means macOS green and Windows red. Do not treat Windows red as a regression, do not
+revert work to chase it, and do not bury an unrelated fix for it inside a feature branch.
+
+Two traps inside that one message, both of which cost real time:
+
+- **It does not name which wait failed.** Five `waitForCameraMotion` calls share it. Assuming it is
+  the first one produces a confident wrong diagnosis.
+- **`shake 0.24` identifies the wait arithmetically.** Trauma starts at `0` and the smoke's only
+  impulse is `0.8`, decaying at `1000 / IMPACT_MAX_DURATION_MS`. So `0.8 − 5.556t = 0.24` gives
+  `t ≈ 101 ms`, which puts the freeze at the shake-decay wait, not the `follow armed` wait.
+
+[AGENTS.md](AGENTS.md) carries the full diagnosis and the decision table for fixing it.
+
 ## Commands
 
 ```bash
