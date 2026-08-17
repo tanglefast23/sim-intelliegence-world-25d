@@ -2,13 +2,18 @@ import { Vector3 } from 'three';
 
 import { rendererForEnvironment } from '../../renderer-selection';
 import { buildBillboards } from '../billboards';
-import { GROUND_TILT_DEGREES, screenToWorldTilted, worldToScreenTilted } from '../projection';
+import {
+  CAMERA_YAW_DEGREES,
+  GROUND_TILT_DEGREES,
+  screenToWorldTilted,
+  worldToScreenTilted,
+} from '../projection';
 import { buildScene } from '../scene-builder';
 import { bakeBillboardGeometry, bakeSceneGeometry, cameraForYaw, frameCamera } from '../world-renderer-25';
 import { indoorFrame } from './fixtures';
 
 describe('2.5D camera placement', () => {
-  test('sits at the configured elevation with no yaw by default', () => {
+  test('sits at the configured elevation at yaw 0', () => {
     const camera = cameraForYaw(0, 10);
     expect(camera.position.x).toBeCloseTo(0, 6);
     const horizontal = Math.hypot(camera.position.x, camera.position.z);
@@ -17,7 +22,7 @@ describe('2.5D camera placement', () => {
   });
 
   test('yaw rotates the camera around the target without changing elevation', () => {
-    const camera = cameraForYaw(35, 10);
+    const camera = cameraForYaw(CAMERA_YAW_DEGREES, 10);
     const horizontal = Math.hypot(camera.position.x, camera.position.z);
     const elevation = (Math.atan2(camera.position.y, horizontal) * 180) / Math.PI;
     expect(elevation).toBeCloseTo(GROUND_TILT_DEGREES, 4);
@@ -117,7 +122,7 @@ describe('frameCamera agrees with the ground projection', () => {
 
   const framed = (cameraState: { x: number; y: number; zoom: number }) => {
     const camera = cameraForYaw(0, 10);
-    frameCamera(camera, { ...indoorFrame(), camera: cameraState }, SURFACE, 0);
+    frameCamera(camera, cameraState, SURFACE, CAMERA_YAW_DEGREES);
     camera.updateMatrixWorld(true);
     return camera;
   };

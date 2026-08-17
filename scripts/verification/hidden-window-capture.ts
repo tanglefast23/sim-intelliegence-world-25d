@@ -122,10 +122,11 @@ function ensureWindow() {
 
 async function capture(scene) {
   const window = ensureWindow();
-  const yaw = scene.yawDegrees === undefined ? 0 : scene.yawDegrees;
+  // Omitting yaw exercises the app's own default rather than pinning one.
+  const yawQuery = scene.yawDegrees === undefined ? '' : '&testYaw=' + scene.yawDegrees;
   const shadowPath = scene.shadowPath === undefined ? 'fallback' : scene.shadowPath;
   await window.loadURL(
-    'http://127.0.0.1:${PORT}/?testRenderer=2-5d&testYaw=' + yaw + '&testShadowPath=' + shadowPath,
+    'http://127.0.0.1:${PORT}/?testRenderer=2-5d&testShadowPath=' + shadowPath + yawQuery,
   );
 
   // The web export boots to the title screen, so the world - and the renderer - do not exist until
@@ -170,7 +171,7 @@ async function capture(scene) {
   const image = await window.webContents.capturePage(undefined, { stayHidden: true });
   const screenshot = scene.name + '.png';
   writeFileSync(join(outputDirectory, screenshot), image.toPNG());
-  return { name: scene.name, yawDegrees: yaw, shadowPath, screenshot, evidence };
+  return { name: scene.name, yawDegrees: evidence.yawDegrees, shadowPath, screenshot, evidence };
 }
 
 app.whenReady().then(async () => {

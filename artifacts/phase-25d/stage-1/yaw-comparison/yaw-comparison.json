@@ -2,31 +2,33 @@
   "schemaVersion": 1,
   "captures": [
     {
-      "name": "yaw-0-fallback",
-      "yawDegrees": 0,
-      "shadowPath": "fallback",
-      "screenshot": "yaw-0-fallback.png",
+      "name": "default-lit",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "default-lit.png",
       "evidence": {
         "rendererKind": "threejs-2-5d",
-        "drawCalls": 5,
-        "meshCount": 2120,
-        "yawDegrees": 0,
-        "shadowPath": "fallback",
-        "shadowMapEnabled": false
+        "drawCalls": 6,
+        "meshCount": 4000,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3
       }
     },
     {
-      "name": "yaw-35-fallback",
-      "yawDegrees": 35,
+      "name": "yaw-45-fallback",
+      "yawDegrees": 45,
       "shadowPath": "fallback",
-      "screenshot": "yaw-35-fallback.png",
+      "screenshot": "yaw-45-fallback.png",
       "evidence": {
         "rendererKind": "threejs-2-5d",
         "drawCalls": 5,
-        "meshCount": 2120,
-        "yawDegrees": 35,
+        "meshCount": 4000,
+        "yawDegrees": 45,
         "shadowPath": "fallback",
-        "shadowMapEnabled": false
+        "shadowMapEnabled": false,
+        "atlasDrawCalls": 3
       }
     },
     {
@@ -37,10 +39,11 @@
       "evidence": {
         "rendererKind": "threejs-2-5d",
         "drawCalls": 6,
-        "meshCount": 2120,
+        "meshCount": 4000,
         "yawDegrees": 0,
         "shadowPath": "lit",
-        "shadowMapEnabled": true
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3
       }
     }
   ]

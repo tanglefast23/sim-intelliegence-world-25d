@@ -105,7 +105,7 @@ import {
 import { automaticUiScale, automaticWorldZoom, type UiScale } from './responsive-layout';
 import { ThreeWorldSurface } from './ThreeWorldSurface';
 import type { RendererKind } from './renderer-selection';
-import { inflatedViewport } from './three25/inflation';
+import { inflatedFrameOrigin, inflatedViewport } from './three25/inflation';
 import { clampCameraTilted } from './three25/clamp';
 import { isScreenPointInsideMapTilted, screenToTileTilted, worldToScreenTilted } from './three25/projection';
 
@@ -1403,7 +1403,12 @@ export function WorldScene({
       turnCurve: runtime.movement.latchedTurnCurve,
       stopProgress: gaitStopProgress(runtime.movement),
     }, {
-      camera: renderCamera,
+      // The 2.5D path asks for a bigger window AND a shifted origin: `renderCamera.x/y` is the
+      // world point at screen (0,0), which under rotation is not the north-west corner of the
+      // visible ground, and `world-frame.ts` only ever extends forward from the camera it is given.
+      camera: renderer2_5d
+        ? { ...renderCamera, ...inflatedFrameOrigin(renderCamera, surface) }
+        : renderCamera,
       viewport: renderer2_5d ? inflatedViewport(surface, renderCamera.zoom) : surface,
       devicePixelRatio: dpr,
       artMode,
@@ -1610,6 +1615,7 @@ export function WorldScene({
         <View nativeID="world-input-viewport" style={[styles.viewport, surface]}>
           <View nativeID="world-canvas" style={[styles.canvasHost, surface]}>
             <ThreeWorldSurface
+              camera={renderCamera}
               frame={worldFrame}
               onContextStateChange={handleRendererContextState}
               onReady={onWorldReady}

@@ -1,5 +1,6 @@
 import type { TileRect } from '../../world/maps/schema';
 import type { WorldFrameState } from '../world-frame';
+import { CAMERA_TOWARD_VIEWER } from './projection';
 
 /** The key format every occlusion map and set in this module uses. */
 export function tileKey(tile: Readonly<{ x: number; y: number }>): string {
@@ -66,35 +67,61 @@ export function wallRoofGroups(frame: WorldFrameState): ReadonlyMap<string, stri
   return groups;
 }
 
+/** A perimeter side of a shelter rectangle, with the direction it faces away from the room. */
+const SHELTER_SIDES = [
+  { key: 'south', normal: { x: 0, y: 1 } },
+  { key: 'north', normal: { x: 0, y: -1 } },
+  { key: 'east', normal: { x: 1, y: 0 } },
+  { key: 'west', normal: { x: -1, y: 0 } },
+] as const;
+
+/** Whether a wall tile lies on the named perimeter side of a shelter rectangle. */
+function onSide(
+  tile: Readonly<{ x: number; y: number }>,
+  rect: TileRect,
+  normal: Readonly<{ x: number; y: number }>,
+): boolean {
+  if (normal.y === 1) return tile.y === rect.y + rect.height;
+  if (normal.y === -1) return tile.y === rect.y - 1;
+  if (normal.x === 1) return tile.x === rect.x + rect.width;
+  return tile.x === rect.x - 1;
+}
+
 /**
  * The wall tiles between the camera and the interior the player is standing in.
  *
- * At yaw 0 the camera looks from the map-south, so the near wall of a room is its SOUTH PERIMETER:
- * the wall row one tile below the shelter rectangle, at `rect.y + rect.height`.
+ * A shelter side is "near" when its outward normal points toward the viewer — that is, when it has
+ * a positive dot product with `CAMERA_TOWARD_VIEWER`. At yaw 0 that selects the south row alone.
+ * At yaw 45 it selects the south row AND the east column, which is what an isometric view needs:
+ * both of those sides stand between the camera and the room.
  *
- * **Not "the wall with the greatest tile.y in its column".** Those two rules agree only on a solid
- * ring. `compileWalls` removes opening tiles, so a column containing a door has no south wall at
- * all — and the per-column maximum then falls through to an interior partition further north. On
- * the villa that culled tile (17,14), a partition in the middle of the building, because the front
- * door sits at (17,24).
+ * **Derived from the yaw, never hardcoded.** The previous rule was "the southmost wall in each
+ * column", which is wrong twice over: it assumes yaw 0, and even at yaw 0 it falls through to an
+ * interior partition in a column whose south wall is a doorway — `compileWalls` removes opening
+ * tiles, so that column has no perimeter wall to find. On the villa that culled tile (17,14), a
+ * partition in the middle of the building.
  *
  * Only the OCCUPIED group is culled. Walls of a building the player is not inside stay up: hiding
  * them would open a hole into a room that is still roofed.
  *
- * ponytail: culls the single perimeter row. A double-thick south wall would keep its inner course,
- * which no current map has. Widen the row test if one appears.
+ * ponytail: culls the perimeter row or column. A double-thick wall would keep its inner course,
+ * which no current map has. Widen the side test if one appears.
  */
 export function hiddenWallTiles(frame: WorldFrameState): ReadonlySet<string> {
   const occupied = frame.hiddenRoofGroupId;
   if (occupied === undefined) return new Set();
 
+  const near = SHELTER_SIDES.filter(
+    (side) => side.normal.x * CAMERA_TOWARD_VIEWER.x + side.normal.y * CAMERA_TOWARD_VIEWER.y > 1e-6,
+  );
+
   const groups = wallRoofGroups(frame);
   const hidden = new Set<string>();
   for (const wall of frame.walls) {
     if (groups.get(tileKey(wall.tile)) !== occupied) continue;
-    const onSouthPerimeter = frame.shelterCells.some((cell) =>
-      bordersRect(wall.tile, cell) && wall.tile.y === cell.y + cell.height);
-    if (onSouthPerimeter) hidden.add(tileKey(wall.tile));
+    const isNear = frame.shelterCells.some((cell) =>
+      bordersRect(wall.tile, cell) && near.some((side) => onSide(wall.tile, cell, side.normal)));
+    if (isNear) hidden.add(tileKey(wall.tile));
   }
   return hidden;
 }

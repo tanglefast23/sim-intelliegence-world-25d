@@ -32,7 +32,12 @@ import type { WorldFrameState } from '../world-frame';
 import { buildBillboards, type BillboardDescriptor } from './billboards';
 import { DEFAULT_SHADOW_PATH, blobShadows, lampLights, type ShadowPath } from './lighting';
 import { SceneCache } from './mesh-cache';
-import { GROUND_TILT_DEGREES, GROUND_Z_SCALE } from './projection';
+import {
+  CAMERA_YAW_DEGREES,
+  GROUND_TILT_DEGREES,
+  GROUND_Z_SCALE,
+  screenToWorldTilted,
+} from './projection';
 import { buildScene, type BoxDescriptor, type QuadDescriptor, type SceneDescriptor } from './scene-builder';
 
 const TILE_SIZE = 32;
@@ -77,7 +82,7 @@ export type WorldRenderer25 = Readonly<{
  * capture can render the spike angle from the same scene, and so a later decision to switch is a
  * constant change rather than a rewrite.
  */
-export function cameraForYaw(yawDegrees: number, distance: number): OrthographicCamera {
+export function cameraForYaw(yawDegrees: number = CAMERA_YAW_DEGREES, distance: number): OrthographicCamera {
   const camera = new OrthographicCamera(-distance, distance, distance, -distance, 0.1, distance * 8);
   const elevation = (GROUND_TILT_DEGREES * Math.PI) / 180;
   const yaw = (yawDegrees * Math.PI) / 180;
@@ -88,28 +93,30 @@ export function cameraForYaw(yawDegrees: number, distance: number): Orthographic
 }
 
 /**
- * Frames the camera over the region the 2D camera would show, at the same pixels-per-tile.
+ * Frames the camera over the region the projection describes, at the same pixels-per-tile as 2D.
  *
- * The horizontal half-extent is `surface.width / (2 * zoom * TILE_SIZE)` tiles, which is exactly
- * the 2D scale. The vertical half-extent uses the same expression because a ground span `D`
- * projects to `D * GROUND_Z_SCALE` in camera space — the two `GROUND_Z_SCALE` factors cancel, and
- * the result agrees with `worldToScreenTilted` by construction.
+ * The half-extents are `surface / (2 · zoom · TILE_SIZE)` on both axes. The vertical one needs no
+ * `GROUND_Z_SCALE`: a ground span `D` projects to `D · GROUND_Z_SCALE` in camera space, so the two
+ * factors cancel — the same cancellation that held at yaw 0.
  *
- * The target is the world point that lands at screen centre under `screenToWorldTilted`, so
- * `camera.x`/`camera.y` keep the same top-left meaning they have in the 2D path.
+ * The target is the ground point at screen CENTRE, derived by inverting `worldToScreenTilted` at
+ * `(surface.width / 2, surface.height / 2)`. `camera.x`/`camera.y` stays the point at screen
+ * `(0, 0)`, so the projection and the camera describe one mapping. Tests pin them to each other.
  */
 export function frameCamera(
   camera: OrthographicCamera,
-  frame: WorldFrameState,
+  cameraState: Readonly<{ x: number; y: number; zoom: number }>,
   surface: ViewportSize,
   yawDegrees: number,
 ): Readonly<{ x: number; z: number }> {
-  const zoom = frame.camera.zoom;
+  const zoom = cameraState.zoom;
   const halfWidthTiles = surface.width / (2 * zoom * TILE_SIZE);
   const halfHeightTiles = surface.height / (2 * zoom * TILE_SIZE);
 
-  const targetX = (frame.camera.x + surface.width / (2 * zoom)) / TILE_SIZE;
-  const targetZ = (frame.camera.y + surface.height / (2 * zoom * GROUND_Z_SCALE)) / TILE_SIZE;
+  // The ground point that lands at screen centre, straight out of the projection's inverse.
+  const centre = screenToWorldTilted(cameraState, { x: surface.width / 2, y: surface.height / 2 });
+  const targetX = centre.x / TILE_SIZE;
+  const targetZ = centre.y / TILE_SIZE;
 
   const elevation = (GROUND_TILT_DEGREES * Math.PI) / 180;
   const yaw = (yawDegrees * Math.PI) / 180;
@@ -129,8 +136,7 @@ export function frameCamera(
   camera.lookAt(targetX, 0, targetZ);
   camera.updateProjectionMatrix();
   // Returned because the sun and its shadow camera must aim at what is ON SCREEN. The camera's own
-  // position sits CAMERA_DISTANCE_TILES back along the view axis - aiming the sun there points it
-  // nearly 200 tiles behind the visible footprint, and the shadow map covers nothing.
+  // position sits CAMERA_DISTANCE_TILES back along the view axis, far behind the visible footprint.
   return { x: targetX, z: targetZ };
 }
 
@@ -441,12 +447,20 @@ export async function createWorldRenderer25(
    * new one, and a first measurement of 0x0 would stick forever.
    */
   liveSurface: () => ViewportSize,
+  /**
+   * The real render camera, read fresh every frame.
+   *
+   * NOT `frame.camera`: on the 2.5D path that is the inflated frame REQUEST camera, shifted to the
+   * north-west corner of the rotated footprint so `world-frame.ts` culls the right tiles. Framing
+   * from it would put the view a screen-and-a-half away from the player.
+   */
+  liveCamera: () => Readonly<{ x: number; y: number; zoom: number }>,
   onReady: () => void,
   onContextStateChange: (state: 'lost' | 'restored' | 'timed-out') => void,
   toneMapping: ToneMappingKind = 'aces',
   options: Readonly<{ yawDegrees?: number; shadowPath?: ShadowPath }> = {},
 ): Promise<WorldRenderer25> {
-  const yawDegrees = options.yawDegrees ?? 0;
+  const yawDegrees = options.yawDegrees ?? CAMERA_YAW_DEGREES;
   const shadowPath = options.shadowPath ?? DEFAULT_SHADOW_PATH;
 
   // Request WebGL 2 explicitly, the way the 2D path does. `new WebGLRenderer({ canvas })` may hand
@@ -587,6 +601,7 @@ export async function createWorldRenderer25(
   const applyFrame = (next: WorldFrameState): void => {
     frame = next;
     const surface = liveSurface();
+    const renderCamera = liveCamera();
 
     // The drawing buffer follows the REAL surface, not `frame.viewport`: on the 2.5D path the
     // frame request is deliberately inflated so the cull window covers the tilted footprint, and
@@ -594,18 +609,17 @@ export async function createWorldRenderer25(
     const buffer = threeDrawingBufferSize(surface, next.devicePixelRatio);
     renderer.setSize(buffer.width, buffer.height, false);
 
-    const lookAt = frameCamera(camera, next, surface, yawDegrees);
+    const lookAt = frameCamera(camera, renderCamera, surface, yawDegrees);
 
     // Cover the whole visible footprint plus a wide margin, centred on what the camera looks at.
     // Cheaper and steadier than fitting it to the map: one quad, no rebuild, no seam at the edge.
     const visibleTiles = Math.max(
-      surface.width / next.camera.zoom,
-      surface.height / (next.camera.zoom * GROUND_Z_SCALE),
+      surface.width / renderCamera.zoom,
+      surface.height / (renderCamera.zoom * GROUND_Z_SCALE),
     ) / TILE_SIZE;
     skirt.scale.set(visibleTiles * 4, 1, visibleTiles * 4);
-    skirt.position.x = next.camera.x / TILE_SIZE + surface.width / (2 * next.camera.zoom) / TILE_SIZE;
-    skirt.position.z = next.camera.y / TILE_SIZE
-      + surface.height / (2 * next.camera.zoom * GROUND_Z_SCALE) / TILE_SIZE;
+    skirt.position.x = lookAt.x;
+    skirt.position.z = lookAt.z;
     // Tinted from the district accent and darkened well below it: the skirt should read as land
     // continuing past the edge, not as a lit surface competing with the map.
     skirtMaterial.color.setStyle(next.lighting.accent.slice(0, 7));

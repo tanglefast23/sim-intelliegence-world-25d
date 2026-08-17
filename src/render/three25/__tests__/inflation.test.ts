@@ -1,5 +1,5 @@
-import { inflatedViewport } from '../inflation';
-import { GROUND_Z_SCALE } from '../projection';
+import { inflatedFrameOrigin, inflatedViewport } from '../inflation';
+import { GROUND_Z_SCALE, groundFootprint } from '../projection';
 import { WALL_HEIGHT_TILES } from '../recipes';
 
 const VIEWPORT = { width: 1280, height: 720 } as const;
@@ -9,13 +9,34 @@ const TILE_SIZE = 32;
 const TALLEST_RECIPE_TILES = 2.3;
 
 describe('frame inflation for the tilted view', () => {
-  test('leaves the horizontal axis alone at yaw 0', () => {
-    expect(inflatedViewport(VIEWPORT, 1).width).toBe(VIEWPORT.width);
+  /**
+   * At yaw 0 the horizontal axis needed no inflation. Under rotation the visible ground is a
+   * rotated rectangle, so its bounding box is wider than the screen as well as deeper — inflating
+   * height alone would leave wedges of empty ground east and west.
+   */
+  test('inflates BOTH axes under rotation', () => {
+    const inflated = inflatedViewport(VIEWPORT, 1);
+    expect(inflated.width).toBeGreaterThan(VIEWPORT.width);
+    expect(inflated.height).toBeGreaterThan(VIEWPORT.height);
   });
 
-  test('covers the depth stretch AND clears the tallest prop above it', () => {
-    const stretch = VIEWPORT.height / GROUND_Z_SCALE;
-    const headroom = inflatedViewport(VIEWPORT, 1).height - stretch;
+  test('covers the rotated footprint on both axes', () => {
+    const footprint = groundFootprint(VIEWPORT, 1);
+    const inflated = inflatedViewport(VIEWPORT, 1);
+    expect(inflated.width).toBeGreaterThanOrEqual(footprint.width);
+    expect(inflated.height).toBeGreaterThanOrEqual(footprint.height);
+  });
+
+  test('shifts the frame origin back to the corner of that footprint', () => {
+    // world-frame only extends FORWARD from the camera it is given, and the camera anchor is the
+    // world point at screen (0,0) - not the north-west corner of the rotated footprint.
+    const origin = inflatedFrameOrigin({ x: 1000, y: 1000, zoom: 1 }, VIEWPORT);
+    expect(origin.x).toBeLessThan(1000);
+    expect(origin.y).toBeLessThan(1000);
+  });
+
+  test('clears the tallest prop above the footprint', () => {
+    const headroom = inflatedViewport(VIEWPORT, 1).height - groundFootprint(VIEWPORT, 1).height;
     expect(headroom).toBeGreaterThanOrEqual(TALLEST_RECIPE_TILES * TILE_SIZE);
     expect(headroom).toBeGreaterThanOrEqual(WALL_HEIGHT_TILES * TILE_SIZE);
   });
@@ -27,7 +48,7 @@ describe('frame inflation for the tilted view', () => {
    */
   test('keeps the headroom pad constant in world pixels across zoom', () => {
     const worldHeadroom = (zoom: number) =>
-      inflatedViewport(VIEWPORT, zoom).height / zoom - VIEWPORT.height / zoom / GROUND_Z_SCALE;
+      inflatedViewport(VIEWPORT, zoom).height / zoom - groundFootprint(VIEWPORT, zoom).height;
     expect(worldHeadroom(3)).toBeCloseTo(worldHeadroom(1), 0);
   });
 

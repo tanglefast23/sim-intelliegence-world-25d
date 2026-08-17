@@ -83,12 +83,25 @@ describe('near-wall culling', () => {
     }
   });
 
-  test('hides exactly the south perimeter row of the occupied shelter', () => {
+  /**
+   * At yaw 45 the camera looks from the south-EAST, so both the south row and the east column
+   * stand between it and the room. At yaw 0 only the south row did. The rule derives that from
+   * `CAMERA_TOWARD_VIEWER` rather than naming a side.
+   */
+  test('hides exactly the shelter sides that face the camera', () => {
     const inside = indoorFrame();
-    const southRow = inside.shelterCells[0]!.y + inside.shelterCells[0]!.height;
+    const cell = inside.shelterCells[0]!;
+    const southRow = cell.y + cell.height;
+    const eastColumn = cell.x + cell.width;
     const hidden = [...hiddenWallTiles(inside)].map((key) => key.split(',').map(Number));
     expect(hidden.length).toBeGreaterThan(0);
-    for (const [, y] of hidden) expect(y).toBe(southRow);
+    for (const [x, y] of hidden) {
+      expect({ x, y, onNearSide: y === southRow || x === eastColumn })
+        .toEqual({ x, y, onNearSide: true });
+    }
+    // Both sides really are represented, not just one.
+    expect(hidden.some(([, y]) => y === southRow)).toBe(true);
+    expect(hidden.some(([x]) => x === eastColumn)).toBe(true);
   });
 
   /**
@@ -99,13 +112,9 @@ describe('near-wall culling', () => {
    */
   test('never hides an interior partition, even in a column whose south wall is a doorway', () => {
     const inside = indoorFrame();
-    const doorColumns = new Set(inside.doors.map((door) => door.tile.x));
-    expect(doorColumns.size).toBeGreaterThan(0);
-    const southRow = inside.shelterCells[0]!.y + inside.shelterCells[0]!.height;
-    for (const key of hiddenWallTiles(inside)) {
-      expect({ key, onPerimeter: Number(key.split(',')[1]) === southRow })
-        .toEqual({ key, onPerimeter: true });
-    }
+    expect(new Set(inside.doors.map((door) => door.tile.x)).size).toBeGreaterThan(0);
+    // The old "greatest tile.y in the column" rule culled this tile: the front-door column has no
+    // south wall, so the maximum fell through to a partition in the middle of the building.
     expect(hiddenWallTiles(inside).has('17,14')).toBe(false);
   });
 
@@ -115,22 +124,30 @@ describe('near-wall culling', () => {
     const occupied = inside.walls.filter(
       (wall) => groups.get(tileKey(wall.tile)) === inside.hiddenRoofGroupId,
     );
-    const farRow = Math.min(...occupied.map((wall) => wall.tile.y));
+    const cell = inside.shelterCells[0]!;
     const hidden = hiddenWallTiles(inside);
-    for (const wall of occupied.filter((candidate) => candidate.tile.y === farRow)) {
-      expect(hidden.has(tileKey(wall.tile))).toBe(false);
+    // The north row and the west column face away from the camera and must stay standing. Their
+    // shared tiles with a NEAR side - the north-east and south-west corners - are legitimately
+    // culled, so they are excluded rather than counted as failures.
+    const far = occupied.filter((wall) =>
+      (wall.tile.y === cell.y - 1 && wall.tile.x !== cell.x + cell.width)
+      || (wall.tile.x === cell.x - 1 && wall.tile.y !== cell.y + cell.height));
+    expect(far.length).toBeGreaterThan(0);
+    for (const wall of far) {
+      expect({ tile: tileKey(wall.tile), hidden: hidden.has(tileKey(wall.tile)) })
+        .toEqual({ tile: tileKey(wall.tile), hidden: false });
     }
   });
 
-  test('culls one row, not the building', () => {
+  test('culls the near sides, not the building', () => {
     const inside = indoorFrame();
     const groups = wallRoofGroups(inside);
     const occupied = inside.walls.filter(
       (wall) => groups.get(tileKey(wall.tile)) === inside.hiddenRoofGroupId,
     ).length;
-    // One row out of a ring: well under a third of the group's own walls, not of every wall on
-    // the map.
-    expect(hiddenWallTiles(inside).size).toBeLessThan(occupied / 3);
+    // Two sides of a four-sided ring: under two thirds of the group's own walls, not of every
+    // wall on the map.
+    expect(hiddenWallTiles(inside).size).toBeLessThan((occupied * 2) / 3);
   });
 
   test('is idempotent across repeated frames', () => {

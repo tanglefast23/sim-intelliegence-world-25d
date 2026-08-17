@@ -1,3 +1,5 @@
+import { CAMERA_YAW_DEGREES } from './three25/projection';
+
 export type RendererKind = 'threejs-2d' | 'threejs-2-5d';
 
 const RENDERER_QUERY: Readonly<Record<string, RendererKind>> = {
@@ -54,20 +56,24 @@ export function toneMappingForEnvironment(input: Readonly<{
 /**
  * Camera yaw for the 2.5D renderer, in degrees.
  *
- * Production ships yaw 0. This is a localhost-only `?testYaw=` override so the comparison capture
- * can render the spike angle from the same scene without a new Electron flag. Clamped to 0-60:
- * beyond that the ground projection in `three25/projection.ts` no longer describes what is drawn.
+ * Production ships `CAMERA_YAW_DEGREES`. The localhost-only `?testYaw=` override exists so a
+ * capture can render a different angle from the same scene without a new Electron flag; it is
+ * clamped to 0-60, beyond which the ground projection no longer describes what is drawn.
+ *
+ * **Defaulting this to 0 is a real bug, not a safe fallback.** The renderer, the projection, the
+ * clamp and the near-wall rule all derive from `CAMERA_YAW_DEGREES`; returning 0 here would render
+ * the one angle the whole design was moved away from, and only a query parameter would fix it.
  */
 export function yawForEnvironment(input: Readonly<{ hostname: string; search: string }>): number {
   const local = input.hostname === 'localhost' || input.hostname === '127.0.0.1';
-  if (!local) return 0;
+  if (!local) return CAMERA_YAW_DEGREES;
   const requested = Number.parseFloat(new URLSearchParams(input.search).get('testYaw') ?? '');
-  if (!Number.isFinite(requested)) return 0;
+  if (!Number.isFinite(requested)) return CAMERA_YAW_DEGREES;
   return Math.min(60, Math.max(0, requested));
 }
 
 export function selectedYawDegrees(): number {
-  if (typeof window === 'undefined' || !window.location) return 0;
+  if (typeof window === 'undefined' || !window.location) return CAMERA_YAW_DEGREES;
   return yawForEnvironment({ hostname: window.location.hostname, search: window.location.search });
 }
 

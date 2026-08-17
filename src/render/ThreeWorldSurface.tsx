@@ -20,11 +20,17 @@ type MountedRenderer = Pick<ThreeWorldRenderer, 'setFrame' | 'start' | 'dispose'
 
 export function ThreeWorldSurface({
   frame,
+  camera,
   onContextStateChange,
   onReady,
   surface,
 }: Readonly<{
   frame: WorldFrameState;
+  /**
+   * The real render camera. Not `frame.camera`: on the 2.5D path that is the inflated frame
+   * REQUEST camera, shifted so `world-frame.ts` culls the rotated footprint.
+   */
+  camera: Readonly<{ x: number; y: number; zoom: number }>;
   onContextStateChange: (state: 'lost' | 'restored' | 'timed-out') => void;
   onReady: () => void;
   /**
@@ -38,6 +44,8 @@ export function ThreeWorldSurface({
   const onReadyRef = useRef(onReady);
   const onContextStateChangeRef = useRef(onContextStateChange);
   const surfaceRef = useRef(surface);
+  const cameraRef = useRef(camera);
+  cameraRef.current = camera;
   frameRef.current = frame;
   onReadyRef.current = onReady;
   onContextStateChangeRef.current = onContextStateChange;
@@ -62,6 +70,7 @@ export function ThreeWorldSurface({
         canvas,
         atlasUrl,
         () => surfaceRef.current,
+        () => cameraRef.current,
         () => onReadyRef.current(),
         (state) => onContextStateChangeRef.current(state),
         selectedToneMapping(),
