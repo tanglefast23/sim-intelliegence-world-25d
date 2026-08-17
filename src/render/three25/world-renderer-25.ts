@@ -855,8 +855,11 @@ export async function createWorldRenderer25(
     // The bake carries RGB only, so the shadow colour's alpha has to reach the material directly.
     // Dropping it would stamp a solid dark oval under every character instead of a soft contact
     // shadow.
-    const blobAlpha = blobs[0]?.tint.length === 9 ? Number.parseInt(blobs[0].tint.slice(7), 16) / 255 : 0.45;
-    blobMaterial.opacity = blobAlpha;
+    // The reference's contact shadows are firm and clearly offset, not a faint smudge. The frame's
+    // own alpha is tuned for a 2D overlay drawn on top of a sprite; a 3D quad on the floor needs
+    // more to read at all.
+    const frameAlpha = blobs[0]?.tint.length === 9 ? Number.parseInt(blobs[0].tint.slice(7), 16) / 255 : 0.45;
+    blobMaterial.opacity = Math.min(0.85, frameAlpha * 1.9);
 
     const pools = lampPools(next);
     poolMesh.geometry.dispose();

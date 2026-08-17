@@ -89,8 +89,8 @@ export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
     source: { x: 0, y: 0, width: 0, height: 0 } as QuadDescriptor['source'],
     x: (shadow.worldX + shadow.castX) / TILE_SIZE,
     z: (shadow.worldY + shadow.castY) / TILE_SIZE,
-    width: 0.7,
-    depth: 0.42,
+    width: 0.82,
+    depth: 0.5,
     tint: shadow.color,
     opacity: 1,
   }));

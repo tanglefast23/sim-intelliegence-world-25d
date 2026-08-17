@@ -24,6 +24,10 @@ export type PropRecipe = Readonly<{
 /** Matches the spike wall box height. See spikes/001-threejs-pixel-villa/scene.js:109. */
 export const WALL_HEIGHT_TILES = 1.45;
 
+/** Bench and table timber. The reference's low furniture is pale wood, not the atlas's muddy red. */
+const PALE_WOOD = '#c9a06a';
+const PALE_WOOD_SHADE = '#a37c4e';
+
 /** Planter pot and foliage. Two materials on one sprite, so one measured colour cannot serve both. */
 const TERRACOTTA = '#b5673a';
 const FOLIAGE_GREEN = '#5f9e52';
@@ -57,8 +61,8 @@ const sign = (panelHeight: number): readonly BoxRecipe[] => [
 
 /** Seat slab plus a back rail along the north edge. */
 const bench = (width: number): readonly BoxRecipe[] => [
-  { x: 0, y: 0.18, z: 0, width, height: 0.12, depth: 0.5 },
-  { x: 0, y: 0.42, z: -0.2, width, height: 0.36, depth: 0.1 },
+  { x: 0, y: 0.18, z: 0, width, height: 0.12, depth: 0.5, tint: PALE_WOOD },
+  { x: 0, y: 0.42, z: -0.2, width, height: 0.36, depth: 0.1, tint: PALE_WOOD_SHADE },
 ];
 
 /** Pot plus the mass growing out of it. */
@@ -77,8 +81,8 @@ const planter = (foliageWidth: number, foliage = FOLIAGE_GREEN): readonly BoxRec
 
 /** Top slab plus one leg. Two adjacent tiles give a two-tile table on two legs. */
 const tableTile = (): readonly BoxRecipe[] => [
-  { x: 0, y: 0.46, z: 0, width: 0.98, height: 0.09, depth: 0.7 },
-  { x: 0, y: 0.23, z: 0, width: 0.09, height: 0.46, depth: 0.6 },
+  { x: 0, y: 0.46, z: 0, width: 0.98, height: 0.09, depth: 0.7, tint: PALE_WOOD },
+  { x: 0, y: 0.23, z: 0, width: 0.09, height: 0.46, depth: 0.6, tint: PALE_WOOD_SHADE },
 ];
 
 /** Hull slab plus superstructure. Four in a row give the harbour ferry. */
@@ -139,12 +143,15 @@ const foodStallTile = (): readonly BoxRecipe[] => [
  */
 export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze({
   // --- Sunward villa interior -------------------------------------------------------------
+  // The measured paint is a dark teal that reads near-navy once the night curve and face shade
+  // are applied. Lifted through the authored-tint knob so the largest object in the room stays
+  // legible, and given a lighter cushion so the seat reads separately from the frame.
   'tile.sofa-left': {
     boxes: [
-      { x: 0.5, y: 0.18, z: 0, width: 1.9, height: 0.36, depth: 0.85 },
-      { x: 0.5, y: 0.52, z: -0.32, width: 1.9, height: 0.32, depth: 0.22 },
-      { x: -0.38, y: 0.44, z: 0, width: 0.16, height: 0.5, depth: 0.85 },
-      { x: 1.38, y: 0.44, z: 0, width: 0.16, height: 0.5, depth: 0.85 },
+      { x: 0.5, y: 0.18, z: 0, width: 1.9, height: 0.36, depth: 0.85, tint: '#5f9e88' },
+      { x: 0.5, y: 0.52, z: -0.32, width: 1.9, height: 0.32, depth: 0.22, tint: '#4d8672' },
+      { x: -0.38, y: 0.44, z: 0, width: 0.16, height: 0.5, depth: 0.85, tint: '#4d8672' },
+      { x: 1.38, y: 0.44, z: 0, width: 0.16, height: 0.5, depth: 0.85, tint: '#4d8672' },
     ],
     consumes: ['tile.sofa-right'],
   },
