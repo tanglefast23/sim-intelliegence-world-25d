@@ -102,6 +102,14 @@ export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
 }
 
 /**
+ * How far south of a cluster's base `world-frame.ts` anchors a prop shadow, in world pixels.
+ *
+ * `propShadows` is authored for the 2D renderer, where the strip sits below the sprite's feet. On
+ * the ground plane that offset is a translation away from the object, so it has to come back off.
+ */
+const PROP_SHADOW_ANCHOR_OFFSET = 25;
+
+/**
  * A dark contact stain under every prop that stands on the floor.
  *
  * The single most visible amateur tell in the 2.5D frames was that nothing sat on the ground. A
@@ -120,8 +128,12 @@ export function propContactShadows(frame: WorldFrameState): readonly QuadDescrip
     id: `contact-${shadow.id}`,
     sprite: 'contact-shadow',
     source: { x: 0, y: 0, width: 0, height: 0 } as QuadDescriptor['source'],
-    x: shadow.worldX / TILE_SIZE,
-    z: shadow.worldY / TILE_SIZE,
+    // `worldX` is the cluster's LEFT EDGE and `worldY` is its base pushed 25px south, because the
+    // 2D renderer draws this as a strip anchored under a sprite. Read as a centre — which is what
+    // every other descriptor in this file carries — every stain lands low and to the right of the
+    // object it belongs to, detached from it. That is exactly how it looked.
+    x: (shadow.worldX + shadow.width / 2) / TILE_SIZE,
+    z: (shadow.worldY - PROP_SHADOW_ANCHOR_OFFSET) / TILE_SIZE,
     // Deliberately smaller than the lamp pool it sits inside. A stain wider than the object reads
     // as a cast shadow from a light that is not there. `long` marks the tall casters - lamps, neon,
     // planters, palms - which get a slightly bigger stain because they meet the ground on a stem.

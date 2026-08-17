@@ -592,6 +592,73 @@ export function bakeLampPools(
   return geometry;
 }
 
+
+/**
+ * Flat ground marks that fade at the rim: character blobs and prop contact stains.
+ *
+ * These used to bake through the floor-quad path, which makes a SQUARE with one uniform colour. On
+ * the ground under a character that reads as a dark tile someone forgot to remove — it ends
+ * abruptly with a hard straight edge, and nothing in the scene has an edge like that. A shadow has
+ * to fall off.
+ *
+ * A radial fan does it with no texture and no shader: one vertex at the centre at full alpha, a rim
+ * of vertices at zero. The colour attribute carries FOUR components here rather than three, which
+ * is what lets the rim be transparent while the centre is not — with an RGB attribute the only
+ * alpha available is a single material-wide scalar, and every mark in the frame has to share it.
+ *
+ * `width` and `depth` are diameters, so a mark is an ellipse: the depth axis is already compressed
+ * by the camera, and these are authored to sit under a sprite.
+ */
+export function bakeGroundStains(stains: readonly QuadDescriptor[]): BufferGeometry {
+  const SEGMENTS = 12;
+  const perStain = SEGMENTS + 2;
+  const positions = new Float32Array(stains.length * perStain * 3);
+  const normals = new Float32Array(stains.length * perStain * 3);
+  const uvs = new Float32Array(stains.length * perStain * 2);
+  const colors = new Float32Array(stains.length * perStain * 4);
+  const indices = new Uint32Array(stains.length * SEGMENTS * 3);
+
+  stains.forEach((stain, stainIndex) => {
+    const first = stainIndex * perStain;
+    const tint = linearTint(stain.tint);
+    const alpha = stain.tint.length === 9
+      ? (Number.parseInt(stain.tint.slice(7), 16) / 255) * stain.opacity
+      : stain.opacity;
+    const radiusX = stain.width / 2;
+    const radiusZ = stain.depth / 2;
+    const set = (vertex: number, x: number, z: number, edgeAlpha: number): void => {
+      positions[vertex * 3] = x;
+      // Just above the floor so it never z-fights the tile it darkens, and below the lamp pools.
+      positions[vertex * 3 + 1] = 0.012;
+      positions[vertex * 3 + 2] = z;
+      normals[vertex * 3 + 1] = 1;
+      colors[vertex * 4] = tint[0];
+      colors[vertex * 4 + 1] = tint[1];
+      colors[vertex * 4 + 2] = tint[2];
+      colors[vertex * 4 + 3] = edgeAlpha;
+    };
+    set(first, stain.x, stain.z, alpha);
+    for (let step = 0; step <= SEGMENTS; step += 1) {
+      const angle = (step / SEGMENTS) * Math.PI * 2;
+      set(first + 1 + step, stain.x + Math.cos(angle) * radiusX, stain.z + Math.sin(angle) * radiusZ, 0);
+    }
+    for (let step = 0; step < SEGMENTS; step += 1) {
+      const index = (stainIndex * SEGMENTS + step) * 3;
+      indices[index] = first;
+      indices[index + 1] = first + 1 + step;
+      indices[index + 2] = first + 2 + step;
+    }
+  });
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(positions, 3));
+  geometry.setAttribute('normal', new BufferAttribute(normals, 3));
+  geometry.setAttribute('uv', new BufferAttribute(uvs, 2));
+  geometry.setAttribute('color', new BufferAttribute(colors, 4));
+  geometry.setIndex(new BufferAttribute(indices, 1));
+  return geometry;
+}
+
 export function bakeSceneGeometry(
   scene: SceneDescriptor,
   atlasWidth: number,
@@ -1073,16 +1140,9 @@ export async function createWorldRenderer25(
     // every prop in the scene from floating a hair above its own tile.
     const blobs = [...blobShadows(next), ...propContactShadows(next)];
     blobMesh.geometry.dispose();
-    blobMesh.geometry = bakeSceneGeometry({ floors: blobs, boxes: [] }, atlasWidth, atlasHeight).floors;
+    blobMesh.geometry = bakeGroundStains(blobs);
     blobMesh.visible = blobs.length > 0;
-    // The bake carries RGB only, so the shadow colour's alpha has to reach the material directly.
-    // Dropping it would stamp a solid dark oval under every character instead of a soft contact
-    // shadow.
-    // The reference's contact shadows are firm and clearly offset, not a faint smudge. The frame's
-    // own alpha is tuned for a 2D overlay drawn on top of a sprite; a 3D quad on the floor needs
-    // more to read at all.
-    const frameAlpha = blobs[0]?.tint.length === 9 ? Number.parseInt(blobs[0].tint.slice(7), 16) / 255 : 0.45;
-    blobMaterial.opacity = Math.min(0.85, frameAlpha * 1.9);
+    // Alpha now rides per vertex in the bake, so there is no material-wide opacity to set.
 
     // The camera basis has to be current before the VFX bake: upright effect quads turn to face the
     // camera the same way character billboards do.

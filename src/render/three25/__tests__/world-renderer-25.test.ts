@@ -9,7 +9,8 @@ import {
   worldToScreenTilted,
 } from '../projection';
 import { buildScene } from '../scene-builder';
-import { bakeBillboardGeometry, bakeLampPools, bakeSceneGeometry, cameraForYaw, frameCamera } from '../world-renderer-25';
+import {
+  bakeGroundStains, bakeBillboardGeometry, bakeLampPools, bakeSceneGeometry, cameraForYaw, frameCamera } from '../world-renderer-25';
 import { indoorFrame } from './fixtures';
 
 describe('2.5D camera placement', () => {
@@ -477,5 +478,55 @@ describe('lamp light pools', () => {
 
   test('an empty lamp list bakes without error', () => {
     expect(bakeLampPools([]).getAttribute('position').count).toBe(0);
+  });
+});
+
+/**
+ * A shadow that ends on a hard straight edge reads as a dark tile someone forgot to remove. These
+ * baked as square floor quads with one uniform colour until a capture made that plain.
+ */
+describe('ground stains fade at the rim', () => {
+  const stain = {
+    id: 'blob-1',
+    sprite: 'blob-shadow',
+    source: { x: 0, y: 0, width: 0, height: 0 },
+    x: 4,
+    z: 6,
+    width: 0.8,
+    depth: 0.5,
+    tint: '#101018cc',
+    opacity: 1,
+  } as unknown as Parameters<typeof bakeGroundStains>[0][number];
+
+  test('carries FOUR colour components, so the rim can be transparent', () => {
+    const color = bakeGroundStains([stain]).getAttribute('color');
+    expect(color.itemSize).toBe(4);
+  });
+
+  test('is opaque at the centre and fully transparent at every rim vertex', () => {
+    const color = bakeGroundStains([stain]).getAttribute('color');
+    expect(color.getW(0)).toBeCloseTo(0xcc / 255, 6);
+    for (let index = 1; index < color.count; index += 1) expect(color.getW(index)).toBe(0);
+  });
+
+  test('is an ellipse: every rim vertex sits on the width and depth radii', () => {
+    const position = bakeGroundStains([stain]).getAttribute('position');
+    for (let index = 1; index < position.count; index += 1) {
+      const dx = (position.getX(index) - stain.x) / (stain.width / 2);
+      const dz = (position.getZ(index) - stain.z) / (stain.depth / 2);
+      expect(dx * dx + dz * dz).toBeCloseTo(1, 5);
+    }
+  });
+
+  test('sits above the floor it darkens and below the lamp pools', () => {
+    const position = bakeGroundStains([stain]).getAttribute('position');
+    for (let index = 0; index < position.count; index += 1) {
+      expect(position.getY(index)).toBeGreaterThan(0);
+      expect(position.getY(index)).toBeLessThan(0.02);
+    }
+  });
+
+  test('an empty list bakes without error', () => {
+    expect(bakeGroundStains([]).getAttribute('color').count).toBe(0);
   });
 });
