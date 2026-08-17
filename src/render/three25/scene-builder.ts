@@ -45,6 +45,15 @@ export type BoxDescriptor = Readonly<{
    * `NearestFilter` gives the flat-shaded look the spike has, with no new art.
    */
   flatShade?: boolean;
+  /**
+   * This box IS a light source, so it must not be lit by one.
+   *
+   * Every other flat-shaded box is lit, which is what stops furniture reading as plastic pasted
+   * over a lit scene. A lamp head cannot be: the point light sits inside it, so every face normal
+   * points away from the light and a lit lamp head renders black — the one thing in a dark room
+   * that must glow. Glow boxes draw through the unlit material with their authored tint intact.
+   */
+  glow?: boolean;
   x: number;
   y: number;
   z: number;
@@ -106,10 +115,12 @@ export function shelteredTint(
   tint: string,
   tile: Readonly<{ x: number; y: number }>,
   frame: WorldFrameState,
+  strength = 1,
 ): string {
   if (frame.shelterCells.length === 0 || insideShelter(tile, frame)) return tint;
   const night = 1 - frame.lighting.sun.elevation;
-  return mixHex(tint.slice(0, 7), VOID_TINT, 0.35 + 0.6 * night) + (tint.length > 7 ? tint.slice(7) : '');
+  return mixHex(tint.slice(0, 7), VOID_TINT, strength * (0.35 + 0.6 * night))
+    + (tint.length > 7 ? tint.slice(7) : '');
 }
 
 /**
@@ -214,20 +225,23 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
         width: box.width,
         height: box.height,
         depth: box.depth,
+        glow: box.glow,
         // An authored per-box tint wins, so a sofa's arms can differ from its seat. Otherwise the
         // sprite's measured dominant colour - never the frame colour, which is plain white here.
-        // Unlit material, so day and night have to reach the colour here. Same curve the
-        // billboards use, so furniture and characters darken together.
-        // An authored box tint is a light source or a deliberate accent, so it does NOT darken -
-        // a lamp that dims at night is not a lamp. Only the sprite's own paint follows the sun.
+        //
+        // The tint is the box's PAINT, not its lit appearance. Non-glow boxes draw through a lit
+        // material, so the scene's own sun, sky and lamps decide how dark that paint reads; mixing
+        // the day cycle in here as well darkened them twice and was what made furniture read as
+        // plastic pasted over a lit scene. Glow boxes are unlit, so their tint IS the pixel.
+        // Half strength for props. The full crush is what makes the ground and the buildings
+        // outside the room fall away into the void, and that read is worth keeping. Applied to a
+        // prop it deleted the object instead of pushing it back: at night the factor reaches 0.95,
+        // so every lamp post on the terrace became a floating head over a black stick.
         tint: shelteredTint(
-          box.tint ?? tintForLighting(
-            readableTint(PROP_FLAT_COLORS[prop.sprite] ?? prop.color),
-            frame.lighting,
-            UNLIT_NIGHT_STRENGTH,
-          ),
+          box.tint ?? readableTint(PROP_FLAT_COLORS[prop.sprite] ?? prop.color),
           prop.tile,
           frame,
+          0.5,
         ),
       });
     });

@@ -13,9 +13,9 @@
         "y": 420
       },
       "predictedTile": "44,23",
-      "tileBefore": "",
-      "tileAfter": "",
-      "moved": false
+      "tileBefore": "18,18",
+      "tileAfter": "17,24",
+      "moved": true
     },
     {
       "name": "click-left",
@@ -29,9 +29,9 @@
         "y": 420
       },
       "predictedTile": "35,32",
-      "tileBefore": "",
-      "tileAfter": "",
-      "moved": false
+      "tileBefore": "18,18",
+      "tileAfter": "17,24",
+      "moved": true
     },
     {
       "name": "click-down",
@@ -45,9 +45,9 @@
         "y": 560
       },
       "predictedTile": "46,33",
-      "tileBefore": "",
-      "tileAfter": "",
-      "moved": false
+      "tileBefore": "18,18",
+      "tileAfter": "17,24",
+      "moved": true
     }
   ]
 }

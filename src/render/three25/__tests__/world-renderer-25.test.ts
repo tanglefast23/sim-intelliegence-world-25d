@@ -44,10 +44,10 @@ describe('baked scene geometry', () => {
    * interior emits thousands of descriptors; at one draw call each the plan's ceiling of 40 is
    * unreachable by nearly two orders of magnitude.
    */
-  test('collapses thousands of descriptors into two geometries', () => {
+  test('collapses thousands of descriptors into four geometries', () => {
     expect(scene.floors.length + scene.boxes.length).toBeGreaterThan(500);
     const baked = bakeSceneGeometry(scene, ATLAS, ATLAS);
-    expect(Object.keys(baked)).toEqual(['floors', 'boxes', 'flatBoxes']);
+    expect(Object.keys(baked)).toEqual(['floors', 'boxes', 'flatBoxes', 'glowBoxes']);
   });
 
   test('emits four vertices and six indices per floor quad', () => {
@@ -59,10 +59,26 @@ describe('baked scene geometry', () => {
   test('emits twenty-four vertices and thirty-six indices per box', () => {
     const baked = bakeSceneGeometry(scene, ATLAS, ATLAS);
     const textured = scene.boxes.filter((box) => box.flatShade !== true).length;
-    const flat = scene.boxes.filter((box) => box.flatShade === true).length;
+    const flat = scene.boxes
+      .filter((box) => box.flatShade === true && box.glow !== true).length;
+    const glow = scene.boxes.filter((box) => box.flatShade === true && box.glow === true).length;
     expect(baked.boxes.getAttribute('position').count).toBe(textured * 24);
     expect(baked.flatBoxes.getAttribute('position').count).toBe(flat * 24);
-    expect(textured + flat).toBe(scene.boxes.length);
+    expect(baked.glowBoxes.getAttribute('position').count).toBe(glow * 24);
+    // Every box lands in exactly one batch: no descriptor is dropped and none is drawn twice.
+    expect(textured + flat + glow).toBe(scene.boxes.length);
+  });
+
+  /**
+   * A lamp head is the ONLY thing that may skip lighting. If a recipe ever marks a wall, a crate
+   * or a sofa as `glow`, it renders at full brightness in a dark room and the pooled-light read
+   * the whole scene depends on is gone.
+   */
+  test('only lamp fixtures opt out of lighting', () => {
+    const glowSprites = new Set(scene.boxes.filter((box) => box.glow === true)
+      .map((box) => box.sprite));
+    expect(glowSprites.size).toBeGreaterThan(0);
+    for (const sprite of glowSprites) expect(sprite).toMatch(/lamp|lantern/u);
   });
 
   test('carries uv and vertex colour so one material can tint every sprite', () => {

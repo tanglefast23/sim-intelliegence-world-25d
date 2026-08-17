@@ -188,6 +188,19 @@ const FACE_UVS: readonly (readonly [number, number])[] = [[0, 0], [1, 0], [1, 1]
  */
 const FACE_SHADE: readonly number[] = [0.82, 0.82, 1, 0.6, 0.66, 0.66];
 
+/**
+ * The same table for boxes that are drawn LIT.
+ *
+ * `FACE_SHADE` is a stand-in for lighting: it darkens the sides of a box so the box reads as a box
+ * with no light in the scene. Multiplying it into a surface a real light already shades is the
+ * same darkening applied twice, and it is what drove lit furniture to black — a lamp post's side
+ * face took 0.66 from this table on top of a dim night sky and landed under the ACES knee.
+ *
+ * Kept just off 1 so a box still has a faint edge where two faces meet the light at similar
+ * angles. Everything else comes from the sun, the sky and the lamps.
+ */
+const LIT_FACE_SHADE: readonly number[] = [0.96, 0.96, 1, 0.9, 0.93, 0.93];
+
 type AtlasCell = Readonly<{ u0: number; u1: number; v0: number; v1: number; flatU: number; flatV: number }>;
 
 /**
@@ -238,6 +251,7 @@ function bakeGeometry(
   boxes: readonly BoxDescriptor[],
   atlasWidth: number,
   atlasHeight: number,
+  faceShade: readonly number[] = FACE_SHADE,
 ): BufferGeometry {
   const vertexCount = quads.length * 4 + boxes.length * 24;
   const indexCount = quads.length * 6 + boxes.length * 36;
@@ -312,7 +326,7 @@ function bakeGeometry(
       const first = vertex;
       const horizontal = face.normal[1] !== 0;
       const cell = horizontal ? topCell : sideCell;
-      const shade = FACE_SHADE[faceIndex]!;
+      const shade = faceShade[faceIndex]!;
       const shaded: readonly [number, number, number] = [
         tint[0] * shade,
         tint[1] * shade,
@@ -495,13 +509,20 @@ export function bakeSceneGeometry(
   scene: SceneDescriptor,
   atlasWidth: number,
   atlasHeight: number,
-): Readonly<{ floors: BufferGeometry; boxes: BufferGeometry; flatBoxes: BufferGeometry }> {
-  const flat = scene.boxes.filter((box) => box.flatShade === true);
+): Readonly<{
+  floors: BufferGeometry;
+  boxes: BufferGeometry;
+  flatBoxes: BufferGeometry;
+  glowBoxes: BufferGeometry;
+}> {
+  const flat = scene.boxes.filter((box) => box.flatShade === true && box.glow !== true);
+  const glow = scene.boxes.filter((box) => box.flatShade === true && box.glow === true);
   const textured = scene.boxes.filter((box) => box.flatShade !== true);
   return {
     floors: bakeGeometry(scene.floors, [], atlasWidth, atlasHeight),
     boxes: bakeGeometry([], textured, atlasWidth, atlasHeight),
-    flatBoxes: bakeGeometry([], flat, atlasWidth, atlasHeight),
+    flatBoxes: bakeGeometry([], flat, atlasWidth, atlasHeight, LIT_FACE_SHADE),
+    glowBoxes: bakeGeometry([], glow, atlasWidth, atlasHeight),
   };
 }
 
@@ -598,7 +619,13 @@ export async function createWorldRenderer25(
 
   // Stage 1 ships lights. MeshStandardMaterial with no light source renders pure black, so without
   // this the villa is an empty frame and every capture is worthless.
-  const hemisphere = new HemisphereLight('#f5dcb0', '#202824', shadowPath === 'lit' ? 1.1 : 1.7);
+  //
+  // The GROUND colour is what lights a vertical face: a hemisphere light blends sky and ground by
+  // the face normal, so a lamp post, a crate side and a sofa arm all sit near the midpoint. At
+  // '#202824' those verticals were crushed to black once furniture became lit, which turned every
+  // lamp post into a floating head. '#4a4a44' keeps them readable without lifting the floor, whose
+  // normal points straight at the sky term.
+  const hemisphere = new HemisphereLight('#f5dcb0', '#4a4a44', shadowPath === 'lit' ? 1.1 : 1.7);
   const dayHemisphereIntensity = hemisphere.intensity;
   scene.add(hemisphere);
 
@@ -620,6 +647,12 @@ export async function createWorldRenderer25(
     sun.shadow.camera.right = 40;
     sun.shadow.camera.top = 40;
     sun.shadow.camera.bottom = -40;
+    // A lamp post is 0.07 tiles across. One shadow texel covers 80/256 = 0.31 tiles, so a post is a
+    // fifth of a texel wide and lands entirely inside its own depth sample: fully self-shadowed,
+    // and rendered pure black. `normalBias` pushes the lookup along the surface normal by more than
+    // a texel, which is the fix for exactly this and costs no sharpness on the big casters.
+    sun.shadow.normalBias = 0.35;
+    sun.shadow.bias = -0.000_5;
     sun.shadow.camera.near = 0.5;
     sun.shadow.camera.far = 120;
     // Without this three keeps its default -5..5 box and every frustum value above is dead, so
@@ -672,20 +705,38 @@ export async function createWorldRenderer25(
   });
 
   /**
-   * Flat-shaded furniture: unmapped AND unlit.
+   * Flat-shaded furniture: unmapped, and LIT.
    *
    * Unmapped because the atlas holds no white texel, so every colour drawn through `material`
    * carries a sprite with it, and an authored colour could never render true.
    *
-   * Unlit because these sprites are drawn unlit in the 2D game — their authored paint IS their
-   * colour. Lighting them made a dark room turn every piece of furniture near-black, which is the
-   * opposite of the target: the reference room is dim, but its sofa is still plainly green. Day and
-   * night reach the colour through the descriptor tint instead, so the scene still darkens without
-   * the furniture disappearing into it.
+   * Lit because unlit was measurably worse. Drawn unlit, a sofa was the same green whether it sat
+   * in a lamp pool or ten tiles away in the dark, so every prop read as plastic pasted over a lit
+   * scene while the walls and floor around it took real light. Lighting them is what puts the
+   * reference room's warm falloff across a stack of crates.
    *
-   * The per-face shade in `FACE_SHADE` is what keeps a box reading as a box without a light.
+   * The first attempt at this DID turn a dark room's furniture near-black, and the fix then was to
+   * unlight it. That treated the symptom: the real cause is the night floor on `hemisphere`, which
+   * is raised below so an unlit-by-any-lamp surface still reads as its own colour after dusk.
+   *
+   * `flatShading` keeps each face one value, so a box still reads as a box rather than a smoothly
+   * shaded blob. `FACE_SHADE` in the baked colours rides on top of the light.
    */
-  const flatMaterial = new MeshBasicMaterial({ vertexColors: true });
+  const flatMaterial = new MeshStandardMaterial({
+    vertexColors: true,
+    flatShading: true,
+    roughness: 0.9,
+    metalness: 0,
+  });
+
+  /**
+   * Lamp heads, lanterns, neon: unmapped and unlit, so the authored glow tint IS the pixel.
+   *
+   * These cannot share `flatMaterial`. The point light for a lamp sits INSIDE its head box, so
+   * every face normal points away from the light and a lit lamp head renders black — the one
+   * thing in a dark room that has to glow.
+   */
+  const glowMaterial = new MeshBasicMaterial({ vertexColors: true });
 
   /**
    * Characters, unlit and textured.
@@ -705,6 +756,7 @@ export async function createWorldRenderer25(
   const floorMesh = new Mesh(new BufferGeometry(), material);
   const boxMesh = new Mesh(new BufferGeometry(), material);
   const flatBoxMesh = new Mesh(new BufferGeometry(), flatMaterial);
+  const glowBoxMesh = new Mesh(new BufferGeometry(), glowMaterial);
   // Characters are their own batch because they move every frame while the world does not.
   const billboardMesh = new Mesh(new BufferGeometry(), billboardMaterial);
   // The baked geometry is already in world space, so three's own bounding sphere would sit at the
@@ -721,8 +773,11 @@ export async function createWorldRenderer25(
   flatBoxMesh.frustumCulled = false;
   flatBoxMesh.castShadow = shadowPath === 'lit';
   flatBoxMesh.receiveShadow = shadowPath === 'lit';
+  glowBoxMesh.frustumCulled = false;
+  // A lamp head casting a shadow of itself onto its own post is the one shadow nobody wants.
+  glowBoxMesh.castShadow = false;
   floorMesh.receiveShadow = shadowPath === 'lit';
-  scene.add(floorMesh, boxMesh, flatBoxMesh, billboardMesh);
+  scene.add(floorMesh, boxMesh, flatBoxMesh, glowBoxMesh, billboardMesh);
 
   // Hoisted: extractBasis writes into these every frame, and allocating three vectors per frame
   // for a value that never escapes is pure garbage.
@@ -798,6 +853,7 @@ export async function createWorldRenderer25(
       floorMesh.geometry = baked.floors;
       boxMesh.geometry = baked.boxes;
       flatBoxMesh.geometry = baked.flatBoxes;
+      glowBoxMesh.geometry = baked.glowBoxes;
       descriptorCount = built.floors.length + built.boxes.length;
       signature = nextSignature;
     }
@@ -805,8 +861,13 @@ export async function createWorldRenderer25(
     // The reference is a dark world with bright objects and one warm pocket. A flat ambient fill
     // at night washes that out, so the sky light follows the sun down rather than holding station,
     // and fog thickens after dusk to swallow the open remainder of the map into the void.
+    //
+    // The night floor is 0.62, not 0.09. Furniture is lit now, so this term is the only thing
+    // standing between a prop ten tiles from the nearest lamp and pure black. At 0.09 the whole
+    // world outside a lamp pool disappeared, which is what made unlit furniture look necessary in
+    // the first place. 0.62 keeps a sofa plainly green in the dark without flattening the pool.
     const daylight = next.lighting.sun.elevation;
-    hemisphere.intensity = dayHemisphereIntensity * (0.09 + 0.91 * daylight);
+    hemisphere.intensity = dayHemisphereIntensity * (0.62 + 0.38 * daylight);
 
     // Lamp lights: add and remove by id so a pan does not churn the light list.
     const wanted = new Map(lampLights(next).map((light) => [light.id, light]));
@@ -821,7 +882,7 @@ export async function createWorldRenderer25(
       if (!light) {
         // Short range and quadratic decay, so a lamp makes a tight warm pocket rather than a
         // wash. `castShadow` stays off: one shadow light is the budget, and the sun holds it.
-        light = new PointLight('#ffffff', 1, 7, 2);
+        light = new PointLight('#ffffff', 1, 11, 1.4);
         lamps.set(id, light);
         scene.add(light);
       }
@@ -933,6 +994,7 @@ export async function createWorldRenderer25(
       boxMesh.geometry.dispose();
       flatBoxMesh.geometry.dispose();
       flatMaterial.dispose();
+      glowMaterial.dispose();
       billboardMesh.geometry.dispose();
       billboardMaterial.dispose();
       poolMesh.geometry.dispose();

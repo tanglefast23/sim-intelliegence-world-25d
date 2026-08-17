@@ -13,6 +13,8 @@ export type BoxRecipe = Readonly<{
   height: number;
   depth: number;
   tint?: string;
+  /** Draw unlit, keeping `tint` exactly. Only for boxes that ARE the light — see `BoxDescriptor`. */
+  glow?: boolean;
 }>;
 
 export type PropRecipe = Readonly<{
@@ -47,10 +49,10 @@ const LAMP_GLOW_MAGENTA = '#ff9de0';
 const post = (height: number, headWidth: number, glow = LAMP_GLOW): readonly BoxRecipe[] => [
   { x: 0, y: 0.05, z: 0, width: 0.26, height: 0.1, depth: 0.26 },
   { x: 0, y: height / 2, z: 0, width: 0.07, height, depth: 0.07 },
-  // The head carries its own bright tint. Flat furniture is drawn unlit, so a lamp cannot pick up
-  // its own point light the way a lit surface would - without this the one thing in the room that
-  // should glow is the same grey as the post holding it up.
-  { x: 0, y: height + 0.12, z: 0, width: headWidth, height: 0.24, depth: headWidth, tint: glow },
+  // The head carries its own bright tint AND opts out of lighting. The point light sits inside
+  // this box, so every face normal points away from it: lit, the one thing in the room that should
+  // glow renders black. Unlit, the authored tint reaches the pixels unchanged.
+  { x: 0, y: height + 0.12, z: 0, width: headWidth, height: 0.24, depth: headWidth, tint: glow, glow: true },
 ];
 
 /** A standing sign: one thin post carrying a flat panel that faces the camera at yaw 0. */

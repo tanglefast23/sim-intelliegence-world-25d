@@ -63,6 +63,7 @@ export type SceneEvidence = Readonly<{
     cameraLabel: string;
     tileBefore: string;
     destination: string;
+    probe: Readonly<{ worldState: boolean; raw: string }>;
   }>;
 }>;
 
@@ -256,7 +257,8 @@ async function capture(scene) {
     const clickScript = [
       '(async () => {',
       '  const wait = (ms) => new Promise((r) => setTimeout(r, ms));',
-      '  const label = (id) => { const n = document.querySelector("#" + id); return n ? (n.getAttribute("aria-label") || "") : ""; };',
+      '  const label = (id) => { const n = document.querySelector("#" + id); return n ? (n.getAttribute("aria-label") || n.getAttribute("aria-labelledby") || "") : ""; };',
+      '  const probe = { worldState: !!document.querySelector("#world-state"), raw: label("world-state").slice(0, 120) };',
       // "<map>; tile X,Y; minute ..." - split rather than match, so no regex survives two levels
       // of template escaping on the way in here.
       '  const tile = () => { const t = label("world-state"); const i = t.indexOf("tile "); return i < 0 ? "" : t.slice(i + 5).split(";")[0].trim(); };',
@@ -271,7 +273,7 @@ async function capture(scene) {
       '  surface.dispatchEvent(new PointerEvent("pointerup", point));',
       '  surface.dispatchEvent(new MouseEvent("click", point));',
       '  await wait(1200);',
-      '  return { at: { x: ' + String(scene.clickAt.x) + ', y: ' + String(scene.clickAt.y) + ' }, cameraLabel: cameraLabel, tileBefore: before, destination: tile() };',
+      '  return { at: { x: ' + String(scene.clickAt.x) + ', y: ' + String(scene.clickAt.y) + ' }, cameraLabel: cameraLabel, tileBefore: before, destination: tile(), probe: probe };',
       '})()',
     // The doubled backslash is on purpose. This block lives inside the template literal that
     // GENERATES main.js, so a single escape here emits a REAL newline into main.js and splits the
