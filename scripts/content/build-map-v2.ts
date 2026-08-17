@@ -7,10 +7,11 @@ import type { TilePoint, WorldMapV2 } from '../../src/world/maps/schema';
 import { deriveNeighborhoodRoutes } from '../../src/world/transfers/routes';
 
 const LAYOUT_REVISIONS: Readonly<Record<MapId, number>> = {
-  northwest_residential: 2,
+  northwest_residential: 3,
   northeast_downtown: 2,
   southwest_commercial: 2,
   southeast_docks: 2,
+  west_office: 1,
 };
 
 type MapObject = WorldMapV2['objects'][number];
@@ -424,11 +425,12 @@ function northwestMap(): WorldMapV2 {
     portals: [
       { id: 'to-downtown', edge: 'east', tile: { x: 63, y: 24 }, destinationMapId: 'northeast_downtown', destinationEntranceId: 'from-residential' },
       { id: 'to-commercial', edge: 'south', tile: { x: 32, y: 47 }, destinationMapId: 'southwest_commercial', destinationEntranceId: 'from-residential' },
+      { id: 'to-office', edge: 'west', tile: { x: 0, y: 24 }, destinationMapId: 'west_office', destinationEntranceId: 'from-residential' },
     ],
     terrainSolids: [
       { id: 'sunward-shallows', kind: 'water', bounds: { x: 35, y: 42, width: 24, height: 6 } },
     ],
-    stagingTiles: [{ x: 62, y: 24 }, { x: 32, y: 46 }, { x: 16, y: 25 }],
+    stagingTiles: [{ x: 62, y: 24 }, { x: 32, y: 46 }, { x: 16, y: 25 }, { x: 1, y: 24 }],
     spawns: {
       protagonist: { x: 18, y: 18 }, linda: { x: 23, y: 28 }, generic_resident: { x: 29, y: 33 },
       linda_boyfriend: { x: 25, y: 28 }, mina_park: { x: 34, y: 15 }, rafael_cruz: { x: 27, y: 5 },
@@ -1203,9 +1205,107 @@ function southeastMap(): WorldMapV2 {
   return map;
 }
 
+/**
+ * The Ledger Annex: a parking strip on the east, one office building filling the west.
+ *
+ * This is the shell. The seven authored areas of the spec arrive with the furniture that justifies
+ * them, because `measureAndValidateDensity` runs its whole gate PER AREA, and the interior areas
+ * own no wall run of their own — the outer shell runs sit outside every one of their bounds. An
+ * empty `cubicle-floor` would therefore score zero solids and zero details and fail the build.
+ *
+ * So the interior is one `structural-placeholder` covering `annex-roof.interiorCells`, carrying a
+ * single fixture object of eight parts, six of them solid. That one object clears both halves of
+ * the placeholder gate at once: `kind === 'object'` counts as a structural solid alongside `wall`,
+ * and the eight parts are the eight detail cells. No interior wall ring is needed to pass.
+ */
+function westMap(): WorldMapV2 {
+  const lotFixtures = objectFromTiles({
+    id: 'annex-lot-fixtures', kind: 'lot-fixtures', areaId: 'annex-lot',
+    tiles: [
+      { x: 56, y: 10, sprite: 'tile.parked-car-cyan-left', solid: true },
+      { x: 57, y: 10, sprite: 'tile.parked-car-cyan-right', solid: true },
+      { x: 56, y: 36, sprite: 'tile.parked-car-coral-left', solid: true },
+      { x: 57, y: 36, sprite: 'tile.parked-car-coral-right', solid: true },
+      { x: 58, y: 22, sprite: 'tile.sign-civic', solid: true },
+      { x: 55, y: 20, sprite: 'tile.fixture-planter', solid: true },
+      { x: 55, y: 28, sprite: 'tile.fixture-planter' },
+      // The spec's lot is seven cells; the placeholder gate wants eight. This is the eighth.
+      { x: 58, y: 30, sprite: 'tile.fixture-lamp' },
+    ],
+  });
+  const interiorFixtures = objectFromTiles({
+    id: 'annex-interior-fixtures', kind: 'development-fixtures', areaId: 'annex-interior',
+    tiles: clusteredTiles(
+      { x: 10, y: 10 }, { x: 10, y: 16 }, 8, 6,
+      ['tile.counter-left', 'tile.fixture-lamp', 'tile.fixture-planter', 'tile.sign-civic'],
+    ),
+  });
+  const map = commonMap({
+    id: 'west_office',
+    displayName: 'Ledger Annex',
+    defaultSprite: 'tile.pale-concrete',
+    regions: [
+      { id: 'annex-carpet', x: 7, y: 7, width: 37, height: 34, sprite: 'tile.dock-floor' },
+      { id: 'annex-approach', x: 54, y: 23, width: 10, height: 3, sprite: 'tile.plaza-paver' },
+    ],
+    areas: [
+      {
+        id: 'annex-interior', bounds: { x: 7, y: 7, width: 46, height: 34 },
+        densityProfile: 'structural-placeholder', intentionalOpenAreas: [],
+        entranceTiles: [{ x: 52, y: 24 }], primaryRoutes: [], requiredPortalIds: [],
+      },
+      {
+        id: 'annex-lot', bounds: { x: 54, y: 0, width: 10, height: 48 },
+        densityProfile: 'structural-placeholder', intentionalOpenAreas: [],
+        entranceTiles: [{ x: 62, y: 24 }], primaryRoutes: [],
+        requiredPortalIds: ['from-residential'],
+      },
+    ],
+    wallRuns: [
+      { id: 'annex-north', material: 'civic', bounds: { x: 6, y: 6, width: 48, height: 1 }, openings: [] },
+      { id: 'annex-south', material: 'civic', bounds: { x: 6, y: 41, width: 48, height: 1 }, openings: [] },
+      { id: 'annex-west', material: 'civic', bounds: { x: 6, y: 7, width: 1, height: 34 }, openings: [] },
+      { id: 'annex-east', material: 'civic', bounds: { x: 53, y: 7, width: 1, height: 34 }, openings: [{ id: 'annex-front-opening', tile: { x: 53, y: 24 } }] },
+    ],
+    objects: [interiorFixtures, lotFixtures],
+    bindings: [
+      { locationId: 'west_office', areaIds: ['annex-lot'], preferredInteractionIds: [] },
+      { locationId: 'ledger_annex', areaIds: ['annex-interior'], preferredInteractionIds: [] },
+    ],
+    portals: [
+      { id: 'from-residential', edge: 'east', tile: { x: 63, y: 24 }, destinationMapId: 'northwest_residential', destinationEntranceId: 'to-office' },
+    ],
+    stagingTiles: [{ x: 62, y: 24 }, { x: 50, y: 24 }],
+    spawns: { 'annex-entry': { x: 50, y: 24 } },
+    // Authored in the shell rather than with the kitchen, because the all-map parity row for this
+    // map names an effect id and the packaged smoke loads it. A dangling id there is a smoke that
+    // fails on a map that renders correctly. The tile is where the kitchen counter lands in step 5.
+    effects: [{ id: 'office-kettle-steam', kind: 'steam', tile: { x: 36, y: 30 } }],
+  });
+  map.doors = [{
+    id: 'annex-front-door', openingId: 'annex-front-opening', initialState: 'closed-unlocked',
+    sprite: 'tile.closed-door', roofGroupId: 'annex-roof',
+    interaction: { id: 'annex-front-door-use', areaId: 'annex-interior', approachTiles: [{ x: 52, y: 24 }, { x: 54, y: 24 }] },
+  }];
+  map.roofGroups = [{
+    id: 'annex-roof',
+    cells: [{ x: 6, y: 6, width: 48, height: 36 }],
+    interiorCells: [{ x: 7, y: 7, width: 46, height: 34 }],
+  }];
+  map.buildings = [{
+    id: 'ledger-annex',
+    areaIds: ['annex-interior'],
+    outerWallRunIds: ['annex-north', 'annex-south', 'annex-west', 'annex-east'],
+    entranceOpeningIds: ['annex-front-opening'],
+    roofGroupId: 'annex-roof',
+  }];
+  return map;
+}
+
 const LOCATION_NEIGHBORHOODS = new Map<string, string>([
   ['northwest_residential', 'northwest_residential'], ['northeast_downtown', 'northeast_downtown'],
   ['southwest_commercial', 'southwest_commercial'], ['southeast_docks', 'southeast_docks'],
+  ['west_office', 'west_office'], ['ledger_annex', 'west_office'],
   ['protagonist_villa', 'northwest_residential'], ['linda_villa', 'northwest_residential'],
   ['mina_spa', 'northwest_residential'], ['devon_bar', 'northeast_downtown'],
   ['elise_studio', 'northeast_downtown'], ['rafael_cafe', 'southwest_commercial'],
@@ -1229,6 +1329,7 @@ export async function buildProductionMaps(rootPath = process.cwd()): Promise<voi
     northeast_downtown: northeastMap(),
     southwest_commercial: southwestMap(),
     southeast_docks: southeastMap(),
+    west_office: westMap(),
   } as const;
   const catalog = buildWorldMapV2Catalog(maps, {
     locationNeighborhoodById: LOCATION_NEIGHBORHOODS,
@@ -1238,6 +1339,7 @@ export async function buildProductionMaps(rootPath = process.cwd()): Promise<voi
   const names: Readonly<Record<MapId, string>> = {
     northwest_residential: 'northwest.json', northeast_downtown: 'northeast.json',
     southwest_commercial: 'southwest.json', southeast_docks: 'southeast.json',
+    west_office: 'west.json',
   };
   await Promise.all((Object.keys(maps) as MapId[]).map((mapId) => writeFile(
     resolve(rootPath, 'content', 'maps', names[mapId]),

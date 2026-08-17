@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "layoutRevision": 2,
+  "layoutRevision": 3,
   "id": "northwest_residential",
   "displayName": "Sunward Villas",
   "width": 64,
@@ -2384,6 +2384,16 @@
       },
       "destinationMapId": "southwest_commercial",
       "destinationEntranceId": "from-residential"
+    },
+    {
+      "id": "to-office",
+      "edge": "west",
+      "tile": {
+        "x": 0,
+        "y": 24
+      },
+      "destinationMapId": "west_office",
+      "destinationEntranceId": "from-residential"
     }
   ],
   "stagingTiles": [
@@ -2398,6 +2408,10 @@
     {
       "x": 16,
       "y": 25
+    },
+    {
+      "x": 1,
+      "y": 24
     }
   ],
   "spawns": {

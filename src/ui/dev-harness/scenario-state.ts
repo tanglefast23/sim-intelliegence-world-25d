@@ -112,6 +112,7 @@ const GROUNDING_TILES: Readonly<Record<MapId, Readonly<{ x: number; y: number }>
   northeast_downtown: { x: 26, y: 15 },
   southwest_commercial: { x: 8, y: 11 },
   southeast_docks: { x: 20, y: 31 },
+  west_office: { x: 50, y: 24 },
 };
 
 export function devHarnessGroundingState(mapId: MapId): WorldState {

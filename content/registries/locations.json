@@ -14,6 +14,10 @@
       "displayName": "Ferry Terminal"
     },
     {
+      "id": "ledger_annex",
+      "displayName": "Ledger Annex"
+    },
+    {
       "id": "linda_villa",
       "displayName": "Linda's Villa"
     },
@@ -56,6 +60,10 @@
     {
       "id": "tomas_marina",
       "displayName": "Public Marina Office"
+    },
+    {
+      "id": "west_office",
+      "displayName": "Ledger Annex Lot"
     }
   ]
 }

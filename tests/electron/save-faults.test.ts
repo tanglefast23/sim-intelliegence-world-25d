@@ -472,6 +472,7 @@ describe('save migrations and state invariants', () => {
         'northwest_residential',
         'southeast_docks',
         'southwest_commercial',
+        'west_office',
       ],
       state: expect.objectContaining({ schemaVersion: 7 }),
     }));
@@ -503,6 +504,7 @@ describe('save migrations and state invariants', () => {
         'northwest_residential',
         'southeast_docks',
         'southwest_commercial',
+        'west_office',
       ],
     }));
     if (loaded.status !== 'migrated') throw new Error('Expected stale layout migration.');

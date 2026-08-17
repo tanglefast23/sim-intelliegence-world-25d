@@ -57,6 +57,20 @@ export const GENERATED_NEIGHBORHOOD_ROUTES = [
     }
   },
   {
+    "originMapId": "northwest_residential",
+    "destinationMapId": "west_office",
+    "sourcePortalId": "to-office",
+    "sourcePortalTile": {
+      "x": 0,
+      "y": 24
+    },
+    "destinationEntranceId": "from-residential",
+    "destinationEntranceTile": {
+      "x": 63,
+      "y": 24
+    }
+  },
+  {
     "originMapId": "southeast_docks",
     "destinationMapId": "southwest_commercial",
     "sourcePortalId": "from-commercial",
@@ -107,6 +121,20 @@ export const GENERATED_NEIGHBORHOOD_ROUTES = [
       "y": 24
     },
     "destinationEntranceId": "from-commercial",
+    "destinationEntranceTile": {
+      "x": 0,
+      "y": 24
+    }
+  },
+  {
+    "originMapId": "west_office",
+    "destinationMapId": "northwest_residential",
+    "sourcePortalId": "from-residential",
+    "sourcePortalTile": {
+      "x": 63,
+      "y": 24
+    },
+    "destinationEntranceId": "to-office",
     "destinationEntranceTile": {
       "x": 0,
       "y": 24

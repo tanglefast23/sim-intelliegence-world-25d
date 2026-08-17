@@ -11,6 +11,7 @@ const ALL_MAP_IDS = [
   'northwest_residential',
   'southeast_docks',
   'southwest_commercial',
+  'west_office',
 ] as const;
 
 function stale(candidate: WorldState): WorldState {

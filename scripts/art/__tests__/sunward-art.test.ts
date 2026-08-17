@@ -25,7 +25,7 @@ const SUNWARD_SPRITES = [
   'tile.villa-floor-c', 'tile.villa-floor-d', 'tile.plaza-paver-b',
   'tile.boardwalk-b', 'tile.decal-sand-shells',
 ] as const;
-const MAP_SOURCE_SHA256 = '046b9bfee85770a51ba4588873179a404312a301ab6b10eedd9b0bffdf74ba36';
+const MAP_SOURCE_SHA256 = '8a2bd0b59b11f37152ccfa75a6085c1649eba0bf45b2d86ad2461ddd6a0138a5';
 
 function rectanglePixels(
   bitmap: ReturnType<typeof decodePng>,
@@ -58,7 +58,7 @@ describe('Phase 30 complete Tier A Sunward art', () => {
   test('keeps the revised Sunward geometry generated and versioned', () => {
     const source = readFileSync(resolve(process.cwd(), 'content/maps/northwest.json'));
     expect(createHash('sha256').update(source).digest('hex')).toBe(MAP_SOURCE_SHA256);
-    expect(northwestMapJson.layoutRevision).toBe(2);
+    expect(northwestMapJson.layoutRevision).toBe(3);
     expect(northwestMapJson.ground.regions).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'sunward-shallows', sprite: 'tile.shallow-water' }),
     ]));

@@ -77,6 +77,23 @@ const DISTRICTS: Readonly<Record<MapId, DistrictPreset>> = {
       { x: 49, y: 34, radius: 50 },
     ],
   },
+  west_office: {
+    // Cool fluorescent rather than a district hue: the office is lit by its own ceiling, and a
+    // warm accent here would read as evening light leaking through a windowless interior.
+    accent: '#c8d4e0',
+    // Three interior anchors, not the lot: the scene is the building. Step 7's ceiling rig places
+    // the real fixture column; these are the pools the district owns whatever the rig does.
+    casters: [{ x: 18, y: 14 }, { x: 36, y: 14 }, { x: 25, y: 33 }],
+    intensity: 1,
+    name: 'LEDGER FLUOR',
+    shadowColor: '#2a314058',
+    shelterShade: '#1c243033',
+    pools: [
+      { x: 18, y: 14, radius: 44 },
+      { x: 36, y: 14, radius: 44 },
+      { x: 25, y: 33, radius: 40 },
+    ],
+  },
 };
 
 /**

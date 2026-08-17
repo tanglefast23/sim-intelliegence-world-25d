@@ -50,6 +50,25 @@ describe('routeBetween', () => {
     }
   });
 
+  /**
+   * The office hangs off northwest by one portal, so it is a LEAF, not a fifth grid cell. It is
+   * kept out of `MAP_IDS` above on purpose: the all-pairs walk asserts a hop bound of four, and
+   * `routeBetween` only ever chains ONE intermediate leg. Office to docks is two intermediates.
+   */
+  it('reaches the office directly from northwest and back', () => {
+    expect(routeBetween('northwest_residential', 'west_office').sourcePortalId).toBe('to-office');
+    expect(routeBetween('west_office', 'northwest_residential').sourcePortalId).toBe('from-residential');
+  });
+
+  /**
+   * Office to docks is three hops, and `routeBetween` only ever chains ONE intermediate leg, so it
+   * throws. That is the current contract, recorded here rather than discovered by an NPC: nothing
+   * on the office map has a schedule that leaves it, and widening the search is a separate change.
+   */
+  it('throws for the office to a map two legs away', () => {
+    expect(() => routeBetween('west_office', 'southeast_docks')).toThrow('are not connected');
+  });
+
   it('still throws when no path exists at all', () => {
     expect(() => routeBetween('northwest_residential', 'atlantis')).toThrow('are not connected');
   });

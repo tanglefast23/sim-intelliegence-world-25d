@@ -125,6 +125,35 @@ describe('atomic neighborhood transitions', () => {
     expect(result.completed).toBe(true);
     expect(result.state.protagonist.worldPosition.mapId).toBe('northeast_downtown');
   });
+
+  /**
+   * The office is the only map reached from a WEST edge, and the only one that is a leaf rather
+   * than a grid cell. This walks it in both directions, because a portal that opens and cannot be
+   * left is a trap the reciprocal-portal check alone does not catch — that check compares authored
+   * ids, not whether the arrival tile is walkable.
+   */
+  test('walks into the office through the west portal and back out again', async () => {
+    const entering = await transitionNeighborhood({
+      state: atPortal('northwest_residential', 'to-office'),
+      catalog: WORLD_MAP_CATALOG,
+      sourcePortalId: 'to-office',
+      loadMap,
+    });
+    expect(entering.completed).toBe(true);
+    expect(entering.state.protagonist.worldPosition.mapId).toBe('west_office');
+    expect(WORLD_MAP_CATALOG.west_office.blockedKeys.has(
+      `${entering.state.protagonist.worldPosition.tileX},${entering.state.protagonist.worldPosition.tileY}`,
+    )).toBe(false);
+
+    const leaving = await transitionNeighborhood({
+      state: atPortal('west_office', 'from-residential'),
+      catalog: WORLD_MAP_CATALOG,
+      sourcePortalId: 'from-residential',
+      loadMap,
+    });
+    expect(leaving.completed).toBe(true);
+    expect(leaving.state.protagonist.worldPosition.mapId).toBe('northwest_residential');
+  });
 });
 
 describe('stable-boundary autosaves', () => {

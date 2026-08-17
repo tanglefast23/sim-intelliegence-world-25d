@@ -440,6 +440,7 @@ describe('start composition and v2 catalog', () => {
       northwest_residential: catalogMap('northwest_residential', [
         { id: 'to-downtown', edge: 'east', tile: { x: 63, y: 24 }, destinationMapId: 'northeast_downtown', destinationEntranceId: 'from-residential' },
         { id: 'to-commercial', edge: 'south', tile: { x: 32, y: 47 }, destinationMapId: 'southwest_commercial', destinationEntranceId: 'from-residential' },
+        { id: 'to-office', edge: 'west', tile: { x: 0, y: 24 }, destinationMapId: 'west_office', destinationEntranceId: 'from-residential' },
       ]),
       northeast_downtown: catalogMap('northeast_downtown', [
         { id: 'from-residential', edge: 'west', tile: { x: 0, y: 24 }, destinationMapId: 'northwest_residential', destinationEntranceId: 'to-downtown' },
@@ -453,10 +454,13 @@ describe('start composition and v2 catalog', () => {
         { id: 'from-downtown', edge: 'north', tile: { x: 32, y: 0 }, destinationMapId: 'northeast_downtown', destinationEntranceId: 'to-docks' },
         { id: 'from-commercial', edge: 'west', tile: { x: 0, y: 24 }, destinationMapId: 'southwest_commercial', destinationEntranceId: 'to-docks' },
       ]),
+      west_office: catalogMap('west_office', [
+        { id: 'from-residential', edge: 'east', tile: { x: 63, y: 24 }, destinationMapId: 'northwest_residential', destinationEntranceId: 'to-office' },
+      ]),
     };
   }
 
-  test('derives eight routes from reciprocal portal identities and checks location neighborhoods', () => {
+  test('derives ten routes from reciprocal portal identities and checks location neighborhoods', () => {
     const candidates = catalogCandidates();
     candidates.northwest_residential.locationBindings.push({
       locationId: 'linda_villa',
@@ -468,13 +472,14 @@ describe('start composition and v2 catalog', () => {
       ['northeast_downtown', 'northeast_downtown'],
       ['southwest_commercial', 'southwest_commercial'],
       ['southeast_docks', 'southeast_docks'],
+      ['west_office', 'west_office'],
       ['linda_villa', 'northwest_residential'],
     ]);
     const catalog = buildWorldMapV2Catalog(candidates, {
       locationNeighborhoodById: locations,
       validateDensity: false,
     });
-    expect(deriveNeighborhoodRoutes(catalog)).toHaveLength(8);
+    expect(deriveNeighborhoodRoutes(catalog)).toHaveLength(10);
 
     const drifted = catalogCandidates();
     drifted.northeast_downtown.portals[0]!.tile.y = 23;

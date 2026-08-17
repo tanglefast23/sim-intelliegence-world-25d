@@ -171,6 +171,7 @@ export function createInitialState(displayName = 'Player'): WorldState {
       northeast_downtown: { id: 'northeast_downtown', active: false, unlocked: true, discoveredEntranceIds: [] },
       southwest_commercial: { id: 'southwest_commercial', active: false, unlocked: true, discoveredEntranceIds: [] },
       southeast_docks: { id: 'southeast_docks', active: false, unlocked: true, discoveredEntranceIds: ['ferry_terminal'] },
+      west_office: { id: 'west_office', active: false, unlocked: true, discoveredEntranceIds: ['ledger_annex'] },
     },
     schedules: {
       linda_daily: {

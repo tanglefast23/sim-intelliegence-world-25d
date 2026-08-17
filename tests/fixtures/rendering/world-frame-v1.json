@@ -29,8 +29,8 @@
         "vfxMode": "procedural"
       },
       "expected": {
-        "frameHash": "2d29ff41",
-        "mapHash": "9180d1b3",
+        "frameHash": "562a8575",
+        "mapHash": "ab126923",
         "presentationHash": "fe577d53",
         "atlasHash": "ebb14d005d38cfce366c5a67e0a3624de702059b68135c2b188584fd214c6bb1",
         "drawCounts": { "floor": 666, "prop": 39, "shadow": 2, "character": 2, "effect": 3, "wall": 56, "roof": 0, "total": 768 },
@@ -59,8 +59,8 @@
         "vfxMode": "circle"
       },
       "expected": {
-        "frameHash": "c960f3bc",
-        "mapHash": "9180d1b3",
+        "frameHash": "74df85ac",
+        "mapHash": "ab126923",
         "presentationHash": "fe577d53",
         "atlasHash": "ebb14d005d38cfce366c5a67e0a3624de702059b68135c2b188584fd214c6bb1",
         "drawCounts": { "floor": 858, "prop": 56, "shadow": 1, "character": 1, "effect": 4, "wall": 60, "roof": 187, "total": 1167 },

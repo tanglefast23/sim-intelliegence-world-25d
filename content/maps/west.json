@@ -1,0 +1,519 @@
+{
+  "schemaVersion": 2,
+  "layoutRevision": 1,
+  "id": "west_office",
+  "displayName": "Ledger Annex",
+  "width": 64,
+  "height": 48,
+  "tileSize": 32,
+  "ground": {
+    "defaultSprite": "tile.pale-concrete",
+    "regions": [
+      {
+        "id": "annex-carpet",
+        "x": 7,
+        "y": 7,
+        "width": 37,
+        "height": 34,
+        "sprite": "tile.dock-floor"
+      },
+      {
+        "id": "annex-approach",
+        "x": 54,
+        "y": 23,
+        "width": 10,
+        "height": 3,
+        "sprite": "tile.plaza-paver"
+      }
+    ]
+  },
+  "terrainSolids": [],
+  "walls": {
+    "runs": [
+      {
+        "id": "annex-north",
+        "material": "civic",
+        "bounds": {
+          "x": 6,
+          "y": 6,
+          "width": 48,
+          "height": 1
+        },
+        "openings": []
+      },
+      {
+        "id": "annex-south",
+        "material": "civic",
+        "bounds": {
+          "x": 6,
+          "y": 41,
+          "width": 48,
+          "height": 1
+        },
+        "openings": []
+      },
+      {
+        "id": "annex-west",
+        "material": "civic",
+        "bounds": {
+          "x": 6,
+          "y": 7,
+          "width": 1,
+          "height": 34
+        },
+        "openings": []
+      },
+      {
+        "id": "annex-east",
+        "material": "civic",
+        "bounds": {
+          "x": 53,
+          "y": 7,
+          "width": 1,
+          "height": 34
+        },
+        "openings": [
+          {
+            "id": "annex-front-opening",
+            "tile": {
+              "x": 53,
+              "y": 24
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "doors": [
+    {
+      "id": "annex-front-door",
+      "openingId": "annex-front-opening",
+      "initialState": "closed-unlocked",
+      "sprite": "tile.closed-door",
+      "roofGroupId": "annex-roof",
+      "interaction": {
+        "id": "annex-front-door-use",
+        "areaId": "annex-interior",
+        "approachTiles": [
+          {
+            "x": 52,
+            "y": 24
+          },
+          {
+            "x": 54,
+            "y": 24
+          }
+        ]
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "annex-interior-fixtures",
+      "kind": "development-fixtures",
+      "areaId": "annex-interior",
+      "anchor": {
+        "x": 10,
+        "y": 10
+      },
+      "depthAnchorOffset": {
+        "x": 3,
+        "y": 6
+      },
+      "renderParts": [
+        {
+          "id": "annex-interior-fixtures-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-part-02",
+          "sprite": "tile.fixture-lamp",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-part-03",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-part-04",
+          "sprite": "tile.sign-civic",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-part-05",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 6
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-part-06",
+          "sprite": "tile.fixture-lamp",
+          "offset": {
+            "x": 1,
+            "y": 6
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-part-07",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 2,
+            "y": 6
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-part-08",
+          "sprite": "tile.sign-civic",
+          "offset": {
+            "x": 3,
+            "y": 6
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "annex-interior-fixtures-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-solid-05",
+          "bounds": {
+            "x": 0,
+            "y": 6,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-interior-fixtures-solid-06",
+          "bounds": {
+            "x": 1,
+            "y": 6,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "annex-lot-fixtures",
+      "kind": "lot-fixtures",
+      "areaId": "annex-lot",
+      "anchor": {
+        "x": 56,
+        "y": 10
+      },
+      "depthAnchorOffset": {
+        "x": 2,
+        "y": 20
+      },
+      "renderParts": [
+        {
+          "id": "annex-lot-fixtures-part-01",
+          "sprite": "tile.parked-car-cyan-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-02",
+          "sprite": "tile.parked-car-cyan-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-03",
+          "sprite": "tile.parked-car-coral-left",
+          "offset": {
+            "x": 0,
+            "y": 26
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-04",
+          "sprite": "tile.parked-car-coral-right",
+          "offset": {
+            "x": 1,
+            "y": 26
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-05",
+          "sprite": "tile.sign-civic",
+          "offset": {
+            "x": 2,
+            "y": 12
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-06",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": -1,
+            "y": 10
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-07",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": -1,
+            "y": 18
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-08",
+          "sprite": "tile.fixture-lamp",
+          "offset": {
+            "x": 2,
+            "y": 20
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "annex-lot-fixtures-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-solid-03",
+          "bounds": {
+            "x": 0,
+            "y": 26,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-solid-04",
+          "bounds": {
+            "x": 1,
+            "y": 26,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-solid-05",
+          "bounds": {
+            "x": 2,
+            "y": 12,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-solid-06",
+          "bounds": {
+            "x": -1,
+            "y": 10,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    }
+  ],
+  "effects": [
+    {
+      "id": "office-kettle-steam",
+      "kind": "steam",
+      "tile": {
+        "x": 36,
+        "y": 30
+      }
+    }
+  ],
+  "roofGroups": [
+    {
+      "id": "annex-roof",
+      "cells": [
+        {
+          "x": 6,
+          "y": 6,
+          "width": 48,
+          "height": 36
+        }
+      ],
+      "interiorCells": [
+        {
+          "x": 7,
+          "y": 7,
+          "width": 46,
+          "height": 34
+        }
+      ]
+    }
+  ],
+  "areas": [
+    {
+      "id": "annex-interior",
+      "bounds": {
+        "x": 7,
+        "y": 7,
+        "width": 46,
+        "height": 34
+      },
+      "densityProfile": "structural-placeholder",
+      "intentionalOpenAreas": [],
+      "entranceTiles": [
+        {
+          "x": 52,
+          "y": 24
+        }
+      ],
+      "primaryRoutes": [],
+      "requiredPortalIds": []
+    },
+    {
+      "id": "annex-lot",
+      "bounds": {
+        "x": 54,
+        "y": 0,
+        "width": 10,
+        "height": 48
+      },
+      "densityProfile": "structural-placeholder",
+      "intentionalOpenAreas": [],
+      "entranceTiles": [
+        {
+          "x": 62,
+          "y": 24
+        }
+      ],
+      "primaryRoutes": [],
+      "requiredPortalIds": [
+        "from-residential"
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "id": "ledger-annex",
+      "areaIds": [
+        "annex-interior"
+      ],
+      "outerWallRunIds": [
+        "annex-north",
+        "annex-south",
+        "annex-west",
+        "annex-east"
+      ],
+      "entranceOpeningIds": [
+        "annex-front-opening"
+      ],
+      "roofGroupId": "annex-roof"
+    }
+  ],
+  "locationBindings": [
+    {
+      "locationId": "west_office",
+      "areaIds": [
+        "annex-lot"
+      ],
+      "preferredInteractionIds": []
+    },
+    {
+      "locationId": "ledger_annex",
+      "areaIds": [
+        "annex-interior"
+      ],
+      "preferredInteractionIds": []
+    }
+  ],
+  "portals": [
+    {
+      "id": "from-residential",
+      "edge": "east",
+      "tile": {
+        "x": 63,
+        "y": 24
+      },
+      "destinationMapId": "northwest_residential",
+      "destinationEntranceId": "to-office"
+    }
+  ],
+  "stagingTiles": [
+    {
+      "x": 62,
+      "y": 24
+    },
+    {
+      "x": 50,
+      "y": 24
+    }
+  ],
+  "spawns": {
+    "annex-entry": {
+      "x": 50,
+      "y": 24
+    }
+  }
+}

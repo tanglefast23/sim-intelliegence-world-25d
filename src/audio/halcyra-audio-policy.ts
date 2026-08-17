@@ -15,6 +15,8 @@ const DISTRICT_BY_MAP: Readonly<Record<MapId, DistrictAudioId>> = {
   northeast_downtown: 'neon',
   southwest_commercial: 'saffron',
   southeast_docks: 'greywake',
+  // Reuse sunward rather than author a fifth ambience track; the office is a v1 interior.
+  west_office: 'sunward',
 };
 
 const WOOD_MATERIALS = new Set(['boardwalk', 'dock-boardwalk']);

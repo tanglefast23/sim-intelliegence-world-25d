@@ -3,8 +3,8 @@
   "slotId": "slot-001",
   "saveGeneration": 7,
   "trigger": "manual",
-  "stateChecksum": "4ba52ddd61622e8f3688b1faa94c3cd242612d94432979899870190f2bc07b82",
-  "payloadChecksum": "387dab100d91ab60221a331f305e7abb3a52cd2f238e772b083d3d7011ceb5f4",
+  "stateChecksum": "796050a48ef324427c263a7344c39dd0be325a1aaf27520379f31e5c207cf954",
+  "payloadChecksum": "c11961bd44278a5e7ee19101854dd0ba0f113d7945af196ac7dfd34618129888",
   "state": {
     "engineVersion": "si-world-0.1.0",
     "contentVersion": "content-0.1.0",
@@ -967,6 +967,14 @@
         "unlocked": true,
         "discoveredEntranceIds": [
           "ferry_terminal"
+        ]
+      },
+      "west_office": {
+        "id": "west_office",
+        "active": false,
+        "unlocked": true,
+        "discoveredEntranceIds": [
+          "ledger_annex"
         ]
       }
     },
