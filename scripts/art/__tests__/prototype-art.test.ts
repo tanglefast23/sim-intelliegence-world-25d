@@ -93,7 +93,7 @@ describe('Phase 28 hard Sunward prototype art', () => {
       for (const direction of ['front', 'rear', 'left', 'right'] as const) {
         const first = cellPixels(atlas, built.index.sprites[`character.${characterId}.${direction}-1`]!);
         const second = cellPixels(atlas, built.index.sprites[`character.${characterId}.${direction}-2`]!);
-        if (direction !== 'rear' && characterId !== 'protagonist') {
+        if (characterId !== 'protagonist') {
           expect(first).not.toEqual(second);
         } else {
           expect(first).toEqual(second);

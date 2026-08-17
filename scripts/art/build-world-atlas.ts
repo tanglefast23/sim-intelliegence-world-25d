@@ -122,7 +122,7 @@ function worldEntries(source: CharacterSource): Entry[] {
     'front-1': front,
     'front-2': frontStride,
     'rear-1': deriveRearFrame(front, source),
-    'rear-2': deriveRearFrame(front, source),
+    'rear-2': deriveRearFrame(frontStride, source),
     'left-1': composeLateralFrame(source, 'left', 0),
     'left-2': composeLateralFrame(source, 'left', 1),
     'right-1': composeLateralFrame(source, 'right', 0),
