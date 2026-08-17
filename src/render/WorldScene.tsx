@@ -67,6 +67,7 @@ import {
   type AtlasRectangle,
   type CharacterId,
 } from './atlas';
+import { visualIdForNpc } from './character-visuals';
 import {
   assertWorldZoom,
   MAX_WORLD_ZOOM,
@@ -197,10 +198,6 @@ function areaName(map: CompiledMapV2, tile: TilePoint): string {
   return (area?.id ?? map.source.displayName).replaceAll('-', ' ').toUpperCase();
 }
 
-function visualIdForNpc(stateId: string, _tier: 'full_ai' | 'ambient'): CharacterId {
-  const candidate = stateId.replaceAll('_', '-') as CharacterId;
-  return CHARACTER_IDS.includes(candidate) ? candidate : 'generic-resident';
-}
 
 /**
  * Progress through the route's FINAL segment, for the deceleration lean, or undefined anywhere else.
@@ -235,7 +232,7 @@ function actorTiles(
       const movement = movements[stateId];
       output[stateId] = {
         tile,
-        visualId: visualIdForNpc(stateId, npc.tier),
+        visualId: visualIdForNpc(stateId),
         direction: movement?.direction ?? 'down',
         visualFoot: snapWorldPoint(movement?.visualFoot ?? tileFootPoint(tile), zoom, dpr),
         walkFrame: movement?.walkFrame ?? 0,

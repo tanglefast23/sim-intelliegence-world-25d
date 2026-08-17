@@ -48,7 +48,17 @@ describe('deterministic layout recovery', () => {
     const initial = createInitialState();
     const { west_office: _record, ...maps } = initial.maps;
     const { west_office: _revision, ...layoutRevisions } = initial.layoutRevisions;
-    const source = WorldStateSchema.parse({ ...initial, maps, layoutRevisions, layoutMigrationEvidence: [] });
+    // A genuine pre-office save has no office cast either, and the schema rejects a schedule whose
+    // block names a map the save does not have. Dropping the map alone builds a state that could
+    // never have been written.
+    const onOffice = (mapId: string): boolean => mapId === 'west_office';
+    const npcs = Object.fromEntries(Object.entries(initial.npcs)
+      .filter(([, npc]) => npc.presence.kind === 'in_transit' || !onOffice(npc.presence.mapId)));
+    const schedules = Object.fromEntries(Object.entries(initial.schedules)
+      .filter(([, schedule]) => !schedule.blocks.some(({ mapId }) => onOffice(mapId))));
+    const source = WorldStateSchema.parse({
+      ...initial, maps, layoutRevisions, npcs, schedules, layoutMigrationEvidence: [],
+    });
     expect(source.maps.west_office).toBeUndefined();
 
     const result = recoverWorldLayout(source, WORLD_MAP_CATALOG);

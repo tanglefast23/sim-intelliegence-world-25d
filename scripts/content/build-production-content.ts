@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 
 import {
   PRODUCTION_AMBIENT_RESIDENTS,
+  PRODUCTION_OFFICE_STAFF,
   PRODUCTION_FULL_AI_CAST,
 } from '../../src/domain/state/production-cast';
 import { createInitialState } from '../../src/domain/state/initial-state';
@@ -248,6 +249,14 @@ async function buildWorldCatalog(): Promise<void> {
       homeLocationId: resident.position.locationId,
       factionIds: [],
     })),
+    ...PRODUCTION_OFFICE_STAFF.map((staff) => ({
+      schemaVersion: 1,
+      id: staff.id,
+      displayName: staff.displayName,
+      tier: 'ambient',
+      homeLocationId: staff.position.locationId,
+      factionIds: [],
+    })),
   ]);
   await writeJson(resolve(root, 'content', 'world', 'locations', 'production.json'), PRODUCTION_FULL_AI_CAST.map((character) => ({
     schemaVersion: 1,
@@ -261,9 +270,13 @@ async function buildWorldCatalog(): Promise<void> {
   await writeJson(resolve(root, 'content', 'production-bill.json'), {
     schemaVersion: 1,
     fullAiCount: PRODUCTION_FULL_AI_CAST.length + 1,
-    ambientCount: PRODUCTION_AMBIENT_RESIDENTS.length + 2,
+    ambientCount: PRODUCTION_AMBIENT_RESIDENTS.length + PRODUCTION_OFFICE_STAFF.length + 2,
     fullAiNpcIds: ['linda', ...PRODUCTION_FULL_AI_CAST.map(({ id }) => id)],
-    ambientNpcIds: ['generic_resident', 'linda_boyfriend', ...PRODUCTION_AMBIENT_RESIDENTS.map(({ id }) => id)],
+    ambientNpcIds: [
+      'generic_resident', 'linda_boyfriend',
+      ...PRODUCTION_AMBIENT_RESIDENTS.map(({ id }) => id),
+      ...PRODUCTION_OFFICE_STAFF.map(({ id }) => id),
+    ],
     visualIds: CHARACTER_LOOKS.map(({ id }) => id).sort(),
     scheduleIds: Object.keys(createInitialState().schedules).sort(),
     businessLocationIds: PRODUCTION_FULL_AI_CAST.map(({ homeLocationId }) => homeLocationId).sort(),

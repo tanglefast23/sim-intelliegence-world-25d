@@ -8,10 +8,13 @@ import { buildPromptProjection, estimatePromptTokens, MAX_PROMPT_ESTIMATED_TOKEN
 import { FileCharacterWritingStore } from '../../ai/registry/file-writing-store';
 import { buildSceneRegistry } from '../../ai/registry/scene-registry';
 import { BROWSER_NAMED_WRITING } from '../../ai/registry/generated-browser-writing';
+import { visualIdForNpc } from '../../render/character-visuals';
 import {
   PRODUCTION_AMBIENT_RESIDENTS,
   PRODUCTION_CAST_COUNTS,
   PRODUCTION_FULL_AI_CAST,
+  PRODUCTION_OFFICE_STAFF,
+  createProductionSchedules,
   migrateProductionSchedules,
 } from '../../domain/state/production-cast';
 import { createInitialState } from '../../domain/state/initial-state';
@@ -40,11 +43,11 @@ const performanceFixture = JSON.parse(
 describe('Phase 13 production content bill', () => {
   test('ships the locked full-AI and deterministic ambient cast', () => {
     const state = createInitialState();
-    expect(PRODUCTION_CAST_COUNTS).toEqual({ fullAi: 8, ambient: 26, totalNpcs: 34 });
+    expect(PRODUCTION_CAST_COUNTS).toEqual({ fullAi: 8, ambient: 39, totalNpcs: 47 });
     expect(Object.values(state.npcs).filter(({ tier }) => tier === 'full_ai')).toHaveLength(8);
-    expect(Object.values(state.npcs).filter(({ tier }) => tier === 'ambient')).toHaveLength(26);
+    expect(Object.values(state.npcs).filter(({ tier }) => tier === 'ambient')).toHaveLength(39);
     expect(bill.fullAiCount).toBe(8);
-    expect(bill.ambientCount).toBe(26);
+    expect(bill.ambientCount).toBe(39);
     expect(new Set(bill.fullAiNpcIds)).toEqual(new Set(Object.values(state.npcs).filter(({ tier }) => tier === 'full_ai').map(({ id }) => id)));
     expect(new Set(bill.ambientNpcIds)).toEqual(new Set(Object.values(state.npcs).filter(({ tier }) => tier === 'ambient').map(({ id }) => id)));
     expect(new Set(bill.scheduleIds)).toEqual(new Set(Object.keys(state.schedules)));
@@ -249,5 +252,39 @@ describe('Phase 13 production content bill', () => {
       );
     }
     expect(performance.now() - start).toBeLessThan(performanceFixture.maximumFrameBuildMilliseconds);
+  });
+});
+
+/**
+ * The office cast borrows resident art, and the borrowing is the part that can silently fail.
+ * `visualIdForNpc` matches a literal id against `CHARACTER_IDS`, so `clerk_01` becomes `clerk-01`,
+ * which is in no atlas, and every clerk falls through to `generic-resident`. Nothing throws. The
+ * only symptom is twelve identical people in twelve cubicles.
+ */
+describe('Ledger Annex staff', () => {
+  test('gives every clerk a different face', () => {
+    const visuals = PRODUCTION_OFFICE_STAFF.map(({ id }) => visualIdForNpc(id));
+    expect(new Set(visuals).size).toBe(PRODUCTION_OFFICE_STAFF.length);
+    expect(visuals).not.toContain('generic-resident');
+  });
+
+  test('stands every clerk on a walkable desk tile inside the annex', () => {
+    const map = WORLD_MAP_CATALOG.west_office;
+    for (const staff of PRODUCTION_OFFICE_STAFF) {
+      expect(staff.position.mapId).toBe('west_office');
+      expect(staff.position.locationId).toBe('ledger_annex');
+      expect(map.blockedKeys.has(`${staff.position.x},${staff.position.y}`)).toBe(false);
+    }
+  });
+
+  test('keeps every clerk at their desk through the whole working day', () => {
+    const schedules = createProductionSchedules();
+    for (const staff of PRODUCTION_OFFICE_STAFF.filter(({ id }) => id.startsWith('clerk_'))) {
+      const blocks = schedules[`${staff.id}_daily`]!.blocks;
+      expect(blocks).toHaveLength(4);
+      const work = blocks.find(({ activityId }) => activityId === 'work')!;
+      expect({ x: work.tileX, y: work.tileY }).toEqual({ x: staff.work.x, y: staff.work.y });
+      expect(blocks.every(({ mapId }) => mapId === 'west_office')).toBe(true);
+    }
   });
 });

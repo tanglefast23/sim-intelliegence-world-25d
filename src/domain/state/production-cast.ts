@@ -87,6 +87,44 @@ export const PRODUCTION_AMBIENT_RESIDENTS = DISTRICT_HUBS.flatMap((district, dis
   })
 ));
 
+/**
+ * The Ledger Annex staff: twelve clerks at twelve desks, plus the manager.
+ *
+ * Stand tiles are the same grid `westMap()` derives its cubicles from — column west edges 8, 13,
+ * 18, 23 and row north edges 8, 13, 18, with the stand at `(west + 2, north + 2)`. Written as the
+ * grid rather than twelve literal pairs so a module that moves cannot leave a clerk standing in a
+ * partition.
+ *
+ * They sleep at their desks. The spec calls that a staging lie and accepts it for v1: an office
+ * with no homes authored for its staff is better than thirteen commuters walking a route that
+ * `routeBetween` cannot yet solve in one leg.
+ */
+const OFFICE_CUBICLE_COLUMN_WEST = [8, 13, 18, 23] as const;
+const OFFICE_CUBICLE_ROW_NORTH = [8, 13, 18] as const;
+
+export const PRODUCTION_OFFICE_STAFF = [
+  ...OFFICE_CUBICLE_ROW_NORTH.flatMap((north, rowIndex) => (
+    OFFICE_CUBICLE_COLUMN_WEST.map((west, columnIndex) => {
+      const number = String(rowIndex * OFFICE_CUBICLE_COLUMN_WEST.length + columnIndex + 1).padStart(2, '0');
+      const desk = place('west_office', [west + 2, north + 2], 'ledger_annex');
+      return Object.freeze({
+        id: `clerk_${number}`,
+        displayName: `Clerk ${number}`,
+        position: desk,
+        work: desk,
+        social: place('west_office', [25, 31], 'ledger_annex'),
+      });
+    })
+  )),
+  Object.freeze({
+    id: 'office_manager',
+    displayName: 'Annex Manager',
+    position: place('west_office', [12, 32], 'ledger_annex'),
+    work: place('west_office', [12, 32], 'ledger_annex'),
+    social: place('west_office', [25, 31], 'ledger_annex'),
+  }),
+] as const;
+
 const NAMED_LIFE: Readonly<Record<string, Readonly<{ home: Place; social: Place; evening: Place }>>> = {
   mina_park: {
     home: place('northwest_residential', [34, 15], 'mina_spa'),
@@ -164,6 +202,10 @@ export function createProductionNpcs(
       resident.id,
       blankNpc(resident.id, 'ambient', initialPlace(resident.id)),
     ] as const),
+    ...PRODUCTION_OFFICE_STAFF.map((staff) => [
+      staff.id,
+      blankNpc(staff.id, 'ambient', initialPlace(staff.id)),
+    ] as const),
   ]);
 }
 
@@ -228,20 +270,54 @@ export function createProductionSchedules(): Record<string, ScheduleState> {
     const schedule = residentSchedule(resident.id, resident.position, resident.work, resident.social);
     return [schedule.id, schedule] as const;
   });
-  return Object.fromEntries([...named, ...ambient]);
+  const office = PRODUCTION_OFFICE_STAFF.map((staff) => {
+    const schedule = residentSchedule(staff.id, staff.position, staff.work, staff.social);
+    return [schedule.id, schedule] as const;
+  });
+  return Object.fromEntries([...named, ...ambient, ...office]);
 }
 
+/**
+ * Repair the production cast on load: refresh schedules the save already has, and INSERT the ones
+ * it has never seen along with their NPCs.
+ *
+ * The insert half exists for the office. A save written before the Ledger Annex has no clerks and
+ * no clerk schedules, and nothing else would ever give it any — `recoverWorldLayout` adds the map
+ * record but knows nothing about the cast, and a schema-version migration only runs once, so a
+ * save already migrated past that version would be skipped forever.
+ *
+ * Insertion is deliberately paired. `WorldStateSchema` rejects a schedule whose NPC is missing and
+ * a schedule block on a map the save does not have, so adding a schedule alone produces a save
+ * that will not parse. The NPC, its schedule, and (via recovery) its map arrive together or not
+ * at all.
+ */
 export function migrateProductionSchedules(state: WorldState): WorldState {
   const production = createProductionSchedules();
+  const productionNpcs = createProductionNpcs(production);
   const schedules = { ...state.schedules };
+  const npcs = { ...state.npcs };
   for (const [id, schedule] of Object.entries(production)) {
-    if (schedules[id]) schedules[id] = schedule;
+    if (schedules[id]) {
+      schedules[id] = schedule;
+      continue;
+    }
+    // Only insert when the save can actually hold it: every block's map must already exist.
+    const npc = productionNpcs[schedule.npcId];
+    if (!npc || schedule.blocks.some(({ mapId }) => !state.maps[mapId])) continue;
+    schedules[id] = schedule;
+    npcs[schedule.npcId] ??= npc;
   }
-  return { ...state, schedules };
+  return { ...state, npcs, schedules };
 }
 
+/**
+ * Counts as FORMULAS, not literals. The office added thirteen ambient actors, and a literal here
+ * would have to be re-derived by hand every time the cast changes — which is exactly how a count
+ * test starts asserting a number nobody can explain.
+ */
 export const PRODUCTION_CAST_COUNTS = Object.freeze({
   fullAi: PRODUCTION_FULL_AI_CAST.length + 1,
-  ambient: PRODUCTION_AMBIENT_RESIDENTS.length + 2,
-  totalNpcs: PRODUCTION_FULL_AI_CAST.length + PRODUCTION_AMBIENT_RESIDENTS.length + 3,
+  ambient: PRODUCTION_AMBIENT_RESIDENTS.length + PRODUCTION_OFFICE_STAFF.length + 2,
+  totalNpcs: PRODUCTION_FULL_AI_CAST.length + PRODUCTION_AMBIENT_RESIDENTS.length
+    + PRODUCTION_OFFICE_STAFF.length + 3,
 });

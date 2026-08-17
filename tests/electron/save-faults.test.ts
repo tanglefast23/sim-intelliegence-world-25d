@@ -659,8 +659,12 @@ describe('save migrations and state invariants', () => {
       stateSchemaVersion: 7,
     }));
     expect(await readFile(sourcePath, 'utf8')).toBe(legacyBytes);
-    await expect(repository.load('slot-002')).resolves.toEqual(expect.objectContaining({
-      status: 'unchanged',
+    // The first load repairs the production cast: a legacy save predates the Ledger Annex, so it
+    // has no clerks, and the repair inserts them with their schedules. That makes this load a
+    // migration rather than a clean read.
+    const firstLoad = await repository.load('slot-002');
+    expect(firstLoad).toEqual(expect.objectContaining({
+      status: 'migrated',
       state: expect.objectContaining({
         generationId: 'generation-migrated-002',
         schemaVersion: 7,
@@ -668,6 +672,14 @@ describe('save migrations and state invariants', () => {
           worldPosition: { mapId: 'northwest_residential', tileX: 18, tileY: 18 },
         }),
       }),
+    }));
+    if (firstLoad.status !== 'migrated') throw new Error('Expected a cast repair on first load.');
+    expect(firstLoad.state.npcs.clerk_01?.tier).toBe('ambient');
+    expect(firstLoad.state.schedules.clerk_01_daily?.npcId).toBe('clerk_01');
+    // The repair runs on EVERY load, so it has to be idempotent: the second read finds nothing to
+    // do and reports the save unchanged.
+    await expect(repository.load('slot-002')).resolves.toEqual(expect.objectContaining({
+      status: 'unchanged',
     }));
   });
 

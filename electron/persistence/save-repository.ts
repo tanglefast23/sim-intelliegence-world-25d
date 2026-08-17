@@ -154,7 +154,11 @@ export class SaveRepository {
         : migrateStateCopy(recovery.selected.envelope.state, recovery.selected.envelope.state.generationId);
       const layout = recoverWorldLayout(currentState, this.#catalog);
       const scheduledState = migrateProductionSchedules(layout.state);
-      const scheduleChanged = JSON.stringify(layout.state.schedules) !== JSON.stringify(scheduledState.schedules);
+      // NPCs are compared as well as schedules: the repair now INSERTS a missing production actor
+      // alongside its schedule, and a schedules-only comparison would call that "unchanged" and
+      // hand back a state it never saved.
+      const scheduleChanged = JSON.stringify(layout.state.schedules) !== JSON.stringify(scheduledState.schedules)
+        || JSON.stringify(layout.state.npcs) !== JSON.stringify(scheduledState.npcs);
       const migratedState = scheduleChanged ? scheduledState : layout.state;
       const settledState = resolveDueCommitments(migratedState);
       if (
