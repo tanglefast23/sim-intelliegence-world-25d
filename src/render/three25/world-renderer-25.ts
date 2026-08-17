@@ -1153,7 +1153,20 @@ export async function createWorldRenderer25(
      * NOT raise this. Raising a hemisphere to fix pooling is how the bazaar courtyard flooded.
      */
     const nightSkyFloor = next.mapId === 'west_office' ? 0.84 : 0.78;
-    hemisphere.intensity = dayHemisphereIntensity * (nightSkyFloor + (1 - nightSkyFloor) * daylight);
+    /**
+     * The fallback path loses BOTH the point lights and the directional key. Outdoors that is the
+     * intended dark world — the sky still reads and the ground is meant to fall away. Indoors at
+     * night it leaves literally no light source but this one, and a windowless room measured 53%
+     * of the frame under the dead cut: not "flatter", a black plate with furniture floating in it.
+     *
+     * So the fallback's existing 1.1 -> 1.7 stand-in gets a second, narrower step for the case
+     * where it is standing in for everything. Scoped to the fallback path, at night, inside a
+     * shelter that actually has ceiling fixtures in it — the same test the overhead key uses — so
+     * the lit path, every outdoor frame, and the villa are all untouched.
+     */
+    const fallbackInteriorFill = shadowPath === 'fallback' && indoorOverheadKeyOrigin(next) ? 1.9 : 1;
+    hemisphere.intensity = dayHemisphereIntensity * fallbackInteriorFill
+      * (nightSkyFloor + (1 - nightSkyFloor) * daylight);
     // Tried and rejected: falling the SKY term further at night than the ground term, so floors
     // darken while props keep what the night floor gave them. The idea is sound — one hemisphere
     // light has two knobs and they light different things, sky for the floors and ground for every

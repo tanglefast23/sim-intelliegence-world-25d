@@ -117,7 +117,7 @@ function ceilingLights(frame: WorldFrameState): readonly LampLight[] {
         color: CEILING_LIGHT_COLOR,
         // Weaker than a post and with a floor under it, because fourteen of these overlap. A
         // post's 11 here would blow the room white before the panels even met.
-        intensity: (0.6 + frame.lighting.sun.lampMix * 6) * flicker,
+        intensity: (0.6 + frame.lighting.sun.lampMix * 7.5) * flicker,
         distance: 10,
         decay: 1.2,
         poolRadius: 4,

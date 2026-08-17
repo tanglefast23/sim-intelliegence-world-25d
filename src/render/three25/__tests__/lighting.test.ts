@@ -423,6 +423,7 @@ describe('the office ceiling rig', () => {
     expect(panel!.decay).toBeLessThan(1.4);
     // Fourteen of these overlap. A post's intensity here would blow the room white.
     expect(panel!.intensity).toBeLessThan(0.2 + 11);
+    expect(panel!.intensity).toBeGreaterThan(0.6);
     expect(panel!.poolRadius).toBeGreaterThan(3.2);
     expect(panel!.poolOpacity).toBeLessThan(0.5);
   });
@@ -430,7 +431,7 @@ describe('the office ceiling rig', () => {
   test('troffer flicker is a third of a lamp post s, so the office does not blink', () => {
     const swing = (step: number): number => lampLights(withCeiling(1, true))[0]!.intensity;
     const samples = [0, 7, 13, 29, 51].map(swing);
-    const base = 0.6 + 6;
+    const base = 0.6 + 7.5;
     for (const sample of samples) {
       expect(Math.abs(sample - base) / base).toBeLessThan(0.03);
     }

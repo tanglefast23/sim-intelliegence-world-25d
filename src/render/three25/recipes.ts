@@ -373,8 +373,12 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   // lid at 1.45, or the panel reads as a square floating in mid-air at zoom 3.
   'tile.fixture-ceiling-panel': {
     boxes: [
-      { x: 0, y: 1.38, z: 0, width: 0.84, height: 0.08, depth: 0.84, tint: '#d0d4d8' },
-      { x: 0, y: 1.33, z: 0, width: 0.72, height: 0.04, depth: 0.72, tint: '#e8eef4', glow: true },
+      // The housing is a RIM, and it sits BELOW the plate. The spec put the glow plate at 1.33
+      // inside a 0.84-wide housing at 1.38, which hides the light completely: the camera looks down
+      // at 30 degrees and sees top faces, so a wider, higher housing covers the plate it contains
+      // and fourteen troffers render as fourteen grey slabs. Measured on a real capture.
+      { x: 0, y: 1.33, z: 0, width: 0.86, height: 0.06, depth: 0.86, tint: '#d0d4d8' },
+      { x: 0, y: 1.38, z: 0, width: 0.72, height: 0.04, depth: 0.72, tint: '#e8eef4', glow: true },
     ],
   },
   // The jug is plastic, not a lamp. It is deliberately NOT `glow` and joins no lamp set.

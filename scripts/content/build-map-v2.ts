@@ -1314,6 +1314,16 @@ function westMap(): WorldMapV2 {
       { x: 58, y: 30, sprite: 'tile.fixture-lamp' },
     ],
   });
+  // Aisle troffers, between the module rows rather than inside them.
+  //
+  // Twelve panels one-per-cubicle light the desks and leave the walkways between them dark, which
+  // measures as pooling 2.04 against a 1.9 ceiling. The spec's own instruction for that reading is
+  // to add a panel rather than lift the hemisphere, and the aisles are exactly where the light is
+  // missing. Not solid, so they do not narrow the walkway they light.
+  const aisleCeiling = ceilingPanels('annex-ceiling-aisles', 'cubicle-floor', [
+    { x: 10, y: 12 }, { x: 16, y: 12 }, { x: 22, y: 12 },
+    { x: 10, y: 17 }, { x: 16, y: 17 }, { x: 22, y: 17 },
+  ]);
   const corridorFixtures = [
     objectFromTiles({
       id: 'annex-copier', kind: 'copier', areaId: 'cubicle-floor',
@@ -1663,7 +1673,7 @@ function westMap(): WorldMapV2 {
     ],
     objects: [
       ...modules.flatMap(({ objects }) => objects),
-      ...corridorFixtures, ...hallFixtures, ...managerFixtures,
+      aisleCeiling, ...corridorFixtures, ...hallFixtures, ...managerFixtures,
       ...coolerFixtures, ...kitchenFixtures, ...lobbyFixtures,
       lotFixtures,
     ],
