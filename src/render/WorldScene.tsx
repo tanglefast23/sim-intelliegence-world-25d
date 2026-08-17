@@ -820,6 +820,31 @@ export function WorldScene({
      * directly is deterministic and representative at the same time.
      */
     window.siWorldSetVfxStep = (step) => { setVfxAgeStep(step); };
+    /**
+     * Stand the protagonist on a chosen tile of the map they are already on.
+     *
+     * The district captures reach a map through `siWorldOpenVfxFixture`, which stands the player
+     * next to the effect it opened. That framed the harbour on 70% empty yard with its cargo half
+     * out of shot, and put the villa's protagonist in half-dark at the frame's edge while the warm
+     * pocket sat centre-right. Where an effect happens to be is not where a district photographs
+     * best, and composition is a rubric criterion.
+     */
+    window.siWorldStandOnTile = (tileX, tileY) => {
+      setRuntime((current) => {
+        const mapId = current.worldState.protagonist.worldPosition.mapId;
+        return {
+          ...current,
+          movement: createMovementState({ x: tileX, y: tileY }),
+          worldState: parseWorldState({
+            ...current.worldState,
+            protagonist: {
+              ...current.worldState.protagonist,
+              worldPosition: { mapId, tileX, tileY },
+            },
+          }),
+        };
+      });
+    };
     window.siWorldOpenVfxFixture = (fixtureMapId, effectId, forcedMinute) => {
       const fixtureMap = WORLD_MAP_CATALOG[fixtureMapId];
       const effect = fixtureMap.source.effects.find(({ id }) => id === effectId);
@@ -892,6 +917,7 @@ export function WorldScene({
       delete window.siWorldOpenVfxFixture;
       delete window.siWorldSetSmokeMinute;
       delete window.siWorldSetVfxStep;
+      delete window.siWorldStandOnTile;
       delete window.siWorldStartNaturalMovementFixture;
       delete window.siWorldOpenRendererFeedbackFixture;
       delete window.siWorldOpenRendererMotionFixture;

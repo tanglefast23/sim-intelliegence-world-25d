@@ -75,6 +75,8 @@ declare global {
     siWorldSetSmokeMinute?: (absoluteMinute: number) => void;
     /** Pin the ambient VFX phase so a paused capture shows a representative frame, not step 0. */
     siWorldSetVfxStep?: (step: number) => void;
+    /** Stand the protagonist on a chosen tile, so a capture can frame a district's dense part. */
+    siWorldStandOnTile?: (tileX: number, tileY: number) => void;
     siWorldStartNaturalMovementFixture?: () => Readonly<{
       npcId: 'linda';
       source: 'fixture';

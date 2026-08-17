@@ -65,6 +65,14 @@ export type SceneRequest = Readonly<{
   /** Centre the camera on the protagonist, so the shot frames the room they are standing in. */
   centreOnPlayer?: boolean;
   /**
+   * Stand the protagonist on this tile before framing.
+   *
+   * Where an effect happens to be is not where a district photographs best. Applied after
+   * `district`, so a capture can reach a map through its VFX fixture and then walk to the part of
+   * it worth photographing.
+   */
+  standOnTile?: Readonly<{ x: number; y: number }>;
+  /**
    * Relocate the protagonist to another map, through the app's own VFX fixture.
    *
    * That fixture exists to frame an effect, and relocating the player is how it does it - which is
@@ -284,6 +292,15 @@ async function capture(scene) {
     );
     if (!timed) throw new Error('siWorldSetSmokeMinute is missing.');
     await new Promise((r) => setTimeout(r, 900));
+  }
+
+  if (scene.standOnTile) {
+    const stood = await window.webContents.executeJavaScript(
+      'typeof window.siWorldStandOnTile === "function"'
+      + ' ? (window.siWorldStandOnTile(' + String(scene.standOnTile.x) + ', ' + String(scene.standOnTile.y) + '), true) : false',
+    );
+    if (!stood) throw new Error('siWorldStandOnTile is missing.');
+    await new Promise((r) => setTimeout(r, 600));
   }
 
   if (scene.centreOnPlayer) {

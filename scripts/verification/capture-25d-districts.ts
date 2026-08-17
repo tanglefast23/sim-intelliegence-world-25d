@@ -26,20 +26,40 @@ const NIGHT = 1245;
  */
 const VFX_STEP = 2;
 
+/**
+ * Where the protagonist stands for each capture.
+ *
+ * Chosen by counting render parts and lamps inside the window a zoom-3 frame actually shows, not by
+ * eye, and required to be within about three tiles of a lamp. The fixtures these captures use to
+ * reach a map put the player wherever the effect is, which framed the harbour on 70% empty yard
+ * with its cargo half out of shot.
+ *
+ * Density alone is not enough. A first pass picked the densest windows and ignored the lamps, and
+ * dropped the harbour's mean luminance by 50 - a dense corner with no light in it is a dark corner.
+ * The scene is built around pooled light, so the player has to stand in a pool.
+ */
+
 void captureScenes(
   [
-    { name: 'northwest-villa', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true, vfxStep: VFX_STEP },
+    {
+      name: 'northwest-villa', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true,
+      vfxStep: VFX_STEP, standOnTile: { x: 16, y: 19 },
+    },
     {
       name: 'northeast-downtown', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true, vfxStep: VFX_STEP,
       district: { mapId: 'northeast_downtown', effectId: 'club-neon-west' },
+      standOnTile: { x: 17, y: 17 },
     },
     {
       name: 'southwest-commercial', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true, vfxStep: VFX_STEP,
+      // No `standOnTile`: the steam fixture's own placement already frames the stall row, and the
+      // densest-window pick landed in an empty plaza. A tile count is not a composition.
       district: { mapId: 'southwest_commercial', effectId: 'courtyard-steam-west' },
     },
     {
       name: 'southeast-docks', shadowPath: 'lit', zoom: 3, minute: NIGHT, centreOnPlayer: true, vfxStep: VFX_STEP,
       district: { mapId: 'southeast_docks', effectId: 'yard-steam' },
+      standOnTile: { x: 46, y: 37 },
     },
   ],
   evidenceRoot,
