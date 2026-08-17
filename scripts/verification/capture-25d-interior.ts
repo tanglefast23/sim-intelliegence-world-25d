@@ -14,8 +14,10 @@ const evidenceRoot = resolveEvidenceOutputRoot(process.argv.slice(2), {
 
 void captureScenes(
   [
-    { name: 'villa-interior-lit', shadowPath: 'lit', zoom: 3 },
-    { name: 'villa-interior-fallback', shadowPath: 'fallback', zoom: 3 },
+    // Night, centred on the protagonist: the reference is a dark room lit by a lamp, so a
+    // daylight street shot cannot be judged against it.
+    { name: 'villa-interior-night', shadowPath: 'lit', zoom: 3, minute: 1245, centreOnPlayer: true },
+    { name: 'villa-interior-day', shadowPath: 'lit', zoom: 3, centreOnPlayer: true },
   ],
   evidenceRoot,
 ).then((scenes) => {

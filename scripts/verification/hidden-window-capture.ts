@@ -30,6 +30,10 @@ export type SceneRequest = Readonly<{
   clickAt?: Readonly<{ x: number; y: number }>;
   /** World zoom, through the app's own test hook. Use 3 to frame an interior. */
   zoom?: 1 | 2 | 3;
+  /** Absolute world minute, to capture a scene at night rather than at the 08:00 spawn. */
+  minute?: number;
+  /** Centre the camera on the protagonist, so the shot frames the room they are standing in. */
+  centreOnPlayer?: boolean;
 }>;
 
 export type SceneEvidence = Readonly<{
@@ -104,6 +108,7 @@ function mainScript(
 const { app, BrowserWindow } = require('electron');
 const { join } = require('node:path');
 const { writeFileSync } = require('node:fs');
+const preloadPath = join(__dirname, 'capture-preload.js');
 
 const scenes = ${JSON.stringify(scenes)};
 const outputDirectory = ${JSON.stringify(outputDirectory)};
@@ -137,6 +142,10 @@ function ensureWindow() {
       offscreen: false,
       contextIsolation: true,
       nodeIntegration: false,
+      // WorldScene registers its siWorld*Fixture hooks only when siWorldSmokeMode is true, and the
+      // packaged preload is what normally sets that. Served over http there is no preload, so the
+      // camera and clock hooks never existed and an interior capture silently framed the street.
+      preload: preloadPath,
     },
   });
   sharedWindow.webContents.setAudioMuted(true);
@@ -190,10 +199,36 @@ async function capture(scene) {
     throw new Error('The 2.5D renderer never published evidence for scene ' + scene.name + '.');
   }
   if (scene.zoom) {
-    await window.webContents.executeJavaScript(
-      'window.siWorldSetRendererTestZoom ? window.siWorldSetRendererTestZoom(' + scene.zoom + ') : null',
+    // Fail loudly. A missing hook used to return null and the capture silently framed the wide
+    // exterior while claiming to be an interior.
+    const zoomed = await window.webContents.executeJavaScript(
+      'typeof window.siWorldSetRendererTestZoom === "function"'
+      + ' ? { ok: true, zoom: window.siWorldSetRendererTestZoom(' + scene.zoom + ') }'
+      + ' : { ok: false, keys: Object.keys(window).filter((k) => k.indexOf("siWorld") === 0) }',
     );
-    await new Promise((r) => setTimeout(r, 600));
+    if (!zoomed.ok) {
+      throw new Error('siWorldSetRendererTestZoom is missing. siWorld hooks present: ' + JSON.stringify(zoomed.keys));
+    }
+    await new Promise((r) => setTimeout(r, 900));
+  }
+
+  if (scene.minute !== undefined) {
+    const timed = await window.webContents.executeJavaScript(
+      'typeof window.siWorldSetSmokeMinute === "function"'
+      + ' ? (window.siWorldSetSmokeMinute(' + scene.minute + '), true) : false',
+    );
+    if (!timed) throw new Error('siWorldSetSmokeMinute is missing.');
+    await new Promise((r) => setTimeout(r, 900));
+  }
+
+  if (scene.centreOnPlayer) {
+    // The app's own Center control, driven by its key binding: the surface listens for "f".
+    await window.webContents.executeJavaScript(
+      '(() => { const e = { key: "f", code: "KeyF", bubbles: true };'
+      + ' window.dispatchEvent(new KeyboardEvent("keydown", e));'
+      + ' window.dispatchEvent(new KeyboardEvent("keyup", e)); return true; })()',
+    );
+    await new Promise((r) => setTimeout(r, 900));
   }
 
   // Settle after readiness, so the capture is of a presented frame.
@@ -272,6 +307,12 @@ export async function captureScenes(
     const userData = join(directory, 'user-data');
     mkdirSync(userData, { recursive: true });
     writeFileSync(join(directory, 'main.js'), mainScript(outputRoot, scenes, viewport, readyTimeoutMs));
+    // Exposes the one flag the app's own test hooks are gated on. Nothing else.
+    writeFileSync(
+      join(directory, 'capture-preload.js'),
+      "const { contextBridge } = require('electron');\n"
+      + "contextBridge.exposeInMainWorld('siWorldSmokeMode', true);\n",
+    );
     writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: 'si-world-25d-capture', main: 'main.js' }));
 
     const electron = resolve(process.cwd(), 'node_modules/.bin/electron');
