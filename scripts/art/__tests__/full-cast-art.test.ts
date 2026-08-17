@@ -318,17 +318,18 @@ describe('full-cast shared-source character art', () => {
         expect(frontTwo[24]?.[19]).toBe('S');
         expect(frontTwo[24]?.[20]).toBe('L');
       }
-      // Lateral frame 1 is still identical to frame 0 until composeLateralFrame honours its
-      // frame index; move those two entries into strideFrames when it does.
       const idleFrames = [
         frontOne,
         deriveRearFrame(frontOne, source),
         composeLateralFrame(source, 'left', 0),
-        composeLateralFrame(source, 'left', 1),
         composeLateralFrame(source, 'right', 0),
+      ];
+      const strideFrames = [
+        frontTwo,
+        deriveRearFrame(frontTwo, source),
+        composeLateralFrame(source, 'left', 1),
         composeLateralFrame(source, 'right', 1),
       ];
-      const strideFrames = [frontTwo, deriveRearFrame(frontTwo, source)];
       for (const frame of [...idleFrames, ...strideFrames]) {
         expect(painted(frame).size).toBeGreaterThan(40);
         expect([...frame[0] as string].every((token) => token === '.')).toBe(true);

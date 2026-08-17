@@ -124,9 +124,9 @@ function worldEntries(source: CharacterSource): Entry[] {
     'rear-1': deriveRearFrame(front, source),
     'rear-2': deriveRearFrame(front, source),
     'left-1': composeLateralFrame(source, 'left', 0),
-    'left-2': composeLateralFrame(source, 'left', 0),
+    'left-2': composeLateralFrame(source, 'left', 1),
     'right-1': composeLateralFrame(source, 'right', 0),
-    'right-2': composeLateralFrame(source, 'right', 0),
+    'right-2': composeLateralFrame(source, 'right', 1),
   };
   const authoredFrames = protagonistReferenceFrames(source.id);
   const tokenFrames = authoredFrames ?? generatedFrames;

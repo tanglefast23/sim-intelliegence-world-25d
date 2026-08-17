@@ -996,8 +996,34 @@ function staticWorldLayers(source: CharacterSource): readonly DrawCommand[][] {
   ];
 }
 
-/** The two-pixel gap that turns the rounded base into two feet on the stride frame. */
+/**
+ * The two-pixel gap that turns the rounded base into two feet on the stride frame.
+ *
+ * The lateral gap sits at x11-12 rather than x10-11 because the lateral base is narrower and
+ * offset. It is also symmetric about the cell centre, so `mirrorCommand` maps {11,12} back onto
+ * itself and one carve serves both facings.
+ */
 export const STRIDE_GAP = { row: 29, from: 10, to: 11 } as const;
+export const LATERAL_STRIDE_GAP = { row: 29, from: 11, to: 12 } as const;
+
+/**
+ * Clears a stride gap after every layer has drawn.
+ *
+ * The base is painted early, so anything later filling row 29 closes the split back up:
+ * `big-black-boots` emits `rect K 7,29,10,1` from a static layer, and resident-16's feature
+ * covers the same row. Carving last makes the stride survive whatever draws over the contact
+ * row, the same way the hand stamp is applied last.
+ */
+export function carveStrideGap(
+  frame: TokenFrame,
+  gap: Readonly<{ row: number; from: number; to: number }> = STRIDE_GAP,
+): void {
+  const row = frame[gap.row];
+  if (row === undefined) return;
+  const cells = [...row];
+  for (let x = gap.from; x <= gap.to; x += 1) cells[x] = '.';
+  frame[gap.row] = cells.join('');
+}
 
 /**
  * The stride's swinging arm pixels: one high on the left, one low on the right.
@@ -1030,22 +1056,6 @@ function paintEmptyPoints(
     cells[x] = token;
     frame[y] = cells.join('');
   }
-}
-
-/**
- * Clears the stride gap after every layer has drawn.
- *
- * The legs layer draws first, so anything painting row 29 later fills the gap back in:
- * `big-black-boots` emits `rect K 7,29,10,1` from a static layer and hid the split entirely
- * for resident-02 and resident-09. Carving the gap last makes the stride survive whatever
- * covers the contact row, the same way the hand stamp is applied last.
- */
-function carveStrideGap(frame: TokenFrame): void {
-  const row = frame[STRIDE_GAP.row];
-  if (row === undefined) return;
-  const cells = [...row];
-  for (let x = STRIDE_GAP.from; x <= STRIDE_GAP.to; x += 1) cells[x] = '.';
-  frame[STRIDE_GAP.row] = cells.join('');
 }
 
 export function composeFrontFrame(source: CharacterSource, frameIndex: 0 | 1): TokenFrame {

@@ -180,8 +180,8 @@ describe('deterministic SI World atlas generation', () => {
       const rightTwo = composeLateralFrame(source, 'right', 1);
       expect(alphaMask(leftOne).split('\n').map((row) => [...row].reverse().join('')).join('\n'))
         .toBe(alphaMask(rightOne));
-      expect(leftOne).toEqual(leftTwo);
-      expect(rightOne).toEqual(rightTwo);
+      expect(leftOne).not.toEqual(leftTwo);
+      expect(rightOne).not.toEqual(rightTwo);
       expect(leftOne.slice(28).flatMap((row) => [...row]).filter((token) => token !== '.').length).toBeGreaterThan(5);
       expect(rightOne.slice(28).flatMap((row) => [...row]).filter((token) => token !== '.').length).toBeGreaterThan(5);
     }

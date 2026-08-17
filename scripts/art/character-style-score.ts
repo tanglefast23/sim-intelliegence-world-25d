@@ -225,12 +225,11 @@ export function scoreCharacterAgainstProtagonist(source: CharacterSource): Chara
    * The margin and rounded-base checks in `stableFloatingPose` below still carry the quality
    * bar this name refers to.
    *
-   * The lateral clauses stay as equality until `composeLateralFrame` honours its frame index.
    */
   const stablePose = source.id === 'protagonist' || (
     composeFrontFrame(source, 0).join('\n') !== composeFrontFrame(source, 1).join('\n') &&
-    composeLateralFrame(source, 'left', 0).join('\n') === composeLateralFrame(source, 'left', 1).join('\n') &&
-    composeLateralFrame(source, 'right', 0).join('\n') === composeLateralFrame(source, 'right', 1).join('\n')
+    composeLateralFrame(source, 'left', 0).join('\n') !== composeLateralFrame(source, 'left', 1).join('\n') &&
+    composeLateralFrame(source, 'right', 0).join('\n') !== composeLateralFrame(source, 'right', 1).join('\n')
   );
   const stableFloatingPose = stablePose && Object.values(frames).every(
     (frame) => openMargins(frame) && roundedBase(frame),

@@ -60,7 +60,7 @@ function assertWalkCells(index: AtlasIndex, atlas: ReturnType<typeof decodePng>)
   for (const [characterId, character] of Object.entries(index.characters)) {
     // The protagonist's eight cells come from protagonistReferenceFrames() and stay identical
     // until its stride poses are authored.
-    const animated = characterId === 'protagonist' ? new Set<string>() : new Set(['front']);
+    const animated = characterId === 'protagonist' ? new Set<string>() : new Set(['front', 'left', 'right']);
     for (const direction of ['front', 'rear', 'left', 'right'] as const) {
       const first = index.sprites[character.frames[`${direction}-1`] as string];
       const second = index.sprites[character.frames[`${direction}-2`] as string];

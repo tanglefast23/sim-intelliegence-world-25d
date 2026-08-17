@@ -1,5 +1,7 @@
 import {
+  LATERAL_STRIDE_GAP,
   WORLD_CELL,
+  carveStrideGap,
   drawTokenCommands,
   emptyTokenFrame,
   getCharacterIdentityCommandSets,
@@ -30,6 +32,38 @@ function mirrorCommand(command: DrawCommand): DrawCommand {
 
 function orient(commands: readonly DrawCommand[], direction: 'left' | 'right'): DrawCommand[] {
   return direction === 'left' ? [...commands] : commands.map(mirrorCommand);
+}
+
+/** The lowest row still counted as part of the head, for the stride's head shift. */
+const HEAD_REGION_BOTTOM = 17;
+
+/**
+ * Shifts only the commands that sit wholly on the head.
+ *
+ * Face-mounted accessories — glasses, hats, ear defenders, a moustache — have to travel with
+ * the head or they trail it by a pixel and sit off-centre on the face. Torso accessories like
+ * the luggage strap and the guitar case must not move. A command that spans both regions, such
+ * as a long scarf, stays put rather than tearing in half.
+ */
+function shiftHeadRegion(commands: readonly DrawCommand[], dx: number): DrawCommand[] {
+  if (dx === 0) return [...commands];
+  return commands.map((command) => {
+    const onHead = command.kind === 'rect'
+      ? command.y + command.height - 1 <= HEAD_REGION_BOTTOM
+      : command.points.every(([, y]) => y <= HEAD_REGION_BOTTOM);
+    return onHead ? (shiftCommands([command], dx, 0)[0] as DrawCommand) : command;
+  });
+}
+
+/** Translates draw commands by whole pixels. Fractional offsets are not representable. */
+function shiftCommands(commands: readonly DrawCommand[], dx: number, dy: number): DrawCommand[] {
+  if (dx === 0 && dy === 0) return [...commands];
+  return commands.map((command) => (command.kind === 'rect'
+    ? { ...command, x: command.x + dx, y: command.y + dy }
+    : {
+      ...command,
+      points: command.points.map(([x, y]) => [x + dx, y + dy] as [number, number]),
+    }));
 }
 
 function lookFor(source: CharacterSource): CharacterLook {
@@ -69,7 +103,7 @@ function lateralHeadCommands(): DrawCommand[] {
   ];
 }
 
-function lateralBodyCommands(look: CharacterLook): DrawCommand[] {
+function lateralBodyCommands(look: CharacterLook, frameIndex: 0 | 1): DrawCommand[] {
   const patterns: readonly DrawCommand[][] = [
     [rect('c', 10, 19, 5, 3), pixels('A', [[12, 23]])],
     [pixels('A', [[9, 18], [10, 20], [11, 21], [12, 23], [13, 25]])],
@@ -88,8 +122,13 @@ function lateralBodyCommands(look: CharacterLook): DrawCommand[] {
     pixels('L', [[6, 24]]),
     pixels('S', [[7, 24], [7, 25]]),
     pixels('s', [[7, 26]]),
+    // Row 28 stays one painted run so the contact shadow keeps a single anchor. Row 29 splits
+    // into two feet on the stride. Lateral feet are 7 wide at x=9, unlike the front's 10 at
+    // x=7, so the front stride commands cannot be reused here.
     rect('D', 9, 28, 7, 1),
-    rect('K', 9, 29, 7, 1),
+    ...(frameIndex === 1
+      ? [rect('K', 9, 29, 2, 1), rect('K', 13, 29, 3, 1)]
+      : [rect('K', 9, 29, 7, 1)]),
   ];
 }
 
@@ -288,20 +327,38 @@ function identityLayerCommands(look: CharacterLook, layer: CharacterLook['oddity
 export function composeLateralFrame(
   source: CharacterSource,
   direction: 'left' | 'right',
-  _frameIndex: 0 | 1,
+  frameIndex: 0 | 1,
 ): TokenFrame {
   const look = lookFor(source);
   const frame = emptyTokenFrame(WORLD_CELL.width, WORLD_CELL.height);
   const draw = (commands: readonly DrawCommand[]): void => drawTokenCommands(frame, orient(commands, direction));
-  draw(lateralBodyCommands(look));
+  // `source.sourceLayers.legs` is deliberately NOT drawn here. This compose has never read it;
+  // lateral feet come from `lateralBodyCommands` itself, at a different width and offset than
+  // the front legs. Drawing the legs layer underneath would add base pixels to the idle frame
+  // and then have the body's own base overdraw the stride gap.
+  draw(lateralBodyCommands(look, frameIndex));
   draw(identityLayerCommands(look, 'torsoAndClothing'));
-  draw(lateralHeadCommands());
+  /**
+   * The head leads the body into the turn on the stride frame, stacking with the existing
+   * `movementPresentation().leanX` so the head moves two pixels while the torso moves one.
+   *
+   * Shifted BEFORE `orient`: `orient(commands, 'left')` is the identity, so the unoriented art
+   * is the left-facing drawing, and a left-facing walker travels toward -x. One -1 therefore
+   * leads the turn on left and mirrors to +1 — also leading — on right.
+   */
+  const headShift = frameIndex === 1 ? -1 : 0;
   const hairCommands = [...lateralHairCommands(look), ...identityLayerCommands(look, 'hair')];
-  draw(hairCommands);
-  draw(identityLayerCommands(look, 'accessory'));
+  const shiftedHead = shiftCommands(lateralHeadCommands(), headShift, 0);
+  const shiftedHair = shiftCommands(hairCommands, headShift, 0);
+  draw(shiftedHead);
+  draw(shiftedHair);
+  draw(shiftHeadRegion(identityLayerCommands(look, 'accessory'), headShift));
   draw(identityLayerCommands(look, 'heldItem'));
   const hairMask = emptyTokenFrame(WORLD_CELL.width, WORLD_CELL.height);
-  drawTokenCommands(hairMask, orient(hairCommands, direction));
+  drawTokenCommands(hairMask, orient(shiftedHair, direction));
   applyConnectedHairLighting(frame, hairMask, 22);
+  // Carved last, for the same reason the front frame carves: big-black-boots and resident-16's
+  // feature both repaint row 29 from a later layer and would close the split.
+  if (frameIndex === 1) carveStrideGap(frame, LATERAL_STRIDE_GAP);
   return frame;
 }
