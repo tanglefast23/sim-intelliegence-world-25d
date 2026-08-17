@@ -191,7 +191,7 @@ function assertScreenshot(buffer: Buffer, label: string): Readonly<{ width: numb
 export function validateScreenshotBuffers(
   loading: Buffer,
   ready: Buffer,
-  options: Readonly<{ requireSameDimensions?: boolean }> = {},
+  options: Readonly<{ requireSameDimensions?: boolean; requireDifferentBytes?: boolean }> = {},
 ): void {
   const loadingDimensions = assertScreenshot(loading, 'Loading');
   const readyDimensions = assertScreenshot(ready, 'Ready');
@@ -205,7 +205,9 @@ export function validateScreenshotBuffers(
       `${loadingDimensions.width}x${loadingDimensions.height} vs ${readyDimensions.width}x${readyDimensions.height}.`,
     );
   }
-  if (loading.equals(ready)) {
+  // Off only when the caller knows the loading shell was never captured, so the two frames are the
+  // same screen by construction and inequality would prove nothing.
+  if ((options.requireDifferentBytes ?? true) && loading.equals(ready)) {
     throw new Error('Loading and ready screenshots are identical.');
   }
 }

@@ -217,19 +217,96 @@ async function cameraMotionLabel(window: BrowserWindow): Promise<string> {
   ) as Promise<string>;
 }
 
+/**
+ * Why this timeout reports so much.
+ *
+ * `package-windows-x64` has failed every recorded CI run with a single line: "Camera motion never
+ * matched. Last label: Camera follow suspended; shake 0.24; shot none; queue 0". That message names
+ * neither which wait failed nor why, and five different waits share it, so reading it cost an hour
+ * and still produced a wrong first diagnosis.
+ *
+ * The `shake 0.24` is the tell. Trauma starts at 0 and the only impulse in the smoke is `0.8`, so
+ * `0.8 - (1000 / IMPACT_MAX_DURATION_MS) * seconds = 0.24` puts the freeze about 101 ms after that
+ * impulse — which is the `shake 0.00` wait, not the `follow armed` wait it was assumed to be.
+ * Trauma above zero also keeps `sampleCameraDirector` returning `active`, so the clock should have
+ * kept running. Something stopped the frames, and none of the three candidates — a lost GL context,
+ * a dead `requestAnimationFrame`, or a swallowed key — can be told apart from the message alone.
+ *
+ * So on timeout this asks the renderer directly. It never runs on a passing wait.
+ */
+async function cameraMotionDiagnostics(window: BrowserWindow): Promise<string> {
+  try {
+    return await window.webContents.executeJavaScript(`new Promise((resolve) => {
+      const overlay = document.querySelector('#world-renderer-recovery-overlay');
+      const started = Date.now();
+      let frames = 0;
+      const tick = () => {
+        frames += 1;
+        if (frames < 2 && Date.now() - started < 500) { requestAnimationFrame(tick); return; }
+        resolve([
+          'recoveryOverlay=' + (overlay ? JSON.stringify(overlay.textContent ?? '') : 'absent'),
+          'framesIn500ms=' + frames,
+          'documentHidden=' + document.hidden,
+          'visibility=' + document.visibilityState,
+        ].join(' '));
+      };
+      requestAnimationFrame(tick);
+      // requestAnimationFrame never firing is itself the answer, so this cannot wait on it alone.
+      setTimeout(() => resolve([
+        'recoveryOverlay=' + (overlay ? JSON.stringify(overlay.textContent ?? '') : 'absent'),
+        'framesIn500ms=' + frames,
+        'documentHidden=' + document.hidden,
+        'visibility=' + document.visibilityState,
+      ].join(' ')), 600);
+    })`, true) as string;
+  } catch (error: unknown) {
+    return `diagnostics failed: ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
+
 async function waitForCameraMotion(
   window: BrowserWindow,
   matches: (label: string) => boolean,
   timeoutMilliseconds = 4_000,
+  waitName = 'unnamed',
 ): Promise<string> {
   const deadline = Date.now() + timeoutMilliseconds;
   let label = '';
+  let paintFailure = '';
   while (Date.now() < deadline) {
+    /**
+     * Drive a frame, THEN read the label.
+     *
+     * The camera clock advances on `requestAnimationFrame`, and a hidden window on the Windows
+     * runner is not composited, so rAF never fires while JS timers keep running. Measured on that
+     * runner: `framesIn500ms=0` with `documentHidden=false` and no lost-context overlay. Trauma
+     * then freezes mid-decay — `shake 0.24` forever — and every wait that needs a frame times out.
+     *
+     * `waitForRendererPaint` is reused rather than calling `capturePage` directly: its paired
+     * captures are what force a hidden window to produce frames, and `package-smoke.test.ts` pins
+     * that pattern to exactly one place.
+     *
+     * Paint comes first so the label is always read from a frame this loop drove. Reading first
+     * meant a paint that overran the deadline threw with the PREVIOUS label, which looks exactly
+     * like the freeze this fix exists to cure and would send the next reader down the wrong path.
+     *
+     * This is a test-environment fix, not a product one. A real window has a live compositor.
+     */
+    await waitForRendererPaint(window).catch((error: unknown) => {
+      // Recorded rather than swallowed: a renderer that cannot paint at all is a different
+      // failure from a camera that will not advance, and the timeout must be able to say which.
+      paintFailure = error instanceof Error ? error.message : String(error);
+    });
     label = await cameraMotionLabel(window);
     if (matches(label)) return label;
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 50));
   }
-  throw new Error(`Camera motion never matched. Last label: ${label}`);
+  const diagnostics = await cameraMotionDiagnostics(window);
+  const paintNote = paintFailure === '' ? '' : ` | lastPaintFailure=${JSON.stringify(paintFailure)}`;
+  throw new Error(
+    `Camera motion never matched "${waitName}" within ${timeoutMilliseconds}ms. ` +
+    `Last label: ${label} | ${diagnostics}${paintNote}`,
+  );
 }
 
 /**
@@ -246,6 +323,25 @@ async function waitForCameraStill(
   const deadline = Date.now() + timeoutMilliseconds;
   let previous = await cameraLabel(window);
   while (Date.now() < deadline) {
+    /**
+     * Drive a frame between the two reads, or "still" is a lie on the Windows runner.
+     *
+     * This function exists to avoid sampling the camera mid-ease. Polling alone cannot tell a
+     * settled camera from a frozen one: the hidden window there produces no frames unless forced,
+     * so two consecutive reads of a starved renderer always match, and this returned "still" for
+     * a camera stopped mid-follow-ease with travel remaining.
+     *
+     * That leftover travel is exactly the followSuspends failure the diagnostics caught: the
+     * stale camera-clock callback ran inside the pan's first forced frame — input dispatches
+     * before rAF callbacks, and the clock's callback predates the pan flush, so it fired with
+     * follow still armed — adding ~1.5 world px of ease to the measured pan (dx=-1.5, dy pinned
+     * at 0 by the map-edge clamp). macOS never sees this because its compositor lets the ease
+     * finish during this very poll.
+     *
+     * Driving frames makes stillness mean what the name says: the ease has completed and the
+     * camera clock has parked itself.
+     */
+    await waitForRendererPaint(window).catch(() => undefined);
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 80));
     const current = await cameraLabel(window);
     if (current === previous) return current;
@@ -1839,6 +1935,11 @@ async function beginWorldSmoke(window: BrowserWindow, directory: string): Promis
   };
   progress('new-game');
   await waitForSelector(window, '#new-game-flow');
+  // Wait for a painted frame before capturing. `capturePage` returns whatever the compositor last
+  // produced, so without this the new-game shot can be a stale frame of the loading shell — which
+  // then byte-matches `packaged-loading.png` and trips the inequality check in
+  // `run-package-smoke.ts`. `captureDistinctSmokeScreenshot` already does this for the same reason.
+  await waitForRendererPaint(window);
   await captureSmokeScreenshot(window, join(directory, 'world-new-game.png'));
   const newGameText = (await rendererText(window, '#new-game-flow')).replace(/\s+/gu, ' ').trim();
   const newGameFlow = newGameText.includes('WELCOME TO HALCYRA') && newGameText.includes('$800');
@@ -1974,7 +2075,7 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
   // correctly stay put.
   await clickZoomButton(window, 2);
   sendKey(window, 'F');
-  const followArmedLabel = await waitForCameraMotion(window, (label) => label.includes('follow armed'));
+  const followArmedLabel = await waitForCameraMotion(window, (label) => label.includes('follow armed'), 4_000, 'follow armed');
   const cameraBeforeFollow = parseCameraLabel(await cameraLabel(window));
   await reachWorldTile(window, { x: 16, y: 25 });
   const cameraAfterFollow = parseCameraLabel(await cameraLabel(window));
@@ -1986,7 +2087,11 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
   // travel and both the x and y clauses drift.
   const cameraBeforePanSuspend = parseCameraLabel(await waitForCameraStill(window));
   await panWorld(window, 24, 0);
-  const followSuspendedLabel = await waitForCameraMotion(window, (label) => label.includes('follow suspended'));
+  const followSuspendedLabel = await waitForCameraMotion(window, (label) => label.includes('follow suspended'), 4_000, 'follow suspended');
+  // Sampled between the pan and the walk, purely so a failure says WHICH of the two moved the
+  // camera. Windows reported after=278.5 against an expected 280, and before this the diagnostic
+  // could not tell an over-applied pan from a walk that dragged a Y-clamped camera sideways.
+  const cameraAfterPanOnly = parseCameraLabel(await cameraLabel(window));
   // Walking with follow suspended must leave the camera exactly where the pan left it. This also
   // returns the hero to 19,20, which the cancel check below depends on.
   await reachWorldTile(window, { x: 19, y: 20 });
@@ -1998,6 +2103,7 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
   const followSuspendsDiagnostic = followSuspends ? '' : [
     `label=${JSON.stringify(followSuspendedLabel)}`,
     `before=${cameraBeforePanSuspend.x},${cameraBeforePanSuspend.y}@${cameraBeforePanSuspend.zoom}`,
+    `afterPanOnly=${cameraAfterPanOnly.x},${cameraAfterPanOnly.y}@${cameraAfterPanOnly.zoom}`,
     `after=${cameraAfterPanSuspend.x},${cameraAfterPanSuspend.y}@${cameraAfterPanSuspend.zoom}`,
     `expectedX=${pannedX}`,
     `dx=${cameraAfterPanSuspend.x - pannedX}`,
@@ -2011,7 +2117,7 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
       resolve(document.querySelector('#world-camera-motion-state')?.getAttribute('aria-label') ?? '');
     }));
   })`, true) as string;
-  await waitForCameraMotion(window, (label) => label.includes('shake 0.00'), 2_000);
+  await waitForCameraMotion(window, (label) => label.includes('shake 0.00'), 2_000, 'shake decays to 0.00');
   // The impact offset is presentation only: the base camera, which is what gets persisted and
   // hit-tested, is untouched by it.
   const impactShake = shakenLabel.includes('shake 0.') && await cameraLabel(window) === cameraBeforeImpulse;
@@ -2020,8 +2126,8 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
     { kind: 'focus', points: [{ x: 23 * 32 + 16, y: 24 * 32 + 29 }], durationMs: 320, ease: 'in-out' },
     { kind: 'hold', durationMs: 80 },
   ])`, true);
-  const shotLabel = await waitForCameraMotion(window, (label) => label.includes('shot focus'));
-  await waitForCameraMotion(window, (label) => label.includes('shot none'), 4_000);
+  const shotLabel = await waitForCameraMotion(window, (label) => label.includes('shot focus'), 4_000, 'shot focus');
+  await waitForCameraMotion(window, (label) => label.includes('shot none'), 4_000, 'shot queue drains');
   const directedCamera = parseCameraLabel(await cameraLabel(window));
   const directedBounds = await surfaceBounds(window);
   const cameraDirector = shotLabel.includes('queue 2') &&

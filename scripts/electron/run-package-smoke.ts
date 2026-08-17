@@ -163,10 +163,25 @@ child.once('close', (code) => {
   rmSync(smokeUserData, { force: true, recursive: true });
   const report = parseSmokeResult(stdout);
   validateScreenshotEvidence(loadingScreenshotPath, screenshotPath);
+  /**
+   * The loading capture is deliberately tolerant: `captureLoadingSmokeFrame` grabs the current
+   * frame even when `#loading-shell` has already gone, and records that by emitting
+   * `SI_WORLD_SMOKE_LOADING_SHELL_OBSERVED false`. On a fast boot the current frame IS the new-game
+   * screen, so demanding that it differ from the new-game capture asserts something that cannot be
+   * true, and ARM64 fails on runner speed rather than on a defect.
+   *
+   * So the byte comparison only runs when the shell was actually captured. The PNG and dimension
+   * checks still run either way, and the flag is echoed so a future flake is diagnosable from the
+   * CI log alone.
+   */
+  const observedPrefix = 'SI_WORLD_SMOKE_LOADING_SHELL_OBSERVED ';
+  const observedLine = stdout.split(/\r?\n/u).find((candidate) => candidate.startsWith(observedPrefix));
+  const loadingShellObserved = observedLine?.slice(observedPrefix.length).trim() === 'true';
+  process.stdout.write(`${observedPrefix}${String(loadingShellObserved)}\n`);
   validateScreenshotBuffers(
     readFileSync(loadingScreenshotPath),
     readFileSync(newGameScreenshotPath),
-    { requireSameDimensions: false },
+    { requireSameDimensions: false, requireDifferentBytes: loadingShellObserved },
   );
   validateScreenshotBuffers(readFileSync(newGameScreenshotPath), readFileSync(worldZoomPaths[0]!));
   validateWorldZoomEvidence(worldZoomPaths);
