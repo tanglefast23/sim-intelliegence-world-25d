@@ -34,13 +34,31 @@ import { tileCenterWorld, worldToScreenTilted } from '../../src/render/three25/p
  * 2D one, and requires that no movement is requested. That is what proves the tilted picking pair
  * is the one actually wired in, rather than merely that some coherent maths ran.
  */
-const evidenceRoot = resolveEvidenceOutputRoot(process.argv.slice(2), {
-  defaultRelative: 'artifacts/phase-25d/stage-5/click',
-  allowedRootPrefixes: ['artifacts/phase-25d'],
-});
+/**
+ * Which map to prove picking on. `--office` runs the Ledger Annex.
+ *
+ * The projection is map-independent, so this is not a second copy of the same proof. What it
+ * covers is the part that ISN'T: the office is the first interior built for this renderer, it is
+ * the only map reached through a west portal, and the player has to be relocated onto it rather
+ * than spawning there. A picking chain that works on the map the camera starts on is not evidence
+ * about a map the camera has to be moved to.
+ */
+const OFFICE = process.argv.includes('--office');
 
-const MAP_ID = 'northwest_residential';
-const SPAWN = { x: 18, y: 18 };
+const evidenceRoot = resolveEvidenceOutputRoot(
+  process.argv.slice(2).filter((argument) => argument !== '--office'),
+  {
+    defaultRelative: OFFICE ? 'artifacts/phase-25d/stage-6/click-office' : 'artifacts/phase-25d/stage-5/click',
+    allowedRootPrefixes: ['artifacts/phase-25d'],
+  },
+);
+
+const MAP_ID = OFFICE ? 'west_office' : 'northwest_residential';
+/** Where the player stands before the first click. The office is reached through its steam fixture. */
+const SPAWN = OFFICE ? { x: 20, y: 17 } : { x: 18, y: 18 };
+const RELOCATE = OFFICE
+  ? { district: { mapId: 'west_office', effectId: 'office-kettle-steam' } as const, standOnTile: SPAWN }
+  : {};
 const map = WORLD_MAP_CATALOG[MAP_ID]!;
 
 const tileKey = (tile: Readonly<{ x: number; y: number }>): string => `${String(tile.x)},${String(tile.y)}`;
@@ -68,12 +86,21 @@ function isPlainFloor(tile: Readonly<{ x: number; y: number }>): boolean {
 }
 
 /** Two indoor tiles on different bearings from the spawn, so one route cannot satisfy both. */
-const CANDIDATES: readonly Readonly<{ name: string; tile: Readonly<{ x: number; y: number }> }>[] = [
-  { name: 'click-southeast', tile: { x: 22, y: 22 } },
-  { name: 'click-west', tile: { x: 16, y: 19 } },
-  { name: 'click-north', tile: { x: 19, y: 16 } },
-  { name: 'click-southwest', tile: { x: 15, y: 21 } },
-];
+const CANDIDATES: readonly Readonly<{ name: string; tile: Readonly<{ x: number; y: number }> }>[] = OFFICE
+  ? [
+    // Aisle and stand tiles around the cubicle farm: open floor on four different bearings, none
+    // of them a desk or a partition, so `resolveClickTarget` cannot redirect to an approach tile.
+    { name: 'office-click-east', tile: { x: 26, y: 17 } },
+    { name: 'office-click-west', tile: { x: 12, y: 17 } },
+    { name: 'office-click-north', tile: { x: 20, y: 12 } },
+    { name: 'office-click-south', tile: { x: 20, y: 21 } },
+  ]
+  : [
+    { name: 'click-southeast', tile: { x: 22, y: 22 } },
+    { name: 'click-west', tile: { x: 16, y: 19 } },
+    { name: 'click-north', tile: { x: 19, y: 16 } },
+    { name: 'click-southwest', tile: { x: 15, y: 21 } },
+  ];
 
 /**
  * A screen point that is off-map under the tilted inverse but inside it under the 2D one.
@@ -126,6 +153,7 @@ async function main(): Promise<void> {
     centreOnPlayer: true,
     freezeNpcMotion: true,
     clickTile: candidate.tile,
+    ...RELOCATE,
   }));
 
   const positives = await captureScenes(scenes, evidenceRoot, VIEWPORT);
