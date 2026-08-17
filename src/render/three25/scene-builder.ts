@@ -173,26 +173,54 @@ const FLOOR_SOURCE_OVERRIDES: Readonly<Record<string, string>> = {
 };
 
 /**
- * Albedo gain for ground sprites whose art is too dark to read under night lighting.
+ * Measured mean luminance of the opaque texels of every ground sprite the four maps place.
  *
- * Measured from `assets/generated/world-atlas.png`: mean luminance of the opaque texels in each
- * floor sprite. The two here are the darkest of the eighteen ground sprites in the game by a wide
- * margin, and they are not incidental — together they pave 2,068 tiles of the downtown map, which
- * is why a third of that district's night frame sat within a few levels of the void clear colour.
- *
- *   tile.dark-asphalt  41.7      tile.neon-floor    47.7
- *   tile.dock-floor    57.2      tile.city-lot      59.5
- *   tile.boardwalk     75.8      tile.warm-sand    124.7
- *
- * Only sprites under luminance 55 are listed. Everything above that reads at night already, and
- * lifting a bright ground would flatten the dark-world-and-bright-objects contrast the whole scene
- * is built on. Gains target roughly luminance 80 rather than parity, for the same reason: the
- * downtown street should stay a dark street, just one you can see the texture of.
+ * Taken from `assets/generated/world-atlas.png`. Only sprites under the readable target are listed;
+ * everything above it needs no help. Re-measure if the atlas is regenerated.
  */
-const FLOOR_GAIN: Readonly<Record<string, number>> = Object.freeze({
-  'tile.dark-asphalt': 1.9,
-  'tile.neon-floor': 1.7,
+const FLOOR_LUMINANCE: Readonly<Record<string, number>> = Object.freeze({
+  'tile.dark-asphalt': 41.7,
+  'tile.neon-floor': 47.7,
+  'tile.dock-floor': 57.2,
+  'tile.city-lot': 59.5,
+  'tile.sunset-floor': 62.3,
+  'tile.villa-floor': 67.1,
+  'tile.boardwalk': 75.8,
 });
+
+/** What a ground sprite should read at. Chosen so a dark street stays a dark street. */
+const FLOOR_TARGET_LUMINANCE = 80;
+
+/** Never more than double. Past that the lift stops reading as light and starts reading as paint. */
+const MAX_FLOOR_GAIN = 2;
+
+/**
+ * Ground that should STAY dark, whatever it measures.
+ *
+ * Water at night is meant to be a black surface with highlights on it. Lifting it to the same
+ * readable target as a paving stone turns a harbour into a wet car park.
+ */
+const NEVER_LIFTED: ReadonlySet<string> = new Set(['tile.harbor-water']);
+
+/**
+ * Albedo gain for ground whose art is too dark to read under night lighting.
+ *
+ * This is the one lever that can brighten a dark SPRITE. A tint cannot: it is a hex colour, so it
+ * parses to at most 1.0 per channel and multiplies the atlas sample, which makes `#ffffff` the
+ * identity rather than "bright". Forcing every floor tint to white changed a capture by zero pixels
+ * and that is why.
+ *
+ * Derived from the measured table rather than hand-picked per sprite, so adding a map or an atlas
+ * rebuild needs one number changed rather than a judgement call. `tile.dark-asphalt` and
+ * `tile.neon-floor` between them pave 2,068 tiles of the downtown map, which is why a third of that
+ * district's night frame sat within a few levels of the void clear colour.
+ */
+function floorGain(sprite: string): number | undefined {
+  if (NEVER_LIFTED.has(sprite)) return undefined;
+  const luminance = FLOOR_LUMINANCE[sprite];
+  if (luminance === undefined || luminance >= FLOOR_TARGET_LUMINANCE) return undefined;
+  return Math.min(MAX_FLOOR_GAIN, FLOOR_TARGET_LUMINANCE / luminance);
+}
 
 function floorSource(placement: WorldFloorPlacement): AtlasRectangle {
   const override = FLOOR_SOURCE_OVERRIDES[placement.sprite];
@@ -209,7 +237,7 @@ function floorQuad(placement: WorldFloorPlacement, frame: WorldFrameState): Quad
     width: 1,
     depth: 1,
     tint: shelteredTint(placement.color, placement.tile, frame),
-    gain: FLOOR_GAIN[placement.sprite],
+    gain: floorGain(placement.sprite),
     opacity: placement.opacity,
   };
 }

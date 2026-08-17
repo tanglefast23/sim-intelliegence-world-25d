@@ -1,47 +1,47 @@
 {
   "schemaVersion": 1,
-  "ceiling": 8,
+  "ceiling": 10,
   "atlasCeiling": 5,
-  "maximumDrawCalls": 6,
+  "maximumDrawCalls": 10,
   "maximumAtlasDrawCalls": 3,
-  "maximumDescriptors": 2120,
-  "recommendedCeiling": 8,
+  "maximumDescriptors": 4000,
+  "recommendedCeiling": 12,
   "recommendedAtlasCeiling": 5,
   "scenes": [
     {
       "name": "measure-yaw0-fallback",
       "yawDegrees": 0,
       "shadowPath": "fallback",
-      "drawCalls": 5,
+      "drawCalls": 8,
       "atlasDrawCalls": 3,
-      "descriptors": 2120,
+      "descriptors": 4000,
       "screenshot": "measure-yaw0-fallback.png"
     },
     {
       "name": "measure-yaw0-lit",
       "yawDegrees": 0,
       "shadowPath": "lit",
-      "drawCalls": 6,
+      "drawCalls": 10,
       "atlasDrawCalls": 3,
-      "descriptors": 2120,
+      "descriptors": 4000,
       "screenshot": "measure-yaw0-lit.png"
     },
     {
       "name": "measure-yaw35-fallback",
       "yawDegrees": 35,
       "shadowPath": "fallback",
-      "drawCalls": 5,
+      "drawCalls": 8,
       "atlasDrawCalls": 3,
-      "descriptors": 2120,
+      "descriptors": 4000,
       "screenshot": "measure-yaw35-fallback.png"
     },
     {
       "name": "measure-yaw35-lit",
       "yawDegrees": 35,
       "shadowPath": "lit",
-      "drawCalls": 6,
+      "drawCalls": 10,
       "atlasDrawCalls": 3,
-      "descriptors": 2120,
+      "descriptors": 4000,
       "screenshot": "measure-yaw35-lit.png"
     }
   ]
