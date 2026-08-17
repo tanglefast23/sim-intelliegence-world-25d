@@ -34,38 +34,6 @@ function orient(commands: readonly DrawCommand[], direction: 'left' | 'right'): 
   return direction === 'left' ? [...commands] : commands.map(mirrorCommand);
 }
 
-/** The lowest row still counted as part of the head, for the stride's head shift. */
-const HEAD_REGION_BOTTOM = 17;
-
-/**
- * Shifts only the commands that sit wholly on the head.
- *
- * Face-mounted accessories — glasses, hats, ear defenders, a moustache — have to travel with
- * the head or they trail it by a pixel and sit off-centre on the face. Torso accessories like
- * the luggage strap and the guitar case must not move. A command that spans both regions, such
- * as a long scarf, stays put rather than tearing in half.
- */
-function shiftHeadRegion(commands: readonly DrawCommand[], dx: number): DrawCommand[] {
-  if (dx === 0) return [...commands];
-  return commands.map((command) => {
-    const onHead = command.kind === 'rect'
-      ? command.y + command.height - 1 <= HEAD_REGION_BOTTOM
-      : command.points.every(([, y]) => y <= HEAD_REGION_BOTTOM);
-    return onHead ? (shiftCommands([command], dx, 0)[0] as DrawCommand) : command;
-  });
-}
-
-/** Translates draw commands by whole pixels. Fractional offsets are not representable. */
-function shiftCommands(commands: readonly DrawCommand[], dx: number, dy: number): DrawCommand[] {
-  if (dx === 0 && dy === 0) return [...commands];
-  return commands.map((command) => (command.kind === 'rect'
-    ? { ...command, x: command.x + dx, y: command.y + dy }
-    : {
-      ...command,
-      points: command.points.map(([x, y]) => [x + dx, y + dy] as [number, number]),
-    }));
-}
-
 function lookFor(source: CharacterSource): CharacterLook {
   const look = CHARACTER_LOOKS.find(({ id }) => id === source.id);
   if (!look) throw new Error(`Missing character look for ${source.id}.`);
@@ -339,23 +307,29 @@ export function composeLateralFrame(
   draw(lateralBodyCommands(look, frameIndex));
   draw(identityLayerCommands(look, 'torsoAndClothing'));
   /**
-   * The head leads the body into the turn on the stride frame, stacking with the existing
-   * `movementPresentation().leanX` so the head moves two pixels while the torso moves one.
+   * The head does NOT shift on the stride frame.
    *
-   * Shifted BEFORE `orient`: `orient(commands, 'left')` is the identity, so the unoriented art
-   * is the left-facing drawing, and a left-facing walker travels toward -x. One -1 therefore
-   * leads the turn on left and mirrors to +1 — also leading — on right.
+   * An earlier version moved head and hair one pixel into the direction of travel, to lead the
+   * turn. It tore holes: the head is the top layer and the body does not extend into its
+   * silhouette, so moving it exposes transparent cells with nothing behind them. Measured on
+   * the real composes, seven of thirty-five characters gained interior holes in the face, and
+   * all thirty-five showed a notch where the head's trailing edge pulled away. resident-19 lost
+   * pixels at [15,17] and [16,16]; resident-08 lost its collar pixel at [8,17].
+   *
+   * There is no correct backfill. Any fill either fattens the head or invents pixels that the
+   * artist did not draw.
+   *
+   * The turn cue does not need it. `movementPresentation()` already returns `leanX` of -1 on
+   * left frame 1 and +1 on right frame 1, shifting the whole sprite, and that shipped before
+   * this work. `full-cast-art.test.ts` now asserts the stride opens no interior hole.
    */
-  const headShift = frameIndex === 1 ? -1 : 0;
   const hairCommands = [...lateralHairCommands(look), ...identityLayerCommands(look, 'hair')];
-  const shiftedHead = shiftCommands(lateralHeadCommands(), headShift, 0);
-  const shiftedHair = shiftCommands(hairCommands, headShift, 0);
-  draw(shiftedHead);
-  draw(shiftedHair);
-  draw(shiftHeadRegion(identityLayerCommands(look, 'accessory'), headShift));
+  draw(lateralHeadCommands());
+  draw(hairCommands);
+  draw(identityLayerCommands(look, 'accessory'));
   draw(identityLayerCommands(look, 'heldItem'));
   const hairMask = emptyTokenFrame(WORLD_CELL.width, WORLD_CELL.height);
-  drawTokenCommands(hairMask, orient(shiftedHair, direction));
+  drawTokenCommands(hairMask, orient(hairCommands, direction));
   applyConnectedHairLighting(frame, hairMask, 22);
   // Carved last, for the same reason the front frame carves: big-black-boots and resident-16's
   // feature both repaint row 29 from a later layer and would close the split.

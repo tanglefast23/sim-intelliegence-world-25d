@@ -212,6 +212,40 @@ describe('full-cast shared-source character art', () => {
     }
   });
 
+  test('the stride frame opens no hole the idle frame did not have', () => {
+    // A hole is a transparent cell with paint on both sides of it in the same row. The stride
+    // may move pixels, but it must not tear a gap in a face or a torso.
+    //
+    // This is the assertion that was missing when the lateral stride shifted the head by a
+    // pixel: seven characters gained interior holes and nothing failed, because the margin
+    // check only looks at columns 0 and 23 and the pair check only asks that the frames differ.
+    const interiorHoles = (frame: TokenFrame): number => {
+      let holes = 0;
+      for (const row of frame) {
+        for (let x = 1; x < WORLD_CELL.width - 1; x += 1) {
+          if (row[x] !== '.') continue;
+          const left = row.slice(0, x).replace(/\./gu, '');
+          const right = row.slice(x + 1).replace(/\./gu, '');
+          if (left.length > 0 && right.length > 0) holes += 1;
+        }
+      }
+      return holes;
+    };
+    for (const source of sources) {
+      const pairs = [
+        [composeFrontFrame(source, 0), composeFrontFrame(source, 1)],
+        [composeLateralFrame(source, 'left', 0), composeLateralFrame(source, 'left', 1)],
+        [composeLateralFrame(source, 'right', 0), composeLateralFrame(source, 'right', 1)],
+      ] as const;
+      for (const [idle, stride] of pairs) {
+        // The stride's own foot gap is a deliberate hole on the contact row, so compare the
+        // rows above it.
+        const above = (frame: TokenFrame): TokenFrame => frame.slice(0, WORLD_CELL.height - 1) as TokenFrame;
+        expect(interiorHoles(above(stride))).toBeLessThanOrEqual(interiorHoles(above(idle)));
+      }
+    }
+  });
+
   test('closes the eyes in the blink band while preserving every other pixel', () => {
     for (const source of sources) {
       const band = composeEyeBand(source);
@@ -334,7 +368,7 @@ describe('full-cast shared-source character art', () => {
       // Six looks already occupy one of those at idle: giant-gloves, single-bell-sleeve and
       // towel-sleeve cover [3,23]; towel-sleeve, luggage-strap and guitar-case cover [20,25],
       // and luggage-strap is the protagonist's own supporting feature. Costume pixels win.
-      for (const [x, y] of [[3, 23], [20, 25]] as const) {
+      for (const [x, y] of [[3, 23], [19, 25]] as const) {
         const idleToken = frontOne[y]?.[x];
         expect(frontTwo[y]?.[x]).toBe(idleToken === '.' ? 'L' : idleToken);
       }

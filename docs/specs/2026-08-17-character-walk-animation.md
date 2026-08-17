@@ -61,9 +61,8 @@ if (!rectanglePixels(atlas, first).equals(rectanglePixels(atlas, second))) {
 
 1. Legs read as alternating across the two walk frames.
 2. Arms swing across the two walk frames.
-3. The head shifts one pixel **in the art** on the lateral frames, so a walking character reads as
-   turning into the direction of travel. On screen this stacks with the existing `leanX`, giving two
-   pixels of head against one of torso. See 5.3.
+3. A walking character reads as turning into the direction of travel. This is already satisfied by
+   the existing `leanX`; no new art is drawn for it. See 5.3.
 4. Characters blink.
 5. One drawing style, generated from `CharacterLook` like every other layer.
 6. Both renderers animate, from the same art.
@@ -102,14 +101,18 @@ One stride pose serves all 35 characters. Per-build leg shapes were considered a
 has no use anywhere in `character-source.ts` today, so keying limbs off it is new machinery for a
 two-pixel difference.
 
-**Arm swing is front and rear only.** The lateral frames get the head turn instead. A lateral arm
-would have to clear the outfit-pattern pixels that `lateralBodyCommands` already paints at x6-x7,
-and there is no room at this cell size.
+**Arm swing is front and rear only.** A lateral arm would have to clear the outfit-pattern pixels
+that `lateralBodyCommands` already paints at x6-x7, and there is no room at this cell size. The
+lateral frames animate on the feet alone.
 
-**The swing pixels only paint empty cells.** Six looks already occupy them at idle — `giant-gloves`,
-`single-bell-sleeve` and `towel-sleeve` cover `[3,23]`; `towel-sleeve`, `guitar-case` and
-`luggage-strap` cover `[20,25]`, and `luggage-strap` is the protagonist's own supporting feature.
-Those costume pixels win; the character simply swings one arm instead of two.
+**The swing points are `[3,23]` and `[19,25]`, and they only paint empty cells.** The low point is
+x19 rather than x20 because the torso narrows to x5-18 at row 25: an arm at x20 leaves x19
+transparent and the hand reads as detached from the body.
+
+Eleven looks already occupy one of the two at idle — four at `[3,23]` (mina-park, resident-08,
+resident-16, sora-tan) and eight at `[19,25]`, including the protagonist through its own
+`luggage-strap`. Those costume pixels win, so those characters swing one arm instead of two.
+mina-park occupies both and swings neither; its walk comes from the feet alone.
 
 ### 5.2 The four emit paths
 
@@ -130,13 +133,18 @@ work in this spec.
 ### 5.3 Head turn
 
 `movementPresentation()` already returns `leanX` of -1 on `left` frame 1 and +1 on `right` frame 1,
-shifting the whole sprite. Adding a one-pixel head shift **in the art** stacks with it: the head moves
-two pixels on screen while the torso moves one.
+shifting the whole sprite. That is the turn cue, and it shipped before this work. Nothing is added.
 
-That stacking is the intent — the head leads the body into the turn. It is called out here because it
-is easy to read as a bug in review.
+**A one-pixel head shift in the art was tried and removed.** It tore holes. The head is the top
+layer and the lateral body starts at row 18, so rows 16-17 are head, hair and accessory only —
+moving them exposes cells that never had paint underneath. Measured across the cast: seven of
+thirty-five characters gained interior holes in the face, and all thirty-five showed a notch where
+the head's trailing edge pulled away. resident-19 lost pixels at [15,17] and [16,16]; resident-08
+lost its collar pixel at [8,17].
 
-No code change. No new frame field.
+There is no honest backfill. Skin fattens the neck, cloth invents a collar, and copying the old
+pixel smears. `full-cast-art.test.ts` now asserts that no stride frame opens an interior hole the
+idle frame did not have, which is the check that was missing when this was first written.
 
 ### 5.4 Blink
 
@@ -320,7 +328,7 @@ bitmap, so each new frame gets its own contour.
 2. **Bump the revision to 16 first**, with the full lockstep in 6.4, and write the initial
    `revision-16-pixel-hashes.json`. Then front frame 1: legs and arms. Regenerate, review `front-1`
    against `front-2`.
-3. Lateral frames, including the one-pixel head turn.
+3. Lateral frames. Feet only; the turn cue is the existing `leanX`.
 4. Rear frames.
 5. Protagonist: four authored frame-1 cells, plus its authored eye band at step 7.
 6. Remaining contract updates, fixtures, document amendments.
@@ -338,7 +346,7 @@ fixture before the next starts.
 | Two poses at 24x30 read as a jitter, not a walk | Frame 0 stays the current silhouette, so the change is additive and reversible. Reviewed at step 2 before the other three paths are touched. |
 | `stablePose` redefinition weakens a real quality gate | It keeps the margin and rounded-base checks and drops only the equality clause. |
 | Protagonist wobble plus a real step reads as a double bounce | Reviewed together at step 5. The fallback is keeping the protagonist's pairs identical. |
-| Head turn stacks with `leanX` into a two-pixel head shift | Intended, and called out in 5.3 so review does not read it as a bug. |
+| A moved head or hair tears a hole, because nothing is drawn behind it | Why the lateral head shift was removed. `full-cast-art.test.ts` asserts no stride frame opens an interior hole. |
 | Blink misfires on walking characters | Accepted and documented. People blink while walking. |
 | The other session on `feat/threejs-2-5d-renderer` also regenerates the atlas | Separate branch, separate worktree. Conflicts land in generated files, which are rebuilt rather than merged. |
 

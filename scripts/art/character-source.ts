@@ -1038,8 +1038,11 @@ export function carveStrideGap(
  * `torsoAndClothing` is a `StaticLayerSchema` — one command list with no frame index — so the
  * swing cannot live in that layer. These sit outside the torso rects, at rows the row-24 hand
  * stamp does not touch, which is why the hands themselves never move.
+ *
+ * The low point is x19, not x20. The torso narrows to x5-18 at row 25, so an arm at x20 leaves
+ * x19 transparent and the hand reads as detached from the body. x19 touches the torso edge.
  */
-const WORLD_STRIDE_ARM_POINTS: readonly (readonly [number, number])[] = [[3, 23], [20, 25]];
+const WORLD_STRIDE_ARM_POINTS: readonly (readonly [number, number])[] = [[3, 23], [19, 25]];
 
 /**
  * Paints a token only where the cell is still empty.
