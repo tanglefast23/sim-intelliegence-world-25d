@@ -21,8 +21,10 @@ async function main(): Promise<void> {
     [
       // No yawDegrees: proves the DEFAULT renders the designed angle, not 0.
       { name: 'default-lit', shadowPath: 'lit' },
-      { name: 'yaw-45-fallback', yawDegrees: 45, shadowPath: 'fallback' },
-      { name: 'yaw-0-lit', yawDegrees: 0, shadowPath: 'lit' },
+      // The acceptance shot. The reference is a ROOM, and every capture so far has been exterior,
+      // so the target look is unproven exactly where it matters.
+      { name: 'villa-interior-lit', shadowPath: 'lit', zoom: 3 },
+      { name: 'villa-interior-fallback', shadowPath: 'fallback', zoom: 3 },
     ],
     evidenceRoot,
   );

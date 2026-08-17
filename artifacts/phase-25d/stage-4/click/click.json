@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "results": [
+    {
+      "name": "click-right",
+      "camera": {
+        "x": 234,
+        "y": 744.8834764831844,
+        "zoom": 1
+      },
+      "clickedAt": {
+        "x": 840,
+        "y": 420
+      },
+      "predictedTile": "44,23",
+      "tileBefore": "",
+      "tileAfter": "",
+      "moved": false
+    },
+    {
+      "name": "click-left",
+      "camera": {
+        "x": 234,
+        "y": 744.8834764831844,
+        "zoom": 1
+      },
+      "clickedAt": {
+        "x": 420,
+        "y": 420
+      },
+      "predictedTile": "35,32",
+      "tileBefore": "",
+      "tileAfter": "",
+      "moved": false
+    },
+    {
+      "name": "click-down",
+      "camera": {
+        "x": 234,
+        "y": 744.8834764831844,
+        "zoom": 1
+      },
+      "clickedAt": {
+        "x": 640,
+        "y": 560
+      },
+      "predictedTile": "46,33",
+      "tileBefore": "",
+      "tileAfter": "",
+      "moved": false
+    }
+  ]
+}

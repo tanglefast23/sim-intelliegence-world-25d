@@ -26,6 +26,10 @@ export type SceneRequest = Readonly<{
   name: string;
   yawDegrees?: number;
   shadowPath?: 'lit' | 'fallback';
+  /** Screen point to click after the world is up, to verify click-to-move end to end. */
+  clickAt?: Readonly<{ x: number; y: number }>;
+  /** World zoom, through the app's own test hook. Use 3 to frame an interior. */
+  zoom?: 1 | 2 | 3;
 }>;
 
 export type SceneEvidence = Readonly<{
@@ -41,6 +45,13 @@ export type SceneEvidence = Readonly<{
     shadowPath: string;
     shadowMapEnabled: boolean;
     atlasDrawCalls: number;
+  }>;
+  /** Present only when the scene asked for a click. */
+  click?: Readonly<{
+    at: Readonly<{ x: number; y: number }>;
+    cameraLabel: string;
+    tileBefore: string;
+    destination: string;
   }>;
 }>;
 
@@ -166,12 +177,46 @@ async function capture(scene) {
   if (!evidence) {
     throw new Error('The 2.5D renderer never published evidence for scene ' + scene.name + '.');
   }
+  if (scene.zoom) {
+    await window.webContents.executeJavaScript(
+      'window.siWorldSetRendererTestZoom ? window.siWorldSetRendererTestZoom(' + scene.zoom + ') : null',
+    );
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
   // Settle after readiness, so the capture is of a presented frame.
   await new Promise((r) => setTimeout(r, 750));
+
+  let click;
+  if (scene.clickAt) {
+    const clickScript = [
+      '(async () => {',
+      '  const wait = (ms) => new Promise((r) => setTimeout(r, ms));',
+      '  const label = (id) => { const n = document.querySelector("#" + id); return n ? (n.getAttribute("aria-label") || "") : ""; };',
+      // "<map>; tile X,Y; minute ..." - split rather than match, so no regex survives two levels
+      // of template escaping on the way in here.
+      '  const tile = () => { const t = label("world-state"); const i = t.indexOf("tile "); return i < 0 ? "" : t.slice(i + 5).split(";")[0].trim(); };',
+      '  const before = tile();',
+      '  const cameraLabel = label("world-camera-state");',
+      '  const surface = document.querySelector("#world-input-viewport");',
+      '  if (!surface) throw new Error("world-input-viewport is missing");',
+      '  const box = surface.getBoundingClientRect();',
+      '  const point = { clientX: box.left + ' + String(scene.clickAt.x) + ', clientY: box.top + ' + String(scene.clickAt.y) + ', bubbles: true, button: 0, pointerId: 1, isPrimary: true };',
+      '  surface.dispatchEvent(new PointerEvent("pointerdown", point));',
+      '  await wait(40);',
+      '  surface.dispatchEvent(new PointerEvent("pointerup", point));',
+      '  surface.dispatchEvent(new MouseEvent("click", point));',
+      '  await wait(1200);',
+      '  return { at: { x: ' + String(scene.clickAt.x) + ', y: ' + String(scene.clickAt.y) + ' }, cameraLabel: cameraLabel, tileBefore: before, destination: tile() };',
+      '})()',
+    ].join('\n');
+    click = await window.webContents.executeJavaScript(clickScript);
+  }
+
   const image = await window.webContents.capturePage(undefined, { stayHidden: true });
   const screenshot = scene.name + '.png';
   writeFileSync(join(outputDirectory, screenshot), image.toPNG());
-  return { name: scene.name, yawDegrees: evidence.yawDegrees, shadowPath, screenshot, evidence };
+  return { name: scene.name, yawDegrees: evidence.yawDegrees, shadowPath, screenshot, evidence, click };
 }
 
 app.whenReady().then(async () => {
