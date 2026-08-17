@@ -86,19 +86,108 @@ export function lampLights(frame: WorldFrameState): readonly LampLight[] {
  * re-deriving where a character's feet are.
  */
 export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
-  return frame.characterShadows.map((shadow) => ({
+  const sheltered = (worldX: number, worldY: number): boolean => frame.shelterCells.some((cell) => {
+    const tileX = Math.floor(worldX / TILE_SIZE);
+    const tileY = Math.floor(worldY / TILE_SIZE);
+    return tileX >= cell.x && tileX < cell.x + cell.width
+      && tileY >= cell.y && tileY < cell.y + cell.height;
+  });
+  return frame.characterShadows.map((shadow) => {
+    const cast = blobCastOffset(frame, shadow, sheltered(shadow.worldX, shadow.worldY));
+    return {
     id: `blob-${shadow.id}`,
     sprite: 'blob-shadow',
     // Blobs are untextured: the renderer draws them with a plain material, so the source rect is
     // only here to satisfy the shared descriptor shape.
     source: { x: 0, y: 0, width: 0, height: 0 } as QuadDescriptor['source'],
-    x: (shadow.worldX + shadow.castX) / TILE_SIZE,
-    z: (shadow.worldY + shadow.castY) / TILE_SIZE,
+    x: (shadow.worldX + cast.x) / TILE_SIZE,
+    z: (shadow.worldY + cast.y) / TILE_SIZE,
     width: 0.82,
     depth: 0.5,
     tint: shadow.color,
     opacity: 1,
-  }));
+    };
+  });
+}
+
+
+/** Above this lamp mix the lamps own the scene, so they own its shadows and its key light too. */
+export const LAMP_KEY_THRESHOLD = 0.6;
+
+/**
+ * Where the night's key light should come FROM, in tiles, or undefined if the sun still owns it.
+ *
+ * After dusk the only shadow-casting light was a directional sun at 0.15 intensity aimed along the
+ * day cycle's vector, while the lamps did all the visible lighting and cast nothing at all. So
+ * objects sat in a warm pool with a hard shadow pointing away from a light that was not lighting
+ * them — and "hard aliased pixel shadows" is a stated pillar of the look, not a detail.
+ *
+ * The CENTROID of the lamps in frame, not the nearest one. A centroid moves smoothly as the window
+ * pans, where a nearest-lamp pick jumps the whole scene's shadows the moment the ranking changes.
+ * One directional cannot serve three lamps honestly either way; the centroid is the choice that
+ * lies least and never pops.
+ */
+export function nightKeyOrigin(
+  frame: WorldFrameState,
+): Readonly<{ x: number; z: number; color: string }> | undefined {
+  if (frame.lighting.sun.lampMix < LAMP_KEY_THRESHOLD) return undefined;
+  const lamps = lampLights(frame);
+  if (lamps.length === 0) return undefined;
+  let x = 0;
+  let z = 0;
+  for (const lamp of lamps) {
+    x += lamp.x;
+    z += lamp.z;
+  }
+  // The brightest lamp lends its colour, so the key agrees with the pool it casts out of.
+  const brightest = lamps.reduce((best, lamp) => lamp.intensity > best.intensity ? lamp : best);
+  return { x: x / lamps.length, z: z / lamps.length, color: brightest.color };
+}
+
+/**
+ * The direction a character's blob should stretch, away from whatever is lighting them.
+ *
+ * The frame offsets every blob by the day cycle's sun vector. After dusk that vector belongs to a
+ * light at 0.15 intensity, so six characters standing around a magenta lamp all had identical ovals
+ * pointing the same wrong way. This is a required companion of `nightKeyOrigin`, not an alternative
+ * to it: if box shadows radiate from the lamps while blobs point along the dead sun, the frame
+ * contradicts itself more loudly than either error does alone.
+ *
+ * Indoors the blob keeps the frame's own offset. A room is lit from a fixture overhead, which rakes
+ * nothing, and the short indoor blob is already right.
+ */
+export function blobCastOffset(
+  frame: WorldFrameState,
+  shadow: Readonly<{ worldX: number; worldY: number; castX: number; castY: number }>,
+  insideShelter: boolean,
+): Readonly<{ x: number; y: number }> {
+  if (insideShelter || frame.lighting.sun.lampMix < LAMP_KEY_THRESHOLD) {
+    return { x: shadow.castX, y: shadow.castY };
+  }
+  const lamps = lampLights(frame);
+  if (lamps.length === 0) return { x: shadow.castX, y: shadow.castY };
+  const tileX = shadow.worldX / TILE_SIZE;
+  const tileZ = shadow.worldY / TILE_SIZE;
+  let nearest = lamps[0]!;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const lamp of lamps) {
+    const dx = lamp.x - tileX;
+    const dz = lamp.z - tileZ;
+    const squared = dx * dx + dz * dz;
+    if (squared < bestDistance) {
+      bestDistance = squared;
+      nearest = lamp;
+    }
+  }
+  const distance = Math.sqrt(bestDistance);
+  if (distance < 0.01) return { x: 0, y: 0 };
+  // Longer the further away the lamp is, the way a real cast lengthens, and capped so a character
+  // at the edge of a pool does not trail a shadow across the whole yard.
+  const reach = Math.min(0.42 + distance * 0.16, 1.1) * TILE_SIZE;
+  return {
+    x: ((tileX - nearest.x) / distance) * reach,
+    y: ((tileZ - nearest.z) / distance) * reach,
+  };
 }
 
 /**

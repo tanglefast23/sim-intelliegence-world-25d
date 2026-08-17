@@ -3,8 +3,11 @@ import { resolve } from 'node:path';
 
 import {
   DEFAULT_SHADOW_PATH,
+  LAMP_KEY_THRESHOLD,
   LAMP_SPRITE_IDS_25D,
+  blobCastOffset,
   blobShadows,
+  nightKeyOrigin,
   lampLights,
   propContactShadows,
   shadowPathForEnvironment,
@@ -173,5 +176,82 @@ describe('prop contact shadows', () => {
       expect(contact.width).toBeLessThan(shadow.width / 32);
       expect(contact.depth).toBeLessThan(contact.width);
     }
+  });
+});
+
+/**
+ * After dusk the lamps light the scene, so the lamps must own its shadows. The one directional was
+ * left on the day cycle's vector at 0.15 intensity, so objects sat in a warm pool with a hard
+ * shadow pointing away from a light that was not lighting them, or with no shadow at all.
+ */
+describe('the night key light', () => {
+  const outdoor = outdoorFrame();
+  const atLampMix = (lampMix: number, frame = outdoor) =>
+    ({ ...frame, lighting: { ...frame.lighting, sun: { ...frame.lighting.sun, lampMix } } });
+
+  test('stays with the sun while the sun still owns the scene', () => {
+    expect(nightKeyOrigin(atLampMix(0))).toBeUndefined();
+    expect(nightKeyOrigin(atLampMix(LAMP_KEY_THRESHOLD - 0.01))).toBeUndefined();
+  });
+
+  test('moves to the lamps once they own it', () => {
+    expect(nightKeyOrigin(atLampMix(1))).toBeDefined();
+  });
+
+  /**
+   * The CENTROID, not the nearest lamp. A centroid moves smoothly as the window pans; a
+   * nearest-lamp pick jumps every shadow in the scene the moment the ranking changes.
+   */
+  test('sits at the centroid of the lamps in frame', () => {
+    const frame = atLampMix(1);
+    const lamps = lampLights(frame);
+    const key = nightKeyOrigin(frame)!;
+    expect(key.x).toBeCloseTo(lamps.reduce((sum, one) => sum + one.x, 0) / lamps.length, 6);
+    expect(key.z).toBeCloseTo(lamps.reduce((sum, one) => sum + one.z, 0) / lamps.length, 6);
+  });
+
+  test('a frame with no lamps keeps the sun, however dark it is', () => {
+    expect(nightKeyOrigin(atLampMix(1, { ...outdoor, props: [] }))).toBeUndefined();
+  });
+});
+
+/**
+ * A required companion of the night key, not an alternative to it: if box shadows radiate from the
+ * lamps while every character blob still points along the dead sun vector, the frame contradicts
+ * itself more loudly than either error does alone.
+ */
+describe('character blobs follow the light that is on', () => {
+  const outdoor = outdoorFrame();
+  const atLampMix = (lampMix: number) =>
+    ({ ...outdoor, lighting: { ...outdoor.lighting, sun: { ...outdoor.lighting.sun, lampMix } } });
+
+  test('keeps the frame cast by day', () => {
+    const shadow = outdoor.characterShadows[0]!;
+    expect(blobCastOffset(atLampMix(0), shadow, false))
+      .toEqual({ x: shadow.castX, y: shadow.castY });
+  });
+
+  test('points AWAY from the nearest lamp at night', () => {
+    const frame = atLampMix(1);
+    const shadow = frame.characterShadows[0]!;
+    const cast = blobCastOffset(frame, shadow, false);
+    const lamps = lampLights(frame);
+    const nearest = lamps.reduce((best, lamp) => {
+      const here = (lamp.x - shadow.worldX / 32) ** 2 + (lamp.z - shadow.worldY / 32) ** 2;
+      const there = (best.x - shadow.worldX / 32) ** 2 + (best.z - shadow.worldY / 32) ** 2;
+      return here < there ? lamp : best;
+    });
+    const awayX = shadow.worldX / 32 - nearest.x;
+    const awayZ = shadow.worldY / 32 - nearest.z;
+    // Same sign on both axes as the vector from the lamp to the character: it points away.
+    expect(Math.sign(cast.x)).toBe(Math.sign(awayX));
+    expect(Math.sign(cast.y)).toBe(Math.sign(awayZ));
+  });
+
+  /** A room is lit from a fixture overhead, which rakes nothing. The short indoor blob is right. */
+  test('indoors keeps the frame cast even at full lamp mix', () => {
+    const frame = atLampMix(1);
+    const shadow = frame.characterShadows[0]!;
+    expect(blobCastOffset(frame, shadow, true)).toEqual({ x: shadow.castX, y: shadow.castY });
   });
 });

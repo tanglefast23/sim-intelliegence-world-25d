@@ -37,6 +37,7 @@ import {
   blobShadows,
   lampLights,
   lampPools,
+  nightKeyOrigin,
   propContactShadows,
   type ShadowPath,
 } from './lighting';
@@ -844,6 +845,8 @@ export async function createWorldRenderer25(
    * Blob shadows draw in BOTH paths - see `blobShadows`.
    */
   const sun = shadowPath === 'lit' ? new DirectionalLight('#ffefdb', 3.2) : undefined;
+  /** Kept so the key can return to daylight after borrowing a lamp's colour for the night. */
+  const daySunColor = sun ? sun.color.clone() : undefined;
   if (sun) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = BasicShadowMap;
@@ -1163,19 +1166,56 @@ export async function createWorldRenderer25(
     }
 
     if (sun) {
-      // Aim the sun along the frame's own shadow vector, so the lit path agrees with the 2D
-      // renderer about where the light comes from.
       sun.target.position.set(lookAt.x, 0, lookAt.z);
       sun.target.updateMatrixWorld(true);
-      sun.position.set(
-        lookAt.x - (next.lighting.sun.shadowX / TILE_SIZE) * 6,
-        14 + next.lighting.sun.elevation * 12,
-        lookAt.z - (next.lighting.sun.shadowY / TILE_SIZE) * 6,
-      );
-      // 0.15, not 0.8. A 0.8 floor at midnight is a moon bright enough to light the whole room,
-      // which is exactly the moonlit-terrace read the reference does not have. The lamps own the
-      // night; the sun owns the day.
-      sun.intensity = 0.15 + next.lighting.sun.elevation * 3.2;
+      /**
+       * After dusk the ONE shadow-casting light moves to the lamps.
+       *
+       * The comment below this used to say "the lamps own the night" while the code kept the only
+       * shadow caster on a sun at 0.15 intensity, aimed along the day cycle's vector. So every
+       * object at night sat in a warm pool with a hard shadow pointing away from a light that was
+       * not lighting it, and most had no visible shadow at all — while hard aliased pixel shadows
+       * are a stated pillar of the look. The code now does what the comment claimed.
+       *
+       * Still ONE directional and one shadow pass. A point light per lamp would be a second shadow
+       * map, and a lamp head sitting inside its own light self-shadows; both were refused already.
+       * The key comes from the centroid of the lamps in frame, which cannot honestly serve three
+       * lamps at once but moves smoothly on a pan, where a nearest-lamp pick would jump every
+       * shadow in the scene the moment the ranking changed.
+       */
+      const key = nightKeyOrigin(next);
+      if (key) {
+        const toLookX = lookAt.x - key.x;
+        const toLookZ = lookAt.z - key.z;
+        const span = Math.hypot(toLookX, toLookZ);
+        // A key directly overhead casts nothing, so a lamp cluster the camera is centred on still
+        // gets a rake. Six tiles out along the same bearing, at lamp-head height plus a little.
+        const bearingX = span < 0.01 ? 0.7 : toLookX / span;
+        const bearingZ = span < 0.01 ? 0.7 : toLookZ / span;
+        sun.position.set(lookAt.x - bearingX * 6, 5.5, lookAt.z - bearingZ * 6);
+        // The key MOVES to the lamps; it does not take their colour. Tinting it amber to match the
+        // harbour's lamps washed that district's teal cargo toward the ground it stood on and cost
+        // 0.18 of saturation, because a key strong enough to carve a shadow is also strong enough
+        // to repaint everything it touches. Colour belongs to the point lights and the pools, which
+        // are per-lamp and local; the key's whole job is the shadow.
+        if (daySunColor) sun.color.copy(daySunColor);
+        // 0.65 is where the trade sits. Measured against no night key: at 0.8 every district gains
+        // 5-7 luminance, loses 3-9 points of dead pixels and gains detail, but loses saturation
+        // everywhere, because a white key bright enough to carve also washes colour out. Tinting it
+        // to the lamps recovers the saturation and costs the harbour 0.18 instead, since amber on
+        // amber kills the very warm-on-cool contrast that district reads by.
+        sun.intensity = 0.65;
+      } else {
+        sun.position.set(
+          lookAt.x - (next.lighting.sun.shadowX / TILE_SIZE) * 6,
+          14 + next.lighting.sun.elevation * 12,
+          lookAt.z - (next.lighting.sun.shadowY / TILE_SIZE) * 6,
+        );
+        if (daySunColor) sun.color.copy(daySunColor);
+        // 0.15, not 0.8. A 0.8 floor at dusk is a moon bright enough to light the whole room, which
+        // is exactly the moonlit-terrace read the reference does not have.
+        sun.intensity = 0.15 + next.lighting.sun.elevation * 3.2;
+      }
     }
 
     // Blob shadows are flat ground quads, so they bake with the same helper the floors use.
