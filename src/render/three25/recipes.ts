@@ -24,6 +24,11 @@ export type PropRecipe = Readonly<{
 /** Matches the spike wall box height. See spikes/001-threejs-pixel-villa/scene.js:109. */
 export const WALL_HEIGHT_TILES = 1.45;
 
+/** Planter pot and foliage. Two materials on one sprite, so one measured colour cannot serve both. */
+const TERRACOTTA = '#b5673a';
+const FOLIAGE_GREEN = '#5f9e52';
+const FOLIAGE_FLOWERING = '#6fae5c';
+
 /** Warm lamp glow. Bright enough to read as a light source in a dark room. */
 const LAMP_GLOW = '#ffd9a0';
 /** The cold and neon fixtures glow their own colour rather than warm amber. */
@@ -57,9 +62,11 @@ const bench = (width: number): readonly BoxRecipe[] => [
 ];
 
 /** Pot plus the mass growing out of it. */
-const planter = (foliageWidth: number): readonly BoxRecipe[] => [
-  { x: 0, y: 0.16, z: 0, width: 0.55, height: 0.32, depth: 0.55 },
-  { x: 0, y: 0.55, z: 0, width: foliageWidth, height: 0.5, depth: foliageWidth },
+const planter = (foliageWidth: number, foliage = FOLIAGE_GREEN): readonly BoxRecipe[] => [
+  // The pot and the foliage are two materials, so they carry two tints. The sprite's single
+  // measured paint is a dark green that turned the whole planter into one black lump.
+  { x: 0, y: 0.16, z: 0, width: 0.55, height: 0.32, depth: 0.55, tint: TERRACOTTA },
+  { x: 0, y: 0.55, z: 0, width: foliageWidth, height: 0.5, depth: foliageWidth, tint: foliage },
 ];
 
 // --- One-tile shapes for the run-forming groups ------------------------------------------
@@ -221,7 +228,7 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
     consumes: ['tile.sunset-fountain-ne', 'tile.sunset-fountain-sw', 'tile.sunset-fountain-se'],
   },
   'tile.sunset-market-bench': { boxes: bench(0.9) },
-  'tile.flowering-market-planter': { boxes: planter(0.78) },
+  'tile.flowering-market-planter': { boxes: planter(0.78, FOLIAGE_FLOWERING) },
 
   // --- Lamps and lanterns -----------------------------------------------------------------
   'tile.fixture-lamp': { boxes: post(0.8, 0.32) },
@@ -233,8 +240,8 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   'tile.fixture-planter': { boxes: planter(0.7) },
   'tile.plant-palm': {
     boxes: [
-      { x: 0, y: 0.75, z: 0, width: 0.22, height: 1.5, depth: 0.22 },
-      { x: 0, y: 1.65, z: 0, width: 1.1, height: 0.3, depth: 1.1 },
+      { x: 0, y: 0.75, z: 0, width: 0.22, height: 1.5, depth: 0.22, tint: '#8a6a44' },
+      { x: 0, y: 1.65, z: 0, width: 1.1, height: 0.3, depth: 1.1, tint: FOLIAGE_GREEN },
     ],
   },
 

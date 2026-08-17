@@ -35,7 +35,9 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
     z: character.shadowWorldY / TILE_SIZE,
     width: (character.source.width * character.scale) / TILE_SIZE,
     height: (character.source.height * character.scale) / TILE_SIZE,
-    tint: tintForLighting(character.color, frame.lighting),
+    // Capped, like the furniture: an unlit sprite has no light to lift it back up, and a
+    // protagonist who becomes a black silhouette after dusk is unusable.
+    tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
   }));
 }
 

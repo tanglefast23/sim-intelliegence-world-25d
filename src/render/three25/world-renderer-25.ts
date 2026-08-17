@@ -611,12 +611,26 @@ export async function createWorldRenderer25(
    */
   const flatMaterial = new MeshBasicMaterial({ vertexColors: true });
 
+  /**
+   * Characters, unlit and textured.
+   *
+   * The 2D game draws characters unlit — the sprite's own pixels are the character. Lighting them
+   * here made the protagonist a black silhouette in a dark room, which is the one thing a player
+   * must always be able to see. Day and night reach them through the descriptor tint instead.
+   */
+  const billboardMaterial = new MeshBasicMaterial({
+    map: texture,
+    vertexColors: true,
+    alphaTest: 0.5,
+    transparent: false,
+  });
+
   const cache = new SceneCache();
   const floorMesh = new Mesh(new BufferGeometry(), material);
   const boxMesh = new Mesh(new BufferGeometry(), material);
   const flatBoxMesh = new Mesh(new BufferGeometry(), flatMaterial);
   // Characters are their own batch because they move every frame while the world does not.
-  const billboardMesh = new Mesh(new BufferGeometry(), material);
+  const billboardMesh = new Mesh(new BufferGeometry(), billboardMaterial);
   // The baked geometry is already in world space, so three's own bounding sphere would sit at the
   // origin and cull the whole batch.
   floorMesh.frustumCulled = false;
@@ -825,6 +839,7 @@ export async function createWorldRenderer25(
       flatBoxMesh.geometry.dispose();
       flatMaterial.dispose();
       billboardMesh.geometry.dispose();
+      billboardMaterial.dispose();
       blobMesh.geometry.dispose();
       blobMaterial.dispose();
       for (const light of lamps.values()) {

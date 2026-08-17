@@ -29,9 +29,10 @@ describe('character billboards', () => {
   });
 
   // Task 13 folds district lighting into this tint, so the descriptor carries the LIT colour.
-  test('carries the character colour under the frame lighting', () => {
+  test('carries the character colour under the frame lighting, capped', () => {
     const billboard = buildBillboards(frame)[0]!;
-    expect(billboard.tint).toBe(tintForLighting(frame.characters[0]!.color, frame.lighting));
+    expect(billboard.tint)
+      .toBe(tintForLighting(frame.characters[0]!.color, frame.lighting, UNLIT_NIGHT_STRENGTH));
   });
 
   /**
@@ -104,7 +105,15 @@ describe('billboard tint', () => {
   test('the built billboards carry the lit tint, not the raw character colour', () => {
     const night = { ...frame, lighting: withElevation(0) };
     expect(buildBillboards(night)[0]!.tint)
-      .toBe(tintForLighting(frame.characters[0]!.color, withElevation(0)));
+      .toBe(tintForLighting(frame.characters[0]!.color, withElevation(0), UNLIT_NIGHT_STRENGTH));
+  });
+
+  /** A black silhouette after dusk is unusable: the player must always see their character. */
+  test('a character stays visible at midnight', () => {
+    const night = { ...frame, lighting: withElevation(0) };
+    const tint = buildBillboards(night)[0]!.tint;
+    const channel = (at: number) => Number.parseInt(tint.slice(at, at + 2), 16);
+    expect(Math.max(channel(1), channel(3), channel(5))).toBeGreaterThan(0x80);
   });
 });
 
