@@ -534,7 +534,11 @@ function worldLegCommands(): CharacterSource['sourceLayers']['legs'] {
   ];
   return {
     frontFrames: [[...roundedBase], [...stride]],
-    lateralFrames: [[...roundedBase], [...stride]],
+    // `composeLateralFrame` does not read this layer — lateral feet come from
+    // `lateralBodyCommands`, at a different width and offset. These stay two rounded bases so
+    // nothing implies a lateral stride lives here; only the review sheet and a layer-signature
+    // test consume them.
+    lateralFrames: [[...roundedBase], [...roundedBase]],
   };
 }
 

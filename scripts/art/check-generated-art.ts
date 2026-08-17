@@ -58,19 +58,14 @@ function aggregatePublicCellHash(
  */
 function assertWalkCells(index: AtlasIndex, atlas: ReturnType<typeof decodePng>): void {
   for (const [characterId, character] of Object.entries(index.characters)) {
-    const animated = new Set(['front', 'rear', 'left', 'right']);
     for (const direction of ['front', 'rear', 'left', 'right'] as const) {
       const first = index.sprites[character.frames[`${direction}-1`] as string];
       const second = index.sprites[character.frames[`${direction}-2`] as string];
       if (!first || !second || first.width !== 24 || first.height !== 30 || second.width !== 24 || second.height !== 30) {
         throw new Error(`${characterId} ${direction} must have two 24x30 atlas cells.`);
       }
-      const identical = rectanglePixels(atlas, first).equals(rectanglePixels(atlas, second));
-      if (animated.has(direction) && identical) {
+      if (rectanglePixels(atlas, first).equals(rectanglePixels(atlas, second))) {
         throw new Error(`${characterId} ${direction} cells must differ; the walk frame is not animating.`);
-      }
-      if (!animated.has(direction) && !identical) {
-        throw new Error(`${characterId} ${direction} cells must be byte-identical until that direction animates.`);
       }
     }
   }
