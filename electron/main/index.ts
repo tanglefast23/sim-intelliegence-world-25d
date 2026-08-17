@@ -276,18 +276,21 @@ async function waitForCameraMotion(
     label = await cameraMotionLabel(window);
     if (matches(label)) return label;
     /**
-     * Nudge the compositor between polls.
+     * Drive a frame between polls.
      *
      * The camera clock advances on `requestAnimationFrame`, and a hidden window on the Windows
      * runner is not composited, so rAF never fires while JS timers keep running. Measured on that
      * runner: `framesIn500ms=0` with `documentHidden=false` and no lost-context overlay. Trauma
      * then freezes mid-decay — `shake 0.24` forever — and every wait that needs a frame times out.
      *
-     * `capturePage` is what forces a hidden window to produce one. `waitForRendererPaint` above
-     * relies on exactly that, which is why paint waits pass on Windows while these did not. This is
-     * a test-environment fix, not a product one: a real window has a live compositor.
+     * `waitForRendererPaint` is reused rather than calling `capturePage` directly: its paired
+     * captures are what force a hidden window to produce frames, and `package-smoke.test.ts` pins
+     * that pattern to exactly one place. Its rejection is swallowed on purpose — a renderer that
+     * cannot paint is the condition being waited out, and the timeout below reports it properly.
+     *
+     * This is a test-environment fix, not a product one. A real window has a live compositor.
      */
-    await window.webContents.capturePage(undefined, { stayHidden: true });
+    await waitForRendererPaint(window).catch(() => undefined);
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 50));
   }
   const diagnostics = await cameraMotionDiagnostics(window);
