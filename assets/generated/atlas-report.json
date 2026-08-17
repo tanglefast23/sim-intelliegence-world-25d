@@ -38,9 +38,9 @@
       "rawRectangleArea": 232960
     },
     "world-character-eyes": {
-      "actualCount": 0,
+      "actualCount": 35,
       "maximumCount": 35,
-      "rawRectangleArea": 0
+      "rawRectangleArea": 4550
     },
     "portrait": {
       "actualCount": 53,
@@ -54,12 +54,12 @@
     }
   },
   "actual": {
-    "cellCount": 612,
-    "rawRectangleArea": 598202,
+    "cellCount": 647,
+    "rawRectangleArea": 602752,
     "width": 1024,
-    "height": 595,
-    "boundingRectangleArea": 609280,
-    "occupancy": 0.9818178834033613
+    "height": 600,
+    "boundingRectangleArea": 614400,
+    "occupancy": 0.9810416666666667
   },
   "forecast": {
     "cellCount": 784,
@@ -159,7 +159,7 @@
   ],
   "indexVersion": 3,
   "toolVersion": "atlas-v9-authored-full-cast",
-  "imageSha256": "ab68cbf224f985ab8c8e13cef33a0d54f674c834bda4c7623636de162ce6dfb9",
-  "publicSpriteCount": 612,
+  "imageSha256": "9ae2346275b304cb00f51d4f7ce4ed3312c3d7bfc6fcbde02ac653632053f5fa",
+  "publicSpriteCount": 647,
   "internalReviewSpriteCount": 0
 }

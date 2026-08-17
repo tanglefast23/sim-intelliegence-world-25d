@@ -1,6 +1,8 @@
 import {
+  EYE_BAND,
   PORTRAIT_CELL,
   WORLD_CELL,
+  composeEyeBand,
   composeFrontFrame,
   composePortrait,
   drawTokenCommands,
@@ -15,6 +17,7 @@ import {
 import { composeLateralFrame, getLateralIdentityCommandSets } from '../lateral-legs';
 import { parseHexColor } from '../png';
 import { deriveRearFrame } from '../rear-frame';
+import { protagonistReferenceFrames } from '../protagonist-reference';
 import { CHARACTER_LOOKS } from '../character-look-roster';
 import type { SecondaryFeature } from '../character-look-roster';
 import {
@@ -206,6 +209,30 @@ describe('full-cast shared-source character art', () => {
       expect(paintedRuns(strideLegs![28] as string)).toBe(1);
       expect(paintedRuns(strideLegs![29] as string)).toBe(2);
       expect(geometry.legs.frontFrames[1]).not.toEqual(geometry.legs.frontFrames[0]);
+    }
+  });
+
+  test('closes the eyes in the blink band while preserving every other pixel', () => {
+    for (const source of sources) {
+      const band = composeEyeBand(source);
+      const base = protagonistReferenceFrames(source.id)?.['front-1'] ?? composeFrontFrame(source, 0);
+      expect(band).toHaveLength(EYE_BAND.height);
+      let changed = 0;
+      for (let index = 0; index < band.length; index += 1) {
+        const before = base[EYE_BAND.top + index] as string;
+        const after = band[index] as string;
+        expect(after).toHaveLength(WORLD_CELL.width);
+        for (let x = 0; x < WORLD_CELL.width; x += 1) {
+          if (before[x] === after[x]) continue;
+          changed += 1;
+          // Only eye whites and their pupil tokens may move, and only inside the eye columns.
+          // This is what keeps star-glasses' accent at [10,14], window-glasses' frame, and the
+          // mouth pixel at [11,14] intact through a blink.
+          expect([7, 8, 9, 10, 13, 14, 15, 16]).toContain(x);
+          expect(['W', 'K', 'D']).toContain(before[x]);
+        }
+      }
+      expect(changed).toBeGreaterThan(0);
     }
   });
 

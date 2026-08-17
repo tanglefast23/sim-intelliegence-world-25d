@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import {
   WORLD_CELL,
   addOutwardContour,
+  composeEyeBand,
   composeFrontFrame,
   loadCharacterSources,
   loadMultiTileCompositions,
@@ -97,6 +98,7 @@ export type AtlasIndex = Readonly<{
     portrait: string;
     portraits: Readonly<Record<string, string>>;
     frames: Readonly<Record<string, string>>;
+    eyes: string;
     sourceLayers: readonly ['legs', 'torso-and-clothing', 'head-and-face', 'hair', 'accessory', 'held-item'];
   }>>>;
   tiles: readonly string[];
@@ -130,7 +132,7 @@ function worldEntries(source: CharacterSource): Entry[] {
   };
   const authoredFrames = protagonistReferenceFrames(source.id);
   const tokenFrames = authoredFrames ?? generatedFrames;
-  return Object.entries(tokenFrames).map(([frame, tokens]) => ({
+  const frameEntries: Entry[] = Object.entries(tokenFrames).map(([frame, tokens]) => ({
     name: `character.${source.id}.${frame}`,
     sourceId: source.id,
     kind: 'world-character' as const,
@@ -146,6 +148,25 @@ function worldEntries(source: CharacterSource): Entry[] {
         true,
       ),
   }));
+  /**
+   * The blink overlay: rows 12-14 of the idle front cell with the eyes closed.
+   *
+   * No `addOutwardContour`. A contour on a three-row strip would draw an outline through the
+   * middle of the face; the band's transparent edges let the body cell's own contour show
+   * through instead. `cellClass` stays `null` like every other character cell, so these never
+   * land in `transparentPartCells`, which is a wall and tile list.
+   */
+  const eyeBand: Entry = {
+    name: `character.${source.id}.eyes`,
+    sourceId: source.id,
+    kind: 'world-character' as const,
+    category: 'world-character-eyes' as const,
+    visibility: 'public' as const,
+    cellClass: null,
+    wallAdjacencyMask: null,
+    bitmap: tokenFrameToBitmap(composeEyeBand(source), source.palette),
+  };
+  return [...frameEntries, eyeBand];
 }
 
 function renderTransitionMask(
@@ -443,6 +464,7 @@ export function buildAtlas(root = process.cwd()): {
           `character.${character.id}.${direction}-${frame}`,
         ]),
       )),
+      eyes: `character.${character.id}.eyes`,
       sourceLayers: [
         'legs',
         'torso-and-clothing',

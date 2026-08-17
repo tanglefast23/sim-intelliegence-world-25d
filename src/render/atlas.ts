@@ -76,6 +76,8 @@ export type RuntimeAtlasIndex = Readonly<{
     portrait: string;
     portraits: Readonly<Record<string, string>>;
     frames: Readonly<Record<string, string>>;
+    /** The closed-eye band overlaid during a blink. 24x3, rows 12-14 of the idle front cell. */
+    eyes: string;
     sourceLayers: readonly string[];
   }>>>;
   tiles: readonly string[];

@@ -9,6 +9,9 @@ import {
   type PortraitExpression,
 } from './character-look-roster';
 import { applyConnectedHairLighting } from './hair-lighting';
+// Runtime import, but not a cycle: protagonist-reference.ts imports only `type TokenFrame`
+// from this module, and type imports are erased.
+import { protagonistReferenceFrames } from './protagonist-reference';
 import { createBitmap, decodePng, fillRect, parseHexColor, setPixel, type Bitmap, type Rgba } from './png';
 
 export const WORLD_CELL = { width: 24, height: 30 } as const;
@@ -1078,6 +1081,41 @@ export function composeFrontFrame(source: CharacterSource, frameIndex: 0 | 1): T
     ]);
   }
   return frame;
+}
+
+/** Rows of the 24x30 cell that the blink overlay replaces. */
+export const EYE_BAND = { top: 12, height: 3 } as const;
+
+/** Columns the eye whites occupy: `rect W 7,13,4,2` and `rect W 13,13,4,2`. */
+const EYE_COLUMNS: readonly number[] = [7, 8, 9, 10, 13, 14, 15, 16];
+
+/**
+ * The idle front frame with the eyes closed, cut to rows 12-14.
+ *
+ * Sliced from a full compose rather than drawn standalone. Several looks paint inside these
+ * rows from other layers — `star-glasses` puts an accent at [10,14], `window-glasses` frames
+ * the whole eye region — and a standalone band would pop those pixels off for the length of a
+ * blink. Only `W`, `K` and `D` inside the eye columns are rewritten, so accessory tokens and
+ * the mouth pixel at [11,14] survive untouched.
+ *
+ * Rows 12-14, not 12-16: the mouth sits at [11,14] and [12,15], and a band reaching row 15
+ * would erase it. A blink that collapses the face is worse than no blink.
+ *
+ * The protagonist's atlas cell is its AUTHORED front-1, not this generated compose, so the
+ * band is sliced from the same source the body cell uses or the eye region would swap to a
+ * different face mid-blink.
+ */
+export function composeEyeBand(source: CharacterSource): TokenFrame {
+  const base = protagonistReferenceFrames(source.id)?.['front-1'] ?? composeFrontFrame(source, 0);
+  const closed = base.map((row, y) => {
+    if (y < 13 || y > 14) return row;
+    const cells = [...row];
+    for (const x of EYE_COLUMNS) {
+      if (['W', 'K', 'D'].includes(cells[x] as string)) cells[x] = y === 13 ? 'K' : 's';
+    }
+    return cells.join('');
+  });
+  return closed.slice(EYE_BAND.top, EYE_BAND.top + EYE_BAND.height) as unknown as TokenFrame;
 }
 
 export function composePortrait(
