@@ -35,6 +35,9 @@ const TERRACOTTA = '#b5673a';
 const FOLIAGE_GREEN = '#5f9e52';
 const FOLIAGE_FLOWERING = '#6fae5c';
 
+/** The pale band on a market awning, so a two-tile canopy is fabric rather than one red slab. */
+const CANOPY_STRIPE = '#f2ddc0';
+
 /** The lid rim on a crate. Brighter than the body so the cap reads as a separate piece of timber. */
 const CRATE_RIM = '#d8c49a';
 
@@ -324,6 +327,10 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
       { x: -0.3, y: 0.9, z: 1.3, width: 0.12, height: 1.8, depth: 0.12, tint: PALE_WOOD_SHADE },
       { x: 1.3, y: 0.9, z: 1.3, width: 0.12, height: 1.8, depth: 0.12, tint: PALE_WOOD_SHADE },
       { x: 0.5, y: 1.9, z: 0.5, width: 2.1, height: 0.18, depth: 2.1 },
+      // Two stripes across the canopy. One flat slab two tiles across reads as a giant red table;
+      // an awning is striped fabric, and two bands are enough for the eye to call it one.
+      { x: 0.5, y: 2.0, z: 0.0, width: 2.14, height: 0.05, depth: 0.42, tint: CANOPY_STRIPE },
+      { x: 0.5, y: 2.0, z: 1.0, width: 2.14, height: 0.05, depth: 0.42, tint: CANOPY_STRIPE },
     ],
     consumes: ['tile.market-canopy-ne', 'tile.market-canopy-sw', 'tile.market-canopy-se'],
   },

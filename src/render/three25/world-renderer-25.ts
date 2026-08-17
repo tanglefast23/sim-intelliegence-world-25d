@@ -46,6 +46,7 @@ import {
   CAMERA_YAW_DEGREES,
   GROUND_TILT_DEGREES,
   GROUND_Z_SCALE,
+  groundFootprint,
   screenToWorldTilted,
 } from './projection';
 import { buildScene, type BoxDescriptor, type QuadDescriptor, type SceneDescriptor } from './scene-builder';
@@ -64,6 +65,9 @@ const VOID_COLOR = '#07070b';
  * The 95th percentile, not the mean: a renderer that averages 8ms and stalls to 40 once a second
  * reads as smooth in a mean and as a stutter to a player. `sampled` says how many frames the window
  * actually holds, so a reader can tell "fast" from "barely started".
+ *
+ * Read it as a DROPPED-FRAME check. While the renderer keeps up, this is the display's refresh
+ * period and nothing else; it cannot tell an expensive frame from a cheap one.
  */
 function frameTimings(
   samples: Float32Array,
@@ -98,7 +102,12 @@ export type WorldRenderer25Evidence = Readonly<{
    * `drawCalls` alone cannot be compared against an atlas budget.
    */
   atlasDrawCalls: number;
-  /** CPU milliseconds per rendered frame, over a rolling window. 60 FPS is a 16.7ms budget. */
+  /**
+   * Milliseconds between rendered frames, over a rolling window.
+   *
+   * A dropped-frame check, NOT a cost measure: while the renderer keeps up this is the display's
+   * refresh period. A p95 far above the median means frames are being missed.
+   */
   frameMedianMs: number;
   frameP95Ms: number;
   frameSamples: number;
@@ -864,12 +873,13 @@ export async function createWorldRenderer25(
   const daySkyColor = hemisphere.color.clone();
   const nightSkyColor = new Color();
   const lampSkySample = new Color();
+  /** The lamp colour currently tinting the sky. Kept so a pan cannot snap it - see the mix below. */
+  let skyglowHue: string | undefined;
   scene.add(hemisphere);
 
   /**
    * The lit path adds a directional sun and a hard shadow map. `BasicShadowMap` is deliberate:
-   * soft PCF shadows read as smooth 3D and break the pixel rules in spec section 9. 1024 over a
-   * 44-tile frustum, measured at no cost - both paths run 8.3ms per frame on the same machine.
+   * soft PCF shadows read as smooth 3D and break the pixel rules in spec section 9.
    *
    * The fallback path ships neither, which is why it is deterministic and holds 60 FPS everywhere.
    * Blob shadows draw in BOTH paths - see `blobShadows`.
@@ -883,14 +893,16 @@ export async function createWorldRenderer25(
     sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024);
     // The shadow camera has to cover the visible footprint, not three's tiny default box.
-    sun.shadow.camera.left = -22;
-    sun.shadow.camera.right = 22;
-    sun.shadow.camera.top = 22;
-    sun.shadow.camera.bottom = -22;
-    // A lamp post is 0.07 tiles across. One shadow texel covers 80/256 = 0.31 tiles, so a post is a
-    // fifth of a texel wide and lands entirely inside its own depth sample: fully self-shadowed,
-    // and rendered pure black. `normalBias` pushes the lookup along the surface normal by more than
-    // a texel, which is the fix for exactly this and costs no sharpness on the big casters.
+    // Extents are set per frame from the visible footprint - see `applyFrame`. A hand-picked box is
+    // what broke this: ±22 covers a zoom-3 district capture and clips a zoom-1 frame, which is the
+    // zoom players actually use, so shadows vanished at the top and bottom of the screen in the one
+    // case no capture looked at.
+    // `normalBias` pushes the depth lookup along the surface normal, so thin geometry cannot land
+    // entirely inside its own depth sample and self-shadow to black - a 0.07-tile lamp post did
+    // exactly that. It is measured in WORLD units, so it has to be sized against the texel, and the
+    // texel now depends on the zoom: 0.06 is about one texel at zoom 3 and stays under two at
+    // zoom 1. The old 0.35 was sized for a 0.31-tile texel and was wide enough to erase a raking
+    // shadow before it landed.
     sun.shadow.normalBias = 0.06;
     sun.shadow.bias = -0.000_5;
     sun.shadow.camera.near = 0.5;
@@ -1154,15 +1166,21 @@ export async function createWorldRenderer25(
     nightSkyColor.set(0, 0, 0);
     let lampCount = 0;
     let bestChroma = -1;
+    let nextSkyglowHue = skyglowHue;
     for (const lamp of wanted.values()) {
       lampSkySample.setStyle(lamp.color.slice(0, 7));
       lampSkySample.convertSRGBToLinear();
       const high = Math.max(lampSkySample.r, lampSkySample.g, lampSkySample.b);
       const low = Math.min(lampSkySample.r, lampSkySample.g, lampSkySample.b);
       const chroma = high <= 0 ? 0 : (high - low) / high;
-      if (chroma > bestChroma) {
+      // Sticky: the reigning hue has to be beaten by a clear margin, not merely edged out. Downtown
+      // runs cyan and magenta lamps in equal numbers, so a bare `>` hands the whole sky to whichever
+      // one the cull window happens to hold - and snaps it the moment that lamp pans out of view. A
+      // still capture cannot show that; a player would see the street change colour for no reason.
+      if (chroma > bestChroma * (lamp.color === skyglowHue ? 0.8 : 1.15)) {
         bestChroma = chroma;
         nightSkyColor.copy(lampSkySample);
+        nextSkyglowHue = lamp.color;
       }
       lampCount += 1;
     }
@@ -1170,6 +1188,7 @@ export async function createWorldRenderer25(
       nightSkyColor.setStyle(next.lighting.accent.slice(0, 7));
       nightSkyColor.convertSRGBToLinear();
     }
+    skyglowHue = nextSkyglowHue;
     // Normalise to the day sky's own brightness. A lamp tint is chosen to be saturated, not bright,
     // so mixing it in raw changes the EXPOSURE as well as the hue: measured, a straight mix cost
     // every district 2-5 luminance and RAISED the dead fraction it was meant to cut, while the
@@ -1204,6 +1223,26 @@ export async function createWorldRenderer25(
     if (sun) {
       sun.target.position.set(lookAt.x, 0, lookAt.z);
       sun.target.updateMatrixWorld(true);
+      /**
+       * The shadow box covers what is ON SCREEN, at whatever zoom the player is using.
+       *
+       * A constant cannot do this. The visible ground is a rotated rectangle whose size scales with
+       * zoom, and ±22 tiles - picked while looking at zoom-3 district captures - clips a zoom-1
+       * frame badly, which is the zoom the game actually opens at. Shadows simply stopped existing
+       * at the top and bottom of the screen, in the one case no capture in this repository looks at.
+       *
+       * `groundFootprint` is the same function the camera clamp and the frame inflation use, so the
+       * three cannot disagree about how much ground is visible.
+       */
+      const footprint = groundFootprint(surface, renderCamera.zoom);
+      const halfExtent = Math.max(footprint.width, footprint.height) / (2 * TILE_SIZE) + 4;
+      sun.shadow.camera.left = -halfExtent;
+      sun.shadow.camera.right = halfExtent;
+      sun.shadow.camera.top = halfExtent;
+      sun.shadow.camera.bottom = -halfExtent;
+      sun.shadow.camera.far = halfExtent * 4 + 40;
+      // Without this three keeps the projection it last built and every extent above is dead.
+      sun.shadow.camera.updateProjectionMatrix();
       /**
        * After dusk the ONE shadow-casting light moves to the lamps.
        *
@@ -1240,13 +1279,19 @@ export async function createWorldRenderer25(
         // to repaint everything it touches. Colour belongs to the point lights and the pools, which
         // are per-lamp and local; the key's whole job is the shadow.
         if (daySunColor) sun.color.copy(daySunColor);
-        // 1.6, not 0.65. A shadow is only visible when its light beats the ambient that fills it
+        // 1.3, not 0.65. A shadow is only visible when its light beats the ambient that fills it
         // in: at noon the sun runs 3.35 against a 1.1 sky and every canopy throws a hard edge,
         // while a 0.65 night key sat UNDER the 0.86 night sky and cast nothing anyone could see.
         // Raising it is affordable precisely because the key now grazes: a light 20 degrees above
         // the ground barely touches a floor, whose normal points away from it, so the extra
         // intensity goes into the shadow it carves rather than into flooding the scene.
-        sun.intensity = 1.6;
+        //
+        // Swept 0.65 / 1.0 / 1.3 / 1.6 against every metric before choosing. 1.6 gives the cleanest
+        // shadows and pushes the bazaar to 96 mean luminance; 1.0 keeps it at 91 and gives back
+        // half the shadow. 1.3 keeps most of the shadow for 2.5 luminance. The sweep also settles
+        // an open question: the bazaar's pooling ratio is 1.41 to 1.45 at EVERY value, so the key
+        // is not what floods that district - its evenly spread courtyard lamps are.
+        sun.intensity = 1.3;
       } else {
         sun.position.set(
           lookAt.x - (next.lighting.sun.shadowX / TILE_SIZE) * 6,
@@ -1328,10 +1373,13 @@ export async function createWorldRenderer25(
         // notices until a player does. A rolling window rather than a running mean, so a stall
         // shows up instead of being averaged away by the frames around it.
         //
-        // The INTERVAL between callbacks, not the duration of `render`. `render` returns as soon as
-        // it has queued its commands, so timing it measures JavaScript and reports 0.2ms whatever
-        // the GPU is doing — it cannot see a shadow map at all. The animation loop is paced by the
-        // display, so when the GPU stops keeping up, this is where it shows.
+        // **This is a missed-vsync detector, not a cost measure.** The interval between callbacks is
+        // the display's refresh period whenever the renderer is keeping up, so a healthy reading
+        // says "no frame was dropped" and says NOTHING about how much headroom is left. Timing
+        // `render` instead is no better: it returns as soon as it has queued its commands, so it
+        // reports 0.2ms whatever the GPU is doing. Neither number can price a shadow map, and this
+        // one must never be used to bless one — a 120Hz host reads 8.3ms on any settings that keep
+        // up, and a 60Hz host reads 16.7ms on the same settings.
         const now = typeof performance === 'undefined' ? 0 : performance.now();
         if (now > 0 && previousFrameAt > 0) {
           frameMilliseconds[frameCursor % FRAME_SAMPLE_COUNT] = now - previousFrameAt;

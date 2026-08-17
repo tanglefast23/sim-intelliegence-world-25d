@@ -118,6 +118,18 @@ const AERIAL_TRANSIENT_HEIGHT = 0.5;
 /** A quad never sinks below this, so a `rise` effect cannot bury half of itself in the floor. */
 const MINIMUM_RISE = 0.03;
 
+/**
+ * How much wider a kind is drawn than its authored rect, per kind.
+ *
+ * Steam wisps are two pixels across. That was thin even in 2D, where dark `steam-shadow` backers
+ * carried the silhouette — and those backers are dropped here, because the lit scene supplies the
+ * contrast they faked. On a courtyard floor at mean luminance 93 a two-pixel cream wisp is simply
+ * not there. Widening the quad is the one lever that does not need new art or a second batch.
+ *
+ * Width only. Taller would change how far the plume rises, which the recipe means literally.
+ */
+const KIND_WIDTH_SCALE: Readonly<Record<string, number>> = Object.freeze({ steam: 2.4 });
+
 /** `#rrggbb` or `#rrggbbaa` split into a 6-digit colour and a 0..1 alpha. */
 function splitColor(color: string): Readonly<{ hex: string; alpha: number }> {
   return {
@@ -169,7 +181,7 @@ export function vfxQuads(frame: WorldFrameState): VfxQuads {
           : rule.height,
         // `spread` keeps the authored offset as depth; the others hold the emitter's own depth.
         z: (rule.mode === 'spread' ? centreY : anchorY) / TILE_SIZE,
-        width: rect.width / TILE_SIZE,
+        width: (rect.width * (KIND_WIDTH_SCALE[geometry.kind] ?? 1)) / TILE_SIZE,
         height: rect.height / TILE_SIZE,
         tint: hex,
         opacity,
