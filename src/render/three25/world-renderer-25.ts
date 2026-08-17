@@ -841,7 +841,10 @@ export async function createWorldRenderer25(
         14 + next.lighting.sun.elevation * 12,
         lookAt.z - (next.lighting.sun.shadowY / TILE_SIZE) * 6,
       );
-      sun.intensity = 0.8 + next.lighting.sun.elevation * 2.6;
+      // 0.15, not 0.8. A 0.8 floor at midnight is a moon bright enough to light the whole room,
+      // which is exactly the moonlit-terrace read the reference does not have. The lamps own the
+      // night; the sun owns the day.
+      sun.intensity = 0.15 + next.lighting.sun.elevation * 3.2;
     }
 
     // Blob shadows are flat ground quads, so they bake with the same helper the floors use.

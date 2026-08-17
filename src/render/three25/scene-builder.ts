@@ -1,6 +1,7 @@
 import { ATLAS_INDEX, atlasRectangle, type AtlasRectangle } from '../atlas';
 import type { WorldFloorPlacement, WorldFrameState } from '../world-frame';
 import { hiddenWallTiles, tileKey } from './occlusion';
+import { mixHex } from '../atmosphere';
 import { UNLIT_NIGHT_STRENGTH, tintForLighting } from './billboards';
 import { PROP_FLAT_COLORS, WALL_HEIGHT_TILES, recipeFor } from './recipes';
 
@@ -71,22 +72,81 @@ function wallSideSource(sprite: string): AtlasRectangle | undefined {
   return atlasRectangle(solid);
 }
 
-function floorQuad(placement: WorldFloorPlacement): QuadDescriptor {
+/**
+ * How dark everything OUTSIDE the room the player occupies gets.
+ *
+ * This is what makes an open map read as an enclosed stage without inventing a single wall. The
+ * capture already IS the villa interior — the protagonist spawns inside `shelterCells` — but the
+ * grass and paving beyond the east wall render at the same brightness as the sofa, so the eye
+ * reads one continuous terrace instead of a room.
+ *
+ * Crushing the outside toward the void colour at night, and only lightly by day, gives the
+ * reference's dark-surround-and-warm-pocket read. Zero new draw calls: it rides the tint that is
+ * already on every descriptor, and `sceneSignature` already hashes tint so rebakes still trigger.
+ */
+const VOID_TINT = '#07070b';
+
+function insideShelter(
+  tile: Readonly<{ x: number; y: number }>,
+  frame: WorldFrameState,
+): boolean {
+  // The wall ring counts as inside, or the room's own walls would be crushed with the outdoors.
+  return frame.shelterCells.some((cell) =>
+    tile.x >= cell.x - 1 && tile.x <= cell.x + cell.width &&
+    tile.y >= cell.y - 1 && tile.y <= cell.y + cell.height);
+}
+
+/**
+ * The tint a placement should carry once the outside-the-room crush is applied.
+ *
+ * A frame with no `shelterCells` is an outdoor scene, so nothing is crushed and the tint passes
+ * through untouched.
+ */
+export function shelteredTint(
+  tint: string,
+  tile: Readonly<{ x: number; y: number }>,
+  frame: WorldFrameState,
+): string {
+  if (frame.shelterCells.length === 0 || insideShelter(tile, frame)) return tint;
+  const night = 1 - frame.lighting.sun.elevation;
+  return mixHex(tint.slice(0, 7), VOID_TINT, 0.35 + 0.6 * night) + (tint.length > 7 ? tint.slice(7) : '');
+}
+
+/**
+ * Floor sprites the 2.5D path reinterprets.
+ *
+ * `tile.villa-floor` is a grey-brown square tile, authored to read from directly overhead. Under a
+ * corner camera the reference material is warm planks with dark seams, and `tile.boardwalk` is
+ * already exactly that in the atlas — so the villa floor borrows it rather than anyone drawing new
+ * art. Same "reinterpret the sprite for 2.5D" move the recipe table makes wholesale.
+ *
+ * Render-side only: `world-frame.ts` and the 2D renderer never see it.
+ */
+const FLOOR_SOURCE_OVERRIDES: Readonly<Record<string, string>> = {
+  'tile.villa-floor': 'tile.boardwalk',
+};
+
+function floorSource(placement: WorldFloorPlacement): AtlasRectangle {
+  const override = FLOOR_SOURCE_OVERRIDES[placement.sprite];
+  return override === undefined ? placement.source : atlasRectangle(override);
+}
+
+function floorQuad(placement: WorldFloorPlacement, frame: WorldFrameState): QuadDescriptor {
   return {
     id: placement.id,
     sprite: placement.sprite,
-    source: placement.source,
+    source: floorSource(placement),
     x: placement.tile.x + 0.5,
     z: placement.tile.y + 0.5,
     width: 1,
     depth: 1,
-    tint: placement.color,
+    tint: shelteredTint(placement.color, placement.tile, frame),
     opacity: placement.opacity,
   };
 }
 
 export function buildFloorQuads(frame: WorldFrameState): readonly QuadDescriptor[] {
-  return [...frame.floors, ...frame.groundDetails].map(floorQuad);
+  return [...frame.floors, ...frame.groundDetails].map((placement) => floorQuad(placement, frame));
 }
 
 /**
@@ -119,7 +179,7 @@ export function buildWallBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
       width: 1,
       height: WALL_HEIGHT_TILES,
       depth: 1,
-      tint: wall.color,
+      tint: shelteredTint(wall.color, wall.tile, frame),
     }));
 }
 
@@ -160,10 +220,14 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
         // billboards use, so furniture and characters darken together.
         // An authored box tint is a light source or a deliberate accent, so it does NOT darken -
         // a lamp that dims at night is not a lamp. Only the sprite's own paint follows the sun.
-        tint: box.tint ?? tintForLighting(
-          PROP_FLAT_COLORS[prop.sprite] ?? prop.color,
-          frame.lighting,
-          UNLIT_NIGHT_STRENGTH,
+        tint: shelteredTint(
+          box.tint ?? tintForLighting(
+            PROP_FLAT_COLORS[prop.sprite] ?? prop.color,
+            frame.lighting,
+            UNLIT_NIGHT_STRENGTH,
+          ),
+          prop.tile,
+          frame,
         ),
       });
     });
@@ -261,7 +325,7 @@ export function buildRoofBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
     width: 1,
     height: 0.12,
     depth: 1,
-    tint: roof.color,
+    tint: shelteredTint(roof.color, roof.tile, frame),
   }));
 }
 

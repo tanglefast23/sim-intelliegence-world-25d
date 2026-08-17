@@ -2,6 +2,7 @@ import { ATLAS_INDEX } from '../../atlas';
 import { hiddenWallTiles } from '../occlusion';
 import { WALL_HEIGHT_TILES, isResolved, recipeFor } from '../recipes';
 import {
+  shelteredTint,
   buildDoorBoxes,
   buildFloorQuads,
   buildPropBoxes,
@@ -34,8 +35,25 @@ describe('floor quads', () => {
     }
   });
 
-  test('carries the atlas source rect through unchanged', () => {
-    expect(buildFloorQuads(frame)[0]!.source).toEqual(frame.floors[0]!.source);
+  test('carries the atlas source rect through, unless the 2.5D path reinterprets it', () => {
+    const quads = buildFloorQuads(frame);
+    const plain = frame.floors.findIndex((floor) => floor.sprite !== 'tile.villa-floor');
+    expect(plain).toBeGreaterThanOrEqual(0);
+    expect(quads[plain]!.source).toEqual(frame.floors[plain]!.source);
+  });
+
+  /**
+   * The villa floor is a grey-brown square tile authored to read from overhead. Under a corner
+   * camera the reference material is warm planks, and the atlas already has them.
+   */
+  test('the villa floor borrows the boardwalk planks', () => {
+    const index = frame.floors.findIndex((floor) => floor.sprite === 'tile.villa-floor');
+    expect(index).toBeGreaterThanOrEqual(0);
+    const quad = buildFloorQuads(frame)[index]!;
+    expect(quad.source).toEqual(ATLAS_INDEX.sprites['tile.boardwalk']);
+    expect(quad.source).not.toEqual(frame.floors[index]!.source);
+    // The sprite id is untouched, so nothing downstream thinks the map changed.
+    expect(quad.sprite).toBe('tile.villa-floor');
   });
 
   test('ids stay unique so the mesh cache can diff them', () => {
@@ -89,7 +107,8 @@ describe('wall boxes', () => {
     for (const box of buildWallBoxes(frame)) {
       const wall = byId.get(box.id)!;
       expect(box.source).toEqual(wall.source);
-      expect(box.tint).toBe(wall.color);
+      // Its own colour, crushed toward the void if it stands outside the occupied room.
+      expect(box.tint).toBe(shelteredTint(wall.color, wall.tile, frame));
       expect(box.sprite).toBe(wall.sprite);
     }
   });
@@ -307,5 +326,45 @@ describe('door and fallback side texturing', () => {
     // `source` on the vertical faces.
     const invented = { ...frame, walls: [{ ...frame.walls[0]!, sprite: 'tile.not-a-wall-family' }] };
     expect(buildWallBoxes(invented)[0]!.sideSource).toBeUndefined();
+  });
+});
+
+describe('the world outside the room falls away', () => {
+  const frame = indoorFrame();
+
+  /**
+   * The single thing that makes an open map read as an enclosed stage. The capture already IS the
+   * villa interior, but the grass beyond the east wall used to render at the same brightness as
+   * the sofa, so the eye read one continuous terrace instead of a room.
+   */
+  test('crushes a tile outside the occupied room toward the void', () => {
+    const cell = frame.shelterCells[0]!;
+    const outside = { x: cell.x + cell.width + 6, y: cell.y + cell.height + 6 };
+    const crushed = shelteredTint('#ffffffff', outside, frame);
+    expect(crushed).not.toBe('#ffffffff');
+    expect(Number.parseInt(crushed.slice(1, 3), 16)).toBeLessThan(0xcc);
+  });
+
+  test('leaves the room itself, and its wall ring, alone', () => {
+    const cell = frame.shelterCells[0]!;
+    expect(shelteredTint('#ffffffff', { x: cell.x + 2, y: cell.y + 2 }, frame)).toBe('#ffffffff');
+    // The ring is inside, or the room's own walls would be crushed with the outdoors.
+    expect(shelteredTint('#ffffffff', { x: cell.x - 1, y: cell.y + 2 }, frame)).toBe('#ffffffff');
+  });
+
+  test('crushes harder at night than by day', () => {
+    const cell = frame.shelterCells[0]!;
+    const outside = { x: cell.x + cell.width + 6, y: cell.y + cell.height + 6 };
+    const at = (elevation: number) => Number.parseInt(shelteredTint('#ffffffff', outside, {
+      ...frame,
+      lighting: { ...frame.lighting, sun: { ...frame.lighting.sun, elevation } },
+    }).slice(1, 3), 16);
+    expect(at(0)).toBeLessThan(at(1));
+  });
+
+  test('an outdoor frame has no room, so nothing is crushed', () => {
+    const outdoors = outdoorFrame();
+    expect(outdoors.shelterCells).toHaveLength(0);
+    expect(shelteredTint('#ffffffff', { x: 0, y: 0 }, outdoors)).toBe('#ffffffff');
   });
 });
