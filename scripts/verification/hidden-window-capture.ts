@@ -94,6 +94,10 @@ export type SceneEvidence = Readonly<{
     shadowPath: string;
     shadowMapEnabled: boolean;
     atlasDrawCalls: number;
+    /** CPU milliseconds per rendered frame over a rolling window. 60 FPS is a 16.7ms budget. */
+    frameMedianMs: number;
+    frameP95Ms: number;
+    frameSamples: number;
   }>;
   /** Present only when the scene asked for a click. */
   click?: Readonly<{
@@ -400,7 +404,17 @@ async function capture(scene) {
   const size = raw.getSize();
   const image = (size.width === viewport.width && size.height === viewport.height)
     ? raw
+    // 'best' is a smooth filter and would blur pixel art on any host whose display scale is not 1,
+    // moving every score for a reason that has nothing to do with the render. Resizing is a
+    // fallback for a mismatched host, not something a normal run should ever hit.
     : raw.resize({ width: viewport.width, height: viewport.height, quality: 'good' });
+  if (size.width !== viewport.width || size.height !== viewport.height) {
+    console.error(
+      'SI_WORLD_25D_CAPTURE_RESIZED ' + scene.name + ' ' + size.width + 'x' + size.height
+      + ' -> ' + viewport.width + 'x' + viewport.height
+      + ' (display scale is not 1; pixel art is filtered and scores are not comparable)',
+    );
+  }
   const screenshot = scene.name + '.png';
   writeFileSync(join(outputDirectory, screenshot), image.toPNG());
   return {

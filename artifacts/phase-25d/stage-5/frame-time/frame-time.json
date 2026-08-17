@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "budgetMilliseconds": 16.7,
+  "rows": [
+    {
+      "name": "downtown-lit",
+      "shadowPath": "lit",
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 8.8,
+      "frameSamples": 120,
+      "drawCalls": 10
+    },
+    {
+      "name": "downtown-fallback",
+      "shadowPath": "fallback",
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 9.3,
+      "frameSamples": 120,
+      "drawCalls": 8
+    },
+    {
+      "name": "harbour-lit",
+      "shadowPath": "lit",
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 9.3,
+      "frameSamples": 120,
+      "drawCalls": 10
+    },
+    {
+      "name": "harbour-fallback",
+      "shadowPath": "fallback",
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 9.3,
+      "frameSamples": 120,
+      "drawCalls": 8
+    }
+  ]
+}

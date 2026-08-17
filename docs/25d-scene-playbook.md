@@ -182,7 +182,7 @@ The reference look is **dark world, bright objects, one warm pocket**. Four ligh
      axis; aiming at it puts the sun far behind the visible footprint.
    - Call `sun.shadow.camera.updateProjectionMatrix()` after setting the frustum. Without it three
      keeps its default −5..5 box and every value you set is dead.
-3. **Shadow map: `BasicShadowMap` at 256, frustum ±40 tiles.** Hard and aliased on purpose. PCF
+3. **Shadow map: `BasicShadowMap` at 1024, frustum ±22 tiles.** Hard and aliased on purpose. PCF
    reads as smooth 3D and breaks the pixel rules. Set `normalBias` (0.35) for thin geometry.
 4. **Point lights at lamps.** `distance 11, decay 1.4`, intensity `0.2 + lampMix * 11`. A lamp must
    be the brightest thing in a dark frame or the scene reads as uniformly dim. Distance and decay
@@ -480,8 +480,8 @@ evidence, not the verdict.
 | Face shade, unlit | `[0.82, 0.82, 1, 0.6, 0.66, 0.66]` | `three25/world-renderer-25.ts` |
 | Sky light | `#f5dcb0` over `#4a4a44`, 1.1 lit / 1.7 fallback | `three25/world-renderer-25.ts` |
 | Sky night floor | 0.78 of day | `three25/world-renderer-25.ts` |
-| Sun | `#ffefdb`, `0.15 + elevation * 3.2` | `three25/world-renderer-25.ts` |
-| Shadow map | `BasicShadowMap` 256, frustum ±40, normalBias 0.35 | `three25/world-renderer-25.ts` |
+| Sun | `#ffefdb`, `0.15 + elevation * 3.2` by day; 1.6 grazing at night | `three25/world-renderer-25.ts` |
+| Shadow map | `BasicShadowMap` 1024, frustum ±22, normalBias 0.06 | `three25/world-renderer-25.ts` |
 | Lamp point light | distance 11, decay 1.4, `0.2 + lampMix * 11` | `three25/lighting.ts` |
 | Lamp pool | radius 3.2 tiles, opacity `0.5 * lampMix`, additive | `three25/lighting.ts` |
 | Void colour | `#07070b` | `three25/world-renderer-25.ts`, `three25/scene-builder.ts` |
@@ -501,7 +501,7 @@ evidence, not the verdict.
 | Neon sign glow | `#d98cff` downtown, `#ffc46b` market | `three25/recipes.ts` |
 | Frame scorer | `score-25d-frames.ts <dir> [previous]` | `scripts/verification/` |
 | Capture size | pinned to the requested viewport | `hidden-window-capture.ts` |
-| Night key | lamp centroid above `lampMix` 0.6, day colour, 0.65 | `three25/world-renderer-25.ts` |
+| Night key | lamp centroid above `lampMix` 0.6, day colour, 1.6, grazing at 20° | `three25/world-renderer-25.ts` |
 | Lamp flicker | ±6% centred on 1, on light and pool only | `three25/lighting.ts` |
 | VFX modes | `rise` / `spread` / `fixed` per kind | `three25/vfx-25.ts` |
 | Prop core threshold | 0.45 tiles; smaller stays flat-shaded | `three25/scene-builder.ts` |

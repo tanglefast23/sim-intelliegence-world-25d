@@ -107,10 +107,15 @@ export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
     // Blobs are untextured: the renderer draws them with a plain material, so the source rect is
     // only here to satisfy the shared descriptor shape.
     source: { x: 0, y: 0, width: 0, height: 0 } as QuadDescriptor['source'],
-    x: (shadow.worldX + cast.x) / TILE_SIZE,
-    z: (shadow.worldY + cast.y) / TILE_SIZE,
-    width: 0.82,
-    depth: 0.5,
+    // HALF the cast, so the ellipse still touches the feet while reaching away from the light. A
+    // full offset translates the whole blob off the character: at four tiles from a lamp they get a
+    // detached oval and nothing under them, which is worse than the symmetric blob it replaced.
+    x: (shadow.worldX + cast.x / 2) / TILE_SIZE,
+    z: (shadow.worldY + cast.y / 2) / TILE_SIZE,
+    // And it lengthens along the cast rather than staying a fixed oval, which is what "stretches
+    // away from the light" has to mean: a shadow gets longer as the light gets lower and further.
+    width: 0.82 + Math.abs(cast.x) / TILE_SIZE,
+    depth: 0.5 + Math.abs(cast.y) / TILE_SIZE,
     tint: shadow.color,
     opacity: 1,
     };

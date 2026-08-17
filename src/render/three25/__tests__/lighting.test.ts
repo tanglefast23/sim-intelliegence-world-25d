@@ -53,12 +53,30 @@ describe('2.5D lighting', () => {
     expect(blobShadows(frame).length).toBeGreaterThan(0);
   });
 
-  test('a blob sits at the contact point plus the frame cast offset', () => {
+  /**
+   * The blob still TOUCHES the feet. It leans toward the cast by half the offset and lengthens by
+   * the rest, rather than translating: a full offset slides the whole ellipse off the character,
+   * so at four tiles from a lamp they get a detached oval and nothing under them — worse than the
+   * symmetric blob it replaced.
+   */
+  test('a blob leans toward the cast without leaving the feet', () => {
     const shadow = frame.characterShadows[0]!;
     const blob = blobShadows(frame)[0]!;
-    expect(blob.x).toBeCloseTo((shadow.worldX + shadow.castX) / 32, 6);
-    expect(blob.z).toBeCloseTo((shadow.worldY + shadow.castY) / 32, 6);
     expect(blob.tint).toBe(shadow.color);
+    const leanX = blob.x - shadow.worldX / 32;
+    const leanZ = blob.z - shadow.worldY / 32;
+    // Same direction as the frame's cast, and no further than half of it.
+    if (shadow.castX !== 0) {
+      expect(Math.sign(leanX)).toBe(Math.sign(shadow.castX));
+      expect(Math.abs(leanX)).toBeLessThanOrEqual(Math.abs(shadow.castX / 32) / 2 + 1e-6);
+    }
+    if (shadow.castY !== 0) {
+      expect(Math.sign(leanZ)).toBe(Math.sign(shadow.castY));
+      expect(Math.abs(leanZ)).toBeLessThanOrEqual(Math.abs(shadow.castY / 32) / 2 + 1e-6);
+    }
+    // The feet stay covered: the lean never exceeds the ellipse's own half-extent.
+    expect(Math.abs(leanX)).toBeLessThan(blob.width / 2);
+    expect(Math.abs(leanZ)).toBeLessThan(blob.depth / 2);
   });
 
   test('the default path is the lit path', () => {
