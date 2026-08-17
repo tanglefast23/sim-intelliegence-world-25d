@@ -857,17 +857,17 @@ export async function createWorldRenderer25(
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = BasicShadowMap;
     sun.castShadow = true;
-    sun.shadow.mapSize.set(256, 256);
+    sun.shadow.mapSize.set(1024, 1024);
     // The shadow camera has to cover the visible footprint, not three's tiny default box.
-    sun.shadow.camera.left = -40;
-    sun.shadow.camera.right = 40;
-    sun.shadow.camera.top = 40;
-    sun.shadow.camera.bottom = -40;
+    sun.shadow.camera.left = -22;
+    sun.shadow.camera.right = 22;
+    sun.shadow.camera.top = 22;
+    sun.shadow.camera.bottom = -22;
     // A lamp post is 0.07 tiles across. One shadow texel covers 80/256 = 0.31 tiles, so a post is a
     // fifth of a texel wide and lands entirely inside its own depth sample: fully self-shadowed,
     // and rendered pure black. `normalBias` pushes the lookup along the surface normal by more than
     // a texel, which is the fix for exactly this and costs no sharpness on the big casters.
-    sun.shadow.normalBias = 0.35;
+    sun.shadow.normalBias = 0.06;
     sun.shadow.bias = -0.000_5;
     sun.shadow.camera.near = 0.5;
     sun.shadow.camera.far = 120;
@@ -1198,19 +1198,25 @@ export async function createWorldRenderer25(
         // gets a rake. Six tiles out along the same bearing, at lamp-head height plus a little.
         const bearingX = span < 0.01 ? 0.7 : toLookX / span;
         const bearingZ = span < 0.01 ? 0.7 : toLookZ / span;
-        sun.position.set(lookAt.x - bearingX * 6, 5.5, lookAt.z - bearingZ * 6);
+        // Low and far, so the rake is LONG. At height 5.5 over 6 tiles the key sat at 42 degrees and
+        // cast a shadow about as long as the object was tall, which is a shadow you have to look
+        // for. 3.2 over 9 tiles is 20 degrees, and a crate throws a shadow nearly three times its
+        // own height - which is what a lamp at head height actually does, and what the reference's
+        // hard raking shadows are.
+        sun.position.set(lookAt.x - bearingX * 9, 3.2, lookAt.z - bearingZ * 9);
         // The key MOVES to the lamps; it does not take their colour. Tinting it amber to match the
         // harbour's lamps washed that district's teal cargo toward the ground it stood on and cost
         // 0.18 of saturation, because a key strong enough to carve a shadow is also strong enough
         // to repaint everything it touches. Colour belongs to the point lights and the pools, which
         // are per-lamp and local; the key's whole job is the shadow.
         if (daySunColor) sun.color.copy(daySunColor);
-        // 0.65 is where the trade sits. Measured against no night key: at 0.8 every district gains
-        // 5-7 luminance, loses 3-9 points of dead pixels and gains detail, but loses saturation
-        // everywhere, because a white key bright enough to carve also washes colour out. Tinting it
-        // to the lamps recovers the saturation and costs the harbour 0.18 instead, since amber on
-        // amber kills the very warm-on-cool contrast that district reads by.
-        sun.intensity = 0.65;
+        // 1.6, not 0.65. A shadow is only visible when its light beats the ambient that fills it
+        // in: at noon the sun runs 3.35 against a 1.1 sky and every canopy throws a hard edge,
+        // while a 0.65 night key sat UNDER the 0.86 night sky and cast nothing anyone could see.
+        // Raising it is affordable precisely because the key now grazes: a light 20 degrees above
+        // the ground barely touches a floor, whose normal points away from it, so the extra
+        // intensity goes into the shadow it carves rather than into flooding the scene.
+        sun.intensity = 1.6;
       } else {
         sun.position.set(
           lookAt.x - (next.lighting.sun.shadowX / TILE_SIZE) * 6,
