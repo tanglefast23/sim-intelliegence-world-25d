@@ -440,6 +440,11 @@ Every one of these cost a capture round. The right-hand column is what settled i
 | A test passes while the feature is broken | It recomputes the code's own formula | Assert against the world, not the expression |
 | A courtyard floods and nothing complains | Signs counted as lights for the crush but light nothing | The crush and the lights must share one definition |
 | Flat-shade colour wrong | UV landed on a texel boundary | Snap to texel centre |
+| A ceiling light renders as a grey slab | The glow plate sat INSIDE a wider, higher housing, and the camera looks down at 30 | The emitting box must be the top-most box, with the housing as a rim below it |
+| A brand-new area fails `content:build` on density | The gate runs PER AREA, and walls count as solids but never as details | Give every area its own furniture; an interior area rarely contains the outer wall that encloses it |
+| The fallback path is a black plate indoors | It loses the point lights AND the directional key, and a windowless room has no third source | Scope an extra hemisphere step to fallback-at-night-inside-shelter; do not raise the global floor |
+| The build deadlocks the first time you add a portal | `assertV2CompatibilityRoutes` compares derived routes against the generated file the same build is about to rewrite | Hand-seed the two new rows in `generated-routes.ts`, then let the build rewrite them |
+| Twelve new NPCs all render as the same person | `visualIdForNpc` matches a literal id, so any cast without its own atlas art falls through to `generic-resident` | Give the new ids a derivation onto existing sheets; nothing throws, so only a distinctness test catches it |
 
 **Reviewers are not oracles.** A reviewer once diagnosed dark props as shadow acne; measurement
 showed the lit path was BRIGHTER than the fallback with fewer near-black pixels. Another correctly
@@ -460,13 +465,33 @@ evidence, not the verdict.
 4. **Colour.** Measure modal colour per sprite excluding luminance < 55. Add to `PROP_FLAT_COLORS`.
    Run `readableTint`. Author tints only where one prop needs two materials — a desk's pale top
    over a dark pedestal. Verify authored and measured take the same curve.
-5. **Lighting.** Offices are ceiling-lit, so the pooled-lamp look is wrong. Raise the hemisphere
-   night floor for this district, or map ceiling fixtures to point lights at greater height and
-   larger `distance`. Keep lamp heads `glow`.
+5. **Lighting.** Offices are ceiling-lit, so the pooled-lamp look is wrong. This was built and
+   measured; the numbers that worked are in `CEILING_SPRITE_IDS_25D` and its light kind. A troffer
+   is cooler, higher, wider and individually WEAKER than a lamp post — 1.33 up, `#d8e4f0`,
+   distance 10, decay 1.2, intensity `0.6 + lampMix * 7.5` — because a dozen of them overlap and a
+   post's numbers blow the room white. Give the indoor key its own branch: `nightKeyOrigin` aims
+   nine tiles out at 20 degrees, which turns a fluorescent room into a sunset. Straight down at
+   intensity 0.7 instead, gated on ceiling fixtures actually being in frame so the villa at night
+   keeps its lamp key.
 6. **Staging.** If the floor plate is open, `shelterCells` will crush the surround — check the
-   capture actually frames desks and not empty carpet. Pick the densest spot.
+   capture actually frames desks and not empty carpet. Pick the densest spot. **Then check what is
+   BEHIND it**: the first office framing looked over the north wall and put a wedge of unlit
+   exterior in the corner, which cost 0.13 dead fraction and pushed pooling past its ceiling by
+   adding void rather than by pooling light. Standing one aisle deeper fixed both.
 7. **Loop.** Capture night and noon. Score. Change one thing. Repeat until 9.4+ with a 0.1 gain.
+   Pooling is the metric to read first indoors: one panel per desk lights the desks and leaves the
+   walkways dark, which measures 2.04 against a 1.9 ceiling. Add panels where the light is missing
+   rather than lifting the hemisphere — the aisles took it to 1.73 and gained 9 mean luminance.
 8. **Verify.** `npm test`, `check:boundaries`, draw calls under 10, `art:check` green. Commit.
+
+**Measured result for this worked example**, so a later pass has a bar rather than an adjective:
+
+| frame | dead | flat | pool | lum | sat | detail |
+|---|---|---|---|---|---|---|
+| cubicles-night | 0.056 | 0.028 | 1.732 | 86.31 | 0.302 | 2.993 |
+| cubicles-noon | 0.077 | 0.025 | 1.798 | 67.17 | 0.270 | 3.241 |
+| hall-night | 0.032 | 0.002 | 1.647 | 64.83 | 0.287 | 2.977 |
+| cubicles-night-fallback | 0.090 | 0.004 | 2.596 | 50.14 | 0.335 | 2.395 |
 
 ---
 
