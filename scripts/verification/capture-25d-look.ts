@@ -7,7 +7,7 @@ const evidenceRoot = resolveEvidenceOutputRoot(process.argv.slice(2), {
   allowedRootPrefixes: ['artifacts/phase-25d'],
 });
 
-void captureScenes([{ name: 'look-lit', shadowPath: 'lit' }], evidenceRoot)
+void captureScenes([{ name: 'look-lit', shadowPath: 'lit' }, { name: 'look-fallback', shadowPath: 'fallback' }], evidenceRoot)
   .then((scenes) => {
     for (const scene of scenes) {
       console.log(`${scene.name}: yaw ${String(scene.evidence.yawDegrees)}, ${String(scene.evidence.drawCalls)} draw calls`);

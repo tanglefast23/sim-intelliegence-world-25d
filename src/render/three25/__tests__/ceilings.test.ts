@@ -5,7 +5,7 @@ describe('2.5D draw-call ceilings', () => {
     // The plan's provisional guesses were 40 and 16. The measured maxima are 6 and 3.
     expect(DRAW_CALL_CEILING).toBeLessThanOrEqual(40);
     expect(ATLAS_DRAW_CALL_CEILING).toBeLessThanOrEqual(16);
-    expect(DRAW_CALL_CEILING).toBeLessThan(12);
+    expect(DRAW_CALL_CEILING).toBeLessThan(14);
     expect(ATLAS_DRAW_CALL_CEILING).toBeLessThan(8);
   });
 
@@ -21,7 +21,9 @@ describe('2.5D draw-call ceilings', () => {
   test('clear the batches the renderer actually draws', () => {
     // Five batches plus the lit path's shadow pass is six, and the ceiling must clear that or a
     // correct frame fails its own smoke.
-    expect(DRAW_CALL_CEILING).toBeGreaterThanOrEqual(6);
+    // Six batches - floors, textured boxes, flat boxes, billboards, skirt, blobs - plus the lit
+    // path's shadow pass.
+    expect(DRAW_CALL_CEILING).toBeGreaterThanOrEqual(8);
     expect(ATLAS_DRAW_CALL_CEILING).toBeGreaterThanOrEqual(3);
   });
 });

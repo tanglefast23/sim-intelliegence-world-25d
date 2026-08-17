@@ -184,7 +184,7 @@ const FACE_UVS: readonly (readonly [number, number])[] = [[0, 0], [1, 0], [1, 1]
  */
 const FACE_SHADE: readonly number[] = [0.82, 0.82, 1, 0.6, 0.66, 0.66];
 
-type AtlasCell = Readonly<{ u0: number; u1: number; v0: number; v1: number }>;
+type AtlasCell = Readonly<{ u0: number; u1: number; v0: number; v1: number; flatU: number; flatV: number }>;
 
 /**
  * The atlas cell as UVs, inset by half a texel.
@@ -195,11 +195,19 @@ type AtlasCell = Readonly<{ u0: number; u1: number; v0: number; v1: number }>;
 function atlasCell(source: AtlasRectangle, width: number, height: number): AtlasCell {
   const insetX = 0.5 / width;
   const insetY = 0.5 / height;
+  // The flat-shade sample. Snapped to the CENTRE OF A TEXEL, not the midpoint of the cell:
+  // `(u0 + u1) / 2` on an even-width cell lands exactly on a texel boundary, where NearestFilter
+  // is free to pick either neighbour. That is a coin flip per face, and it is why several props
+  // came out the colour of their outline rather than their paint.
+  const flatColumn = source.x + Math.floor(source.width / 2) + 0.5;
+  const flatRow = source.y + Math.floor(source.height / 2) + 0.5;
   return {
     u0: source.x / width + insetX,
     u1: (source.x + source.width) / width - insetX,
     v0: 1 - (source.y + source.height) / height + insetY,
     v1: 1 - source.y / height - insetY,
+    flatU: flatColumn / width,
+    flatV: 1 - flatRow / height,
   };
 }
 
@@ -310,12 +318,8 @@ function bakeGeometry(
         const uv = FACE_UVS[cornerIndex]!;
         // A flat-shaded box samples ONE texel from the middle of the cell, so the face is a single
         // colour instead of a whole sprite squashed onto it.
-        const u = box.flatShade === true
-          ? (cell.u0 + cell.u1) / 2
-          : cell.u0 + uv[0] * (cell.u1 - cell.u0);
-        const v = box.flatShade === true
-          ? (cell.v0 + cell.v1) / 2
-          : cell.v0 + uv[1] * (cell.v1 - cell.v0);
+        const u = box.flatShade === true ? cell.flatU : cell.u0 + uv[0] * (cell.u1 - cell.u0);
+        const v = box.flatShade === true ? cell.flatV : cell.v0 + uv[1] * (cell.v1 - cell.v0);
         pushCorner(
           box.x + corner[0] * box.width,
           box.y + corner[1] * box.height,
@@ -423,15 +427,25 @@ export function bakeBillboardGeometry(
   return geometry;
 }
 
-/** Exposed for tests: the baked geometry is the one thing a Jest run can check without WebGL. */
+/**
+ * Exposed for tests: the baked geometry is the one thing a Jest run can check without WebGL.
+ *
+ * Boxes split into two batches. Textured boxes keep the atlas; flat-shaded boxes go to their own
+ * geometry drawn with an UNMAPPED material, because there is no white texel anywhere in the atlas
+ * — so a colour sampled through the shared material always has the sprite multiplied into it, and
+ * an authored tint could never render true.
+ */
 export function bakeSceneGeometry(
   scene: SceneDescriptor,
   atlasWidth: number,
   atlasHeight: number,
-): Readonly<{ floors: BufferGeometry; boxes: BufferGeometry }> {
+): Readonly<{ floors: BufferGeometry; boxes: BufferGeometry; flatBoxes: BufferGeometry }> {
+  const flat = scene.boxes.filter((box) => box.flatShade === true);
+  const textured = scene.boxes.filter((box) => box.flatShade !== true);
   return {
     floors: bakeGeometry(scene.floors, [], atlasWidth, atlasHeight),
-    boxes: bakeGeometry([], scene.boxes, atlasWidth, atlasHeight),
+    boxes: bakeGeometry([], textured, atlasWidth, atlasHeight),
+    flatBoxes: bakeGeometry([], flat, atlasWidth, atlasHeight),
   };
 }
 
@@ -581,9 +595,25 @@ export async function createWorldRenderer25(
     alphaTest: 0.5,
   });
 
+  /**
+   * Flat-shaded furniture, unmapped.
+   *
+   * The atlas holds no white texel, so every colour drawn through `material` carries a sprite with
+   * it. Furniture wants its own measured dominant colour, flat, so it needs a material with no
+   * map. One extra draw call - 7 against the ceiling of 8 - and `ceilings.ts` asks a new material
+   * to be justified: this is the justification.
+   */
+  const flatMaterial = new MeshStandardMaterial({
+    flatShading: true,
+    roughness: 0.88,
+    metalness: 0,
+    vertexColors: true,
+  });
+
   const cache = new SceneCache();
   const floorMesh = new Mesh(new BufferGeometry(), material);
   const boxMesh = new Mesh(new BufferGeometry(), material);
+  const flatBoxMesh = new Mesh(new BufferGeometry(), flatMaterial);
   // Characters are their own batch because they move every frame while the world does not.
   const billboardMesh = new Mesh(new BufferGeometry(), material);
   // The baked geometry is already in world space, so three's own bounding sphere would sit at the
@@ -597,8 +627,11 @@ export async function createWorldRenderer25(
   // no meaningful silhouette from the sun, which is why characters get blobs in both paths.
   boxMesh.castShadow = shadowPath === 'lit';
   boxMesh.receiveShadow = shadowPath === 'lit';
+  flatBoxMesh.frustumCulled = false;
+  flatBoxMesh.castShadow = shadowPath === 'lit';
+  flatBoxMesh.receiveShadow = shadowPath === 'lit';
   floorMesh.receiveShadow = shadowPath === 'lit';
-  scene.add(floorMesh, boxMesh, billboardMesh);
+  scene.add(floorMesh, boxMesh, flatBoxMesh, billboardMesh);
 
   // Hoisted: extractBasis writes into these every frame, and allocating three vectors per frame
   // for a value that never escapes is pure garbage.
@@ -669,9 +702,11 @@ export async function createWorldRenderer25(
     if (delta.added.length > 0 || delta.removed.length > 0 || nextSignature !== signature) {
       floorMesh.geometry.dispose();
       boxMesh.geometry.dispose();
+      flatBoxMesh.geometry.dispose();
       const baked = bakeSceneGeometry(built, atlasWidth, atlasHeight);
       floorMesh.geometry = baked.floors;
       boxMesh.geometry = baked.boxes;
+      flatBoxMesh.geometry = baked.flatBoxes;
       descriptorCount = built.floors.length + built.boxes.length;
       signature = nextSignature;
     }
@@ -786,6 +821,8 @@ export async function createWorldRenderer25(
       canvas.removeEventListener('webglcontextrestored', onRestored);
       floorMesh.geometry.dispose();
       boxMesh.geometry.dispose();
+      flatBoxMesh.geometry.dispose();
+      flatMaterial.dispose();
       billboardMesh.geometry.dispose();
       blobMesh.geometry.dispose();
       blobMaterial.dispose();

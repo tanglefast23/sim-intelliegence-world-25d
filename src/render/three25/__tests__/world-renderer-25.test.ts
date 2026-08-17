@@ -47,7 +47,7 @@ describe('baked scene geometry', () => {
   test('collapses thousands of descriptors into two geometries', () => {
     expect(scene.floors.length + scene.boxes.length).toBeGreaterThan(500);
     const baked = bakeSceneGeometry(scene, ATLAS, ATLAS);
-    expect(Object.keys(baked)).toEqual(['floors', 'boxes']);
+    expect(Object.keys(baked)).toEqual(['floors', 'boxes', 'flatBoxes']);
   });
 
   test('emits four vertices and six indices per floor quad', () => {
@@ -58,8 +58,11 @@ describe('baked scene geometry', () => {
 
   test('emits twenty-four vertices and thirty-six indices per box', () => {
     const baked = bakeSceneGeometry(scene, ATLAS, ATLAS);
-    expect(baked.boxes.getAttribute('position').count).toBe(scene.boxes.length * 24);
-    expect(baked.boxes.getIndex()!.count).toBe(scene.boxes.length * 36);
+    const textured = scene.boxes.filter((box) => box.flatShade !== true).length;
+    const flat = scene.boxes.filter((box) => box.flatShade === true).length;
+    expect(baked.boxes.getAttribute('position').count).toBe(textured * 24);
+    expect(baked.flatBoxes.getAttribute('position').count).toBe(flat * 24);
+    expect(textured + flat).toBe(scene.boxes.length);
   });
 
   test('carries uv and vertex colour so one material can tint every sprite', () => {
@@ -269,7 +272,7 @@ describe('per-face texturing in the bake', () => {
   });
 
   test('a flat-shaded box collapses every face to one texel', () => {
-    const geometry = bakeSceneGeometry({ floors: [], boxes: [box({ flatShade: true })] }, ATLAS, ATLAS).boxes;
+    const geometry = bakeSceneGeometry({ floors: [], boxes: [box({ flatShade: true })] }, ATLAS, ATLAS).flatBoxes;
     const uv = geometry.getAttribute('uv');
     for (let index = 1; index < uv.count; index += 1) {
       expect(uv.getX(index)).toBeCloseTo(uv.getX(0), 9);
@@ -296,5 +299,97 @@ describe('per-face texturing in the bake', () => {
   test('a box with no sideSource still textures every face', () => {
     const geometry = bakeSceneGeometry({ floors: [], boxes: [box({})] }, ATLAS, ATLAS).boxes;
     expect(geometry.getAttribute('uv').count).toBe(24);
+  });
+});
+
+describe('the flat-shade sample lands on a texel, not a boundary', () => {
+  const ATLAS = 1024;
+
+  /**
+   * The midpoint of an even-width cell sits exactly on a texel boundary, where NearestFilter may
+   * pick either neighbour — a coin flip per face, and the reason several props rendered the colour
+   * of their outline. The sample is snapped to a texel CENTRE instead.
+   */
+  test('a 32px cell samples a texel centre, so u*atlas has a half-pixel fraction', () => {
+    const geometry = bakeSceneGeometry({
+      floors: [],
+      boxes: [{
+        id: 'b', sprite: 's', flatShade: true,
+        source: { x: 64, y: 96, width: 32, height: 32 } as never,
+        x: 0, y: 0.5, z: 0, width: 1, height: 1, depth: 1, tint: '#ffffffff',
+      }],
+    }, ATLAS, ATLAS).flatBoxes;
+    const uv = geometry.getAttribute('uv');
+    const texelX = uv.getX(0) * ATLAS;
+    const texelY = (1 - uv.getY(0)) * ATLAS;
+    expect(texelX % 1).toBeCloseTo(0.5, 9);
+    expect(texelY % 1).toBeCloseTo(0.5, 9);
+    // And it is inside the cell, not on its edge.
+    expect(texelX).toBeGreaterThan(64);
+    expect(texelX).toBeLessThan(96);
+  });
+
+  test('an odd-sized cell still lands inside itself', () => {
+    const geometry = bakeSceneGeometry({
+      floors: [],
+      boxes: [{
+        id: 'b', sprite: 's', flatShade: true,
+        source: { x: 10, y: 20, width: 15, height: 9 } as never,
+        x: 0, y: 0.5, z: 0, width: 1, height: 1, depth: 1, tint: '#ffffffff',
+      }],
+    }, ATLAS, ATLAS).flatBoxes;
+    const uv = geometry.getAttribute('uv');
+    const texelX = uv.getX(0) * ATLAS;
+    const texelY = (1 - uv.getY(0)) * ATLAS;
+    expect(texelX).toBeGreaterThan(10);
+    expect(texelX).toBeLessThan(25);
+    expect(texelY).toBeGreaterThan(20);
+    expect(texelY).toBeLessThan(29);
+  });
+});
+
+describe('the per-face shade multiplies the descriptor tint', () => {
+  const ATLAS = 1024;
+  const shadeOf = (tint: string, faceIndex: number) => bakeSceneGeometry({
+    floors: [],
+    boxes: [{
+      id: 'b', sprite: 's', source: { x: 0, y: 0, width: 32, height: 32 } as never,
+      x: 0, y: 0.5, z: 0, width: 1, height: 1, depth: 1, tint,
+    }],
+  }, ATLAS, ATLAS).boxes.getAttribute('color').getX(faceIndex * 4);
+
+  test('a darker tint darkens every face in proportion', () => {
+    // Face 2 is the top, face 4 the south side.
+    const brightTop = shadeOf('#ffffffff', 2);
+    const darkTop = shadeOf('#808080ff', 2);
+    expect(darkTop).toBeLessThan(brightTop);
+    expect(shadeOf('#808080ff', 4)).toBeLessThan(darkTop);
+  });
+});
+
+describe('flat-shaded boxes bake into their own batch', () => {
+  const ATLAS = 1024;
+  const make = (flatShade?: boolean) => ({
+    id: 'b', sprite: 's', source: { x: 0, y: 0, width: 32, height: 32 } as never,
+    x: 0, y: 0.5, z: 0, width: 1, height: 1, depth: 1, tint: '#ffffffff',
+    ...(flatShade === undefined ? {} : { flatShade }),
+  });
+
+  /**
+   * The atlas holds no white texel, so a colour drawn through the shared mapped material always
+   * has a sprite multiplied into it. Furniture needs its own unmapped material for its measured
+   * dominant colour to render true - which means its own geometry.
+   */
+  test('splits textured boxes from flat boxes', () => {
+    const baked = bakeSceneGeometry(
+      { floors: [], boxes: [make(true), make(), make(true)] }, ATLAS, ATLAS,
+    );
+    expect(baked.flatBoxes.getAttribute('position').count).toBe(2 * 24);
+    expect(baked.boxes.getAttribute('position').count).toBe(1 * 24);
+  });
+
+  test('an all-textured scene leaves the flat batch empty', () => {
+    const baked = bakeSceneGeometry({ floors: [], boxes: [make()] }, ATLAS, ATLAS);
+    expect(baked.flatBoxes.getAttribute('position').count).toBe(0);
   });
 });

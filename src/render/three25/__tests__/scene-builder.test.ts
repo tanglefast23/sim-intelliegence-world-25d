@@ -284,3 +284,28 @@ describe('face texturing', () => {
     for (const box of buildRoofBoxes(outdoorFrame())) expect(box.flatShade).toBeUndefined();
   });
 });
+
+describe('door and fallback side texturing', () => {
+  const frame = indoorFrame();
+
+  /**
+   * Door sprites are 80% opaque, the same trap the walls had. A door stands in a wall GAP, so its
+   * transparent margins show straight through the building rather than onto a wall behind it.
+   */
+  test('doors take an opaque side texture from a neighbouring wall', () => {
+    const doors = buildDoorBoxes(frame);
+    expect(doors.length).toBeGreaterThan(0);
+    for (const door of doors) {
+      expect({ id: door.id, hasSide: door.sideSource !== undefined })
+        .toEqual({ id: door.id, hasSide: true });
+      expect(door.sideSource).not.toEqual(door.source);
+    }
+  });
+
+  test('a wall family with no solid variant falls back to its own cell', () => {
+    // wallSideSource returns undefined rather than an invalid rect, and the bake then reuses
+    // `source` on the vertical faces.
+    const invented = { ...frame, walls: [{ ...frame.walls[0]!, sprite: 'tile.not-a-wall-family' }] };
+    expect(buildWallBoxes(invented)[0]!.sideSource).toBeUndefined();
+  });
+});

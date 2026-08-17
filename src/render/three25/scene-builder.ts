@@ -1,7 +1,7 @@
 import { ATLAS_INDEX, atlasRectangle, type AtlasRectangle } from '../atlas';
 import type { WorldFloorPlacement, WorldFrameState } from '../world-frame';
 import { hiddenWallTiles, tileKey } from './occlusion';
-import { WALL_HEIGHT_TILES, recipeFor } from './recipes';
+import { PROP_FLAT_COLORS, WALL_HEIGHT_TILES, recipeFor } from './recipes';
 
 /**
  * A flat one-tile lid on the ground plane.
@@ -153,7 +153,9 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
         width: box.width,
         height: box.height,
         depth: box.depth,
-        tint: box.tint ?? prop.color,
+        // An authored per-box tint wins, so a sofa's arms can differ from its seat. Otherwise the
+        // sprite's measured dominant colour - never the frame colour, which is plain white here.
+        tint: box.tint ?? PROP_FLAT_COLORS[prop.sprite] ?? prop.color,
       });
     });
   }
@@ -200,6 +202,21 @@ function doorIsPassable(sprite: string): boolean {
  * two-thirds wall height. A passable door draws much shorter so the gap reads as walkable.
  */
 export function buildDoorBoxes(frame: WorldFrameState): readonly BoxDescriptor[] {
+  // Door sprites are 80% opaque, the same trap walls had. A door stands in a wall GAP, so the
+  // transparent margins show straight through the building rather than onto a wall behind it.
+  // The neighbouring wall names the family, and its solid variant fills the margins.
+  const wallByTile = new Map(frame.walls.map((wall) => [tileKey(wall.tile), wall.sprite]));
+  const neighbourWallSide = (tile: Readonly<{ x: number; y: number }>): AtlasRectangle | undefined => {
+    for (const step of [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }]) {
+      const sprite = wallByTile.get(tileKey({ x: tile.x + step.x, y: tile.y + step.y }));
+      if (sprite === undefined) continue;
+      const side = wallSideSource(sprite);
+      if (side !== undefined) return side;
+      if (sprite in ATLAS_INDEX.sprites) return atlasRectangle(sprite);
+    }
+    return undefined;
+  };
+
   return frame.doors.map((door) => {
     const height = WALL_HEIGHT_TILES * (doorIsPassable(door.sprite) ? 0.25 : 0.7);
     const footprint = doorFootprint(door.sprite);
@@ -207,6 +224,7 @@ export function buildDoorBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
       id: door.id,
       sprite: door.sprite,
       source: door.source,
+      sideSource: neighbourWallSide(door.tile),
       x: door.tile.x + 0.5,
       y: height / 2,
       z: door.tile.y + 0.5,

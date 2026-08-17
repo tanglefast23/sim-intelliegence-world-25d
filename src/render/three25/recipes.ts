@@ -281,6 +281,63 @@ export const RUN_FORMING_GROUPS: ReadonlySet<string> = new Set([
   'sunset-food-stall',
 ]);
 
+/**
+ * The dominant opaque colour of each prop sprite, for the flat-shaded pass.
+ *
+ * Measured from `assets/generated/world-atlas.png`: the most common opaque colour in each cell,
+ * quantised to 5 bits per channel so near-identical shades group together, and with OUTLINE pixels
+ * excluded — anything below luminance 55.
+ *
+ * Both of the obvious cheaper choices are wrong. The centre texel lands on an outline or a
+ * highlight for 15 of these 39 sprites. An unfiltered modal is worse for thin objects: a lamp post
+ * is mostly outline BY COUNT, so it returned near-black and every lamp, crate and planter rendered
+ * as a black lump.
+ *
+ * Data, not art: nothing here regenerates the atlas, so `art:check` is untouched. Regenerate this
+ * table if the atlas art changes; the values only need to be close, not exact.
+ */
+export const PROP_FLAT_COLORS: Readonly<Record<string, string>> = Object.freeze({
+  'tile.sofa-left': '#5c9494',
+  'tile.table-left': '#b47444',
+  'tile.table-right': '#b47444',
+  'tile.bed-head': '#5c8c94',
+  'tile.counter-left': '#84949c',
+  'tile.counter-right': '#84949c',
+  'tile.landmark-fountain-nw': '#549cac',
+  'tile.landmark-ferry-left': '#7c94a4',
+  'tile.landmark-ferry-right': '#7c94a4',
+  'tile.cargo-crane-nw': '#64747c',
+  'tile.cargo-stack-left': '#5c7c84',
+  'tile.cargo-stack-right': '#5c7c84',
+  'tile.pallet-rack-nw': '#8c6c54',
+  'tile.dock-bench': '#7c6454',
+  'tile.mooring-bollard': '#3c444c',
+  'tile.market-canopy-nw': '#dc6c64',
+  'tile.produce-stall-left': '#744434',
+  'tile.produce-stall-right': '#744434',
+  'tile.food-stall-left': '#6c3c44',
+  'tile.food-stall-right': '#6c3c44',
+  'tile.sunset-fountain-nw': '#64bcb4',
+  'tile.sunset-market-bench': '#ac6c4c',
+  'tile.flowering-market-planter': '#346444',
+  'tile.fixture-lamp': '#545c5c',
+  'tile.fixture-dock-lamp-amber': '#54443c',
+  'tile.fixture-dock-lamp-cold': '#3c444c',
+  'tile.fixture-festival-lantern': '#f4ac4c',
+  'tile.fixture-neon-lamp-cyan': '#44445c',
+  'tile.fixture-neon-lamp-magenta': '#44445c',
+  'tile.fixture-planter': '#2c4c34',
+  'tile.plant-palm': '#4c744c',
+  'tile.sign-civic': '#7494a4',
+  'tile.sign-harbor': '#5c7c84',
+  'tile.sign-market': '#c48c44',
+  'tile.sign-neon': '#643c74',
+  'tile.sign-spa': '#7ca494',
+  'tile.sign-sunset-market': '#cc6c64',
+  'tile.parked-car-cyan-left': '#3ca4ac',
+  'tile.parked-car-coral-left': '#c45474',
+});
+
 export function recipeFor(spriteId: string): PropRecipe | undefined {
   return PROP_RECIPES[spriteId];
 }

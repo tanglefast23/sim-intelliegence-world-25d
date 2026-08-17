@@ -15,8 +15,13 @@
  *
  * A breach therefore means a NEW pass, a new material, or a mesh that stopped being merged. It
  * does not mean too much geometry. Fold the work into the existing batches before raising these.
+ *
+ * Raised from 8 to 10 once, deliberately: flat-shaded furniture needs an UNMAPPED material, because
+ * the atlas holds no white texel and a colour drawn through the mapped material always carries a
+ * sprite with it. That is a sixth batch plus its shadow pass, measured at 8 on the lit path. The
+ * bar for the next raise is the same - name the batch and why it cannot join an existing one.
  */
-export const DRAW_CALL_CEILING = 8;
+export const DRAW_CALL_CEILING = 10;
 
 /** The atlas-textured batches alone: floors, boxes and billboards. Measured at 3. */
 export const ATLAS_DRAW_CALL_CEILING = 5;
