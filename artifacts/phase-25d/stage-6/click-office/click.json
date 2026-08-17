@@ -25,7 +25,7 @@
       "target": "26,17",
       "status": "moving",
       "arrived": true,
-      "arrivedAfterMs": 1380,
+      "arrivedAfterMs": 1020,
       "tileBefore": "20,17",
       "tileAfter": "26,17"
     },
@@ -53,7 +53,7 @@
       "target": "12,17",
       "status": "moving",
       "arrived": true,
-      "arrivedAfterMs": 1920,
+      "arrivedAfterMs": 1380,
       "tileBefore": "20,17",
       "tileAfter": "12,17"
     },
@@ -81,7 +81,7 @@
       "target": "20,12",
       "status": "moving",
       "arrived": true,
-      "arrivedAfterMs": 5340,
+      "arrivedAfterMs": 3960,
       "tileBefore": "20,17",
       "tileAfter": "20,12"
     },
@@ -109,7 +109,7 @@
       "target": "20,21",
       "status": "moving",
       "arrived": true,
-      "arrivedAfterMs": 7320,
+      "arrivedAfterMs": 4080,
       "tileBefore": "20,17",
       "tileAfter": "20,21"
     }

@@ -469,3 +469,45 @@ describe('the office ceiling rig', () => {
     expect(indoorOverheadKeyOrigin(withCeiling(1, false))).toBeUndefined();
   });
 });
+
+/**
+ * `frame.props` is the whole map's props, not a camera window, so the number of ceiling fixtures a
+ * room contains is the number of point lights it would create. The office authors 56. The spec
+ * budgeted fourteen, and it budgeted fourteen because downtown's neon already showed what a
+ * lit-material recompile per light costs.
+ *
+ * The resolution is that content authors fixtures freely and the RENDERER caps the lights.
+ */
+describe('the ceiling light budget', () => {
+  const withPanels = (count: number): WorldFrameState => {
+    const base = outdoorFrame();
+    return {
+      ...base,
+      lighting: { ...base.lighting, sun: { ...base.lighting.sun, lampMix: 1 } },
+      shelterCells: [{ x: 0, y: 0, width: 64, height: 48 }],
+      characters: [{ id: 'protagonist', tile: { x: 0, y: 0 } }],
+      props: Array.from({ length: count }, (_unused, index) => ({
+        id: `panel-${String(index).padStart(3, '0')}`,
+        sprite: 'tile.fixture-ceiling-panel',
+        tile: { x: index % 60, y: Math.floor(index / 60) },
+      })),
+    } as unknown as WorldFrameState;
+  };
+
+  test('caps the point lights however many fixtures a room contains', () => {
+    const lights = lampLights(withPanels(56)).filter(({ kind }) => kind === 'ceiling');
+    expect(lights.length).toBeLessThanOrEqual(24);
+    expect(lights.length).toBeGreaterThan(0);
+  });
+
+  test('lights the fixtures NEAREST the subject, not the first ones in the array', () => {
+    const lights = lampLights(withPanels(56)).filter(({ kind }) => kind === 'ceiling');
+    // The subject is at tile 0,0 and panels run left to right, so the nearest are the low indices.
+    const farthest = Math.max(...lights.map(({ x }) => x));
+    expect(farthest).toBeLessThan(56);
+  });
+
+  test('a room inside the cap keeps every one of its fixtures lit', () => {
+    expect(lampLights(withPanels(9)).filter(({ kind }) => kind === 'ceiling')).toHaveLength(9);
+  });
+});

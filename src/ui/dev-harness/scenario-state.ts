@@ -14,6 +14,7 @@ export const DEV_HARNESS_MAP_IDS = [
   'northeast_downtown',
   'southwest_commercial',
   'southeast_docks',
+  'west_office',
 ] as const satisfies readonly MapId[];
 
 export type DevHarnessQuestStage = 'locked' | 'active' | 'discovered';

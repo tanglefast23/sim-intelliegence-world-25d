@@ -67,7 +67,7 @@ import {
   type AtlasRectangle,
   type CharacterId,
 } from './atlas';
-import { visualIdForNpc } from './character-visuals';
+import { idleFacingForNpc, visualIdForNpc } from './character-visuals';
 import {
   assertWorldZoom,
   MAX_WORLD_ZOOM,
@@ -233,7 +233,9 @@ function actorTiles(
       output[stateId] = {
         tile,
         visualId: visualIdForNpc(stateId),
-        direction: movement?.direction ?? 'down',
+        // A moving actor keeps its movement direction. A STILL one may name its own idle facing:
+        // an office clerk who never walks would otherwise stand with their back to their desk.
+        direction: movement?.direction ?? idleFacingForNpc(stateId) ?? 'down',
         visualFoot: snapWorldPoint(movement?.visualFoot ?? tileFootPoint(tile), zoom, dpr),
         walkFrame: movement?.walkFrame ?? 0,
         moving: movement?.segment !== undefined,

@@ -1353,9 +1353,13 @@ function westMap(): WorldMapV2 {
   const hallFixtures = [
     objectFromTiles({
       id: 'annex-hall-benches', kind: 'bench', areaId: 'annex-hall',
+      // On y = 25, the hall's SOUTH edge. They sat on y = 22 first, directly under the cubicle
+      // wall, which is where a bench belongs in a real office and exactly where it hurts here:
+      // spec 8.5 keeps the hall open so a yaw-45 frame reads cubicle faces to the north, and a
+      // row of counters along that edge is the one thing that occludes them.
       tiles: [10, 16, 22, 28, 34, 40].flatMap((west) => [
-        { x: west, y: 22, sprite: 'tile.counter-left', solid: true },
-        { x: west + 1, y: 22, sprite: 'tile.counter-right', solid: true },
+        { x: west, y: 25, sprite: 'tile.counter-left', solid: true },
+        { x: west + 1, y: 25, sprite: 'tile.counter-right', solid: true },
       ]),
     }),
     objectFromTiles({
@@ -1364,8 +1368,8 @@ function westMap(): WorldMapV2 {
         { x: 12, y: 23, sprite: 'tile.fixture-planter', solid: true },
         { x: 30, y: 23, sprite: 'tile.fixture-planter', solid: true },
         { x: 42, y: 23, sprite: 'tile.fixture-planter', solid: true },
-        { x: 8, y: 25, sprite: 'tile.fixture-planter', solid: true },
-        { x: 36, y: 25, sprite: 'tile.fixture-planter', solid: true },
+        { x: 8, y: 23, sprite: 'tile.fixture-planter', solid: true },
+        { x: 36, y: 23, sprite: 'tile.fixture-planter', solid: true },
       ],
     }),
     ceilingPanels('annex-ceiling-hall', 'annex-hall', [
@@ -1712,8 +1716,16 @@ function westMap(): WorldMapV2 {
       sprite: 'tile.closed-door', roofGroupId: 'annex-roof',
       interaction: { id: 'annex-front-door-use', areaId: 'annex-lobby', approachTiles: [{ x: 52, y: 24 }, { x: 54, y: 24 }] },
     },
-    { id: 'annex-manager-door', openingId: 'mgr-door', initialState: 'closed-unlocked', sprite: 'tile.closed-door', roofGroupId: 'annex-roof' },
-    { id: 'annex-kitchen-door', openingId: 'kitchen-door', initialState: 'closed-unlocked', sprite: 'tile.closed-door', roofGroupId: 'annex-roof' },
+    {
+      id: 'annex-manager-door', openingId: 'mgr-door', initialState: 'closed-unlocked',
+      sprite: 'tile.closed-door', roofGroupId: 'annex-roof',
+      interaction: { id: 'annex-manager-door-use', areaId: 'manager-office', approachTiles: [{ x: 19, y: 33 }, { x: 21, y: 33 }] },
+    },
+    {
+      id: 'annex-kitchen-door', openingId: 'kitchen-door', initialState: 'closed-unlocked',
+      sprite: 'tile.closed-door', roofGroupId: 'annex-roof',
+      interaction: { id: 'annex-kitchen-door-use', areaId: 'annex-kitchen', approachTiles: [{ x: 28, y: 33 }, { x: 30, y: 33 }] },
+    },
   ];
   map.roofGroups = [{
     id: 'annex-roof',
@@ -1727,6 +1739,28 @@ function westMap(): WorldMapV2 {
     entranceOpeningIds: ['annex-front-opening'],
     roofGroupId: 'annex-roof',
   }];
+  /**
+   * The frame this map has to be able to open on.
+   *
+   * NOT the spec's composition, which cannot validate: it anchors the camera in the lobby at
+   * (50,24) and then requires `clerk_01` at (10,10) and the manager at (12,32) to be in shot.
+   * `validateStartComposition` checks every required actor against the viewport around the anchor,
+   * and no viewport holds a lobby anchor and the far corner of the cubicle farm at once.
+   *
+   * So the anchor moves to the farm, which is the scene anyway — the lobby is a corridor with a
+   * counter in it. Actors and parts are drawn from adjacent modules so the frame proves the thing
+   * that matters: cubicles, the people in them, and the light above them, all at once.
+   */
+  map.startComposition = {
+    cameraAnchor: { x: 16, y: 14 },
+    requiredActorIds: ['clerk_01', 'clerk_02', 'clerk_05'],
+    requiredDetailPartIds: [
+      'cubicle-r0c0-desk-part-01',
+      'cubicle-r0c1-north-part-01',
+      'annex-ceiling-aisles-part-01',
+    ],
+    landmarkAreaIds: ['cubicle-floor'],
+  };
   return map;
 }
 

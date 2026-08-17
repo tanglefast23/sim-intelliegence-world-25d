@@ -27,7 +27,7 @@ import {
 } from '../../src/application/effects/PersistencePort';
 import { WORLD_MAP_CATALOG } from '../../src/application/runtime/map-catalog';
 import { migrateStateCopy } from '../../src/domain/state/migrations';
-import { migrateProductionSchedules } from '../../src/domain/state/production-cast';
+import { insertMissingProductionCast, refreshProductionSchedules } from '../../src/domain/state/production-cast';
 import { resolveDueCommitments } from '../../src/domain/commands/reducer';
 import type { WorldMapV2Catalog } from '../../src/world/maps/catalog';
 import { LayoutMigrationError, recoverWorldLayout } from '../../src/world/maps/layout-recovery';
@@ -152,8 +152,22 @@ export class SaveRepository {
       const currentState = sourceSchemaVersion === 7
         ? recovery.selected.envelope.state
         : migrateStateCopy(recovery.selected.envelope.state, recovery.selected.envelope.state.generationId);
+      /**
+       * Layout recovery FIRST, then the production-cast repair. Both halves run after.
+       *
+       * A review argued the opposite: recovery relocates a schedule block whose tile a layout
+       * change has blocked, and refreshing afterwards writes the authored tile back over that
+       * repair. Measured, the reverse order is worse. Recovery treats every block on a map whose
+       * saved revision is stale as a candidate, and a map the save has never seen is stale by
+       * definition — so refreshing first let recovery scatter all thirteen office clerks off the
+       * desks they are authored to stand at.
+       *
+       * Writing the authored tile back is safe by construction anyway: `content:build` validates
+       * that every authored schedule tile is reachable and unblocked, so the tile this restores
+       * cannot be the one inside a new wall.
+       */
       const layout = recoverWorldLayout(currentState, this.#catalog);
-      const scheduledState = migrateProductionSchedules(layout.state);
+      const scheduledState = insertMissingProductionCast(refreshProductionSchedules(layout.state));
       // NPCs are compared as well as schedules: the repair now INSERTS a missing production actor
       // alongside its schedule, and a schedules-only comparison would call that "unchanged" and
       // hand back a state it never saved.

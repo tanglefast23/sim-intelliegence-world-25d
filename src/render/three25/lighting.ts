@@ -102,9 +102,46 @@ export function lampLights(frame: WorldFrameState): readonly LampLight[] {
  */
 const CEILING_FLICKER_SHARE = 1 / 3;
 
+/**
+ * How many troffers become POINT LIGHTS at once.
+ *
+ * `frame.props` is the whole map's props, not a camera window, so one panel per desk plus panels in
+ * every other room is 56 lights on the office — four times the fourteen the spec budgeted, and it
+ * budgeted fourteen because downtown's neon already showed what a lit-material recompile per light
+ * costs. Content should not have to ration fixtures to protect the renderer.
+ *
+ * So the FIXTURES are unlimited and the LIGHTS are capped. Every panel still draws, and its glow
+ * plate still reads at full brightness, because a glow box is unlit batched geometry and costs
+ * nothing. Only the nearest ones to the camera actually cast, which are the only ones whose falloff
+ * a player can see anyway.
+ *
+ * Selection is by distance to the PROTAGONIST and then by id, so it is deterministic: a tie that
+ * resolved by array order would make the lit set flicker as props were rebuilt.
+ *
+ * The protagonist, not `frame.camera`. That field is the viewport's top-left CORNER in world
+ * pixels, not its centre, so ranking by it biased the whole lit set into one corner of the screen
+ * and measured as a hallway that had gone dark at the far end — dead fraction 0.032 to 0.137.
+ * The subject of the frame is the honest centre, and every capture is composed around it.
+ */
+const MAX_CEILING_POINT_LIGHTS = 24;
+
 function ceilingLights(frame: WorldFrameState): readonly LampLight[] {
-  return frame.props
+  const subject = frame.characters.find(({ id }) => id === 'protagonist')?.tile
+    ?? frame.characters[0]?.tile;
+  const focusX = (subject?.x ?? 0) + 0.5;
+  const focusZ = (subject?.y ?? 0) + 0.5;
+  const nearest = frame.props
     .filter((prop) => CEILING_SPRITE_IDS_25D.has(prop.sprite))
+    .map((prop) => {
+      const dx = prop.tile.x + 0.5 - focusX;
+      const dz = prop.tile.y + 0.5 - focusZ;
+      return { prop, distance: dx * dx + dz * dz };
+    })
+    .sort((left, right) => left.distance - right.distance
+      || (left.prop.id < right.prop.id ? -1 : left.prop.id > right.prop.id ? 1 : 0))
+    .slice(0, MAX_CEILING_POINT_LIGHTS)
+    .map(({ prop }) => prop);
+  return nearest
     .map((prop) => {
       const id = `ceiling-${prop.id}`;
       const flicker = 1 + (lampFlicker(id, frame.vfxAgeStep) - 1) * CEILING_FLICKER_SHARE;
@@ -115,8 +152,13 @@ function ceilingLights(frame: WorldFrameState): readonly LampLight[] {
         z: prop.tile.y + 0.5,
         y: CEILING_LIGHT_HEIGHT,
         color: CEILING_LIGHT_COLOR,
-        // Weaker than a post and with a floor under it, because fourteen of these overlap. A
+        // Weaker than a post and with a floor under it, because a roomful of these overlap. A
         // post's 11 here would blow the room white before the panels even met.
+        //
+        // 7.5, not the spec's 6. Measured on the office captures: 6 leaves the cubicle frame at 77
+        // mean luminance where 7.5 reaches 86, for the same pooling ratio and the same dead
+        // fraction. The spec's number was written before the scene existed; this one was read off
+        // a capture, and the playbook's rule is that a measurement beats an estimate.
         intensity: (0.6 + frame.lighting.sun.lampMix * 7.5) * flicker,
         distance: 10,
         decay: 1.2,

@@ -368,19 +368,6 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   'tile.cubicle-partition-v': {
     boxes: [{ x: 0, y: 0.5075, z: 0, width: 0.14, height: 1.015, depth: 0.98, tint: '#c4b8a0' }],
   },
-  // The plate is the light. `glow` draws it unlit at its authored colour, so it stays bright when
-  // the room around it is dark. The housing is ordinary lit geometry and sits just under the roof
-  // lid at 1.45, or the panel reads as a square floating in mid-air at zoom 3.
-  'tile.fixture-ceiling-panel': {
-    boxes: [
-      // The housing is a RIM, and it sits BELOW the plate. The spec put the glow plate at 1.33
-      // inside a 0.84-wide housing at 1.38, which hides the light completely: the camera looks down
-      // at 30 degrees and sees top faces, so a wider, higher housing covers the plate it contains
-      // and fourteen troffers render as fourteen grey slabs. Measured on a real capture.
-      { x: 0, y: 1.33, z: 0, width: 0.86, height: 0.06, depth: 0.86, tint: '#d0d4d8' },
-      { x: 0, y: 1.38, z: 0, width: 0.72, height: 0.04, depth: 0.72, tint: '#e8eef4', glow: true },
-    ],
-  },
   // The jug is plastic, not a lamp. It is deliberately NOT `glow` and joins no lamp set.
   'tile.water-cooler': {
     boxes: [
@@ -511,6 +498,19 @@ export const PROP_CORES: Readonly<Record<string, Readonly<{
 });
 
 export const FLAT_SPRITES: ReadonlySet<string> = new Set<string>([
+  /**
+   * The ceiling troffer draws NO box in 2.5D, on purpose.
+   *
+   * It is mounted at 1.33 tiles, and an interior hides its own roof so the player can see the
+   * room — so there is nothing above it for it to be attached to. Drawn, it reads as a blank slab
+   * hanging in mid-air, and at this camera angle it projects up-screen over whatever stands
+   * behind it, so it also appears to sit on top of unrelated furniture.
+   *
+   * Nothing is lost by dropping it. The light and its floor pool are what a player actually reads
+   * as "there is a light here", and both come from `lighting.ts`, not from this geometry. In 2D
+   * the sprite still stamps the floor, which is the read spec 9.2 asked for there.
+   */
+  'tile.fixture-ceiling-panel',
   'tile.market-detail-chalk',
   'tile.market-detail-herbs',
   'tile.market-detail-paper',

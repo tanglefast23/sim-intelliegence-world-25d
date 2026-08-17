@@ -9,16 +9,16 @@
       "evidence": {
         "rendererKind": "threejs-2-5d",
         "drawCalls": 10,
-        "meshCount": 969,
+        "meshCount": 931,
         "yawDegrees": 45,
         "shadowPath": "lit",
         "shadowMapEnabled": true,
         "atlasDrawCalls": 3,
         "vfxAdditiveQuads": 0,
         "vfxAlphaQuads": 0,
-        "frameMedianMs": 97.3,
-        "frameP95Ms": 110,
-        "frameSamples": 67
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.4,
+        "frameSamples": 120
       }
     },
     {
@@ -29,16 +29,16 @@
       "evidence": {
         "rendererKind": "threejs-2-5d",
         "drawCalls": 10,
-        "meshCount": 969,
+        "meshCount": 931,
         "yawDegrees": 45,
         "shadowPath": "lit",
         "shadowMapEnabled": true,
         "atlasDrawCalls": 3,
         "vfxAdditiveQuads": 0,
         "vfxAlphaQuads": 0,
-        "frameMedianMs": 100.8,
-        "frameP95Ms": 110.1,
-        "frameSamples": 69
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.3,
+        "frameSamples": 120
       }
     },
     {
@@ -49,16 +49,16 @@
       "evidence": {
         "rendererKind": "threejs-2-5d",
         "drawCalls": 10,
-        "meshCount": 971,
+        "meshCount": 907,
         "yawDegrees": 45,
         "shadowPath": "lit",
         "shadowMapEnabled": true,
         "atlasDrawCalls": 3,
         "vfxAdditiveQuads": 0,
         "vfxAlphaQuads": 8,
-        "frameMedianMs": 96.5,
-        "frameP95Ms": 110.4,
-        "frameSamples": 71
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.4,
+        "frameSamples": 120
       }
     },
     {
@@ -69,16 +69,16 @@
       "evidence": {
         "rendererKind": "threejs-2-5d",
         "drawCalls": 8,
-        "meshCount": 969,
+        "meshCount": 931,
         "yawDegrees": 45,
         "shadowPath": "fallback",
         "shadowMapEnabled": false,
         "atlasDrawCalls": 3,
         "vfxAdditiveQuads": 0,
         "vfxAlphaQuads": 0,
-        "frameMedianMs": 98.5,
-        "frameP95Ms": 109.4,
-        "frameSamples": 71
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.1,
+        "frameSamples": 120
       }
     }
   ]

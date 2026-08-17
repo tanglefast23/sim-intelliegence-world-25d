@@ -36,3 +36,19 @@ export function visualIdForNpc(stateId: string): CharacterId {
 
   return 'generic-resident';
 }
+
+/**
+ * Which way an NPC faces when it is standing still.
+ *
+ * The default is `down`, which is right for an actor loitering in a street and wrong for one at a
+ * desk. The Ledger Annex clerks never walk — their four schedule blocks are all the same tile — so
+ * without this every one of the thirteen stands with their back to the desk they are working at,
+ * facing the aisle. Spec 12.3: desks sit on the north side of the module, clerks stand south of the
+ * desk and face up into it.
+ *
+ * Returns undefined for everyone else, so a walking actor keeps the direction its movement gives it
+ * and no other cast is touched.
+ */
+export function idleFacingForNpc(stateId: string): 'up' | undefined {
+  return CLERK_VISUAL_PATTERN.test(stateId) || stateId === 'office_manager' ? 'up' : undefined;
+}

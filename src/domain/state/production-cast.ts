@@ -312,30 +312,51 @@ export function createProductionSchedules(): Record<string, ScheduleState> {
 }
 
 /**
- * Repair the production cast on load: refresh schedules the save already has, and INSERT the ones
- * it has never seen along with their NPCs.
+ * Both halves of the production-cast repair, in the order a caller with no layout step needs.
  *
- * The insert half exists for the office. A save written before the Ledger Annex has no clerks and
- * no clerk schedules, and nothing else would ever give it any — `recoverWorldLayout` adds the map
- * record but knows nothing about the cast, and a schema-version migration only runs once, so a
- * save already migrated past that version would be skipped forever.
- *
- * Insertion is deliberately paired. `WorldStateSchema` rejects a schedule whose NPC is missing and
- * a schedule block on a map the save does not have, so adding a schedule alone produces a save
- * that will not parse. The NPC, its schedule, and (via recovery) its map arrive together or not
- * at all.
+ * `save-repository.ts` does NOT use this: it has a layout-recovery step in the middle and calls
+ * the two halves either side of it, because they belong on opposite sides. See each one.
  */
 export function migrateProductionSchedules(state: WorldState): WorldState {
+  return insertMissingProductionCast(refreshProductionSchedules(state));
+}
+
+/**
+ * Overwrite the schedules the save already has with the authored ones.
+ *
+ * This must run BEFORE `recoverWorldLayout`, and the order is the whole point. Recovery moves
+ * schedule BLOCK tiles when a layout change leaves one on a blocked cell
+ * (`layout-recovery.ts` walks `draft.schedules`), and this function writes the authored tile back.
+ * Run it after recovery and it silently undoes exactly the repair recovery just made, putting an
+ * actor's work tile back inside whatever new wall now stands there.
+ */
+export function refreshProductionSchedules(state: WorldState): WorldState {
+  const production = createProductionSchedules();
+  const schedules = { ...state.schedules };
+  for (const [id, schedule] of Object.entries(production)) {
+    if (schedules[id]) schedules[id] = schedule;
+  }
+  return { ...state, schedules };
+}
+
+/**
+ * Add the production actors and schedules a save has never seen, and nothing else.
+ *
+ * This must run AFTER `recoverWorldLayout`, for the opposite reason: an office clerk's schedule
+ * names `west_office`, and `WorldStateSchema` rejects a block on a map the save does not have.
+ * Recovery is what inserts that map record, so inserting the cast before it writes a save that
+ * will not parse.
+ *
+ * Insertion is deliberately paired. The schema also rejects a schedule whose NPC is missing, so
+ * the NPC and its schedule arrive together or not at all.
+ */
+export function insertMissingProductionCast(state: WorldState): WorldState {
   const production = createProductionSchedules();
   const productionNpcs = createProductionNpcs(production);
   const schedules = { ...state.schedules };
   const npcs = { ...state.npcs };
   for (const [id, schedule] of Object.entries(production)) {
-    if (schedules[id]) {
-      schedules[id] = schedule;
-      continue;
-    }
-    // Only insert when the save can actually hold it: every block's map must already exist.
+    if (schedules[id]) continue;
     const npc = productionNpcs[schedule.npcId];
     if (!npc || schedule.blocks.some(({ mapId }) => !state.maps[mapId])) continue;
     schedules[id] = schedule;

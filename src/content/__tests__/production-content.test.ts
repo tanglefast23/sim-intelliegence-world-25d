@@ -10,6 +10,8 @@ import { buildSceneRegistry } from '../../ai/registry/scene-registry';
 import { BROWSER_NAMED_WRITING } from '../../ai/registry/generated-browser-writing';
 import { visualIdForNpc } from '../../render/character-visuals';
 import { LAMP_SPRITE_IDS_25D } from '../../render/three25/lighting';
+import { parseWorldState } from '../../domain/state/schema';
+import { simulateWorldInterval } from '../../world/schedules/simulation';
 import {
   PRODUCTION_AMBIENT_RESIDENTS,
   PRODUCTION_CAST_COUNTS,
@@ -286,6 +288,24 @@ describe('Ledger Annex staff', () => {
    * office emptied at lunch and the assertion never noticed, because it asserted the block that had
    * been built rather than the behaviour the scene needs.
    */
+  /**
+   * The stand tiles written out, from spec 8.4, rather than recomputed.
+   *
+   * `PRODUCTION_OFFICE_STAFF` derives these from the same `west + 2, north + 2` expression the map
+   * builder uses, so comparing a schedule block to `staff.work` only proves the two copies of one
+   * formula agree. A wrong offset in that formula passes. This list is the independent source.
+   */
+  const SPEC_STAND_TILES = [
+    { x: 10, y: 10 }, { x: 15, y: 10 }, { x: 20, y: 10 }, { x: 25, y: 10 },
+    { x: 10, y: 15 }, { x: 15, y: 15 }, { x: 20, y: 15 }, { x: 25, y: 15 },
+    { x: 10, y: 20 }, { x: 15, y: 20 }, { x: 20, y: 20 }, { x: 25, y: 20 },
+  ];
+
+  test('stands the twelve clerks on the tiles the spec names', () => {
+    const clerks = PRODUCTION_OFFICE_STAFF.filter(({ id }) => id.startsWith('clerk_'));
+    expect(clerks.map(({ work }) => ({ x: work.x, y: work.y }))).toEqual(SPEC_STAND_TILES);
+  });
+
   test('keeps every clerk on their own desk tile in all four blocks', () => {
     const schedules = createProductionSchedules();
     const occupiedAt = new Map<number, string[]>();
@@ -333,5 +353,60 @@ describe('the production cast repair', () => {
     const repaired = migrateProductionSchedules(initial);
     expect(JSON.stringify(repaired.schedules)).toBe(JSON.stringify(initial.schedules));
     expect(JSON.stringify(repaired.npcs)).toBe(JSON.stringify(initial.npcs));
+  });
+});
+
+/**
+ * Two assertions the spec asked for by name and that were missing until an audit found them.
+ *
+ * Both are about BEHAVIOUR rather than data. The schedule tests above compare the authored blocks
+ * to the same grid expression that produced them, so they cannot see a clerk who is authored
+ * correctly and then walks away, or one who is authored correctly and cannot be talked to.
+ */
+describe('the office cast in motion', () => {
+  test('every clerk is still at their desk after a minute of simulation', () => {
+    const initial = createInitialState();
+    const onOffice = parseWorldState({
+      ...initial,
+      protagonist: {
+        ...initial.protagonist,
+        locationId: 'ledger_annex',
+        worldPosition: { mapId: 'west_office', tileX: 20, tileY: 17 },
+      },
+      maps: Object.fromEntries(Object.entries(initial.maps).map(([id, map]) => [
+        id,
+        { ...map, active: id === 'west_office' },
+      ])),
+    });
+    const simulated = simulateWorldInterval({
+      state: onOffice,
+      toAbsoluteMinute: onOffice.clock.absoluteMinute + 1,
+      toSubMinuteMilliseconds: 0,
+      awake: false,
+      frameMovement: false,
+    }).state;
+    for (const staff of PRODUCTION_OFFICE_STAFF) {
+      const presence = simulated.npcs[staff.id]!.presence;
+      if (presence.kind === 'in_transit') throw new Error(`${staff.id} left the annex.`);
+      expect({ x: presence.tileX, y: presence.tileY }).toEqual({ x: staff.work.x, y: staff.work.y });
+    }
+  });
+
+  test('a clerk opens an ambient conversation and never asks for a writing pack', async () => {
+    let writingCalls = 0;
+    const inference = new RecordedInferencePort([]);
+    const service = new ConversationService(inference, {
+      get: async () => {
+        writingCalls += 1;
+        throw new Error('An office clerk must not load a writing pack.');
+      },
+    });
+    const state = createInitialState();
+    const result = await service.begin({
+      conversationId: 'conversation-clerk-01', npcId: 'clerk_01', state,
+    });
+    expect(result).toEqual(expect.objectContaining({ kind: 'ambient', npcId: 'clerk_01' }));
+    expect(writingCalls).toBe(0);
+    expect(inference.requests).toHaveLength(0);
   });
 });

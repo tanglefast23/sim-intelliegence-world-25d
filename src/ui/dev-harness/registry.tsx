@@ -97,6 +97,7 @@ const WORLD_MAP_LABELS: Readonly<Record<(typeof DEV_HARNESS_MAP_IDS)[number], st
   northeast_downtown: 'DOWNTOWN',
   southwest_commercial: 'SHOPS',
   southeast_docks: 'DOCKS',
+  west_office: 'ANNEX',
 };
 
 /**

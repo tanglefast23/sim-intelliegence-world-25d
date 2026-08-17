@@ -201,14 +201,42 @@
       "openingId": "mgr-door",
       "initialState": "closed-unlocked",
       "sprite": "tile.closed-door",
-      "roofGroupId": "annex-roof"
+      "roofGroupId": "annex-roof",
+      "interaction": {
+        "id": "annex-manager-door-use",
+        "areaId": "manager-office",
+        "approachTiles": [
+          {
+            "x": 19,
+            "y": 33
+          },
+          {
+            "x": 21,
+            "y": 33
+          }
+        ]
+      }
     },
     {
       "id": "annex-kitchen-door",
       "openingId": "kitchen-door",
       "initialState": "closed-unlocked",
       "sprite": "tile.closed-door",
-      "roofGroupId": "annex-roof"
+      "roofGroupId": "annex-roof",
+      "interaction": {
+        "id": "annex-kitchen-door-use",
+        "areaId": "annex-kitchen",
+        "approachTiles": [
+          {
+            "x": 28,
+            "y": 33
+          },
+          {
+            "x": 30,
+            "y": 33
+          }
+        ]
+      }
     }
   ],
   "objects": [
@@ -3546,7 +3574,7 @@
       "areaId": "annex-hall",
       "anchor": {
         "x": 10,
-        "y": 22
+        "y": 25
       },
       "depthAnchorOffset": {
         "x": 31,
@@ -3772,7 +3800,7 @@
       },
       "depthAnchorOffset": {
         "x": 24,
-        "y": 2
+        "y": 0
       },
       "renderParts": [
         {
@@ -3804,7 +3832,7 @@
           "sprite": "tile.fixture-planter",
           "offset": {
             "x": -4,
-            "y": 2
+            "y": 0
           }
         },
         {
@@ -3812,7 +3840,7 @@
           "sprite": "tile.fixture-planter",
           "offset": {
             "x": 24,
-            "y": 2
+            "y": 0
           }
         }
       ],
@@ -3848,7 +3876,7 @@
           "id": "annex-hall-planters-solid-04",
           "bounds": {
             "x": -4,
-            "y": 2,
+            "y": 0,
             "width": 1,
             "height": 1
           }
@@ -3857,7 +3885,7 @@
           "id": "annex-hall-planters-solid-05",
           "bounds": {
             "x": 24,
-            "y": 2,
+            "y": 0,
             "width": 1,
             "height": 1
           }
@@ -6455,5 +6483,24 @@
       "x": 25,
       "y": 20
     }
+  },
+  "startComposition": {
+    "cameraAnchor": {
+      "x": 16,
+      "y": 14
+    },
+    "requiredActorIds": [
+      "clerk_01",
+      "clerk_02",
+      "clerk_05"
+    ],
+    "requiredDetailPartIds": [
+      "cubicle-r0c0-desk-part-01",
+      "cubicle-r0c1-north-part-01",
+      "annex-ceiling-aisles-part-01"
+    ],
+    "landmarkAreaIds": [
+      "cubicle-floor"
+    ]
   }
 }
