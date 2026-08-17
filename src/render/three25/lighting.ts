@@ -39,12 +39,44 @@ export const LAMP_SPRITE_IDS_25D: ReadonlySet<string> = new Set([
   'tile.fixture-neon-lamp-magenta',
 ]);
 
+/**
+ * Ceiling troffers. A SEPARATE set from the lamp posts, on purpose.
+ *
+ * An office is ceiling-lit, and the pooled-post night model is the wrong default for it: fourteen
+ * posts' worth of amber at 20 degrees turns a fluorescent room into a sunset. These sit higher,
+ * read cooler, fall off wider, and are individually weaker, so the overlap is an even wash rather
+ * than fourteen hot spots.
+ *
+ * Kept out of `LAMP_SPRITE_IDS_25D` because that set is a verified copy of the frozen 2D
+ * renderer's. Adding a ceiling sprite there would demand an edit to a file the Stage 4 closeout
+ * gates on being unchanged.
+ */
+export const CEILING_SPRITE_IDS_25D: ReadonlySet<string> = new Set([
+  'tile.fixture-ceiling-panel',
+]);
+
+/** The troffer's own diffuser colour: cool white, not the district accent and not lamp amber. */
+const CEILING_LIGHT_COLOR = '#d8e4f0';
+
+/** Matches the glow plate in `PROP_RECIPES`, so the light sits in the fixture that shows it. */
+const CEILING_LIGHT_HEIGHT = 1.33;
+
 export type LampLight = Readonly<{
   id: string;
   x: number;
   z: number;
   color: string;
   intensity: number;
+  /**
+   * How high the point sits, and which falloff and pool it carries. A post lights a pocket; a
+   * troffer washes a room. The renderer reads this rather than inferring a kind from the sprite.
+   */
+  kind: 'post' | 'ceiling';
+  y: number;
+  distance: number;
+  decay: number;
+  poolRadius: number;
+  poolOpacity: number;
 }>;
 
 /**
@@ -58,6 +90,43 @@ export type LampLight = Readonly<{
  * than snapping on.
  */
 export function lampLights(frame: WorldFrameState): readonly LampLight[] {
+  return [...postLights(frame), ...ceilingLights(frame)];
+}
+
+/**
+ * Troffer flicker is +/-2%, not the post's +/-6%.
+ *
+ * A fluorescent tube does flutter, and a completely steady ceiling reads as a render rather than a
+ * room. But an office where fourteen panels visibly blink looks broken rather than atmospheric, so
+ * the amplitude is a third of a lamp's and lands under conscious notice.
+ */
+const CEILING_FLICKER_SHARE = 1 / 3;
+
+function ceilingLights(frame: WorldFrameState): readonly LampLight[] {
+  return frame.props
+    .filter((prop) => CEILING_SPRITE_IDS_25D.has(prop.sprite))
+    .map((prop) => {
+      const id = `ceiling-${prop.id}`;
+      const flicker = 1 + (lampFlicker(id, frame.vfxAgeStep) - 1) * CEILING_FLICKER_SHARE;
+      return {
+        id,
+        kind: 'ceiling' as const,
+        x: prop.tile.x + 0.5,
+        z: prop.tile.y + 0.5,
+        y: CEILING_LIGHT_HEIGHT,
+        color: CEILING_LIGHT_COLOR,
+        // Weaker than a post and with a floor under it, because fourteen of these overlap. A
+        // post's 11 here would blow the room white before the panels even met.
+        intensity: (0.6 + frame.lighting.sun.lampMix * 6) * flicker,
+        distance: 10,
+        decay: 1.2,
+        poolRadius: 4,
+        poolOpacity: 0.28,
+      };
+    });
+}
+
+function postLights(frame: WorldFrameState): readonly LampLight[] {
   return frame.props
     .filter((prop) => LAMP_SPRITE_IDS_25D.has(prop.sprite))
     .map((prop) => {
@@ -67,8 +136,14 @@ export function lampLights(frame: WorldFrameState): readonly LampLight[] {
       const id = `lamp-${prop.id}`;
       return {
       id,
+      kind: 'post' as const,
       x: prop.tile.x + 0.5,
       z: prop.tile.y + 0.5,
+      y: 1,
+      distance: 11,
+      decay: 1.4,
+      poolRadius: 3.2,
+      poolOpacity: 0.5,
       // The lamp's OWN glow colour, not the district accent. Under the accent an amber dock lamp
       // threw a teal pool: the source and the light it cast disagreed, and the harbour read as one
       // cold monochrome with warm dots floating in it. Falls back to the accent for a lamp sprite
@@ -180,7 +255,7 @@ export function nightKeyOrigin(
   frame: WorldFrameState,
 ): Readonly<{ x: number; z: number }> | undefined {
   if (frame.lighting.sun.lampMix < LAMP_KEY_THRESHOLD) return undefined;
-  const lamps = lampLights(frame);
+  const lamps = lampLights(frame).filter(({ kind }) => kind === 'post');
   if (lamps.length === 0) return undefined;
   let x = 0;
   let z = 0;
@@ -206,6 +281,34 @@ export function nightKeyOrigin(
  * Indoors the blob keeps the frame's own offset. A room is lit from a fixture overhead, which rakes
  * nothing, and the short indoor blob is already right.
  */
+/**
+ * The centroid of the ceiling troffers in frame, when the player is standing under them.
+ *
+ * A ceiling-lit room must not rake. `nightKeyOrigin` places the key nine tiles out at 20 degrees,
+ * which is right for a street of lamp posts and wrong for an office: it turns a fluorescent room
+ * into a sunset and throws desk shadows the length of the aisle. Under troffers the key comes
+ * straight down instead, and shadows become tight puddles under desks and partitions.
+ *
+ * Returns nothing when only floor lamps are in frame, so the villa at night keeps the short indoor
+ * behaviour it already has and this cannot steal its lamp key.
+ */
+export function indoorOverheadKeyOrigin(
+  frame: WorldFrameState,
+): Readonly<{ x: number; z: number }> | undefined {
+  // `shelterCells` is populated only while the player occupies a roof group, so it IS the indoor
+  // test. Taking a caller-supplied boolean instead is one wrong argument away from raking a room.
+  if (frame.shelterCells.length === 0 || frame.lighting.sun.lampMix < LAMP_KEY_THRESHOLD) return undefined;
+  const ceiling = lampLights(frame).filter(({ kind }) => kind === 'ceiling');
+  if (ceiling.length === 0) return undefined;
+  let x = 0;
+  let z = 0;
+  for (const light of ceiling) {
+    x += light.x;
+    z += light.z;
+  }
+  return { x: x / ceiling.length, z: z / ceiling.length };
+}
+
 export function blobCastOffset(
   frame: WorldFrameState,
   shadow: Readonly<{ worldX: number; worldY: number; castX: number; castY: number }>,
@@ -312,12 +415,12 @@ export function lampPools(frame: WorldFrameState): readonly QuadDescriptor[] {
     source: { x: 0, y: 0, width: 0, height: 0 } as QuadDescriptor['source'],
     x: lamp.x,
     z: lamp.z,
-    width: 3.2,
-    depth: 3.2,
+    width: lamp.poolRadius,
+    depth: lamp.poolRadius,
     tint: lamp.color,
     // The pool dims with its own lamp. A lamp that flickers while the light on the floor under it
     // holds steady reads as two lights, not one.
-    opacity: 0.5 * strength * lampFlicker(lamp.id, frame.vfxAgeStep),
+    opacity: lamp.poolOpacity * strength * lampFlicker(lamp.id, frame.vfxAgeStep),
   }));
 }
 

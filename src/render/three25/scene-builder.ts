@@ -310,9 +310,14 @@ function floorSource(placement: WorldFloorPlacement): AtlasRectangle {
 /**
  * The sprites that actually put light on the floor.
  *
- * Mirrors `LAMP_SPRITE_IDS_25D` in `lighting.ts`, which drives the point lights and the pools. It
- * is duplicated rather than imported because `lighting.ts` imports this module's types, and a value
- * import back would close the cycle; a test pins the two lists to each other.
+ * Mirrors `LAMP_SPRITE_IDS_25D` UNION `CEILING_SPRITE_IDS_25D` in `lighting.ts`, which together
+ * drive the point lights and the pools. It is duplicated rather than imported because `lighting.ts`
+ * imports this module's types, and a value import back would close the cycle; a test pins the lamp
+ * half of this list to the frozen 2D set and the whole of it to the union.
+ *
+ * The ceiling troffer is here so that if this sprite is ever placed outdoors — under a canopy, on a
+ * covered platform — it carves the same outdoor crush every other light source does. Indoors the
+ * crush already no-ops, so including it costs the office nothing.
  */
 export const GROUND_LIGHTING_SPRITES: ReadonlySet<string> = new Set([
   'tile.fixture-lamp',
@@ -321,6 +326,7 @@ export const GROUND_LIGHTING_SPRITES: ReadonlySet<string> = new Set([
   'tile.fixture-festival-lantern',
   'tile.fixture-neon-lamp-cyan',
   'tile.fixture-neon-lamp-magenta',
+  'tile.fixture-ceiling-panel',
 ]);
 
 const LIGHT_FALLOFF_INNER_TILES = 4;

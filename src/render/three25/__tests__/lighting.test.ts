@@ -1,10 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+import type { WorldFrameState } from '../../world-frame';
+
 import {
   DEFAULT_SHADOW_PATH,
   LAMP_KEY_THRESHOLD,
+  CEILING_SPRITE_IDS_25D,
   LAMP_SPRITE_IDS_25D,
+  indoorOverheadKeyOrigin,
   blobCastOffset,
   blobShadows,
   lampFlicker,
@@ -362,8 +366,22 @@ describe('lamp flicker', () => {
  * bazaar, where signs counted as lights for the crush while lighting nothing.
  */
 describe('what counts as a light', () => {
+  /**
+   * GROUND is the UNION of the two light sets, and the union is the whole assertion.
+   *
+   * The two halves are kept apart for one reason: `LAMP_SPRITE_IDS_25D` is a verified copy of the
+   * frozen 2D renderer's list, and putting a ceiling troffer in it would demand an edit to a file
+   * the Stage 4 closeout gates on being unchanged. So the equality that matters is GROUND against
+   * lamps-plus-ceiling, and separately that the lamp half still matches the 2D set — which the
+   * copy-equality test above already holds.
+   */
   test('the crush and the lights agree, exactly', () => {
-    expect([...GROUND_LIGHTING_SPRITES].sort()).toEqual([...LAMP_SPRITE_IDS_25D].sort());
+    expect([...GROUND_LIGHTING_SPRITES].sort())
+      .toEqual([...LAMP_SPRITE_IDS_25D, ...CEILING_SPRITE_IDS_25D].sort());
+    // The ceiling set must stay OUT of the frozen-2D copy, or that file has to change.
+    for (const sprite of CEILING_SPRITE_IDS_25D) {
+      expect(LAMP_SPRITE_IDS_25D.has(sprite)).toBe(false);
+    }
   });
 
   /** A sign glows but lights nothing, so it must never appear in either list. */
@@ -371,5 +389,82 @@ describe('what counts as a light', () => {
     expect(LAMP_GLOW_COLORS['tile.sign-neon']).toBeDefined();
     expect(LAMP_SPRITE_IDS_25D.has('tile.sign-neon')).toBe(false);
     expect(GROUND_LIGHTING_SPRITES.has('tile.sign-neon')).toBe(false);
+  });
+});
+
+/**
+ * An office is ceiling-lit, and the pooled-post night model is the wrong default for it.
+ *
+ * `nightKeyOrigin` puts the key nine tiles out at roughly 20 degrees so a lamp post throws a long
+ * hard rake. Under fourteen troffers that same key turns a fluorescent room into a sunset and
+ * throws a desk's shadow the length of the aisle, which is the single failure this rig exists to
+ * prevent. These tests pin the two keys apart.
+ */
+describe('the office ceiling rig', () => {
+  const withCeiling = (lampMix: number, sheltered: boolean): WorldFrameState => {
+    const base = outdoorFrame();
+    return {
+      ...base,
+      lighting: { ...base.lighting, sun: { ...base.lighting.sun, lampMix } },
+      shelterCells: sheltered ? [{ x: 7, y: 7, width: 46, height: 34 }] : [],
+      props: [
+        { id: 'panel-a', sprite: 'tile.fixture-ceiling-panel', tile: { x: 18, y: 23 } },
+        { id: 'panel-b', sprite: 'tile.fixture-ceiling-panel', tile: { x: 28, y: 23 } },
+      ],
+    } as unknown as WorldFrameState;
+  };
+
+  test('a troffer is a cooler, higher, weaker light than a lamp post', () => {
+    const [panel] = lampLights(withCeiling(1, true));
+    expect(panel!.kind).toBe('ceiling');
+    expect(panel!.y).toBeCloseTo(1.33, 5);
+    expect(panel!.color).toBe('#d8e4f0');
+    expect(panel!.distance).toBeLessThan(11);
+    expect(panel!.decay).toBeLessThan(1.4);
+    // Fourteen of these overlap. A post's intensity here would blow the room white.
+    expect(panel!.intensity).toBeLessThan(0.2 + 11);
+    expect(panel!.poolRadius).toBeGreaterThan(3.2);
+    expect(panel!.poolOpacity).toBeLessThan(0.5);
+  });
+
+  test('troffer flicker is a third of a lamp post s, so the office does not blink', () => {
+    const swing = (step: number): number => lampLights(withCeiling(1, true))[0]!.intensity;
+    const samples = [0, 7, 13, 29, 51].map(swing);
+    const base = 0.6 + 6;
+    for (const sample of samples) {
+      expect(Math.abs(sample - base) / base).toBeLessThan(0.03);
+    }
+  });
+
+  test('indoors under troffers the key comes straight down, not from nine tiles out', () => {
+    const overhead = indoorOverheadKeyOrigin(withCeiling(1, true));
+    expect(overhead).toEqual({ x: 23.5, z: 23.5 });
+  });
+
+  test('a ceiling panel never becomes the raking lamp key', () => {
+    // Only troffers in frame, so the post-driven key must find nothing to aim from.
+    expect(nightKeyOrigin(withCeiling(1, true))).toBeUndefined();
+  });
+
+  test('the villa at night keeps its own lamp key', () => {
+    // Sheltered, but lit by floor lamps rather than troffers: the overhead branch must not fire.
+    const base = outdoorFrame();
+    const villaNight = {
+      ...base,
+      lighting: { ...base.lighting, sun: { ...base.lighting.sun, lampMix: 1 } },
+      shelterCells: [{ x: 8, y: 7, width: 18, height: 18 }],
+      props: [{ id: 'villa-lamp', sprite: 'tile.fixture-lamp', tile: { x: 17, y: 20 } }],
+    } as unknown as WorldFrameState;
+    expect(indoorOverheadKeyOrigin(villaNight)).toBeUndefined();
+    expect(nightKeyOrigin(villaNight)).toEqual({ x: 17.5, z: 20.5 });
+  });
+
+  test('daylight fires neither key', () => {
+    expect(indoorOverheadKeyOrigin(withCeiling(0, true))).toBeUndefined();
+    expect(nightKeyOrigin(withCeiling(0, true))).toBeUndefined();
+  });
+
+  test('outdoors the overhead key never fires, whatever is in frame', () => {
+    expect(indoorOverheadKeyOrigin(withCeiling(1, false))).toBeUndefined();
   });
 });
