@@ -3,7 +3,13 @@ import type { WorldFloorPlacement, WorldFrameState } from '../world-frame';
 import { hiddenWallTiles, tileKey } from './occlusion';
 import { mixHex } from '../atmosphere';
 import { readableTint } from './billboards';
-import { PROP_CORES, PROP_FLAT_COLORS, WALL_HEIGHT_TILES, recipeFor } from './recipes';
+import {
+  LAMP_GLOW_COLORS,
+  PROP_CORES,
+  PROP_FLAT_COLORS,
+  WALL_HEIGHT_TILES,
+  recipeFor,
+} from './recipes';
 
 /**
  * A flat one-tile lid on the ground plane.
@@ -271,7 +277,87 @@ function floorSource(placement: WorldFloorPlacement): AtlasRectangle {
   return override === undefined ? placement.source : atlasRectangle(override);
 }
 
-function floorQuad(placement: WorldFloorPlacement, frame: WorldFrameState): QuadDescriptor {
+/**
+ * How far from a light a floor tile keeps its full brightness, and where it reaches full crush.
+ *
+ * Indoors, `shelteredTint` supplies the dark surround: everything outside the room falls toward the
+ * void and the room reads as a lit stage. Outdoors there is no room, so `shelterCells` is empty,
+ * `shelteredTint` no-ops, and the whole map renders at one even brightness. The bazaar measured
+ * mean luminance 88 at midnight — brighter than the villa at noon — and its lamp pools were
+ * invisible against the flood, which fails the premise the entire look is built on: a dark world
+ * with bright objects and one warm pocket.
+ *
+ * This is the outdoor analogue. Ground far from every light falls toward the void, ground near one
+ * keeps its paint. The falloff is measured in tiles from the nearest emitter, so the shape follows
+ * where the lamps actually are rather than a vignette on the screen.
+ */
+const LIGHT_FALLOFF_INNER_TILES = 4;
+const LIGHT_FALLOFF_OUTER_TILES = 15;
+
+/**
+ * How dark the far ground gets at midnight. Capped well short of 1: unlit is not invisible.
+ *
+ * Tuned down from 0.55 over a 9-tile span, which shaped the scene correctly and overshot — the
+ * harbour's far yard turned into a black plate, adding 12 points of flat-dead blocks. A wider,
+ * shallower falloff keeps the shaping and leaves texture in the dark.
+ */
+const OUTDOOR_NIGHT_CRUSH = 0.46;
+
+/**
+ * Distance in tiles from a tile to the nearest thing that emits light, or Infinity if nothing does.
+ *
+ * Any prop with a glow box counts, which is lamps, lanterns and neon signs — the same set that
+ * actually puts light into the scene. Squared distance while searching, so the loop does no square
+ * roots it does not need.
+ */
+function tilesToNearestLight(
+  tile: Readonly<{ x: number; y: number }>,
+  lights: readonly Readonly<{ x: number; y: number }>[],
+): number {
+  let best = Number.POSITIVE_INFINITY;
+  for (const light of lights) {
+    const dx = light.x - tile.x;
+    const dy = light.y - tile.y;
+    const squared = dx * dx + dy * dy;
+    if (squared < best) best = squared;
+  }
+  return Math.sqrt(best);
+}
+
+/**
+ * The outdoor night crush for one ground tile.
+ *
+ * Returns the tint unchanged indoors — `shelteredTint` owns that case and applying both would crush
+ * the same tile twice — and unchanged by day, when there is no dark world to carve.
+ */
+function litGroundTint(
+  tint: string,
+  tile: Readonly<{ x: number; y: number }>,
+  frame: WorldFrameState,
+  lights: readonly Readonly<{ x: number; y: number }>[],
+): string {
+  if (frame.shelterCells.length > 0 || lights.length === 0) return tint;
+  const night = frame.lighting.sun.lampMix;
+  if (night <= 0.01) return tint;
+  const distance = tilesToNearestLight(tile, lights);
+  const span = LIGHT_FALLOFF_OUTER_TILES - LIGHT_FALLOFF_INNER_TILES;
+  const away = Math.min(1, Math.max(0, (distance - LIGHT_FALLOFF_INNER_TILES) / span));
+  return mixHex(tint.slice(0, 7), VOID_TINT, away * OUTDOOR_NIGHT_CRUSH * night)
+    + (tint.length > 7 ? tint.slice(7) : '');
+}
+
+/** Tiles of every prop that emits light. Any recipe with a glow box qualifies. */
+function emitterTiles(frame: WorldFrameState): readonly Readonly<{ x: number; y: number }>[] {
+  return frame.props
+    .filter((prop) => LAMP_GLOW_COLORS[prop.sprite] !== undefined)
+    .map((prop) => ({ x: prop.tile.x + 0.5, y: prop.tile.y + 0.5 }));
+}
+
+function floorQuad(
+  placement: WorldFloorPlacement,
+  frame: WorldFrameState,
+  lights: readonly Readonly<{ x: number; y: number }>[],
+): QuadDescriptor {
   return {
     id: placement.id,
     sprite: placement.sprite,
@@ -280,14 +366,21 @@ function floorQuad(placement: WorldFloorPlacement, frame: WorldFrameState): Quad
     z: placement.tile.y + 0.5,
     width: 1,
     depth: 1,
-    tint: shelteredTint(placement.color, placement.tile, frame),
+    tint: litGroundTint(
+      shelteredTint(placement.color, placement.tile, frame),
+      placement.tile,
+      frame,
+      lights,
+    ),
     gain: floorGain(placement.sprite),
     opacity: placement.opacity,
   };
 }
 
 export function buildFloorQuads(frame: WorldFrameState): readonly QuadDescriptor[] {
-  return [...frame.floors, ...frame.groundDetails].map((placement) => floorQuad(placement, frame));
+  const lights = emitterTiles(frame);
+  return [...frame.floors, ...frame.groundDetails]
+    .map((placement) => floorQuad(placement, frame, lights));
 }
 
 /**

@@ -102,6 +102,37 @@ export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
 }
 
 /**
+ * A dark contact stain under every prop that stands on the floor.
+ *
+ * The single most visible amateur tell in the 2.5D frames was that nothing sat on the ground. A
+ * sofa, a crate stack and a lamp post all floated a hair above their own tile, because the only
+ * shadow in the scene came from a directional sun that is nearly off after dusk — and the 2.5D path
+ * never read `frame.propShadows`, which the 2D path has always drawn.
+ *
+ * A contact stain, not a cast: a small ellipse under the footprint that says "this object touches
+ * here". It does not point anywhere, so it cannot disagree with the lamps the way the sun's rake
+ * does, and it works in both shadow paths and at every hour.
+ *
+ * Rides in the blob batch, which already bakes flat ground quads every frame. Zero draw calls.
+ */
+export function propContactShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
+  return frame.propShadows.map((shadow) => ({
+    id: `contact-${shadow.id}`,
+    sprite: 'contact-shadow',
+    source: { x: 0, y: 0, width: 0, height: 0 } as QuadDescriptor['source'],
+    x: shadow.worldX / TILE_SIZE,
+    z: shadow.worldY / TILE_SIZE,
+    // Deliberately smaller than the lamp pool it sits inside. A stain wider than the object reads
+    // as a cast shadow from a light that is not there. `long` marks the tall casters - lamps, neon,
+    // planters, palms - which get a slightly bigger stain because they meet the ground on a stem.
+    width: (shadow.width / TILE_SIZE) * (shadow.long ? 0.7 : 0.9),
+    depth: (shadow.width / TILE_SIZE) * (shadow.long ? 0.42 : 0.54),
+    tint: shadow.color,
+    opacity: 1,
+  }));
+}
+
+/**
  * A soft warm disc on the floor under each lamp.
  *
  * The lamp head glows, but a glowing head alone does not read as a light SOURCE - the reference

@@ -6,6 +6,7 @@ import {
   LAMP_SPRITE_IDS_25D,
   blobShadows,
   lampLights,
+  propContactShadows,
   shadowPathForEnvironment,
 } from '../lighting';
 import { LAMP_GLOW_COLORS } from '../recipes';
@@ -135,5 +136,35 @@ describe('a lamp casts its own colour', () => {
   /** Every lamp sprite must have a glow box, or its light silently falls back to the accent. */
   test('every lamp sprite has a recipe glow colour', () => {
     for (const sprite of LAMP_SPRITE_IDS_25D) expect(LAMP_GLOW_COLORS[sprite]).toBeDefined();
+  });
+});
+
+/**
+ * Props floated. The 2.5D path never read `frame.propShadows`, so a sofa, a crate stack and a lamp
+ * post all sat a hair above their own tile — the single most visible amateur tell in the frames.
+ */
+describe('prop contact shadows', () => {
+  const frame = outdoorFrame();
+
+  test('the fixture actually places props that cast', () => {
+    expect(frame.propShadows.length).toBeGreaterThan(0);
+    expect(propContactShadows(frame)).toHaveLength(frame.propShadows.length);
+  });
+
+  test('sits on the prop, not offset like a cast shadow', () => {
+    for (const contact of propContactShadows(frame)) {
+      const shadow = frame.propShadows.find((one) => contact.id === `contact-${one.id}`)!;
+      expect(contact.x).toBeCloseTo(shadow.worldX / 32, 6);
+      expect(contact.z).toBeCloseTo(shadow.worldY / 32, 6);
+    }
+  });
+
+  /** A stain wider than the object reads as a cast shadow from a light that is not there. */
+  test('is narrower than the prop it belongs to, and flatter than it is wide', () => {
+    for (const contact of propContactShadows(frame)) {
+      const shadow = frame.propShadows.find((one) => contact.id === `contact-${one.id}`)!;
+      expect(contact.width).toBeLessThan(shadow.width / 32);
+      expect(contact.depth).toBeLessThan(contact.width);
+    }
   });
 });

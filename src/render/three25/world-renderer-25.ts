@@ -31,7 +31,15 @@ import { ACES_EXPOSURE } from '../three/world-renderer';
 import type { ViewportSize } from '../camera';
 import type { WorldFrameState } from '../world-frame';
 import { buildBillboards, type BillboardDescriptor } from './billboards';
-import { DEFAULT_SHADOW_PATH, blobShadows, lampLights, lampPools, type ShadowPath } from './lighting';
+import { vfxQuads, type VfxQuad } from './vfx-25';
+import {
+  DEFAULT_SHADOW_PATH,
+  blobShadows,
+  lampLights,
+  lampPools,
+  propContactShadows,
+  type ShadowPath,
+} from './lighting';
 import { SceneCache } from './mesh-cache';
 import {
   CAMERA_YAW_DEGREES,
@@ -495,14 +503,23 @@ export function bakeBillboardGeometry(
  *
  * Sits just above the floor so it never z-fights the tiles it brightens.
  */
-export function bakeLampPools(pools: readonly QuadDescriptor[]): BufferGeometry {
+export function bakeLampPools(
+  pools: readonly QuadDescriptor[],
+  vfx: readonly VfxQuad[] = [],
+  cameraRight: Readonly<{ x: number; z: number }> = { x: 1, z: 0 },
+): BufferGeometry {
   const SEGMENTS = 16;
   const perPool = SEGMENTS + 2;
-  const positions = new Float32Array(pools.length * perPool * 3);
-  const normals = new Float32Array(pools.length * perPool * 3);
-  const uvs = new Float32Array(pools.length * perPool * 2);
-  const colors = new Float32Array(pools.length * perPool * 3);
-  const indices = new Uint32Array(pools.length * SEGMENTS * 3);
+  // VFX rides in the SAME geometry as the pools. Both want additive blending with no depth write,
+  // and the draw-call ceiling has no room for a ninth colour mesh — so the effects the 2.5D path
+  // never drew at all arrive for zero extra draw calls.
+  const vertexCount = pools.length * perPool + vfx.length * 4;
+  const indexCount = pools.length * SEGMENTS * 3 + vfx.length * 6;
+  const positions = new Float32Array(vertexCount * 3);
+  const normals = new Float32Array(vertexCount * 3);
+  const uvs = new Float32Array(vertexCount * 2);
+  const colors = new Float32Array(vertexCount * 3);
+  const indices = new Uint32Array(indexCount);
 
   pools.forEach((pool, poolIndex) => {
     const first = poolIndex * perPool;
@@ -528,6 +545,42 @@ export function bakeLampPools(pools: readonly QuadDescriptor[]): BufferGeometry 
       indices[index + 1] = first + 1 + step;
       indices[index + 2] = first + 2 + step;
     }
+  });
+
+  const vfxFirstVertex = pools.length * perPool;
+  const vfxFirstIndex = pools.length * SEGMENTS * 3;
+  vfx.forEach((quad, quadIndex) => {
+    const first = vfxFirstVertex + quadIndex * 4;
+    // Alpha is premultiplied into the colour. Additive blending has no alpha channel to honour, so
+    // this is how a 40%-opaque wisp of steam stays a wisp instead of a solid white bar.
+    const tint = linearTint(quad.tint);
+    const scale = quad.opacity;
+    const halfWidth = quad.width / 2;
+    const halfHeight = quad.height / 2;
+    // Upright quads turn to the camera on the ground plane, exactly like a character billboard.
+    // Flat quads lie on the floor, because a ripple really is on the floor.
+    const rightX = quad.upright ? cameraRight.x * halfWidth : halfWidth;
+    const rightZ = quad.upright ? cameraRight.z * halfWidth : 0;
+    const upY = quad.upright ? halfHeight : 0;
+    const upZ = quad.upright ? 0 : halfHeight;
+    const corners: readonly (readonly [number, number])[] = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+    corners.forEach((corner, cornerIndex) => {
+      const vertex = first + cornerIndex;
+      positions[vertex * 3] = quad.x + rightX * corner[0];
+      positions[vertex * 3 + 1] = quad.y + upY * corner[1] + 0.03;
+      positions[vertex * 3 + 2] = quad.z + rightZ * corner[0] + upZ * corner[1];
+      normals[vertex * 3 + 1] = 1;
+      colors[vertex * 3] = tint[0] * scale;
+      colors[vertex * 3 + 1] = tint[1] * scale;
+      colors[vertex * 3 + 2] = tint[2] * scale;
+    });
+    const index = vfxFirstIndex + quadIndex * 6;
+    indices[index] = first;
+    indices[index + 1] = first + 1;
+    indices[index + 2] = first + 2;
+    indices[index + 3] = first;
+    indices[index + 4] = first + 2;
+    indices[index + 5] = first + 3;
   });
 
   const geometry = new BufferGeometry();
@@ -942,12 +995,25 @@ export async function createWorldRenderer25(
      *
      * Mixed by `lampMix`, the same term that turns the lamps on, so dusk brings both together.
      */
+    //
+    // The MOST SATURATED lamp in frame, not the average of them. Averaging was the previous rule and
+    // it fails on exactly the district it was written for: downtown's lamps are cyan `#8ff2ea` and
+    // magenta `#ff9de0` in roughly equal numbers, and the mean of two complementary colours is grey.
+    // The neon street was tinting its own sky with no colour at all, which is why it measured the
+    // lowest saturation of the four while being the most colourful scene in the game.
     nightSkyColor.set(0, 0, 0);
     let lampCount = 0;
+    let bestChroma = -1;
     for (const lamp of wanted.values()) {
       lampSkySample.setStyle(lamp.color.slice(0, 7));
       lampSkySample.convertSRGBToLinear();
-      nightSkyColor.add(lampSkySample);
+      const high = Math.max(lampSkySample.r, lampSkySample.g, lampSkySample.b);
+      const low = Math.min(lampSkySample.r, lampSkySample.g, lampSkySample.b);
+      const chroma = high <= 0 ? 0 : (high - low) / high;
+      if (chroma > bestChroma) {
+        bestChroma = chroma;
+        nightSkyColor.copy(lampSkySample);
+      }
       lampCount += 1;
     }
     if (lampCount === 0) {
@@ -1002,7 +1068,10 @@ export async function createWorldRenderer25(
     }
 
     // Blob shadows are flat ground quads, so they bake with the same helper the floors use.
-    const blobs = blobShadows(next);
+    // Characters get a blob, props get a contact stain, and both are flat ground quads, so they
+    // bake together into the batch that already exists. Zero draw calls for the thing that stops
+    // every prop in the scene from floating a hair above its own tile.
+    const blobs = [...blobShadows(next), ...propContactShadows(next)];
     blobMesh.geometry.dispose();
     blobMesh.geometry = bakeSceneGeometry({ floors: blobs, boxes: [] }, atlasWidth, atlasHeight).floors;
     blobMesh.visible = blobs.length > 0;
@@ -1015,10 +1084,18 @@ export async function createWorldRenderer25(
     const frameAlpha = blobs[0]?.tint.length === 9 ? Number.parseInt(blobs[0].tint.slice(7), 16) / 255 : 0.45;
     blobMaterial.opacity = Math.min(0.85, frameAlpha * 1.9);
 
+    // The camera basis has to be current before the VFX bake: upright effect quads turn to face the
+    // camera the same way character billboards do.
+    camera.matrixWorld.extractBasis(cameraRight, cameraUp, cameraBack);
+    billboardRight.set(cameraRight.x, 0, cameraRight.z);
+    if (billboardRight.lengthSq() === 0) billboardRight.set(1, 0, 0);
+    billboardRight.normalize();
+
     const pools = lampPools(next);
+    const effects = vfxQuads(next);
     poolMesh.geometry.dispose();
-    poolMesh.geometry = bakeLampPools(pools);
-    poolMesh.visible = pools.length > 0;
+    poolMesh.geometry = bakeLampPools(pools, effects, { x: billboardRight.x, z: billboardRight.z });
+    poolMesh.visible = pools.length > 0 || effects.length > 0;
 
     // Characters turn to face the camera's bearing, so their quads are rebuilt from the camera
     // basis every frame rather than kept in the world batch. Only the horizontal component of the
