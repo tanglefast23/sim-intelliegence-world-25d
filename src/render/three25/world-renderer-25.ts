@@ -103,6 +103,15 @@ export type WorldRenderer25Evidence = Readonly<{
    */
   atlasDrawCalls: number;
   /**
+   * VFX primitives built for the last frame, split by batch.
+   *
+   * Reported because a screenshot cannot tell "the effect was never built" from "the effect was
+   * built and is invisible against a bright floor", and those need opposite fixes. The 2.5D path
+   * shipped with no VFX at all under a check that only counted draw calls.
+   */
+  vfxAdditiveQuads: number;
+  vfxAlphaQuads: number;
+  /**
    * Milliseconds between rendered frames, over a rolling window.
    *
    * A dropped-frame check, NOT a cost measure: while the renderer keeps up this is the display's
@@ -1062,6 +1071,7 @@ export async function createWorldRenderer25(
   let frameCursor = 0;
   let previousFrameAt = 0;
 
+  let lastVfxCounts = { additive: 0, alpha: 0 };
   let frame: WorldFrameState | undefined;
   let descriptorCount = 0;
   let signature: number | undefined;
@@ -1137,8 +1147,21 @@ export async function createWorldRenderer25(
     // pixels and 0.3-0.5 of detail, to buy about 0.02 of saturation, and the two captures are hard
     // to tell apart by eye. The emitters below raise exposure with LIGHT SOURCES instead, which is
     // the same target look arrived at from the right end.
-    // Lamp lights: add and remove by id so a pan does not churn the light list.
+    // Every lamp in frame, whichever path is running. The skyglow and the floor pools both read
+    // this: a lamp still glows and still pools on the fallback path, it just does not light.
     const wanted = new Map(lampLights(next).map((light) => [light.id, light]));
+
+    /**
+     * Point lights are the LIT path only.
+     *
+     * Spec section 8.7 defines the fallback as the no-dynamic-lights path — that is the whole reason
+     * it exists, and it is what lets it be deterministic and hold frame rate on hardware the lit
+     * path cannot. It was building a point light per lamp regardless, so the two paths differed by
+     * the shadow map alone and the fallback was not the thing it is documented to be. The lamps
+     * still read there: their heads glow, their pools draw, and the hemisphere runs at 1.7 rather
+     * than 1.1 precisely to stand in for the lights that are missing.
+     */
+    const wantedLights = shadowPath === 'lit' ? wanted : new Map<string, never>();
 
     /**
      * Skyglow: after dusk the sky light takes the district's own accent colour.
@@ -1200,12 +1223,12 @@ export async function createWorldRenderer25(
     hemisphere.color.copy(daySkyColor).lerp(nightSkyColor, 0.45 * next.lighting.sun.lampMix);
 
     for (const [id, light] of lamps) {
-      if (wanted.has(id)) continue;
+      if (wantedLights.has(id)) continue;
       scene.remove(light);
       light.dispose();
       lamps.delete(id);
     }
-    for (const [id, descriptor] of wanted) {
+    for (const [id, descriptor] of wantedLights) {
       let light = lamps.get(id);
       if (!light) {
         // Short range and quadratic decay, so a lamp makes a tight warm pocket rather than a
@@ -1318,6 +1341,7 @@ export async function createWorldRenderer25(
     const basis = { x: billboardRight.x, z: billboardRight.z };
 
     const effects = vfxQuads(next);
+    lastVfxCounts = { additive: effects.additive.length, alpha: effects.alpha.length };
     const blobs = [...blobShadows(next), ...propContactShadows(next)];
     blobMesh.geometry.dispose();
     blobMesh.geometry = bakeGroundStains(blobs, effects.alpha, basis);
@@ -1405,6 +1429,8 @@ export async function createWorldRenderer25(
       atlasDrawCalls: [floorMesh, boxMesh, billboardMesh]
         .filter((mesh) => mesh.visible && mesh.geometry.getIndex() !== null && mesh.geometry.getIndex()!.count > 0)
         .length,
+      vfxAdditiveQuads: lastVfxCounts.additive,
+      vfxAlphaQuads: lastVfxCounts.alpha,
       ...frameTimings(frameMilliseconds, frameCursor),
     }),
     dispose: () => {
@@ -1412,6 +1438,8 @@ export async function createWorldRenderer25(
       renderer.setAnimationLoop(null);
       canvas.removeEventListener('webglcontextlost', onLost);
       canvas.removeEventListener('webglcontextrestored', onRestored);
+      scene.remove(hemisphere);
+      hemisphere.dispose();
       floorMesh.geometry.dispose();
       boxMesh.geometry.dispose();
       flatBoxMesh.geometry.dispose();

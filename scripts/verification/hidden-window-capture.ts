@@ -58,6 +58,14 @@ export type SceneRequest = Readonly<{
    * frame-diffing scorer must not have.
    */
   vfxStep?: number;
+  /**
+   * Draw no procedural VFX, for a control frame.
+   *
+   * The point of a control is to prove an effect is VISIBLE, not merely requested. Logging draw
+   * calls proved nothing - the descriptor count covers floors and boxes, so no effect ever entered
+   * it, and the 2.5D path shipped with no VFX at all underneath exactly that kind of check.
+   */
+  suppressVfx?: boolean;
   /** World zoom, through the app's own test hook. Use 3 to frame an interior. */
   zoom?: 1 | 2 | 3;
   /** Absolute world minute, to capture a scene at night rather than at the 08:00 spawn. */
@@ -94,6 +102,9 @@ export type SceneEvidence = Readonly<{
     shadowPath: string;
     shadowMapEnabled: boolean;
     atlasDrawCalls: number;
+    /** VFX primitives built for the captured frame, split by batch. */
+    vfxAdditiveQuads: number;
+    vfxAlphaQuads: number;
     /** CPU milliseconds per rendered frame over a rolling window. 60 FPS is a 16.7ms budget. */
     frameMedianMs: number;
     frameP95Ms: number;
@@ -315,6 +326,11 @@ async function capture(scene) {
       + ' window.dispatchEvent(new KeyboardEvent("keyup", e)); return true; })()',
     );
     await new Promise((r) => setTimeout(r, 900));
+  }
+
+  if (scene.suppressVfx) {
+    await window.webContents.executeJavaScript("window.siWorldVfxMode = 'circle'; true");
+    await new Promise((r) => setTimeout(r, 400));
   }
 
   if (scene.vfxStep !== undefined) {

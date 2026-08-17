@@ -130,6 +130,18 @@ const MINIMUM_RISE = 0.03;
  */
 const KIND_WIDTH_SCALE: Readonly<Record<string, number>> = Object.freeze({ steam: 2.4 });
 
+/**
+ * How much more opaque a kind is drawn than its authored alpha, per kind.
+ *
+ * Width alone was not enough for steam. Measured against a control frame with the effects
+ * suppressed, a 2.4x-wide plume changed ZERO pixels over the bazaar's courtyard, whose floor sits
+ * at mean luminance 93 — the authored 65% cream simply has nowhere to go against ground that
+ * bright. The same plume over the harbour's darker yard changed 183.
+ *
+ * Capped at 1 so this can only ever recover an effect, never invent one brighter than authored.
+ */
+const KIND_OPACITY_SCALE: Readonly<Record<string, number>> = Object.freeze({ steam: 1.5 });
+
 /** `#rrggbb` or `#rrggbbaa` split into a 6-digit colour and a 0..1 alpha. */
 function splitColor(color: string): Readonly<{ hex: string; alpha: number }> {
   return {
@@ -184,7 +196,7 @@ export function vfxQuads(frame: WorldFrameState): VfxQuads {
         width: (rect.width * (KIND_WIDTH_SCALE[geometry.kind] ?? 1)) / TILE_SIZE,
         height: rect.height / TILE_SIZE,
         tint: hex,
-        opacity,
+        opacity: Math.min(1, opacity * (KIND_OPACITY_SCALE[geometry.kind] ?? 1)),
         upright: rule.upright,
       };
       (rule.additive ? additive : alpha).push(quad);

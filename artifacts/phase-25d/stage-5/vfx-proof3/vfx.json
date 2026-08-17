@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 2,
+  "scenes": [
+    {
+      "name": "vfx-patio-fire",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "vfx-patio-fire.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 1083,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 11,
+        "vfxAlphaQuads": 5,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.1,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "vfx-yard-steam",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "vfx-yard-steam.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 759,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 0,
+        "vfxAlphaQuads": 2,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 8.8,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "vfx-courtyard-steam",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "vfx-courtyard-steam.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 787,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 4,
+        "vfxAlphaQuads": 4,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.1,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "vfx-club-neon",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "vfx-club-neon.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 1157,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 4,
+        "vfxAlphaQuads": 0,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.2,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "vfx-harbor-water",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "vfx-harbor-water.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 685,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 6,
+        "vfxAlphaQuads": 0,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 8.9,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "control-vfx-patio-fire",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "control-vfx-patio-fire.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 1083,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 0,
+        "vfxAlphaQuads": 0,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "control-vfx-yard-steam",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "control-vfx-yard-steam.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 759,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 0,
+        "vfxAlphaQuads": 0,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "control-vfx-courtyard-steam",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "control-vfx-courtyard-steam.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 787,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 0,
+        "vfxAlphaQuads": 0,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "control-vfx-club-neon",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "control-vfx-club-neon.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 1157,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 0,
+        "vfxAlphaQuads": 0,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 8.5,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "control-vfx-harbor-water",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "control-vfx-harbor-water.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 685,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 0,
+        "vfxAlphaQuads": 0,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 8.5,
+        "frameSamples": 120
+      }
+    }
+  ]
+}

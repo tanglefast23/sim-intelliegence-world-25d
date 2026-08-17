@@ -517,8 +517,13 @@ export function WorldScene({
   const metrics = useMemo(() => uiMetrics(uiScale), [uiScale]);
 
   useEffect(() => {
-    vfxClock.current = INITIAL_AMBIENT_VFX_CLOCK;
-    setVfxAgeStep(0);
+    // A pinned step survives a map change. Without this a capture that pins and then travels drops
+    // silently back to step 0 - the phase where no steam has risen - and reports it as pinned.
+    const pinned = pinnedVfxStep.current;
+    vfxClock.current = pinned === undefined
+      ? INITIAL_AMBIENT_VFX_CLOCK
+      : { ...INITIAL_AMBIENT_VFX_CLOCK, ageMilliseconds: pinned * VFX_STEP_MILLISECONDS };
+    setVfxAgeStep(pinned ?? 0);
     // Spec section 3.3: a map transition clears transient one-shots. The destination rebuilds only
     // its ambient emitters.
     transientClock.current = INITIAL_AMBIENT_VFX_CLOCK;
@@ -845,6 +850,13 @@ export function WorldScene({
     window.siWorldStandOnTile = (tileX, tileY) => {
       setRuntime((current) => {
         const mapId = current.worldState.protagonist.worldPosition.mapId;
+        // Fail loudly. A blocked tile used to be accepted silently and the capture came back framed
+        // on somewhere else entirely - which is how a VFX fixture ended up photographed with its
+        // effect out of shot and nobody could tell that from an effect that does not render.
+        const standing = WORLD_MAP_CATALOG[mapId as MapId];
+        if (standing.blockedKeys.has(tileKey({ x: tileX, y: tileY }))) {
+          throw new Error(`siWorldStandOnTile: ${mapId} tile ${String(tileX)},${String(tileY)} is blocked.`);
+        }
         return {
           ...current,
           movement: createMovementState({ x: tileX, y: tileY }),

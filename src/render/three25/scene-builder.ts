@@ -338,9 +338,9 @@ const OUTDOOR_NIGHT_CRUSH = 0.46;
 /**
  * Distance in tiles from a tile to the nearest thing that emits light, or Infinity if nothing does.
  *
- * Any prop with a glow box counts, which is lamps, lanterns and neon signs — the same set that
- * actually puts light into the scene. Squared distance while searching, so the loop does no square
- * roots it does not need.
+ * Lamps only — see `GROUND_LIGHTING_SPRITES`. A sign glows without lighting the ground, and
+ * counting one here made the crush disagree with the lighting about what a light is. Squared
+ * distance while searching, so the loop does no square roots it does not need.
  */
 function tilesToNearestLight(
   tile: Readonly<{ x: number; y: number }>,
