@@ -1,4 +1,4 @@
-import type { AtlasRectangle } from '../atlas';
+import { ATLAS_INDEX, atlasRectangle, type AtlasRectangle } from '../atlas';
 import type { WorldFloorPlacement, WorldFrameState } from '../world-frame';
 import { hiddenWallTiles, tileKey } from './occlusion';
 import { WALL_HEIGHT_TILES, recipeFor } from './recipes';
@@ -26,6 +26,23 @@ export type BoxDescriptor = Readonly<{
   id: string;
   sprite: string;
   source: AtlasRectangle;
+  /**
+   * Atlas cell for the four VERTICAL faces, when they should not reuse `source`.
+   *
+   * Wall sprites are top-down stamps whose margins are transparent — `tile.wall-villa-5` is only
+   * 81% opaque. Mapped onto a vertical face and cut by `alphaTest`, those margins punch holes
+   * straight through the wall. The fully-connected `-f` variant of the same family is the same
+   * brick art at 96% opaque, so it reads as a side rather than a sieve.
+   */
+  sideSource?: AtlasRectangle;
+  /**
+   * Draw every face as ONE flat colour, sampled from the middle of the cell.
+   *
+   * A recipe box is a piece of furniture, not a tile: wallpapering a whole top-down sprite onto a
+   * 0.16-tile sofa arm squashes an outline into mud. Collapsing the UV to a single texel under
+   * `NearestFilter` gives the flat-shaded look the spike has, with no new art.
+   */
+  flatShade?: boolean;
   x: number;
   y: number;
   z: number;
@@ -39,6 +56,19 @@ export type SceneDescriptor = Readonly<{
   floors: readonly QuadDescriptor[];
   boxes: readonly BoxDescriptor[];
 }>;
+
+/**
+ * The opaque side texture for a wall sprite: the fully-connected `-f` variant of its own family.
+ *
+ * `tile.wall-villa-5` becomes `tile.wall-villa-f`. Same brick, same palette, 96% opaque instead of
+ * 81%, so the vertical faces stop being cut to lace by `alphaTest`. Falls back to the sprite itself
+ * if the family has no `-f` variant, which no current family does.
+ */
+function wallSideSource(sprite: string): AtlasRectangle | undefined {
+  const solid = `${sprite.replace(/-[0-9a-f]$/u, '')}-f`;
+  if (solid === sprite || !(solid in ATLAS_INDEX.sprites)) return undefined;
+  return atlasRectangle(solid);
+}
 
 function floorQuad(placement: WorldFloorPlacement): QuadDescriptor {
   return {
@@ -81,6 +111,7 @@ export function buildWallBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
       id: wall.id,
       sprite: wall.sprite,
       source: wall.source,
+      sideSource: wallSideSource(wall.sprite),
       x: wall.tile.x + 0.5,
       y: WALL_HEIGHT_TILES / 2,
       z: wall.tile.y + 0.5,
@@ -114,6 +145,8 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
         id: `${prop.id}#${index}`,
         sprite: prop.sprite,
         source: prop.source,
+        // Furniture reads as flat-shaded volumes, not as a sprite squashed onto every face.
+        flatShade: true,
         x: prop.tile.x + 0.5 + box.x,
         y: box.y,
         z: prop.tile.y + 0.5 + box.z,

@@ -238,3 +238,49 @@ describe('prop, door and roof boxes', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 });
+
+describe('face texturing', () => {
+  const frame = indoorFrame();
+
+  /**
+   * The load-bearing one. Wall sprites are top-down stamps with transparent margins — measured,
+   * `tile.wall-villa-5` is 81% opaque and `tile.wall-villa-a` 84%. Mapped onto a vertical face and
+   * cut by `alphaTest: 0.5`, that punches holes straight through the wall: grass shows through the
+   * courtyard. The `-f` variant is the same brick at 96% opaque.
+   */
+  test('walls take an opaque side texture from their own family', () => {
+    const boxes = buildWallBoxes(frame);
+    expect(boxes.length).toBeGreaterThan(0);
+    const byId = new Map(frame.walls.map((wall) => [wall.id, wall]));
+    let substituted = 0;
+    for (const box of boxes) {
+      const wall = byId.get(box.id)!;
+      const solid = `${wall.sprite.replace(/-[0-9a-f]$/u, '')}-f`;
+      if (wall.sprite === solid) {
+        // Already the fully-connected variant, so it is its own side texture.
+        expect({ id: box.id, side: box.sideSource }).toEqual({ id: box.id, side: undefined });
+        continue;
+      }
+      expect(box.sideSource).toEqual(ATLAS_INDEX.sprites[solid]);
+      substituted += 1;
+    }
+    // The villa is mostly partial-adjacency walls, so this is the common case, not an edge one.
+    expect(substituted).toBeGreaterThan(boxes.length / 2);
+  });
+
+  test('an already-solid wall keeps its own cell on every face', () => {
+    const solid = buildWallBoxes(frame).filter((box) => box.sideSource === undefined);
+    expect(solid.length).toBeGreaterThan(0);
+  });
+
+  test('the side texture is a different cell from the top texture', () => {
+    const box = buildWallBoxes(frame).find((candidate) => candidate.sideSource !== undefined)!;
+    expect(box.sideSource).not.toEqual(box.source);
+  });
+
+  test('furniture draws flat-shaded, walls and roofs do not', () => {
+    for (const box of buildPropBoxes(frame)) expect(box.flatShade).toBe(true);
+    for (const box of buildWallBoxes(frame)) expect(box.flatShade).toBeUndefined();
+    for (const box of buildRoofBoxes(outdoorFrame())) expect(box.flatShade).toBeUndefined();
+  });
+});

@@ -245,3 +245,56 @@ describe('character billboards bake into one upright batch', () => {
     expect(geometry.getAttribute('position').count).toBe(0);
   });
 });
+
+describe('per-face texturing in the bake', () => {
+  const ATLAS = 1024;
+  const box = (extra: Record<string, unknown>) => ({
+    id: 'b', sprite: 's',
+    source: { x: 0, y: 0, width: 32, height: 32 } as never,
+    x: 0, y: 0.5, z: 0, width: 1, height: 1, depth: 1, tint: '#ffffffff',
+    ...extra,
+  });
+
+  test('vertical faces sample sideSource, horizontal faces sample source', () => {
+    const geometry = bakeSceneGeometry(
+      { floors: [], boxes: [box({ sideSource: { x: 512, y: 512, width: 32, height: 32 } })] },
+      ATLAS, ATLAS,
+    ).boxes;
+    const uv = geometry.getAttribute('uv');
+    // BOX_FACES order is +X, -X, +Y, -Y, +Z, -Z; face 2 is the top.
+    const topU = uv.getX(2 * 4);
+    const sideU = uv.getX(0);
+    expect(topU).toBeLessThan(0.1);
+    expect(sideU).toBeGreaterThan(0.4);
+  });
+
+  test('a flat-shaded box collapses every face to one texel', () => {
+    const geometry = bakeSceneGeometry({ floors: [], boxes: [box({ flatShade: true })] }, ATLAS, ATLAS).boxes;
+    const uv = geometry.getAttribute('uv');
+    for (let index = 1; index < uv.count; index += 1) {
+      expect(uv.getX(index)).toBeCloseTo(uv.getX(0), 9);
+      expect(uv.getY(index)).toBeCloseTo(uv.getY(0), 9);
+    }
+  });
+
+  /**
+   * Every face samples the same art, so without a per-face shade a cube is one silhouette of
+   * uniform colour and reads as a flat stamp rather than a box.
+   */
+  test('the three camera-facing directions carry different shades', () => {
+    const geometry = bakeSceneGeometry({ floors: [], boxes: [box({})] }, ATLAS, ATLAS).boxes;
+    const color = geometry.getAttribute('color');
+    const shadeOf = (faceIndex: number) => color.getX(faceIndex * 4);
+    const top = shadeOf(2);
+    const east = shadeOf(0);
+    const south = shadeOf(4);
+    expect(top).toBeGreaterThan(east);
+    expect(east).toBeGreaterThan(south);
+    expect(south).toBeGreaterThan(0);
+  });
+
+  test('a box with no sideSource still textures every face', () => {
+    const geometry = bakeSceneGeometry({ floors: [], boxes: [box({})] }, ATLAS, ATLAS).boxes;
+    expect(geometry.getAttribute('uv').count).toBe(24);
+  });
+});

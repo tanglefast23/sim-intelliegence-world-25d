@@ -172,6 +172,18 @@ const BOX_FACES: readonly Readonly<{
 /** Corner UVs, in the same order as every face's corner list. */
 const FACE_UVS: readonly (readonly [number, number])[] = [[0, 0], [1, 0], [1, 1], [0, 1]];
 
+/**
+ * How much light each face of a box keeps, by its index in `BOX_FACES`.
+ *
+ * Flat shading alone cannot separate a box's faces here: every face samples the same atlas art, so
+ * without this a cube is one silhouette of uniform colour and reads as a flat stamp. Giving the
+ * two visible vertical directions different values is what makes an isometric box read as a box.
+ *
+ * Order is +X, -X, +Y, -Y, +Z, -Z. At yaw 45 the camera sees +X, +Y and +Z, so those three carry
+ * the contrast; the hidden faces mirror their opposites.
+ */
+const FACE_SHADE: readonly number[] = [0.82, 0.82, 1, 0.6, 0.66, 0.66];
+
 type AtlasCell = Readonly<{ u0: number; u1: number; v0: number; v1: number }>;
 
 /**
@@ -278,24 +290,44 @@ function bakeGeometry(
   }
 
   for (const box of boxes) {
-    const cell = atlasCell(box.source, atlasWidth, atlasHeight);
+    const topCell = atlasCell(box.source, atlasWidth, atlasHeight);
+    // Vertical faces may use a different, opaque cell. See `BoxDescriptor.sideSource`.
+    const sideCell = box.sideSource === undefined
+      ? topCell
+      : atlasCell(box.sideSource, atlasWidth, atlasHeight);
     const tint = linearTint(box.tint);
-    for (const face of BOX_FACES) {
+    BOX_FACES.forEach((face, faceIndex) => {
       const first = vertex;
+      const horizontal = face.normal[1] !== 0;
+      const cell = horizontal ? topCell : sideCell;
+      const shade = FACE_SHADE[faceIndex]!;
+      const shaded: readonly [number, number, number] = [
+        tint[0] * shade,
+        tint[1] * shade,
+        tint[2] * shade,
+      ];
       face.corners.forEach((corner, cornerIndex) => {
         const uv = FACE_UVS[cornerIndex]!;
+        // A flat-shaded box samples ONE texel from the middle of the cell, so the face is a single
+        // colour instead of a whole sprite squashed onto it.
+        const u = box.flatShade === true
+          ? (cell.u0 + cell.u1) / 2
+          : cell.u0 + uv[0] * (cell.u1 - cell.u0);
+        const v = box.flatShade === true
+          ? (cell.v0 + cell.v1) / 2
+          : cell.v0 + uv[1] * (cell.v1 - cell.v0);
         pushCorner(
           box.x + corner[0] * box.width,
           box.y + corner[1] * box.height,
           box.z + corner[2] * box.depth,
           face.normal,
-          cell.u0 + uv[0] * (cell.u1 - cell.u0),
-          cell.v0 + uv[1] * (cell.v1 - cell.v0),
-          tint,
+          u,
+          v,
+          shaded,
         );
       });
       pushFace(first);
-    }
+    });
   }
 
   const geometry = new BufferGeometry();
@@ -624,7 +656,9 @@ export async function createWorldRenderer25(
     // continuing past the edge, not as a lit surface competing with the map.
     skirtMaterial.color.setStyle(next.lighting.accent.slice(0, 7));
     skirtMaterial.color.convertSRGBToLinear();
-    skirtMaterial.color.multiplyScalar(0.16);
+    // 0.5, not 0.16. The skirt IS covering the off-map ground - measured - but at 0.16 the accent
+    // lands near black and reads as void, which is what made it look like a clamp bug.
+    skirtMaterial.color.multiplyScalar(0.5);
 
     const built = buildScene(next);
     const delta = cache.sync(built, next.mapHash);
