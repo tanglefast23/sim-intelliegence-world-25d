@@ -80,6 +80,12 @@ world geometry becomes boxes. Shadow maps are allowed only in the 2.5D lit path,
 a no-lights fallback with flat blob shadows must also ship, hold 60 FPS, and carry its own packaged
 smoke, and path selection is explicit rather than a runtime FPS probe.
 
+**To take any location to a 10/10 render, follow
+[docs/25d-scene-playbook.md](docs/25d-scene-playbook.md).** It carries the rating rubric, the
+camera / geometry / colour / lighting / staging phases with their measured constants, the capture
+loop, and a trap table where every entry cost a real capture round. Read its trap section before
+changing any 2.5D art, not after.
+
 See [docs/specs/2026-08-16-threejs-2-5d-renderer.md](docs/specs/2026-08-16-threejs-2-5d-renderer.md).
 It supersedes the top-down renderer statements in `spec.md` (lines 66, 295) and amends the 2.5D and
 lighting non-goals in `docs/specs/2026-08-14-threejs-2d-renderer-port.md` section 4.
