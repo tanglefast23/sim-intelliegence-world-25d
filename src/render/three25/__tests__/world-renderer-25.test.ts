@@ -297,19 +297,47 @@ describe('per-face texturing in the bake', () => {
   });
 
   /**
-   * Every face samples the same art, so without a per-face shade a cube is one silhouette of
-   * uniform colour and reads as a flat stamp rather than a box.
+   * The two visible SIDES must differ, and lighting cannot make them differ.
+   *
+   * A hemisphere light blends sky and ground by the face normal, so all four vertical faces of a
+   * box take an identical mix, and after dusk the sun is down to 0.15 and cannot separate them
+   * either. So away from a lamp the baked shade is the only thing giving a box two tones, and
+   * without it every prop at yaw 45 loses its vertical edge and reads flat.
+   *
+   * The TOP is deliberately left equal to the near side. Real lighting does separate a horizontal
+   * face from a vertical one — that is exactly what `normal.y` drives — so shading it here as well
+   * is the double-darkening this renderer bans.
    */
-  test('the three camera-facing directions carry different shades', () => {
+  test('the two camera-facing sides differ, and the top is left to the lights', () => {
     const geometry = bakeSceneGeometry({ floors: [], boxes: [box({})] }, ATLAS, ATLAS).boxes;
     const color = geometry.getAttribute('color');
     const shadeOf = (faceIndex: number) => color.getX(faceIndex * 4);
     const top = shadeOf(2);
     const east = shadeOf(0);
     const south = shadeOf(4);
-    expect(top).toBeGreaterThan(east);
     expect(east).toBeGreaterThan(south);
     expect(south).toBeGreaterThan(0);
+    expect(top).toBeCloseTo(east, 9);
+  });
+
+  /**
+   * A glow box IS the light, so its authored tint has to reach the pixels untouched. It was baking
+   * with the default face shade, which drew every lamp head's two visible faces at 82% and 66% of
+   * the authored glow while three comments claimed otherwise.
+   */
+  test('a glow box takes no face shade at all', () => {
+    const geometry = bakeSceneGeometry(
+      { floors: [], boxes: [box({ flatShade: true, glow: true, tint: '#ffffff' })] },
+      ATLAS,
+      ATLAS,
+    ).glowBoxes;
+    const color = geometry.getAttribute('color');
+    expect(color.count).toBe(24);
+    for (let index = 0; index < color.count; index += 1) {
+      expect(color.getX(index)).toBeCloseTo(1, 9);
+      expect(color.getY(index)).toBeCloseTo(1, 9);
+      expect(color.getZ(index)).toBeCloseTo(1, 9);
+    }
   });
 
   test('a box with no sideSource still textures every face', () => {

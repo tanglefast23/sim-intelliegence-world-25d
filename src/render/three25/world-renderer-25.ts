@@ -196,10 +196,27 @@ const FACE_SHADE: readonly number[] = [0.82, 0.82, 1, 0.6, 0.66, 0.66];
  * same darkening applied twice, and it is what drove lit furniture to black — a lamp post's side
  * face took 0.66 from this table on top of a dim night sky and landed under the ACES knee.
  *
- * Kept just off 1 so a box still has a faint edge where two faces meet the light at similar
- * angles. Everything else comes from the sun, the sky and the lamps.
+ * So the top and the hidden faces are left at 1 and the real lights do all the work there. The one
+ * thing lighting CANNOT do here is separate the two visible sides: a hemisphere light is symmetric
+ * about Y, so `+X` and `+Z` take the same sky-and-ground mix, and after dusk the sun is down to
+ * 0.15 and cannot split them either. Without a difference between those two faces a box at yaw 45
+ * loses its vertical edge and reads flat — the exact thing the corner camera exists to avoid.
+ *
+ * This table therefore darkens `±Z` alone. The first version kept every face within 3% of 1, which
+ * is below notice: it was a weak second lighting model that separated nothing.
  */
-const LIT_FACE_SHADE: readonly number[] = [0.96, 0.96, 1, 0.9, 0.93, 0.93];
+const LIT_FACE_SHADE: readonly number[] = [1, 1, 1, 1, 0.82, 0.82];
+
+/**
+ * No face shade at all. For boxes that ARE the light.
+ *
+ * A glow box's authored tint has to reach the pixels unchanged — that is the entire reason the
+ * unlit batch exists. It was baking with the default `FACE_SHADE`, so at yaw 45 the camera saw
+ * every lamp head's two visible faces at 82% and 66% of the authored glow: the one thing in the
+ * frame that must read as an emitter was drawn as a shaded box, in all four districts, while three
+ * separate comments claimed otherwise.
+ */
+const NO_FACE_SHADE: readonly number[] = [1, 1, 1, 1, 1, 1];
 
 type AtlasCell = Readonly<{ u0: number; u1: number; v0: number; v1: number; flatU: number; flatV: number }>;
 
@@ -296,7 +313,16 @@ function bakeGeometry(
 
   for (const quad of quads) {
     const cell = atlasCell(quad.source, atlasWidth, atlasHeight);
-    const tint = linearTint(quad.tint);
+    // The gain is applied AFTER the sRGB-to-linear conversion and can exceed 1. That is the whole
+    // point of it: a hex tint parses to at most 1.0 per channel and multiplies the atlas sample, so
+    // `#ffffff` is the identity and no tint can ever brighten dark art. The vertex colour attribute
+    // is a Float32Array and `MeshStandardMaterial` multiplies it into albedo, so a value above 1
+    // scales the sprite up — the only lever this renderer has for a sprite that is simply too dark.
+    const base = linearTint(quad.tint);
+    const gain = quad.gain ?? 1;
+    const tint: readonly [number, number, number] = gain === 1
+      ? base
+      : [base[0] * gain, base[1] * gain, base[2] * gain];
     const first = vertex;
     // Same winding as the box's +Y face, so a floor reads right side up from above.
     const corners = BOX_FACES[2]!.corners;
@@ -520,9 +546,14 @@ export function bakeSceneGeometry(
   const textured = scene.boxes.filter((box) => box.flatShade !== true);
   return {
     floors: bakeGeometry(scene.floors, [], atlasWidth, atlasHeight),
-    boxes: bakeGeometry([], textured, atlasWidth, atlasHeight),
+    // Walls, doors and roofs are LIT too, so they take the lit table. They were baking with
+    // `FACE_SHADE` and then drawing through `MeshStandardMaterial`, which is the double-darkening
+    // this renderer bans for furniture — left in place on every wall in the game because the fix
+    // was applied to the flat batch alone. A north wall was losing 40% of its albedo to a stand-in
+    // for the very light that was already shading it.
+    boxes: bakeGeometry([], textured, atlasWidth, atlasHeight, LIT_FACE_SHADE),
     flatBoxes: bakeGeometry([], flat, atlasWidth, atlasHeight, LIT_FACE_SHADE),
-    glowBoxes: bakeGeometry([], glow, atlasWidth, atlasHeight),
+    glowBoxes: bakeGeometry([], glow, atlasWidth, atlasHeight, NO_FACE_SHADE),
   };
 }
 
@@ -841,7 +872,10 @@ export async function createWorldRenderer25(
     skirtMaterial.color.convertSRGBToLinear();
     // 0.5, not 0.16. The skirt IS covering the off-map ground - measured - but at 0.16 the accent
     // lands near black and reads as void, which is what made it look like a clamp bug.
-    skirtMaterial.color.multiplyScalar(0.5);
+    // Follows the day cycle like everything else. Held at a flat 0.5 the map edge glowed
+    // half-accent-bright at night against a crushed dark map — invisible at zoom 3, where floors
+    // cover the frame, and the first thing anyone would see at zoom 1 after dusk.
+    skirtMaterial.color.multiplyScalar(0.5 * (0.3 + 0.7 * next.lighting.sun.elevation));
 
     const built = buildScene(next);
     const delta = cache.sync(built, next.mapHash);
@@ -853,6 +887,7 @@ export async function createWorldRenderer25(
       floorMesh.geometry.dispose();
       boxMesh.geometry.dispose();
       flatBoxMesh.geometry.dispose();
+      glowBoxMesh.geometry.dispose();
       const baked = bakeSceneGeometry(built, atlasWidth, atlasHeight);
       floorMesh.geometry = baked.floors;
       boxMesh.geometry = baked.boxes;
@@ -872,6 +907,13 @@ export async function createWorldRenderer25(
     // the first place. 0.62 keeps a sofa plainly green in the dark without flattening the pool.
     const daylight = next.lighting.sun.elevation;
     hemisphere.intensity = dayHemisphereIntensity * (0.78 + 0.22 * daylight);
+    // Tried and rejected: falling the SKY term further at night than the ground term, so floors
+    // darken while props keep what the night floor gave them. The idea is sound — one hemisphere
+    // light has two knobs and they light different things, sky for the floors and ground for every
+    // vertical — but measured at 0.62 it cost every district 2-7 mean luminance, 1-4 points of dead
+    // pixels and 0.3-0.5 of detail, to buy about 0.02 of saturation, and the two captures are hard
+    // to tell apart by eye. The emitters below raise exposure with LIGHT SOURCES instead, which is
+    // the same target look arrived at from the right end.
     // Lamp lights: add and remove by id so a pan does not churn the light list.
     const wanted = new Map(lampLights(next).map((light) => [light.id, light]));
 
@@ -1036,6 +1078,7 @@ export async function createWorldRenderer25(
       floorMesh.geometry.dispose();
       boxMesh.geometry.dispose();
       flatBoxMesh.geometry.dispose();
+      glowBoxMesh.geometry.dispose();
       flatMaterial.dispose();
       glowMaterial.dispose();
       billboardMesh.geometry.dispose();

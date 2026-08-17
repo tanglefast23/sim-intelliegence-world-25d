@@ -28,16 +28,29 @@ import { PNG } from 'pngjs';
 export type FrameScore = Readonly<{
   name: string;
   deadFraction: number;
+  /** Fraction of 8x8 blocks whose BRIGHTEST pixel is still under the cut: a true black plate. */
+  flatDeadFraction: number;
   meanLuminance: number;
   meanSaturation: number;
   detail: number;
 }>;
 
-/** The HUD panel, the bottom hint bar and the frame border, in pixels of a 1280x720 capture. */
-const CROP = Object.freeze({ top: 190, bottom: 645, left: 16, right: 1264 });
+/**
+ * The HUD panel, the bottom hint bar and the frame border, as FRACTIONS of the capture.
+ *
+ * Fractions, not pixels. The first version hardcoded a 1280x720 crop, and when a capture came back
+ * at 2560x1376 the window silently moved to the top-left quadrant — mostly HUD — and reported wild
+ * swings on every metric that read as a huge art regression. A scorer that is wrong about WHERE it
+ * is looking is worse than no scorer, because its numbers still look like measurements.
+ */
+const CROP = Object.freeze({ top: 0.264, bottom: 0.896, left: 0.0125, right: 0.9875 });
 
 export function scoreFrame(name: string, pngBytes: Buffer): FrameScore {
   const png = PNG.sync.read(pngBytes);
+  const top = Math.round(png.height * CROP.top);
+  const bottom = Math.round(png.height * CROP.bottom);
+  const left = Math.round(png.width * CROP.left);
+  const right = Math.round(png.width * CROP.right);
   const luminanceAt = (x: number, y: number): number => {
     const index = (y * png.width + x) * 4;
     return (png.data[index]! + png.data[index + 1]! + png.data[index + 2]!) / 3;
@@ -48,8 +61,8 @@ export function scoreFrame(name: string, pngBytes: Buffer): FrameScore {
   let saturationTotal = 0;
   let stepTotal = 0;
   let stepCount = 0;
-  for (let y = CROP.top; y < Math.min(CROP.bottom, png.height); y += 1) {
-    for (let x = CROP.left; x < Math.min(CROP.right, png.width); x += 1) {
+  for (let y = top; y < bottom; y += 1) {
+    for (let x = left; x < right; x += 1) {
       const index = (y * png.width + x) * 4;
       const red = png.data[index]!;
       const green = png.data[index + 1]!;
@@ -62,16 +75,33 @@ export function scoreFrame(name: string, pngBytes: Buffer): FrameScore {
       // Saturation as chroma over peak, so a dark-but-coloured pixel still counts as coloured.
       saturationTotal += high === 0 ? 0 : (high - low) / high;
       if (luminance < 20) dead += 1;
-      if (x + 1 < Math.min(CROP.right, png.width)) {
+      if (x + 1 < right) {
         stepTotal += Math.abs(luminanceAt(x + 1, y) - luminance);
         stepCount += 1;
       }
     }
   }
   const round = (value: number): number => Math.round(value * 1000) / 1000;
+  // A block counts as flat-dead only if its BRIGHTEST pixel is still under the cut. That separates
+  // a featureless black plate from a region that is dark but carries texture — a distinction
+  // `deadFraction` alone cannot make, and one that cost three captures to settle by hand.
+  const BLOCK = 8;
+  let deadBlocks = 0;
+  let blocks = 0;
+  for (let y = top; y + BLOCK <= bottom; y += BLOCK) {
+    for (let x = left; x + BLOCK <= right; x += BLOCK) {
+      let peak = 0;
+      for (let dy = 0; dy < BLOCK; dy += 1) {
+        for (let dx = 0; dx < BLOCK; dx += 1) peak = Math.max(peak, luminanceAt(x + dx, y + dy));
+      }
+      blocks += 1;
+      if (peak < 20) deadBlocks += 1;
+    }
+  }
   return {
     name,
     deadFraction: round(dead / count),
+    flatDeadFraction: round(deadBlocks / Math.max(1, blocks)),
     meanLuminance: round(luminanceTotal / count),
     meanSaturation: round(saturationTotal / count),
     detail: round(stepTotal / Math.max(1, stepCount)),
@@ -95,7 +125,7 @@ function main(): void {
 
   const pad = (value: string, width: number): string => value.padEnd(width);
   const num = (value: number, width: number): string => value.toFixed(3).padStart(width);
-  console.log(`${pad('frame', 24)}${pad('dead', 9)}${pad('lum', 9)}${pad('sat', 9)}detail`);
+  console.log(`${pad('frame', 24)}${pad('dead', 9)}${pad('flat', 9)}${pad('lum', 9)}${pad('sat', 9)}detail`);
   for (const one of current) {
     const before = previous?.get(one.name);
     const delta = (now: number, then: number | undefined): string =>
@@ -103,6 +133,7 @@ function main(): void {
     console.log(
       pad(one.name, 24)
       + num(one.deadFraction, 6) + delta(one.deadFraction, before?.deadFraction) + '  '
+      + num(one.flatDeadFraction, 6) + delta(one.flatDeadFraction, before?.flatDeadFraction) + '  '
       + num(one.meanLuminance, 7) + delta(one.meanLuminance, before?.meanLuminance) + '  '
       + num(one.meanSaturation, 6) + delta(one.meanSaturation, before?.meanSaturation) + '  '
       + num(one.detail, 6) + delta(one.detail, before?.detail),

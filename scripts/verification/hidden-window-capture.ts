@@ -150,6 +150,7 @@ const preloadPath = join(__dirname, 'capture-preload.js');
 
 const scenes = ${JSON.stringify(scenes)};
 const outputDirectory = ${JSON.stringify(outputDirectory)};
+const viewport = ${JSON.stringify(viewport)};
 
 // Taken from the real projection module in the tsx process, never re-derived here. The click test
 // forward-projects a tile centre inside the page, and these three numbers are what make that
@@ -345,7 +346,18 @@ async function capture(scene) {
     click = await window.webContents.executeJavaScript(clickScript);
   }
 
-  const image = await window.webContents.capturePage(undefined, { stayHidden: true });
+  // Pinned to the requested viewport. capturePage returns DEVICE pixels, and a host whose display
+  // scale is not 1 hands back a 2x image even with --force-device-scale-factor=1. That silently
+  // doubled a district round: the frame scorer's crop was still in 1280x720 pixels, so it measured
+  // the top-left quadrant and reported an art regression that had not happened. Resizing here keeps
+  // every capture comparable to every other one regardless of the machine it ran on.
+  // No backticks in this comment on purpose - it lives inside the template literal that GENERATES
+  // main.js, so one would end that literal and produce a SyntaxError.
+  const raw = await window.webContents.capturePage(undefined, { stayHidden: true });
+  const size = raw.getSize();
+  const image = (size.width === viewport.width && size.height === viewport.height)
+    ? raw
+    : raw.resize({ width: viewport.width, height: viewport.height, quality: 'good' });
   const screenshot = scene.name + '.png';
   writeFileSync(join(outputDirectory, screenshot), image.toPNG());
   return { name: scene.name, yawDegrees: evidence.yawDegrees, shadowPath, screenshot, evidence, click };

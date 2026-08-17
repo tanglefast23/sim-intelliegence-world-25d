@@ -8,6 +8,7 @@ import {
   lampLights,
   shadowPathForEnvironment,
 } from '../lighting';
+import { LAMP_GLOW_COLORS } from '../recipes';
 import { indoorFrame, outdoorFrame } from './fixtures';
 
 describe('2.5D lighting', () => {
@@ -101,5 +102,38 @@ describe('2.5D lighting', () => {
     expect(preload).toContain("smokeShadowPath === 'lit'");
     expect(preload).toContain("smokeShadowPath === 'fallback'");
     expect(preload).toContain("--si-world-shadow-path=");
+  });
+});
+
+/**
+ * A lamp must cast the colour it glows. Taking the frame's district accent instead had an amber
+ * dock lamp throwing a teal pool, which read as one cold monochrome with warm dots floating in it.
+ */
+describe('a lamp casts its own colour', () => {
+  const frame = outdoorFrame();
+
+  test('the fixture actually places lamps to test', () => {
+    expect(lampLights(frame).length).toBeGreaterThan(0);
+  });
+
+  test('every lamp light takes the glow tint from its own recipe', () => {
+    const lampsBySprite = new Map(frame.props
+      .filter((prop) => LAMP_SPRITE_IDS_25D.has(prop.sprite))
+      .map((prop) => [`lamp-${prop.id}`, prop.sprite]));
+    for (const light of lampLights(frame)) {
+      const sprite = lampsBySprite.get(light.id);
+      expect(sprite).toBeDefined();
+      expect(light.color).toBe(LAMP_GLOW_COLORS[sprite!]);
+    }
+  });
+
+  test('and not the district accent, which is a different colour', () => {
+    const accents = new Set(lampLights(frame).map((light) => light.color));
+    expect(accents.has(frame.lighting.accent)).toBe(false);
+  });
+
+  /** Every lamp sprite must have a glow box, or its light silently falls back to the accent. */
+  test('every lamp sprite has a recipe glow colour', () => {
+    for (const sprite of LAMP_SPRITE_IDS_25D) expect(LAMP_GLOW_COLORS[sprite]).toBeDefined();
   });
 });

@@ -45,6 +45,10 @@ const LAMP_GLOW_COLD = '#bfe4ff';
 const LAMP_GLOW_CYAN = '#8ff2ea';
 const LAMP_GLOW_MAGENTA = '#ff9de0';
 
+/** Sign panels that are lit tubing rather than painted board. */
+const NEON_SIGN_GLOW = '#d98cff';
+const MARKET_SIGN_GLOW = '#ffc46b';
+
 /**
  * A lamp, lantern or bollard-style post: footing, stem, head. `headWidth` is what separates a
  * slim neon post from a wide dock lamp.
@@ -62,6 +66,23 @@ const post = (height: number, headWidth: number, glow = LAMP_GLOW): readonly Box
 const sign = (panelHeight: number): readonly BoxRecipe[] => [
   { x: 0, y: 0.35, z: 0, width: 0.09, height: 0.7, depth: 0.09 },
   { x: 0, y: 0.7 + panelHeight / 2, z: 0, width: 0.8, height: panelHeight, depth: 0.12 },
+];
+
+/**
+ * A sign whose panel is a light source rather than a painted board.
+ *
+ * A neon sign that does not emit is just a purple plank. Downtown places fourteen of them, which is
+ * more emitting surface than all its lamp posts put together, and the district's whole problem was
+ * that the only coloured light on the street came from a handful of short-range posts.
+ *
+ * The panel is `glow`, so it draws unlit at its authored colour. It does NOT join
+ * `LAMP_SPRITE_IDS_25D`: that set drives the point lights and the additive floor pools, and adding
+ * fourteen more point lights would recompile every lit material and break the 2D-parity test that
+ * pins the lamp set. This lights the sign, not the street.
+ */
+const neonSign = (panelHeight: number, glow: string): readonly BoxRecipe[] => [
+  { x: 0, y: 0.35, z: 0, width: 0.09, height: 0.7, depth: 0.09 },
+  { x: 0, y: 0.7 + panelHeight / 2, z: 0, width: 0.8, height: panelHeight, depth: 0.12, tint: glow, glow: true },
 ];
 
 /** Seat slab plus a back rail along the north edge. */
@@ -293,9 +314,9 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   'tile.sign-civic': { boxes: sign(0.5) },
   'tile.sign-harbor': { boxes: sign(0.5) },
   'tile.sign-market': { boxes: sign(0.5) },
-  'tile.sign-neon': { boxes: sign(0.62) },
+  'tile.sign-neon': { boxes: neonSign(0.62, NEON_SIGN_GLOW) },
   'tile.sign-spa': { boxes: sign(0.5) },
-  'tile.sign-sunset-market': { boxes: sign(0.62) },
+  'tile.sign-sunset-market': { boxes: neonSign(0.62, MARKET_SIGN_GLOW) },
 
   // --- Parked cars ------------------------------------------------------------------------
   'tile.parked-car-cyan-left': {

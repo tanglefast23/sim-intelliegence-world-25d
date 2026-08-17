@@ -368,3 +368,43 @@ describe('the world outside the room falls away', () => {
     expect(shelteredTint('#ffffffff', { x: 0, y: 0 }, outdoors)).toBe('#ffffffff');
   });
 });
+
+/**
+ * The jitter exists so a stack of identical crates stops reading as one moulded mass. It must stay
+ * small enough to read as one material, and it must be stable: a factor that moved between frames
+ * would make every prop shimmer on a pan, and one that moved between runs would make two captures
+ * incomparable.
+ */
+describe('per-prop brightness variation', () => {
+  const frame = outdoorFrame();
+
+  test('is deterministic: the same frame twice gives the same tints', () => {
+    expect(buildPropBoxes(frame).map((box) => box.tint))
+      .toEqual(buildPropBoxes(frame).map((box) => box.tint));
+  });
+
+  test('separates neighbours: props of one sprite do not all share a tint', () => {
+    const bySprite = new Map<string, Set<string>>();
+    for (const box of buildPropBoxes(frame)) {
+      if (box.glow === true) continue;
+      const seen = bySprite.get(box.sprite) ?? new Set<string>();
+      seen.add(box.tint);
+      bySprite.set(box.sprite, seen);
+    }
+    const repeated = [...bySprite].filter(([, tints]) => tints.size > 1);
+    expect(repeated.length).toBeGreaterThan(0);
+  });
+
+  /** A lamp head at 92% or 108% reads as a lamp of a different wattage, not as variety. */
+  test('glow boxes are exempt, so every lamp head of one sprite matches', () => {
+    const byGlowSprite = new Map<string, Set<string>>();
+    for (const box of buildPropBoxes(frame)) {
+      if (box.glow !== true) continue;
+      const seen = byGlowSprite.get(box.sprite) ?? new Set<string>();
+      seen.add(box.tint);
+      byGlowSprite.set(box.sprite, seen);
+    }
+    expect(byGlowSprite.size).toBeGreaterThan(0);
+    for (const [, tints] of byGlowSprite) expect(tints.size).toBe(1);
+  });
+});
