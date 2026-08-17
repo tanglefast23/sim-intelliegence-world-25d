@@ -131,10 +131,16 @@ same darkening curve.** One class on a different curve is instantly visible.
    lights decide how dark it reads. Mixing the day cycle into the tint as well darkens twice.
    Only UNLIT surfaces (characters, lamp heads) carry the day cycle in their tint — characters via
    `tintForLighting(colour, lighting, UNLIT_NIGHT_STRENGTH)` with `UNLIT_NIGHT_STRENGTH = 0.18`.
-5. **Reinterpret floor sprites for the corner camera.** A tile authored to read from directly
+5. **A tint on a MAPPED surface multiplies the sprite. It cannot brighten dark art.**
+   Floors, walls and roofs draw through the atlas material, so their tint is a multiplier and
+   `#ffffff` is the identity. Forcing every floor tint to white changed a capture by zero pixels.
+   If a surface is too dark, the sprite is dark — the only renderer-side lever that could lift it is
+   a linear vertex colour above 1.0, which a hex tint cannot express. Props are different: their
+   material is unmapped, so their tint IS the colour.
+6. **Reinterpret floor sprites for the corner camera.** A tile authored to read from directly
    overhead can look flat at 30°. `FLOOR_SOURCE_OVERRIDES` swaps one atlas cell for another already
    in the atlas — the villa's grey-brown tile borrows `tile.boardwalk`'s warm planks. No new art.
-6. **Never let a character go dark.** Test it: at midnight the player's brightest channel stays
+7. **Never let a character go dark.** Test it: at midnight the player's brightest channel stays
    above 0x80. A black silhouette is the one thing a player must never get.
 
 ---
@@ -162,16 +168,28 @@ The reference look is **dark world, bright objects, one warm pocket**. Four ligh
 4. **Point lights at lamps.** `distance 11, decay 1.4`, intensity `0.2 + lampMix * 11`. A lamp must
    be the brightest thing in a dark frame or the scene reads as uniformly dim. Distance and decay
    matter as much as intensity: at `distance 7, decay 2` a lamp lit only the tile it stood on.
-5. **Lamp heads must be UNLIT.** The point light sits inside the head box, so every face normal
+5. **A lamp casts ITS OWN colour, never the district accent.** Derive the point-light colour from
+   the glow box in the lamp's own recipe (`LAMP_GLOW_COLORS`). Taking the district accent made an
+   amber dock lamp throw a teal pool, and the whole harbour read as one cold monochrome with warm
+   dots floating in it. This was the largest single gain of the district pass.
+6. **Skyglow: after dusk, tint the sky light by the average colour of the LAMPS IN FRAME.** A neon
+   street lights its own sky. Two traps, both measured:
+   - Do not tint by the district accent. It gained saturation in three districts and lost more than
+     it gained in the harbour, whose accent is teal while its lamps are amber. Tinting a scene's sky
+     with the complement of the light in it cancels the warm-on-cool contrast that makes it read.
+   - Rescale the glow colour to the day sky's brightness before mixing. An accent or lamp tint is
+     chosen to be saturated, not bright, so a raw mix moves EXPOSURE as well as hue: it cost 2-5
+     luminance everywhere and raised the dead fraction it was added to cut.
+7. **Lamp heads must be UNLIT.** The point light sits inside the head box, so every face normal
    points away from it and a lit head renders black. Give them an explicit `glow` flag and their
    own unlit batch. Guard it with a test: only lamp fixtures may set `glow`.
-6. **Additive light pools on the floor**, radius 3.2 tiles, opacity `0.5 * lampMix`, no depth write.
+8. **Additive light pools on the floor**, radius 3.2 tiles, opacity `0.5 * lampMix`, no depth write.
    Additive brightens the floor instead of painting a flat disc over it.
-7. **Blob shadows under characters, in BOTH paths.** A camera-facing billboard has no meaningful
+9. **Blob shadows under characters, in BOTH paths.** A camera-facing billboard has no meaningful
    silhouette from the sun's direction, so it can never cast into the shadow map. Blobs are the
    only shadow a character gets. Give the blob material `vertexColors` or every blob ignores the
    frame's shadow tint and draws white.
-8. **Ship a no-lights fallback path.** It must hold 60 FPS and carry its own packaged smoke. Path
+10. **Ship a no-lights fallback path.** It must hold 60 FPS and carry its own packaged smoke. Path
    selection is explicit, never a runtime FPS probe.
 
 **Two darkeners will stack if you let them.** `FACE_SHADE` (`[0.82, 0.82, 1, 0.6, 0.66, 0.66]`)
@@ -211,18 +229,30 @@ Never judge from the code. Capture, look, measure, change one thing, capture aga
 1. `npm run typecheck`
 2. `npm run export:web`
 3. `npx tsx scripts/verification/capture-25d-districts.ts --output-root artifacts/phase-25d/<new-dir>`
-4. Read the PNGs. Score against section 1.
-5. Crop and upscale anything suspicious. A 3× nearest-neighbour crop of one prop settles arguments
+4. `npx tsx scripts/verification/score-25d-frames.ts <dir> <previous-dir>` — four numbers per
+   frame with deltas against the previous round: dead-pixel fraction, mean luminance, mean
+   saturation, and a neighbour-step detail measure. Each maps to a rubric criterion. Judging by eye
+   works for "is this better" and fails for "is this 0.1 better".
+5. Read the PNGs. Score against section 1.
+6. Crop and upscale anything suspicious. A 3× nearest-neighbour crop of one prop settles arguments
    that staring at the full frame cannot. Standard deviation inside a region is your flatness
    number: a textured floor reads sd ≈ 17, a flat plastic box reads sd ≈ 0 within a face.
-6. Change ONE thing. Re-capture. If the image does not change, your hypothesis was wrong — do not
+7. Change ONE thing. Re-capture. If the image does not change, your hypothesis was wrong — do not
    stack another guess on top of it.
-7. `npm test`, `npm run check:boundaries`, then commit.
+8. `npm test`, `npm run check:boundaries`, then commit.
 
 **Electron rules:** hidden windows only (`show: false`, `stayHidden: true`), audio muted before
 content loads, background throttling off, every process closed on success AND failure. Never full
 screen, foreground input, `moveTop` or always-on-top. Drive the UI through
 `webContents.executeJavaScript` and `sendInputEvent`, never the host keyboard or mouse.
+
+**A null result needs a positive control.** "I changed X and nothing moved" has two causes: X does
+nothing, or the change never reached the render. Distinguish them before drawing a conclusion. The
+cheap control is one change that MUST be visible — move the skirt plane to `y = 5` so it covers the
+frame — and confirm the capture changes. Four probes in one round were read as evidence before this
+control was run, and one of them was wrong. Checking the bundle hash is not enough on its own: the
+renderer lives in `dist/_expo/static/js/web/__common-*.js`, not in `index-*.js`, so watching the
+index hash shows a stale build that is not stale.
 
 **Bisect a dark scene with three captures:** lit at night, fallback at night, lit at noon. Noon
 tells you the pipeline is correct. Fallback tells you whether the sun and shadow map are to blame.
@@ -255,6 +285,13 @@ Every one of these cost a capture round. The right-hand column is what settled i
 | Billboards lean | Card oriented to the view plane instead of world-vertical | World-vertical, yaw-facing only |
 | Production renders yaw 0 | `selectedYawDegrees()` defaulted to 0 instead of `CAMERA_YAW_DEGREES` | Defaulting a derived constant to 0 is a bug, not a safe fallback |
 | Blob shadows white | Material missing `vertexColors` | — |
+| Amber lamp throws a teal pool | Point light took the district accent, not the lamp's own glow | Largest single gain of the district pass |
+| Skyglow costs luminance | Accent mixed raw; an accent is saturated, not bright, so it moves exposure | Rescale to the day sky's brightness first |
+| Skyglow helps 3 districts, hurts 1 | Tinted by accent, which is the COMPLEMENT of the lamps in the harbour | Average the lamps in frame instead |
+| A whole third of a frame is near-black | The ground SPRITE is dark; tint multiplies it, so `#ffffff` is the identity | Forcing every floor tint to white changed zero pixels |
+| Awning floats in mid-air | Recipe had a counter and a canopy and no posts | The eye catches this before it reads anything else |
+| A stack reads as one moulded mass | Identical sprites carry one measured colour | Per-prop brightness jitter hashed from the prop id |
+| "My change did nothing" | The probe never reached the render | Run the `y = 5` skirt positive control before believing it |
 | Flat-shade colour wrong | UV landed on a texel boundary | Snap to texel centre |
 
 **Reviewers are not oracles.** A reviewer once diagnosed dark props as shadow acne; measurement
@@ -294,9 +331,8 @@ evidence, not the verdict.
 | Camera elevation | 30° | `three25/projection.ts` |
 | Wall height | 1.45 tiles | `three25/recipes.ts` |
 | Face shade, unlit | `[0.82, 0.82, 1, 0.6, 0.66, 0.66]` | `three25/world-renderer-25.ts` |
-| Face shade, lit | `[0.96, 0.96, 1, 0.9, 0.93, 0.93]` | `three25/world-renderer-25.ts` |
 | Sky light | `#f5dcb0` over `#4a4a44`, 1.1 lit / 1.7 fallback | `three25/world-renderer-25.ts` |
-| Sky night floor | 0.62 of day | `three25/world-renderer-25.ts` |
+| Sky night floor | 0.78 of day | `three25/world-renderer-25.ts` |
 | Sun | `#ffefdb`, `0.15 + elevation * 3.2` | `three25/world-renderer-25.ts` |
 | Shadow map | `BasicShadowMap` 256, frustum ±40, normalBias 0.35 | `three25/world-renderer-25.ts` |
 | Lamp point light | distance 11, decay 1.4, `0.2 + lampMix * 11` | `three25/lighting.ts` |
@@ -308,4 +344,11 @@ evidence, not the verdict.
 | Modal colour cutoff | exclude luminance < 55 | `three25/recipes.ts` |
 | Draw-call ceiling | 10 total, 5 atlas | `three25/ceilings.ts` |
 | Alpha cutout | `alphaTest: 0.5`, never `transparent` | `three25/world-renderer-25.ts` |
+| Face shade, lit | `[0.96, 0.96, 1, 0.9, 0.93, 0.93]` | `three25/world-renderer-25.ts` |
+| Lamp light colour | the lamp's own recipe glow (`LAMP_GLOW_COLORS`) | `three25/recipes.ts` |
+| Skyglow | `0.45 * lampMix` toward the mean lamp colour, brightness-rescaled | `three25/world-renderer-25.ts` |
+| Prop jitter | ±8%, hashed from the prop id, glow boxes exempt | `three25/scene-builder.ts` |
+| Crate lid rim | `#d8c49a` | `three25/recipes.ts` |
+| Frame scorer | `score-25d-frames.ts <dir> [previous]` | `scripts/verification/` |
+| Renderer bundle | `dist/_expo/static/js/web/__common-*.js` | — |
 | Night capture minute | 1245 | `scripts/verification/capture-25d-districts.ts` |
