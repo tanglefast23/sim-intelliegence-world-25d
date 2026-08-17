@@ -150,9 +150,13 @@ void captureScenes(
       + 'was faint: their emitters sit on the food stall the plume comes off, so the wisps rendered '
       + 'INSIDE a 1.35-tile counter. Widening made it worse, because a wider quad fell further '
       + 'within the box. A minimum height that clears the stall took the courtyard from 0 to 3,453. '
-      + 'The harbour water glint is the one still unexplained: its quads build, they change nothing '
-      + 'in the world, and the leading suspicion is that the camera clamp near the map edge holds '
-      + 'the view back so the emitter never enters frame.',
+      + 'The harbour water glint is UNEXPLAINED and these facts are what is known about it. Its '
+      + 'emitter tile projects to screen 725,376 - dead centre, so the camera clamp is NOT the '
+      + 'cause. Its quads are built at the right coordinates: 55.5, 0.03, 30.6 for the north glint. '
+      + 'Forcing every additive VFX quad to a 3-tile bright square lights up the club neon fixture '
+      + 'by 90,265 pixels and this one by ZERO, so it is not size, colour or opacity either. '
+      + 'Something drops these specific quads between the bake and the pixels, and it has not been '
+      + 'found. Steam was fixed; this was not.',
     );
   }
 }).catch((error: unknown) => {
