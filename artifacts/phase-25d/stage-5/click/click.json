@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 2,
+  "results": [
+    {
+      "name": "click-southeast",
+      "camera": {
+        "x": 0,
+        "y": 744.8834764831844,
+        "zoom": 1
+      },
+      "tile": "22,22",
+      "clickedAt": {
+        "x": 527,
+        "y": 246
+      },
+      "expectedPixel": {
+        "x": 527,
+        "y": 246
+      },
+      "eventPoint": {
+        "x": 527,
+        "y": 246
+      },
+      "targetBefore": null,
+      "target": "22,22",
+      "status": "moving",
+      "arrived": true,
+      "arrivedAfterMs": 1200,
+      "tileBefore": "18,18",
+      "tileAfter": "22,22"
+    },
+    {
+      "name": "click-west",
+      "camera": {
+        "x": 0,
+        "y": 744.8834764831844,
+        "zoom": 1
+      },
+      "tile": "16,19",
+      "clickedAt": {
+        "x": 459,
+        "y": 144
+      },
+      "expectedPixel": {
+        "x": 459,
+        "y": 144
+      },
+      "eventPoint": {
+        "x": 459,
+        "y": 144
+      },
+      "targetBefore": null,
+      "target": "16,19",
+      "status": "moving",
+      "arrived": true,
+      "arrivedAfterMs": 360,
+      "tileBefore": "18,18",
+      "tileAfter": "16,19"
+    },
+    {
+      "name": "click-north",
+      "camera": {
+        "x": 0,
+        "y": 744.8834764831844,
+        "zoom": 1
+      },
+      "tile": "19,16",
+      "clickedAt": {
+        "x": 595,
+        "y": 144
+      },
+      "expectedPixel": {
+        "x": 595,
+        "y": 144
+      },
+      "eventPoint": {
+        "x": 595,
+        "y": 144
+      },
+      "targetBefore": null,
+      "target": "19,16",
+      "status": "moving",
+      "arrived": true,
+      "arrivedAfterMs": 360,
+      "tileBefore": "18,18",
+      "tileAfter": "19,16"
+    }
+  ],
+  "control": {
+    "at": {
+      "x": 1136,
+      "y": 40
+    },
+    "target": null
+  },
+  "knownGap": "Input-side only. Does not prove the drawn scene uses the same yaw as the picking."
+}

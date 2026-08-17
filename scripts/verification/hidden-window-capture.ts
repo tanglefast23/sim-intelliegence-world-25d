@@ -4,6 +4,8 @@ import { createServer, type Server } from 'node:http';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 
+import { CAMERA_YAW_DEGREES, GROUND_Z_SCALE } from '../../src/render/three25/projection';
+
 /**
  * Drives the 2.5D renderer in a real Electron window with a real WebGL 2 context, and captures it.
  *
@@ -26,8 +28,27 @@ export type SceneRequest = Readonly<{
   name: string;
   yawDegrees?: number;
   shadowPath?: 'lit' | 'fallback';
-  /** Screen point to click after the world is up, to verify click-to-move end to end. */
-  clickAt?: Readonly<{ x: number; y: number }>;
+  /**
+   * A TILE to click, to verify click-to-move end to end.
+   *
+   * A tile, not a pixel. Unprojecting a chosen pixel only tests whatever tile that pixel happens
+   * to land on: at the start camera the obvious mid-screen points are far outdoor tiles, and every
+   * route to them shares the villa exit, so three different clicks produced the same committed
+   * tile and the test proved nothing. Forward-projecting a chosen tile CENTRE is controlled — the
+   * caller filters the tile for walkability first, and a centre sits far from any tile boundary so
+   * a one-pixel rounding wobble can never flip the answer.
+   */
+  clickTile?: Readonly<{ x: number; y: number }>;
+  /**
+   * A raw screen PIXEL to click, for the negative control only.
+   *
+   * The point is chosen to unproject off-map under the tilted inverse while landing inside the map
+   * under the 2D one. Asserting that no movement is requested proves the tilted `insideMap` and
+   * `unproject` pair is the one actually wired in — not merely that some self-consistent maths ran.
+   */
+  clickPixel?: Readonly<{ x: number; y: number }>;
+  /** Stop NPCs walking, so a tile filtered as NPC-free at selection time is still free at click. */
+  freezeNpcMotion?: boolean;
   /** World zoom, through the app's own test hook. Use 3 to frame an interior. */
   zoom?: 1 | 2 | 3;
   /** Absolute world minute, to capture a scene at night rather than at the 08:00 spawn. */
@@ -59,11 +80,20 @@ export type SceneEvidence = Readonly<{
   }>;
   /** Present only when the scene asked for a click. */
   click?: Readonly<{
+    /** The viewport-relative pixel the page actually dispatched at. */
     at: Readonly<{ x: number; y: number }>;
+    /** The exact client coordinates and rect used, so Node can redo `eventPoint` byte for byte. */
+    dispatched: Readonly<{ clientX: number; clientY: number; boxLeft: number; boxTop: number }>;
     cameraLabel: string;
     tileBefore: string;
+    targetBefore: string | null;
+    /** `movement.pendingTarget ?? movement.target` right after the click. Null if none was set. */
+    target: string | null;
+    status: string | null;
+    /** Whether the committed player tile ever reached the requested tile. */
+    arrived: boolean;
+    arrivedAfterMs: number | null;
     destination: string;
-    probe: Readonly<{ worldState: boolean; raw: string }>;
   }>;
 }>;
 
@@ -120,6 +150,13 @@ const preloadPath = join(__dirname, 'capture-preload.js');
 
 const scenes = ${JSON.stringify(scenes)};
 const outputDirectory = ${JSON.stringify(outputDirectory)};
+
+// Taken from the real projection module in the tsx process, never re-derived here. The click test
+// forward-projects a tile centre inside the page, and these three numbers are what make that
+// inlined maths the SAME maths the app picks with rather than a second implementation of it.
+const YAW_COS = ${String(Math.cos((CAMERA_YAW_DEGREES * Math.PI) / 180))};
+const YAW_SIN = ${String(Math.sin((CAMERA_YAW_DEGREES * Math.PI) / 180))};
+const GROUND_Z_SCALE = ${String(GROUND_Z_SCALE)};
 
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
 
@@ -253,27 +290,52 @@ async function capture(scene) {
   await new Promise((r) => setTimeout(r, 750));
 
   let click;
-  if (scene.clickAt) {
+  if (scene.clickTile || scene.clickPixel) {
     const clickScript = [
+      'const TILE_TARGET = ' + JSON.stringify(scene.clickTile ?? null) + ';',
+      'const PIXEL_TARGET = ' + JSON.stringify(scene.clickPixel ?? null) + ';',
+      'const YAW_COS = ' + String(YAW_COS) + ';',
+      'const YAW_SIN = ' + String(YAW_SIN) + ';',
+      'const GROUND_Z_SCALE = ' + String(GROUND_Z_SCALE) + ';',
       '(async () => {',
       '  const wait = (ms) => new Promise((r) => setTimeout(r, ms));',
-      '  const label = (id) => { const n = document.querySelector("#" + id); return n ? (n.getAttribute("aria-label") || n.getAttribute("aria-labelledby") || "") : ""; };',
-      '  const probe = { worldState: !!document.querySelector("#world-state"), raw: label("world-state").slice(0, 120) };',
-      // "<map>; tile X,Y; minute ..." - split rather than match, so no regex survives two levels
-      // of template escaping on the way in here.
-      '  const tile = () => { const t = label("world-state"); const i = t.indexOf("tile "); return i < 0 ? "" : t.slice(i + 5).split(";")[0].trim(); };',
-      '  const before = tile();',
-      '  const cameraLabel = label("world-camera-state");',
-      '  const surface = document.querySelector("#world-input-viewport");',
-      '  if (!surface) throw new Error("world-input-viewport is missing");',
-      '  const box = surface.getBoundingClientRect();',
-      '  const point = { clientX: box.left + ' + String(scene.clickAt.x) + ', clientY: box.top + ' + String(scene.clickAt.y) + ', bubbles: true, button: 0, pointerId: 1, isPrimary: true };',
-      '  surface.dispatchEvent(new PointerEvent("pointerdown", point));',
-      '  await wait(40);',
-      '  surface.dispatchEvent(new PointerEvent("pointerup", point));',
-      '  surface.dispatchEvent(new MouseEvent("click", point));',
-      '  await wait(1200);',
-      '  return { at: { x: ' + String(scene.clickAt.x) + ', y: ' + String(scene.clickAt.y) + ' }, cameraLabel: cameraLabel, tileBefore: before, destination: tile(), probe: probe };',
+      '  const label = (id) => { const n = document.querySelector(\"#\" + id); return n ? (n.getAttribute(\"aria-label\") || \"\") : \"\"; };',
+      '  const tile = () => { const t = label(\"world-state\"); const i = t.indexOf(\"tile \"); return i < 0 ? \"\" : t.slice(i + 5).split(\";\")[0].trim(); };',
+      '  const movement = () => { const t = label(\"world-movement-state\"); if (!t) return null; try { return JSON.parse(t); } catch (e) { return null; } };',
+      '  const targetOf = () => { const m = movement(); const t = m && m.player ? m.player.target : null; return t ? (t.x + \",\" + t.y) : null; };',
+      '  const statusOf = () => { const m = movement(); return m && m.player ? m.player.status : null; };',
+      '  if (!document.querySelector(\"#world-movement-state\")) throw new Error(\"world-movement-state is missing: smoke mode is off, so every target read would be a vacuous null\");',
+      '  const surface = document.querySelector(\"#world-input-surface\");',
+      '  const viewport = document.querySelector(\"#world-input-viewport\");',
+      '  if (!surface || !viewport) throw new Error(\"world input surface or viewport is missing\");',
+      '  const cameraLabel = label(\"world-camera-state\");',
+      '  const parsed = /World camera (-?[0-9.]+),(-?[0-9.]+) at ([0-9.]+)x/.exec(cameraLabel);',
+      '  if (!parsed) throw new Error(\"camera label unreadable: \" + cameraLabel);',
+      '  const cameraX = Number(parsed[1]), cameraY = Number(parsed[2]), zoom = Number(parsed[3]);',
+      '  const box = viewport.getBoundingClientRect();',
+      '  let px, py;',
+      '  if (TILE_TARGET) {',
+      '    const worldX = TILE_TARGET.x * 32 + 16, worldY = TILE_TARGET.y * 32 + 16;',
+      '    const dx = worldX - cameraX, dy = worldY - cameraY;',
+      '    px = Math.round((dx * YAW_COS - dy * YAW_SIN) * zoom);',
+      '    py = Math.round((dx * YAW_SIN + dy * YAW_COS) * GROUND_Z_SCALE * zoom);',
+      '    if (px < 48 || py < 48 || px > box.width - 48 || py > box.height - 48) throw new Error(\"target tile projects off screen at \" + px + \",\" + py);',
+      '  } else { px = PIXEL_TARGET.x; py = PIXEL_TARGET.y; }',
+      '  const tileBefore = tile();',
+      '  const targetBefore = targetOf();',
+      '  if (label(\"world-camera-state\") !== cameraLabel) throw new Error(\"camera moved between the label read and the dispatch\");',
+      '  const clientX = box.left + px, clientY = box.top + py;',
+      '  const point = { clientX: clientX, clientY: clientY, bubbles: true, button: 0, pointerId: 1, isPrimary: true };',
+      '  surface.dispatchEvent(new PointerEvent(\"pointerdown\", point));',
+      '  surface.dispatchEvent(new PointerEvent(\"pointerup\", point));',
+      '  let target = null, status = null;',
+      '  for (let i = 0; i < 25 && target === null; i += 1) { await wait(20); target = targetOf(); status = statusOf(); }',
+      '  let arrived = false, arrivedAfterMs = null;',
+      '  if (TILE_TARGET && target !== null) {',
+      '    const want = TILE_TARGET.x + \",\" + TILE_TARGET.y;',
+      '    for (let waited = 0; waited < 12000 && !arrived; waited += 60) { await wait(60); if (tile() === want) { arrived = true; arrivedAfterMs = waited; } }',
+      '  }',
+      '  return { at: { x: px, y: py }, dispatched: { clientX: clientX, clientY: clientY, boxLeft: box.left, boxTop: box.top }, cameraLabel: cameraLabel, tileBefore: tileBefore, targetBefore: targetBefore, target: target, status: status, arrived: arrived, arrivedAfterMs: arrivedAfterMs, destination: tile() };',
       '})()',
     // The doubled backslash is on purpose. This block lives inside the template literal that
     // GENERATES main.js, so a single escape here emits a REAL newline into main.js and splits the
@@ -330,7 +392,12 @@ export async function captureScenes(
     writeFileSync(
       join(directory, 'capture-preload.js'),
       "const { contextBridge } = require('electron');\n"
-      + "contextBridge.exposeInMainWorld('siWorldSmokeMode', true);\n",
+      + "contextBridge.exposeInMainWorld('siWorldSmokeMode', true);\n"
+      // NPCs walk on their schedules, so a tile filtered as NPC-free when the click point was
+      // chosen can have someone standing on it by the time the click lands - and an NPC under the
+      // point makes handlePrimary open a conversation instead of moving.
+      + (scenes.some((scene) => scene.freezeNpcMotion === true)
+        ? "contextBridge.exposeInMainWorld('siWorldFreezeNpcMotion', true);\n" : ''),
     );
     writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: 'si-world-25d-capture', main: 'main.js' }));
 
