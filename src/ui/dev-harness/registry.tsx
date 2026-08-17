@@ -372,8 +372,9 @@ const shootingSceneEntry: DevHarnessEntry = {
 };
 
 export const DEV_HARNESS_ENTRIES: readonly DevHarnessEntry[] = Object.freeze([
-  welcomeEntry,
+  // Zone-to-zone jumping is the entry point: it is the fastest way into a real 2.5D scene.
   locationsEntry,
+  welcomeEntry,
   goldenHourEntry,
   heroScenesEntry,
   ambientScenesEntry,

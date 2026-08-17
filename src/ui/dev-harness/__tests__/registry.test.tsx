@@ -12,7 +12,7 @@ import { DEV_HARNESS_ENTRIES } from '../registry';
 describe('dev harness registry', () => {
   test('has stable, unique, non-empty entry and case ids', () => {
     expect(DEV_HARNESS_ENTRIES.map((entry) => entry.id)).toEqual([
-      'welcome', 'locations', 'golden-hour', 'hero-scenes', 'ambient-scenes', 'grounding', 'character-talk', 'procedural-effects', 'shooting-scene', 'conversations', 'panels', 'district-panels',
+      'locations', 'welcome', 'golden-hour', 'hero-scenes', 'ambient-scenes', 'grounding', 'character-talk', 'procedural-effects', 'shooting-scene', 'conversations', 'panels', 'district-panels',
     ]);
     expect(new Set(DEV_HARNESS_ENTRIES.map((entry) => entry.id)).size).toBe(DEV_HARNESS_ENTRIES.length);
     for (const entry of DEV_HARNESS_ENTRIES) {
