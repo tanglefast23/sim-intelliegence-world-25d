@@ -53,27 +53,30 @@ describe('2.5D lighting', () => {
     expect(blob.tint).toBe(shadow.color);
   });
 
-  test('the default path is the deterministic fallback', () => {
-    expect(DEFAULT_SHADOW_PATH).toBe('fallback');
+  test('the default path is the lit path', () => {
+    // Chosen from the Stage 4 yaw comparison. The fallback is still one query parameter away, so
+    // this is reversible if a frame-rate measurement ever says otherwise.
+    expect(DEFAULT_SHADOW_PATH).toBe('lit');
   });
 
   describe('path selection is explicit', () => {
     const base = { hostname: 'localhost', search: '', smokeMode: false } as const;
 
     test('production always gets the default', () => {
-      expect(shadowPathForEnvironment({ ...base, hostname: 'siworld.example' })).toBe('fallback');
-      expect(shadowPathForEnvironment({ ...base, hostname: 'siworld.example', search: '?testShadowPath=lit' })).toBe('fallback');
+      expect(shadowPathForEnvironment({ ...base, hostname: 'siworld.example' })).toBe('lit');
+      // A production host ignores the query entirely, including one asking for the non-default.
+      expect(shadowPathForEnvironment({ ...base, hostname: 'siworld.example', search: '?testShadowPath=fallback' })).toBe('lit');
     });
 
     test('honours the local development override', () => {
       expect(shadowPathForEnvironment({ ...base, search: '?testShadowPath=lit' })).toBe('lit');
       expect(shadowPathForEnvironment({ ...base, search: '?testShadowPath=fallback' })).toBe('fallback');
-      expect(shadowPathForEnvironment({ ...base, search: '?testShadowPath=bogus' })).toBe('fallback');
+      expect(shadowPathForEnvironment({ ...base, search: '?testShadowPath=bogus' })).toBe('lit');
     });
 
     test('honours the packaged smoke override only in smoke mode', () => {
       expect(shadowPathForEnvironment({ ...base, hostname: 'siworld.example', smokeMode: true, smokeShadowPath: 'lit' })).toBe('lit');
-      expect(shadowPathForEnvironment({ ...base, hostname: 'siworld.example', smokeShadowPath: 'lit' })).toBe('fallback');
+      expect(shadowPathForEnvironment({ ...base, hostname: 'siworld.example', smokeShadowPath: 'fallback' })).toBe('lit');
     });
   });
 

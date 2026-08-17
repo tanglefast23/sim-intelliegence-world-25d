@@ -6,13 +6,21 @@ const TILE_SIZE = 32;
 export type ShadowPath = 'lit' | 'fallback';
 
 /**
- * The deterministic path, and the default.
+ * The default path.
  *
- * The fallback holds 60 FPS everywhere and produces the same pixels on every machine. The lit path
- * ships alongside it and is selected explicitly — never by a runtime FPS probe, which would make
- * the picture depend on the machine that drew it.
+ * Chosen as `lit` from the Stage 4 yaw comparison: the hard aliased cast shadows read as pixel art
+ * and give the boxes their weight, which is the whole point of the tilt. Cost is one extra draw
+ * call, measured — 6 against a ceiling of 8.
+ *
+ * **The frame-rate cost is NOT measured.** The plan originally defaulted to `fallback` on the
+ * grounds that it "holds 60 FPS everywhere", and nothing in this work produced a frame-time number.
+ * The fallback still ships, is still deterministic, and is still one query parameter away
+ * (`?testShadowPath=fallback`) — so this is reversible the moment a measurement says otherwise.
+ *
+ * Selection stays explicit either way. Never a runtime FPS probe: that would make the picture
+ * depend on the machine that drew it.
  */
-export const DEFAULT_SHADOW_PATH: ShadowPath = 'fallback';
+export const DEFAULT_SHADOW_PATH: ShadowPath = 'lit';
 
 /**
  * Copied from `LAMP_SPRITE_IDS` in `src/render/three/world-renderer.ts`.
@@ -90,7 +98,7 @@ export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
  * Which shadow path to draw, chosen explicitly.
  *
  * Same shape as `rendererForEnvironment`: a localhost query override and a smoke-mode global, with
- * production pinned to the deterministic default. Never a runtime FPS probe — the plan and the spec
+ * production pinned to `DEFAULT_SHADOW_PATH`. Never a runtime FPS probe — the plan and the spec
  * both require the choice to be explicit so a capture is reproducible.
  */
 export function shadowPathForEnvironment(input: Readonly<{
