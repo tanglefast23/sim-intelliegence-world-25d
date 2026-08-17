@@ -2,7 +2,7 @@ import { ATLAS_INDEX, atlasRectangle, type AtlasRectangle } from '../atlas';
 import type { WorldFloorPlacement, WorldFrameState } from '../world-frame';
 import { hiddenWallTiles, tileKey } from './occlusion';
 import { mixHex } from '../atmosphere';
-import { UNLIT_NIGHT_STRENGTH, tintForLighting } from './billboards';
+import { UNLIT_NIGHT_STRENGTH, readableTint, tintForLighting } from './billboards';
 import { PROP_FLAT_COLORS, WALL_HEIGHT_TILES, recipeFor } from './recipes';
 
 /**
@@ -222,7 +222,7 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
         // a lamp that dims at night is not a lamp. Only the sprite's own paint follows the sun.
         tint: shelteredTint(
           box.tint ?? tintForLighting(
-            PROP_FLAT_COLORS[prop.sprite] ?? prop.color,
+            readableTint(PROP_FLAT_COLORS[prop.sprite] ?? prop.color),
             frame.lighting,
             UNLIT_NIGHT_STRENGTH,
           ),

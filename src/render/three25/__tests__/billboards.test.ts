@@ -1,4 +1,4 @@
-import { UNLIT_NIGHT_STRENGTH, buildBillboards, tintForLighting } from '../billboards';
+import { UNLIT_NIGHT_STRENGTH, buildBillboards, readableTint, tintForLighting } from '../billboards';
 import { indoorFrame } from './fixtures';
 
 describe('character billboards', () => {
@@ -138,5 +138,44 @@ describe('unlit surfaces darken less', () => {
     const noon = { ...frame.lighting, sun: { ...frame.lighting.sun, elevation: 1 } };
     expect(tintForLighting('#5c9494', noon, UNLIT_NIGHT_STRENGTH)).toBe('#5c9494');
     expect(tintForLighting('#5c9494', night, UNLIT_NIGHT_STRENGTH)).not.toBe('#5c9494');
+  });
+});
+
+describe('unlit surfaces stay readable', () => {
+  /**
+   * Flat furniture carries no light, and ACES crushes the low end hard, so a sprite's true paint
+   * at luminance 80 lands as a near-black slab. That is survivable in the villa, where lamps light
+   * the walls behind the furniture; it is why market stalls and cargo stacks read as featureless
+   * blocks in districts with fewer lamps.
+   */
+  test('lifts a dark colour to the readable floor', () => {
+    const lifted = readableTint('#1c2424');
+    const luminance = (hex: string) =>
+      ([1, 3, 5].reduce((total, at) => total + Number.parseInt(hex.slice(at, at + 2), 16), 0)) / 3;
+    expect(luminance(lifted)).toBeGreaterThanOrEqual(140);
+    expect(luminance('#1c2424')).toBeLessThan(140);
+  });
+
+  test('keeps the hue: it scales rather than adding grey', () => {
+    const lifted = readableTint('#2c4c34');
+    const channel = (hex: string, at: number) => Number.parseInt(hex.slice(at, at + 2), 16);
+    // Green was the dominant channel and still is, by the same ordering.
+    expect(channel(lifted, 3)).toBeGreaterThan(channel(lifted, 1));
+    expect(channel(lifted, 3)).toBeGreaterThan(channel(lifted, 5));
+  });
+
+  test('leaves an already-readable colour alone', () => {
+    expect(readableTint('#e8d8c0')).toBe('#e8d8c0');
+  });
+
+  test('never overflows a channel', () => {
+    const lifted = readableTint('#0f0102', 200);
+    for (const at of [1, 3, 5]) {
+      expect(Number.parseInt(lifted.slice(at, at + 2), 16)).toBeLessThanOrEqual(255);
+    }
+  });
+
+  test('survives pure black without dividing by zero', () => {
+    expect(readableTint('#000000')).toBe('#000000');
   });
 });

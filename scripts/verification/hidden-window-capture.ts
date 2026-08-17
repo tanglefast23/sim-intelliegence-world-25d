@@ -34,6 +34,13 @@ export type SceneRequest = Readonly<{
   minute?: number;
   /** Centre the camera on the protagonist, so the shot frames the room they are standing in. */
   centreOnPlayer?: boolean;
+  /**
+   * Relocate the protagonist to another map, through the app's own VFX fixture.
+   *
+   * That fixture exists to frame an effect, and relocating the player is how it does it - which is
+   * also the only way to photograph a district the protagonist does not spawn in.
+   */
+  district?: Readonly<{ mapId: string; effectId: string }>;
 }>;
 
 export type SceneEvidence = Readonly<{
@@ -210,6 +217,16 @@ async function capture(scene) {
       throw new Error('siWorldSetRendererTestZoom is missing. siWorld hooks present: ' + JSON.stringify(zoomed.keys));
     }
     await new Promise((r) => setTimeout(r, 900));
+  }
+
+  if (scene.district) {
+    const moved = await window.webContents.executeJavaScript(
+      'typeof window.siWorldOpenVfxFixture === "function"'
+      + ' ? (window.siWorldOpenVfxFixture("' + scene.district.mapId + '", "' + scene.district.effectId + '"'
+      + (scene.minute === undefined ? '' : ', ' + scene.minute) + '), true) : false',
+    );
+    if (!moved) throw new Error('siWorldOpenVfxFixture is missing.');
+    await new Promise((r) => setTimeout(r, 1400));
   }
 
   if (scene.minute !== undefined) {

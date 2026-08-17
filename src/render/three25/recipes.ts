@@ -99,13 +99,13 @@ const crateTile = (capWidth: number): readonly BoxRecipe[] => [
 
 /** Counter with produce heaped on top. */
 const produceStallTile = (): readonly BoxRecipe[] => [
-  { x: 0, y: 0.4, z: 0, width: 0.96, height: 0.8, depth: 0.8 },
+  { x: 0, y: 0.4, z: 0, width: 0.96, height: 0.8, depth: 0.8, tint: PALE_WOOD_SHADE },
   { x: 0, y: 0.94, z: 0, width: 0.84, height: 0.28, depth: 0.66 },
 ];
 
 /** Counter with an awning floating above it. */
 const foodStallTile = (): readonly BoxRecipe[] => [
-  { x: 0, y: 0.42, z: 0, width: 0.96, height: 0.84, depth: 0.8 },
+  { x: 0, y: 0.42, z: 0, width: 0.96, height: 0.84, depth: 0.8, tint: PALE_WOOD_SHADE },
   { x: 0, y: 1.35, z: -0.1, width: 0.98, height: 0.2, depth: 1.0 },
 ];
 
@@ -217,8 +217,13 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   // --- Sunset market ----------------------------------------------------------------------
   'tile.market-canopy-nw': {
     boxes: [
-      { x: 0.5, y: 0.9, z: 0.5, width: 0.14, height: 1.8, depth: 0.14 },
-      { x: 0.5, y: 1.95, z: 0.5, width: 2.1, height: 0.3, depth: 2.1 },
+      // Four corner posts, not one. A single central post left the canopy reading as a slab
+      // hanging in mid-air, which is the biggest thing wrong with the market district.
+      { x: -0.3, y: 0.9, z: -0.3, width: 0.12, height: 1.8, depth: 0.12, tint: PALE_WOOD_SHADE },
+      { x: 1.3, y: 0.9, z: -0.3, width: 0.12, height: 1.8, depth: 0.12, tint: PALE_WOOD_SHADE },
+      { x: -0.3, y: 0.9, z: 1.3, width: 0.12, height: 1.8, depth: 0.12, tint: PALE_WOOD_SHADE },
+      { x: 1.3, y: 0.9, z: 1.3, width: 0.12, height: 1.8, depth: 0.12, tint: PALE_WOOD_SHADE },
+      { x: 0.5, y: 1.9, z: 0.5, width: 2.1, height: 0.18, depth: 2.1 },
     ],
     consumes: ['tile.market-canopy-ne', 'tile.market-canopy-sw', 'tile.market-canopy-se'],
   },

@@ -76,3 +76,32 @@ export function tintForLighting(
 
 /** How far unlit furniture darkens at night. See `tintForLighting`. */
 export const UNLIT_NIGHT_STRENGTH = 0.4;
+
+/**
+ * Lifts a colour until it is readable on an UNLIT surface.
+ *
+ * Flat furniture carries no light, and ACES crushes the low end hard, so a sprite's true paint at
+ * luminance 80 lands as a near-black slab. That is fine in the villa, where lamps light the walls
+ * behind the furniture and give it a silhouette — and it is why the market stalls and cargo stacks
+ * read as featureless blocks in districts with fewer lamps.
+ *
+ * Scales the whole colour rather than adding grey, so the hue survives. `floor` is in the same
+ * 0-255 space as the channels.
+ *
+ * The floor has to clear everything stacked on top of the paint, not just the paint: a 0.4 mix
+ * toward the shadow colour, then a face shade as low as 0.6, then ACES crushing the low end. A
+ * cargo crate at luminance 116 survives all three as a near-black slab, which is why the harbour
+ * read as empty ground with lamps in it.
+ */
+const READABLE_FLOOR = 150;
+export function readableTint(tint: string, floor = READABLE_FLOOR): string {
+  const alpha = tint.length > 7 ? tint.slice(7) : '';
+  const channels = [1, 3, 5].map((at) => Number.parseInt(tint.slice(at, at + 2), 16));
+  const luminance = (channels[0]! + channels[1]! + channels[2]!) / 3;
+  if (luminance >= floor || luminance === 0) return tint;
+  const scale = floor / luminance;
+  const lifted = channels
+    .map((value) => Math.min(255, Math.round(value * scale)).toString(16).padStart(2, '0'))
+    .join('');
+  return `#${lifted}${alpha}`;
+}
