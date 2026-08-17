@@ -81,7 +81,9 @@ describe('baked scene geometry', () => {
     // guard checked against it alone passed while downtown's fourteen glowing signs went unchecked.
     for (const [sprite, recipe] of Object.entries(PROP_RECIPES)) {
       if (!recipe.boxes.some((box) => box.glow === true)) continue;
-      expect(sprite).toMatch(/lamp|lantern|sign-neon|sign-sunset-market/u);
+      // `ceiling-panel` joins the list because its plate IS the office light. The water cooler
+      // does not: a plastic jug that glows is a lamp nobody authored.
+      expect(sprite).toMatch(/lamp|lantern|sign-neon|sign-sunset-market|ceiling-panel/u);
     }
     expect(Object.values(PROP_RECIPES).filter((recipe) =>
       recipe.boxes.some((box) => box.glow === true)).length).toBeGreaterThan(6);

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import revision15PixelHashes from '../../../assets/source/art/revision-15-pixel-hashes.json';
+import revision16PixelHashes from '../../../assets/source/art/revision-16-pixel-hashes.json';
 import northeastMap from '../../../content/maps/northeast.json';
 import southeastMap from '../../../content/maps/southeast.json';
 import southwestMap from '../../../content/maps/southwest.json';
@@ -41,10 +41,10 @@ function alphaCount(pixels: Buffer): number {
 describe('current shared and district art', () => {
   const built = buildAtlas();
   const bitmap = decodePng(built.png);
-  const revision15Cells = revision15PixelHashes.cells as Readonly<Record<string, string>>;
+  const revision15Cells = revision16PixelHashes.cells as Readonly<Record<string, string>>;
 
-  test('uses revision 14 map-specific material cells', () => {
-    expect(ART_PRESENTATION_REVISION).toBe(15);
+  test('uses revision 16 map-specific material cells', () => {
+    expect(ART_PRESENTATION_REVISION).toBe(16);
     expect(MATERIAL_RECIPE_BY_ID['dark-asphalt']?.publicVariantSprites).toEqual([
       'tile.dark-asphalt', 'tile.dark-asphalt-b', 'tile.dark-asphalt-c',
     ]);

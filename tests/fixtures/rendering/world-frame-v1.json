@@ -29,10 +29,10 @@
         "vfxMode": "procedural"
       },
       "expected": {
-        "frameHash": "562a8575",
+        "frameHash": "529afd12",
         "mapHash": "ab126923",
-        "presentationHash": "fe577d53",
-        "atlasHash": "ebb14d005d38cfce366c5a67e0a3624de702059b68135c2b188584fd214c6bb1",
+        "presentationHash": "68688355",
+        "atlasHash": "6413b0afdafb4adac7fc7e0e7b07ceb2dfd10fb443904beef2959ecfde8ea9ab",
         "drawCounts": { "floor": 666, "prop": 39, "shadow": 2, "character": 2, "effect": 3, "wall": 56, "roof": 0, "total": 768 },
         "counts": { "floors": 494, "groundDetails": 172, "props": 34, "doors": 5, "characters": 2, "effects": 3, "fallbackEffects": 0, "walls": 56, "roofs": 0, "propShadows": 19, "characterShadows": 2, "thresholds": 5, "journalMarkers": 1, "shelterCells": 1 },
         "firstIds": { "floor": "floor-11-14", "detail": "transition-24-14", "prop": "shoreglass-spa-fixtures-part-05", "door": "bathroom-hall-door", "character": "protagonist", "effect": "patio-leaves", "wall": "shoreglass-spa-east-5", "journal": "journal_linda_boyfriend" },
@@ -59,10 +59,10 @@
         "vfxMode": "circle"
       },
       "expected": {
-        "frameHash": "74df85ac",
+        "frameHash": "e6cc4282",
         "mapHash": "ab126923",
-        "presentationHash": "fe577d53",
-        "atlasHash": "ebb14d005d38cfce366c5a67e0a3624de702059b68135c2b188584fd214c6bb1",
+        "presentationHash": "68688355",
+        "atlasHash": "6413b0afdafb4adac7fc7e0e7b07ceb2dfd10fb443904beef2959ecfde8ea9ab",
         "drawCounts": { "floor": 858, "prop": 56, "shadow": 1, "character": 1, "effect": 4, "wall": 60, "roof": 187, "total": 1167 },
         "counts": { "floors": 858, "groundDetails": 0, "props": 51, "doors": 5, "characters": 1, "effects": 0, "fallbackEffects": 4, "walls": 60, "roofs": 187, "propShadows": 23, "characterShadows": 1, "thresholds": 5, "journalMarkers": 0, "shelterCells": 0 },
         "firstIds": { "floor": "floor-9-14", "prop": "shoreglass-spa-fixtures-part-05", "door": "bathroom-hall-door", "character": "protagonist", "fallbackEffect": "patio-fire", "wall": "shoreglass-spa-east-5", "roof": "roof-protagonist-villa-roof-9-14" },

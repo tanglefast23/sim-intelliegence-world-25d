@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "artRevision": 15,
+  "artRevision": 16,
   "toolVersion": "atlas-v9-authored-full-cast",
   "indexVersion": 3,
   "publicIdPrefixes": [
@@ -21,7 +21,7 @@
     "ground-decal": { "maximumCount": 64, "width": 32, "height": 32 },
     "wall-door": { "maximumCount": 80, "width": 32, "height": 32 },
     "roof": { "maximumCount": 32, "width": 32, "height": 32 },
-    "object-landmark": { "maximumCount": 64, "width": 32, "height": 32 },
+    "object-landmark": { "maximumCount": 68, "width": 32, "height": 32 },
     "world-character": { "maximumCount": 280, "width": 24, "height": 30 },
     "portrait": { "maximumCount": 53, "width": 24, "height": 29 },
     "effect-reserve": { "maximumCount": 16, "width": 32, "height": 32 }

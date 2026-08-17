@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import pixelBaseline from '../../assets/source/art/revision-15-pixel-hashes.json';
+import pixelBaseline from '../../assets/source/art/revision-16-pixel-hashes.json';
 import { buildAtlas, type AtlasIndex } from './build-world-atlas';
 import { decodePng } from './png';
 
@@ -17,7 +17,7 @@ const REQUIRED_GENERATED_ARTIFACTS = [
   'assets/source/art/roof-recipes.json',
   'assets/source/art/decal-recipes.json',
   'assets/source/art/transition-recipes.json',
-  'assets/source/art/revision-15-pixel-hashes.json',
+  'assets/source/art/revision-16-pixel-hashes.json',
 ] as const;
 
 type AtlasRect = Readonly<{ x: number; y: number; width: number; height: number }>;

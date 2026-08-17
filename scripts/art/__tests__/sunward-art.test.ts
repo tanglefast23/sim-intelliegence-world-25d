@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import northwestMapJson from '../../../content/maps/northwest.json';
-import revision15PixelHashes from '../../../assets/source/art/revision-15-pixel-hashes.json';
+import revision16PixelHashes from '../../../assets/source/art/revision-16-pixel-hashes.json';
 import { buildAtlas } from '../build-world-atlas';
 import { decodePng } from '../png';
 import {
@@ -53,7 +53,7 @@ function alphaCount(pixels: Buffer): number {
 describe('Phase 30 complete Tier A Sunward art', () => {
   const built = buildAtlas();
   const bitmap = decodePng(built.png);
-  const revision15Cells = revision15PixelHashes.cells as Readonly<Record<string, string>>;
+  const revision15Cells = revision16PixelHashes.cells as Readonly<Record<string, string>>;
 
   test('keeps the revised Sunward geometry generated and versioned', () => {
     const source = readFileSync(resolve(process.cwd(), 'content/maps/northwest.json'));
@@ -65,7 +65,7 @@ describe('Phase 30 complete Tier A Sunward art', () => {
   });
 
   test('makes all completed Sunward materials and states public and revisioned', () => {
-    expect(ART_PRESENTATION_REVISION).toBe(15);
+    expect(ART_PRESENTATION_REVISION).toBe(16);
     expect(MATERIAL_RECIPE_BY_ID['warm-sand']?.publicVariantSprites).toEqual([
       'tile.warm-sand', 'tile.warm-sand-b', 'tile.warm-sand-c', 'tile.warm-sand-d',
     ]);

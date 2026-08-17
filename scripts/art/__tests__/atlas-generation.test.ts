@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import revisionPixelHashes from '../../../assets/source/art/revision-15-pixel-hashes.json';
+import revisionPixelHashes from '../../../assets/source/art/revision-16-pixel-hashes.json';
 import { buildAtlas, validateAtlasArtifacts, writeAtlas } from '../build-world-atlas';
 import {
   composeFrontFrame,
@@ -67,17 +67,17 @@ describe('deterministic SI World atlas generation', () => {
     expect(first.report).toEqual(second.report);
     expect(first.png[25]).toBe(6);
     expect(first.index.version).toBe(3);
-    expect(first.index.artRevision).toBe(15);
+    expect(first.index.artRevision).toBe(16);
     expect(first.index.image).toMatchObject({ colorType: 'rgba', gutter: 1 });
-    expect(Object.keys(first.index.sprites)).toHaveLength(612);
-    expect(first.index.tiles).toHaveLength(279);
+    expect(Object.keys(first.index.sprites)).toHaveLength(616);
+    expect(first.index.tiles).toHaveLength(283);
     expect(first.index.groundCells).toHaveLength(81);
-    expect(first.index.transparentPartCells).toHaveLength(138);
+    expect(first.index.transparentPartCells).toHaveLength(142);
     expect(first.index.presentationCells).toHaveLength(60);
     expect(createHash('sha256').update(first.png).digest('hex')).toBe(first.index.image.sha256);
     expect(first.index.publicSpriteIds).toEqual(Object.keys(first.index.sprites));
     expect(first.index.internalReviewSpriteIds).toEqual([]);
-    expect(first.report.forecast).toMatchObject({ rawRectangleArea: 756_574, width: 1024 });
+    expect(first.report.forecast).toMatchObject({ rawRectangleArea: 761_198, width: 1024 });
   });
 
   test('keeps all atlas cells inside the generated image', () => {
@@ -197,7 +197,7 @@ describe('deterministic SI World atlas generation', () => {
     expect(aggregatePublicCellHash(bitmap, index.sprites, index.publicSpriteIds)).toBe(
       revisionPixelHashes.allPublicCellsAggregateSha256,
     );
-    expect(revisionPixelHashes.artRevision).toBe(15);
+    expect(revisionPixelHashes.artRevision).toBe(16);
     for (const tile of tiles) {
       const name = `tile.${tile.id}`;
       const expectedHash = revisionPixelHashes.cells[name as keyof typeof revisionPixelHashes.cells];
