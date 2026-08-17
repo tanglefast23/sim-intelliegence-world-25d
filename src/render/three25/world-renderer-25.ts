@@ -627,6 +627,10 @@ export async function createWorldRenderer25(
   // normal points straight at the sky term.
   const hemisphere = new HemisphereLight('#f5dcb0', '#4a4a44', shadowPath === 'lit' ? 1.1 : 1.7);
   const dayHemisphereIntensity = hemisphere.intensity;
+  /** The daytime sky colour, kept so the night skyglow below can mix away from it and back. */
+  const daySkyColor = hemisphere.color.clone();
+  const nightSkyColor = new Color();
+  const lampSkySample = new Color();
   scene.add(hemisphere);
 
   /**
@@ -867,10 +871,49 @@ export async function createWorldRenderer25(
     // world outside a lamp pool disappeared, which is what made unlit furniture look necessary in
     // the first place. 0.62 keeps a sofa plainly green in the dark without flattening the pool.
     const daylight = next.lighting.sun.elevation;
-    hemisphere.intensity = dayHemisphereIntensity * (0.62 + 0.38 * daylight);
-
+    hemisphere.intensity = dayHemisphereIntensity * (0.78 + 0.22 * daylight);
     // Lamp lights: add and remove by id so a pan does not churn the light list.
     const wanted = new Map(lampLights(next).map((light) => [light.id, light]));
+
+    /**
+     * Skyglow: after dusk the sky light takes the district's own accent colour.
+     *
+     * A neon street lights its own sky. Without this the downtown asphalt away from a sign was a
+     * featureless near-black plate over a third of the frame — measurably the worst dead fraction
+     * of the four districts, and its lowest saturation — because the only coloured light there is
+     * a handful of short-range neon posts.
+     *
+     * The glow colour is the average of the LAMPS IN FRAME, not the district accent. The accent was
+     * the obvious source and it was wrong: measured, tinting by accent gained saturation in three
+     * districts and lost more than it gained in the harbour, whose accent is teal while its lamps
+     * are amber. Tinting a scene's sky with the complement of the light in it cancels exactly the
+     * warm-object-on-cool-ground contrast that makes it read. A sky glows the colour of whatever
+     * lights it, so averaging the lamps is both the truer model and the one that measures better.
+     *
+     * Mixed by `lampMix`, the same term that turns the lamps on, so dusk brings both together.
+     */
+    nightSkyColor.set(0, 0, 0);
+    let lampCount = 0;
+    for (const lamp of wanted.values()) {
+      lampSkySample.setStyle(lamp.color.slice(0, 7));
+      lampSkySample.convertSRGBToLinear();
+      nightSkyColor.add(lampSkySample);
+      lampCount += 1;
+    }
+    if (lampCount === 0) {
+      nightSkyColor.setStyle(next.lighting.accent.slice(0, 7));
+      nightSkyColor.convertSRGBToLinear();
+    }
+    // Normalise to the day sky's own brightness. A lamp tint is chosen to be saturated, not bright,
+    // so mixing it in raw changes the EXPOSURE as well as the hue: measured, a straight mix cost
+    // every district 2-5 luminance and RAISED the dead fraction it was meant to cut, while the
+    // saturation gain it was after showed up either way. Rescaled, the mix moves colour alone.
+    const glowLuminance = nightSkyColor.r + nightSkyColor.g + nightSkyColor.b;
+    if (glowLuminance > 0.001) {
+      nightSkyColor.multiplyScalar((daySkyColor.r + daySkyColor.g + daySkyColor.b) / glowLuminance);
+    }
+    hemisphere.color.copy(daySkyColor).lerp(nightSkyColor, 0.45 * next.lighting.sun.lampMix);
+
     for (const [id, light] of lamps) {
       if (wanted.has(id)) continue;
       scene.remove(light);
