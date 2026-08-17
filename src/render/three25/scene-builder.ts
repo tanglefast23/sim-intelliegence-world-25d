@@ -82,6 +82,33 @@ function wallSideSource(sprite: string): AtlasRectangle | undefined {
 }
 
 /**
+ * A small, repeatable brightness shift per prop, so identical neighbours stop reading as one lump.
+ *
+ * Four cargo crates from the same sprite carry the same measured colour, so a stack of them renders
+ * as one moulded mass with seams rather than as four crates. Real stacked goods vary. Shifting each
+ * prop a few percent from a hash of its own id costs nothing, is stable across frames — so nothing
+ * shimmers as the camera pans — and is stable across runs, so a capture stays comparable.
+ *
+ * Deliberately small. Enough to separate neighbours, not enough to read as a different material.
+ */
+function propVariation(id: string): number {
+  let hash = 0x81_1c_9d_c5;
+  for (let index = 0; index < id.length; index += 1) {
+    hash = Math.imul(hash ^ id.charCodeAt(index), 0x01_00_01_93);
+  }
+  // >>> 0 first: the multiply leaves a signed 32-bit value, and a negative would bias the result.
+  return 1 + (((hash >>> 0) % 1000) / 1000 - 0.5) * 0.16;
+}
+
+function scaleHex(hex: string, factor: number): string {
+  const channel = (at: number): string => {
+    const value = Math.round(Math.min(255, Number.parseInt(hex.slice(at, at + 2), 16) * factor));
+    return value.toString(16).padStart(2, '0');
+  };
+  return `#${channel(1)}${channel(3)}${channel(5)}${hex.length > 7 ? hex.slice(7) : ''}`;
+}
+
+/**
  * How dark everything OUTSIDE the room the player occupies gets.
  *
  * This is what makes an open map read as an enclosed stage without inventing a single wall. The
@@ -238,7 +265,14 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
         // prop it deleted the object instead of pushing it back: at night the factor reaches 0.95,
         // so every lamp post on the terrace became a floating head over a black stick.
         tint: shelteredTint(
-          box.tint ?? readableTint(PROP_FLAT_COLORS[prop.sprite] ?? prop.color),
+          // The glow boxes keep their authored tint exactly: a lamp head is a light source, and
+          // varying its brightness per instance would read as lamps of differing wattage.
+          box.glow === true
+            ? (box.tint ?? readableTint(PROP_FLAT_COLORS[prop.sprite] ?? prop.color))
+            : scaleHex(
+              box.tint ?? readableTint(PROP_FLAT_COLORS[prop.sprite] ?? prop.color),
+              propVariation(prop.id),
+            ),
           prop.tile,
           frame,
           0.5,

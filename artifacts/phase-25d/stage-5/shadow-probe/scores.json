@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "scores": [
+    {
+      "name": "downtown-fallback",
+      "deadFraction": 0.336,
+      "meanLuminance": 50.014,
+      "meanSaturation": 0.371,
+      "detail": 3.132
+    },
+    {
+      "name": "downtown-lit",
+      "deadFraction": 0.335,
+      "meanLuminance": 48.908,
+      "meanSaturation": 0.354,
+      "detail": 3.026
+    }
+  ]
+}

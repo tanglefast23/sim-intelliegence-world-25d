@@ -35,6 +35,9 @@ const TERRACOTTA = '#b5673a';
 const FOLIAGE_GREEN = '#5f9e52';
 const FOLIAGE_FLOWERING = '#6fae5c';
 
+/** The lid rim on a crate. Brighter than the body so the cap reads as a separate piece of timber. */
+const CRATE_RIM = '#d8c49a';
+
 /** Warm lamp glow. Bright enough to read as a light source in a dark room. */
 const LAMP_GLOW = '#ffd9a0';
 /** The cold and neon fixtures glow their own colour rather than warm amber. */
@@ -93,21 +96,40 @@ const ferryTile = (): readonly BoxRecipe[] => [
   { x: 0, y: 0.78, z: 0, width: 0.7, height: 0.36, depth: 0.7 },
 ];
 
-/** A crate with a smaller one on top. `capWidth` varies the silhouette along a run. */
+/**
+ * A crate with a smaller one on top, each capped by a lid rim.
+ *
+ * The rim is a slightly wider, slightly brighter slab across the top face. Without it a crate is
+ * one solid colour from base to top and reads as a moulded block; the rim is the single cheapest
+ * thing that says "this is a box with a lid on it", and it survives at three screen pixels tall
+ * where any painted detail would not. `capWidth` varies the silhouette along a run.
+ */
 const crateTile = (capWidth: number): readonly BoxRecipe[] => [
-  { x: 0, y: 0.35, z: 0, width: 0.94, height: 0.7, depth: 0.9 },
-  { x: 0, y: 0.95, z: 0, width: capWidth, height: 0.5, depth: capWidth },
+  { x: 0, y: 0.33, z: 0, width: 0.94, height: 0.66, depth: 0.9 },
+  { x: 0, y: 0.69, z: 0, width: 0.99, height: 0.06, depth: 0.95, tint: CRATE_RIM },
+  { x: 0, y: 0.95, z: 0, width: capWidth, height: 0.46, depth: capWidth },
+  { x: 0, y: 1.2, z: 0, width: capWidth + 0.05, height: 0.06, depth: capWidth + 0.05, tint: CRATE_RIM },
 ];
 
-/** Counter with produce heaped on top. */
+/** Counter with produce heaped on top, and a plank edge where the two meet. */
 const produceStallTile = (): readonly BoxRecipe[] => [
   { x: 0, y: 0.4, z: 0, width: 0.96, height: 0.8, depth: 0.8, tint: PALE_WOOD_SHADE },
-  { x: 0, y: 0.94, z: 0, width: 0.84, height: 0.28, depth: 0.66 },
+  { x: 0, y: 0.82, z: 0, width: 1, height: 0.06, depth: 0.86, tint: PALE_WOOD },
+  { x: 0, y: 0.97, z: 0, width: 0.84, height: 0.28, depth: 0.66 },
 ];
 
-/** Counter with an awning floating above it. */
+/**
+ * Counter, two posts, awning.
+ *
+ * The posts are the point. Without them the awning hung in mid-air over the counter with nothing
+ * holding it up — the most obviously wrong thing in the bazaar, and the kind of error the eye
+ * catches before it reads anything else in the frame. They sit at the front corners so the camera
+ * sees them against the ground rather than lost against the counter behind.
+ */
 const foodStallTile = (): readonly BoxRecipe[] => [
   { x: 0, y: 0.42, z: 0, width: 0.96, height: 0.84, depth: 0.8, tint: PALE_WOOD_SHADE },
+  { x: -0.42, y: 0.68, z: 0.42, width: 0.08, height: 1.36, depth: 0.08, tint: PALE_WOOD_SHADE },
+  { x: 0.42, y: 0.68, z: 0.42, width: 0.08, height: 1.36, depth: 0.08, tint: PALE_WOOD_SHADE },
   { x: 0, y: 1.35, z: -0.1, width: 0.98, height: 0.2, depth: 1.0 },
 ];
 
