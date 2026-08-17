@@ -213,6 +213,10 @@ function ensureWindow() {
   if (sharedWindow) return sharedWindow;
   sharedWindow = new BrowserWindow({
     show: false,
+    // CONTENT size, not frame size. Without this the page is 1280x688 for a 1280x720 window, the
+    // capture comes back 32 rows short, and the resize below smooth-filters every pixel-art frame -
+    // silently, on every capture, for a reason that has nothing to do with the render.
+    useContentSize: true,
     width: ${viewport.width},
     height: ${viewport.height},
     webPreferences: {

@@ -46,6 +46,20 @@ const COMPOSITING_ONLY_ROLES: ReadonlySet<string> = new Set([
   'sparkle-shadow',
   'leaves-shadow',
   'palm-shadow',
+]);
+
+/**
+ * Roles that are a dark BACKER for a pale primary, and are kept.
+ *
+ * Dropping every `-shadow` role was right for the ones above, whose partners are bright enough to
+ * read on their own. It was wrong for steam and water, and measurably so: a cream wisp at 65% alpha
+ * over the bazaar's courtyard, whose floor sits at mean luminance 93, changed 18 pixels out of a
+ * whole plume, and a cyan glint over water changed none at all. Pale on pale is not a contrast.
+ *
+ * The backer is what carried the silhouette in 2D and it does the same job here for the same
+ * reason. It costs nothing: it rides the alpha batch its primary already uses.
+ */
+const SILHOUETTE_BACKER_ROLES: ReadonlySet<string> = new Set([
   'steam-shadow',
   'water-shadow',
 ]);
@@ -119,28 +133,43 @@ const AERIAL_TRANSIENT_HEIGHT = 0.5;
 const MINIMUM_RISE = 0.03;
 
 /**
+ * How high a kind's plume must start, in tiles, because of what it rises OUT of.
+ *
+ * Steam comes off a food stall, and the emitter is authored on the stall's own tile. In 2D that is
+ * fine - the plume is composited over the sprite. Here the stall is a box 1.35 tiles tall and the
+ * plume renders INSIDE it, so a wisp at the authored height is hidden by the counter it belongs to.
+ *
+ * This is why widening the steam made it worse, not better: at 2.4x a sliver still caught the edge
+ * of the counter and changed 18 pixels; at 4x the whole quad fell within the box's silhouette and
+ * changed none. The probe that settled it forced the same quads to three tiles wide, at which size
+ * they cleared the stall and changed 67,326.
+ */
+const KIND_MINIMUM_HEIGHT: Readonly<Record<string, number>> = Object.freeze({ steam: 1.55 });
+
+/**
  * How much wider a kind is drawn than its authored rect, per kind.
  *
- * Steam wisps are two pixels across. That was thin even in 2D, where dark `steam-shadow` backers
- * carried the silhouette — and those backers are dropped here, because the lit scene supplies the
- * contrast they faked. On a courtyard floor at mean luminance 93 a two-pixel cream wisp is simply
- * not there. Widening the quad is the one lever that does not need new art or a second batch.
+ * Steam wisps are two pixels across and water glints one. That is thin, and a tilted camera does
+ * not help: a 2-pixel quad is 6 screen pixels at zoom 3 and disappears into any floor near its own
+ * value. Widening is the one lever that needs no new art and no second batch, and it was verified
+ * by forcing the same quads large and bright first — the batch rasterises, the primitives were
+ * simply too small.
  *
  * Width only. Taller would change how far the plume rises, which the recipe means literally.
  */
-const KIND_WIDTH_SCALE: Readonly<Record<string, number>> = Object.freeze({ steam: 2.4 });
+const KIND_WIDTH_SCALE: Readonly<Record<string, number>> = Object.freeze({ steam: 4, water: 2 });
 
 /**
  * How much more opaque a kind is drawn than its authored alpha, per kind.
  *
- * Width alone was not enough for steam. Measured against a control frame with the effects
- * suppressed, a 2.4x-wide plume changed ZERO pixels over the bazaar's courtyard, whose floor sits
- * at mean luminance 93 — the authored 65% cream simply has nowhere to go against ground that
- * bright. The same plume over the harbour's darker yard changed 183.
+ * Width alone was not enough. Measured against a control frame with the effects suppressed, a
+ * 2.4x-wide plume changed 18 pixels over the bazaar's courtyard, whose floor sits at mean luminance
+ * 93 — the authored 65% cream has nowhere to go against ground that bright. The same plume over the
+ * harbour's darker yard changed 188.
  *
  * Capped at 1 so this can only ever recover an effect, never invent one brighter than authored.
  */
-const KIND_OPACITY_SCALE: Readonly<Record<string, number>> = Object.freeze({ steam: 1.5 });
+const KIND_OPACITY_SCALE: Readonly<Record<string, number>> = Object.freeze({ steam: 1.5, water: 1.4 });
 
 /** `#rrggbb` or `#rrggbbaa` split into a 6-digit colour and a 0..1 alpha. */
 function splitColor(color: string): Readonly<{ hex: string; alpha: number }> {
@@ -185,21 +214,28 @@ export function vfxQuads(frame: WorldFrameState): VfxQuads {
       const { hex, alpha: opacity } = splitColor(color);
       const centreX = rect.x + rect.width / 2;
       const centreY = rect.y + rect.height / 2;
+      const isBacker = SILHOUETTE_BACKER_ROLES.has(rect.role);
       const quad: VfxQuad = {
         id: `${geometry.emitterId}#${String(index)}`,
         x: centreX / TILE_SIZE,
         y: rule.mode === 'rise'
-          ? Math.max((anchorY - centreY) / TILE_SIZE, MINIMUM_RISE)
+          ? Math.max(
+            (anchorY - centreY) / TILE_SIZE + (KIND_MINIMUM_HEIGHT[geometry.kind] ?? 0),
+            MINIMUM_RISE,
+          )
           : rule.height,
         // `spread` keeps the authored offset as depth; the others hold the emitter's own depth.
         z: (rule.mode === 'spread' ? centreY : anchorY) / TILE_SIZE,
-        width: (rect.width * (KIND_WIDTH_SCALE[geometry.kind] ?? 1)) / TILE_SIZE,
+        // A backer is drawn slightly wider than the primary it sits behind, so it reads as an
+        // outline around it rather than as a second wisp of its own.
+        width: (rect.width * (KIND_WIDTH_SCALE[geometry.kind] ?? 1) * (isBacker ? 1.35 : 1)) / TILE_SIZE,
         height: rect.height / TILE_SIZE,
         tint: hex,
         opacity: Math.min(1, opacity * (KIND_OPACITY_SCALE[geometry.kind] ?? 1)),
         upright: rule.upright,
       };
-      (rule.additive ? additive : alpha).push(quad);
+      // A backer is always alpha, never additive: a dark rect added to a lit floor is nothing.
+      (rule.additive && !isBacker ? additive : alpha).push(quad);
     });
   }
 

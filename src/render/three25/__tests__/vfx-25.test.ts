@@ -88,12 +88,33 @@ describe('vfx kind placement', () => {
     expect(vfxQuads(frameWithEffect('insects', 'insects-primary', '#ffe889e6', 8)).alpha).toHaveLength(0);
   });
 
-  /** A dark rect drawn under a bright one is a 2D compositing trick the lit scene does not need. */
-  test('the compositing-only shadow roles are dropped', () => {
-    const frame = frameWithEffect('steam', 'steam-shadow', '#3f342c4d', 2);
-    const quads = vfxQuads(frame);
+  /**
+   * A dark rect under a bright one is a 2D compositing trick, and most of them the lit scene does
+   * not need. Steam and water are the exception, measured: pale-on-pale is not a contrast, and a
+   * cream wisp over ground at luminance 93 needs the backer that carried it in 2D.
+   */
+  test('compositing-only shadow roles are dropped', () => {
+    const quads = vfxQuads(frameWithEffect('leaves', 'leaves-shadow', '#392c2259', 8));
     expect(quads.additive).toHaveLength(0);
     expect(quads.alpha).toHaveLength(0);
+  });
+
+  test('a steam backer is kept, alpha blended, and wider than the wisp it sits behind', () => {
+    const backer = vfxQuads(frameWithEffect('steam', 'steam-shadow', '#3f342c4d', 2));
+    const primary = vfxQuads(frameWithEffect('steam', 'steam-primary', '#fff0d6a6', 2));
+    expect(backer.additive).toHaveLength(0);
+    expect(backer.alpha).toHaveLength(1);
+    expect(backer.alpha[0]!.width).toBeGreaterThan(primary.alpha[0]!.width);
+  });
+
+  /**
+   * A steam plume comes off a food stall, and its emitter is authored ON the stall tile. Without a
+   * minimum height the wisps render inside a 1.35-tile counter and the effect is invisible - and
+   * widening them makes it worse, because a wider quad falls further inside the box.
+   */
+  test('steam clears the counter it rises from', () => {
+    const [wisp] = vfxQuads(frameWithEffect('steam', 'steam-primary', '#fff0d6a6', 2)).alpha;
+    expect(wisp!.y).toBeGreaterThan(1.4);
   });
 
   test('no effect is ever buried below the floor', () => {

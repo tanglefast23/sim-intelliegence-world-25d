@@ -57,7 +57,12 @@ function changedPixelCount(left: Buffer, right: Buffer): number {
 }
 
 /**
- * Each fixture, and an UNBLOCKED tile beside it that keeps the emitter mid-frame.
+ * Each fixture, and an UNBLOCKED tile that keeps the emitter in OPEN frame.
+ *
+ * North-west of the emitter, not south-east. At yaw 45 that puts the effect down and right of the
+ * player, clear of the HUD panel in the top-left. Standing on the other side sent a steam plume up
+ * behind that panel, where it read as a faint 3,000-pixel difference through translucent chrome and
+ * looked, in the screenshot, like nothing at all.
  *
  * The water glint stands three tiles back rather than two: everything nearer it is water, and
  * `siWorldStandOnTile` now refuses a blocked tile instead of accepting it and framing somewhere
@@ -65,8 +70,8 @@ function changedPixelCount(left: Buffer, right: Buffer): number {
  */
 const FIXTURES = [
   { name: 'vfx-patio-fire', mapId: 'northwest_residential', effectId: 'patio-fire', tile: { x: 27, y: 34 } },
-  { name: 'vfx-yard-steam', mapId: 'southeast_docks', effectId: 'yard-steam', tile: { x: 21, y: 34 } },
-  { name: 'vfx-courtyard-steam', mapId: 'southwest_commercial', effectId: 'courtyard-steam-west', tile: { x: 11, y: 36 } },
+  { name: 'vfx-yard-steam', mapId: 'southeast_docks', effectId: 'yard-steam', tile: { x: 19, y: 30 } },
+  { name: 'vfx-courtyard-steam', mapId: 'southwest_commercial', effectId: 'courtyard-steam-west', tile: { x: 9, y: 32 } },
   { name: 'vfx-club-neon', mapId: 'northeast_downtown', effectId: 'club-neon-west', tile: { x: 16, y: 22 } },
   { name: 'vfx-harbor-water', mapId: 'southeast_docks', effectId: 'harbor-water-glint-north', tile: { x: 55, y: 33 } },
 ] as const;
@@ -141,9 +146,13 @@ void captureScenes(
     // VFX whatsoever. Conflating the two would make the check cry wolf until someone turned it off.
     console.warn(
       `WARNING: built but not visible against their own ground: ${invisible.map((row) => row.name).join(', ')}. `
-      + 'Their primitives are 1-2 pixels of low-alpha cream and the floors under them are bright. '
-      + 'Widening and raising opacity in KIND_WIDTH_SCALE / KIND_OPACITY_SCALE is the lever; '
-      + 'measured, 2.4x width and 1.5x opacity was not enough for the bazaar courtyard at luminance 93.',
+      + 'Check OCCLUSION before reaching for width. Both steam fixtures failed this way and neither '
+      + 'was faint: their emitters sit on the food stall the plume comes off, so the wisps rendered '
+      + 'INSIDE a 1.35-tile counter. Widening made it worse, because a wider quad fell further '
+      + 'within the box. A minimum height that clears the stall took the courtyard from 0 to 3,453. '
+      + 'The harbour water glint is the one still unexplained: its quads build, they change nothing '
+      + 'in the world, and the leading suspicion is that the camera clamp near the map edge holds '
+      + 'the view back so the emitter never enters frame.',
     );
   }
 }).catch((error: unknown) => {
