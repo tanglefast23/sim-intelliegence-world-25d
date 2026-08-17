@@ -226,7 +226,7 @@ export function scoreCharacterAgainstProtagonist(source: CharacterSource): Chara
    * bar this name refers to.
    *
    */
-  const stablePose = source.id === 'protagonist' || (
+  const stablePose = (
     composeFrontFrame(source, 0).join('\n') !== composeFrontFrame(source, 1).join('\n') &&
     composeLateralFrame(source, 'left', 0).join('\n') !== composeLateralFrame(source, 'left', 1).join('\n') &&
     composeLateralFrame(source, 'right', 0).join('\n') !== composeLateralFrame(source, 'right', 1).join('\n')
