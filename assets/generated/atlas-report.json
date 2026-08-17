@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "artRevision": 15,
+  "artRevision": 16,
   "categories": {
     "ground-base": {
       "actualCount": 81,
@@ -37,6 +37,11 @@
       "maximumCount": 280,
       "rawRectangleArea": 232960
     },
+    "world-character-eyes": {
+      "actualCount": 0,
+      "maximumCount": 35,
+      "rawRectangleArea": 0
+    },
     "portrait": {
       "actualCount": 53,
       "maximumCount": 53,
@@ -57,14 +62,14 @@
     "occupancy": 0.9818178834033613
   },
   "forecast": {
-    "cellCount": 749,
-    "rawRectangleArea": 756574,
-    "rawAreaRatio": 0.7215251922607422,
+    "cellCount": 784,
+    "rawRectangleArea": 761124,
+    "rawAreaRatio": 0.7258644104003906,
     "width": 1024,
-    "height": 763,
-    "boundingRectangleArea": 781312,
-    "packedAreaRatio": 0.7451171875,
-    "occupancy": 0.968337872706422
+    "height": 768,
+    "boundingRectangleArea": 786432,
+    "packedAreaRatio": 0.75,
+    "occupancy": 0.9678192138671875
   },
   "largestCells": [
     {

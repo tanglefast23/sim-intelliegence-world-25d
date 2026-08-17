@@ -285,8 +285,22 @@ export function buildAtlas(root = process.cwd()): {
   const manifest = loadArtManifest(root);
   const presentationRecipes = loadArtPresentationRecipeManifest(root);
   const presentationRuntimeRecipes = loadArtPresentationRuntimeRecipes(root);
-  if (presentationRecipes.artRevision !== manifest.artRevision) {
-    throw new Error('Art presentation recipes do not match the atlas art revision.');
+  /**
+   * The recipe revision may lag the atlas revision, but never lead it.
+   *
+   * These two numbers mean different things. The manifest's `artRevision` versions the atlas
+   * image. The recipes' `artRevision` becomes `ART_PRESENTATION_REVISION`, which is a SEED:
+   * `material-selection.ts` hashes it to choose a ground material per tile. Moving the recipe
+   * revision therefore reshuffles procedural ground art across every map — measured, not
+   * theoretical: bumping both together produced a 9-tile diagonal stamp run against the 4-tile
+   * limit in `sunward-art.test.ts`.
+   *
+   * So a change that touches only character cells bumps the atlas revision and leaves the recipe
+   * revision alone. Leading is still an error: recipes newer than the atlas mean the atlas was
+   * built from stale inputs.
+   */
+  if (presentationRecipes.artRevision > manifest.artRevision) {
+    throw new Error('Art presentation recipes are newer than the atlas art revision.');
   }
   const characters = loadCharacterSources(root);
   const groundCells = loadTileSources(root);
