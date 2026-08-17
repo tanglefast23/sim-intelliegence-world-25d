@@ -448,11 +448,14 @@ export function bakeBillboardGeometry(
     const cell = atlasCell(billboard.source, atlasWidth, atlasHeight);
     const tint = linearTint(billboard.tint);
     // Bottom-left, bottom-right, top-right, top-left — matching FACE_UVS.
+    // `lift` raises a quad off the contact point. Body quads stand on it at 0; the blink band
+    // is three rows tall and would otherwise be a stamp on the character's shoes.
+    const lift = billboard.lift;
     const corners: readonly (readonly [number, number])[] = [
-      [-billboard.width / 2, 0],
-      [billboard.width / 2, 0],
-      [billboard.width / 2, billboard.height],
-      [-billboard.width / 2, billboard.height],
+      [-billboard.width / 2, lift],
+      [billboard.width / 2, lift],
+      [billboard.width / 2, lift + billboard.height],
+      [-billboard.width / 2, lift + billboard.height],
     ];
     corners.forEach((corner, cornerIndex) => {
       const vertex = billboardIndex * 4 + cornerIndex;
