@@ -173,7 +173,7 @@ The reference look is **dark world, bright objects, one warm pocket**. Four ligh
    - The GROUND colour is what lights a VERTICAL face — a hemisphere light blends sky and ground by
      the face normal, so lamp posts, crate sides and sofa arms all sit near the midpoint. Too dark
      a ground colour crushes every vertical to black.
-   - **Night floor 0.62 of day**, not 0.09. This is the only thing between a prop far from any lamp
+   - **Night floor 0.78 of day**, not 0.09. This is the only thing between a prop far from any lamp
      and pure black. Curve: `day * (0.62 + 0.38 * elevation)`.
 2. **Directional sun**, `'#ffefdb'` at `0.15 + elevation * 3.2`. Three things must be set or it
    does nothing, and each failed silently once:
@@ -191,11 +191,13 @@ The reference look is **dark world, bright objects, one warm pocket**. Four ligh
    the glow box in the lamp's own recipe (`LAMP_GLOW_COLORS`). Taking the district accent made an
    amber dock lamp throw a teal pool, and the whole harbour read as one cold monochrome with warm
    dots floating in it. This was the largest single gain of the district pass.
-6. **Skyglow: after dusk, tint the sky light by the average colour of the LAMPS IN FRAME.** A neon
+6. **Skyglow: after dusk, tint the sky light by the MOST SATURATED lamp in frame.** A neon
    street lights its own sky. Two traps, both measured:
    - Do not tint by the district accent. It gained saturation in three districts and lost more than
      it gained in the harbour, whose accent is teal while its lamps are amber. Tinting a scene's sky
      with the complement of the light in it cancels the warm-on-cool contrast that makes it read.
+   - Do not AVERAGE the lamps either. A neon street's cyan and magenta lamps average to grey, so the
+     most colourful scene in the game tinted its own sky with no colour at all.
    - Rescale the glow colour to the day sky's brightness before mixing. An accent or lamp tint is
      chosen to be saturated, not bright, so a raw mix moves EXPOSURE as well as hue: it cost 2-5
      luminance everywhere and raised the dead fraction it was added to cut.
@@ -351,6 +353,26 @@ mostly HUD, and reported an art regression that had not happened. The harness no
 requested viewport and the scorer crops by fraction. A scorer that is wrong about WHERE it is
 looking is worse than no scorer, because its numbers still look like measurements.
 
+**Your metrics cannot see a flood, so add one that can.** Every lighting lever raises mean luminance
+and cuts dead pixels. A district that lit its whole courtyard evenly therefore measured BEST of four
+while looking worst against the rubric's own premise — dark world, bright objects, one warm pocket —
+because nothing measured the pocket. Report a pooling ratio: the 90th-percentile block luminance
+over the median block's. An even flood sits near 1.4; a scene with real pools sits above 2. Treat any
+change that raises luminance and cuts dead pixels together as suspect until the ratio agrees.
+
+**A test that recomputes the code's own formula tests nothing.** A contact-shadow test asserted the
+same expression the renderer uses and compared it to itself. It passed for two rounds while every
+stain sat half a tile behind its object — the visible symptom disappeared and the feature quietly
+stopped rendering. Assert against the WORLD: the stain must land inside the prop's own footprint.
+
+**A hook existing is not its output reaching a pixel.** The capture pipeline asserted that every
+smoke hook was present and never that the frame changed. The renderer drew no VFX at all for its
+entire life underneath that. Capture the thing itself and look at it.
+
+**Read the evidence at SHOT time.** It was read once at boot, before zoom, district, minute, staging
+and the VFX pin, so four different districts reported identical draw calls and descriptor counts —
+the spawn frame — and a ceiling breach in any of them would never have surfaced.
+
 **A null result needs a positive control.** "I changed X and nothing moved" has two causes: X does
 nothing, or the change never reached the render. Distinguish them before drawing a conclusion. The
 cheap control is one change that MUST be visible — move the skirt plane to `y = 5` so it covers the
@@ -412,6 +434,11 @@ Every one of these cost a capture round. The right-hand column is what settled i
 | Flicker changes the whole frame's exposure | One-sided swing — it only dims | Centre it on 1 |
 | A lamp and its pool blink separately | Two different hash keys for one lamp | One id for both |
 | Staging by density goes dark | A dense corner with no lamp is a dark corner | Require the tile near a light |
+| A pinned animation phase drifts | The render loop recomputes it from the clock every frame | The HUD clock in the capture read 3 minutes past the request |
+| Evidence is identical across scenes | It was read at boot, before any staging | Four districts, one descriptor count |
+| A stain hides behind its prop | The 2D anchor recovers the tile's NORTH edge, not its centre | Add half a tile |
+| A test passes while the feature is broken | It recomputes the code's own formula | Assert against the world, not the expression |
+| A courtyard floods and nothing complains | Signs counted as lights for the crush but light nothing | The crush and the lights must share one definition |
 | Flat-shade colour wrong | UV landed on a texel boundary | Snap to texel centre |
 
 **Reviewers are not oracles.** A reviewer once diagnosed dark props as shadow acne; measurement
@@ -480,5 +507,8 @@ evidence, not the verdict.
 | Prop core threshold | 0.45 tiles; smaller stays flat-shaded | `three25/scene-builder.ts` |
 | Outdoor night crush | 0.46 over 4→15 tiles from the nearest emitter | `three25/scene-builder.ts` |
 | Capture VFX step | 2 | `capture-25d-districts.ts` |
+| Floor lift ceiling | only art below luminance 52 is lifted | `three25/scene-builder.ts` |
+| Pooling ratio | 90th-percentile block over median; flood ≈1.4, pocket >2 | `score-25d-frames.ts` |
+| VFX proof capture | `capture-25d-vfx.ts` | `scripts/verification/` |
 | Renderer bundle | `dist/_expo/static/js/web/__common-*.js` | — |
 | Night capture minute | 1245 | `scripts/verification/capture-25d-districts.ts` |
