@@ -1,5 +1,6 @@
 import type { WorldFrameState } from '../world-frame';
 import type { QuadDescriptor } from './scene-builder';
+import { LAMP_GLOW_COLORS } from './recipes';
 
 const TILE_SIZE = 32;
 
@@ -63,7 +64,11 @@ export function lampLights(frame: WorldFrameState): readonly LampLight[] {
       id: `lamp-${prop.id}`,
       x: prop.tile.x + 0.5,
       z: prop.tile.y + 0.5,
-      color: frame.lighting.accent,
+      // The lamp's OWN glow colour, not the district accent. Under the accent an amber dock lamp
+      // threw a teal pool: the source and the light it cast disagreed, and the harbour read as one
+      // cold monochrome with warm dots floating in it. Falls back to the accent for a lamp sprite
+      // with no recipe glow, which none has today.
+      color: LAMP_GLOW_COLORS[prop.sprite] ?? frame.lighting.accent,
       // Strong at night, near-off in daylight. A lamp has to be the brightest thing in a
       // dark frame, or the scene reads as uniformly dim rather than pooled.
       intensity: 0.2 + frame.lighting.sun.lampMix * 11,

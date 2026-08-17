@@ -299,6 +299,22 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
  * over them, so they must not stand up. Rule of thumb: anything a character walks past stands up;
  * anything a character walks over stays flat.
  */
+/**
+ * The colour each lamp fixture GLOWS, read straight off its recipe.
+ *
+ * A lamp's point light must be the colour of its own head. Taking the district accent instead made
+ * an amber dock lamp cast teal light: the source and the pool it throws disagreed, and the whole
+ * harbour read as one cold monochrome with warm dots floating in it. Derived from `PROP_RECIPES`
+ * rather than listed by hand, so a recipe change cannot leave the two out of step.
+ */
+export const LAMP_GLOW_COLORS: Readonly<Record<string, string>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(PROP_RECIPES)
+      .map(([sprite, recipe]) => [sprite, recipe.boxes.find((box) => box.glow === true)?.tint])
+      .filter((entry): entry is [string, string] => entry[1] !== undefined),
+  ),
+);
+
 export const FLAT_SPRITES: ReadonlySet<string> = new Set<string>([
   'tile.market-detail-chalk',
   'tile.market-detail-herbs',
