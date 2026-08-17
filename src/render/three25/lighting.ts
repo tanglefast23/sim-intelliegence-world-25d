@@ -64,7 +64,9 @@ export function lampLights(frame: WorldFrameState): readonly LampLight[] {
       x: prop.tile.x + 0.5,
       z: prop.tile.y + 0.5,
       color: frame.lighting.accent,
-      intensity: 0.35 + frame.lighting.sun.lampMix * 1.6,
+      // Strong at night, near-off in daylight. A lamp has to be the brightest thing in a
+      // dark frame, or the scene reads as uniformly dim rather than pooled.
+      intensity: 0.2 + frame.lighting.sun.lampMix * 11,
     }));
 }
 
@@ -91,6 +93,33 @@ export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
     depth: 0.42,
     tint: shadow.color,
     opacity: 1,
+  }));
+}
+
+/**
+ * A soft warm disc on the floor under each lamp.
+ *
+ * The lamp head glows, but a glowing head alone does not read as a light SOURCE - the reference
+ * room is lit by visible pools on the floor, and without them a lamp is just a bright cube on a
+ * stick. The point lights cannot supply this: flat furniture and floors either ignore them or are
+ * too coarsely lit to show a falloff at this tile size.
+ *
+ * Drawn additively, so a pool brightens whatever is under it rather than painting over it, and
+ * fades out with the sun exactly as the lamps fade in.
+ */
+export function lampPools(frame: WorldFrameState): readonly QuadDescriptor[] {
+  const strength = frame.lighting.sun.lampMix;
+  if (strength <= 0.01) return [];
+  return lampLights(frame).map((lamp) => ({
+    id: `pool-${lamp.id}`,
+    sprite: 'lamp-pool',
+    source: { x: 0, y: 0, width: 0, height: 0 } as QuadDescriptor['source'],
+    x: lamp.x,
+    z: lamp.z,
+    width: 3.2,
+    depth: 3.2,
+    tint: lamp.color,
+    opacity: 0.5 * strength,
   }));
 }
 

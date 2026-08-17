@@ -1,5 +1,6 @@
 import {
   ACESFilmicToneMapping,
+  AdditiveBlending,
   BasicShadowMap,
   BufferAttribute,
   BufferGeometry,
@@ -30,7 +31,7 @@ import { ACES_EXPOSURE } from '../three/world-renderer';
 import type { ViewportSize } from '../camera';
 import type { WorldFrameState } from '../world-frame';
 import { buildBillboards, type BillboardDescriptor } from './billboards';
-import { DEFAULT_SHADOW_PATH, blobShadows, lampLights, type ShadowPath } from './lighting';
+import { DEFAULT_SHADOW_PATH, blobShadows, lampLights, lampPools, type ShadowPath } from './lighting';
 import { SceneCache } from './mesh-cache';
 import {
   CAMERA_YAW_DEGREES,
@@ -44,6 +45,9 @@ const TILE_SIZE = 32;
 
 /** How far back the camera sits, in tiles. Orthographic, so this only sets clipping, never scale. */
 const CAMERA_DISTANCE_TILES = 256;
+
+/** The colour everything outside the lit pocket falls away into. */
+const VOID_COLOR = '#07070b';
 
 export type WorldRenderer25Evidence = Readonly<{
   rendererKind: 'threejs-2-5d';
@@ -435,6 +439,58 @@ export function bakeBillboardGeometry(
  * — so a colour sampled through the shared material always has the sprite multiplied into it, and
  * an authored tint could never render true.
  */
+/**
+ * Bakes each lamp pool as a radial FAN: one bright centre vertex ringed by dark rim vertices.
+ *
+ * A quad would give a square of light, which is not what a lamp does. Additive blending across a
+ * fan whose rim colour is black produces a soft round falloff with no texture and no shader.
+ *
+ * Sits just above the floor so it never z-fights the tiles it brightens.
+ */
+export function bakeLampPools(pools: readonly QuadDescriptor[]): BufferGeometry {
+  const SEGMENTS = 16;
+  const perPool = SEGMENTS + 2;
+  const positions = new Float32Array(pools.length * perPool * 3);
+  const normals = new Float32Array(pools.length * perPool * 3);
+  const uvs = new Float32Array(pools.length * perPool * 2);
+  const colors = new Float32Array(pools.length * perPool * 3);
+  const indices = new Uint32Array(pools.length * SEGMENTS * 3);
+
+  pools.forEach((pool, poolIndex) => {
+    const first = poolIndex * perPool;
+    const radius = pool.width / 2;
+    const tint = linearTint(pool.tint);
+    const set = (vertex: number, x: number, z: number, scale: number): void => {
+      positions[vertex * 3] = x;
+      positions[vertex * 3 + 1] = 0.02;
+      positions[vertex * 3 + 2] = z;
+      normals[vertex * 3 + 1] = 1;
+      colors[vertex * 3] = tint[0] * scale;
+      colors[vertex * 3 + 1] = tint[1] * scale;
+      colors[vertex * 3 + 2] = tint[2] * scale;
+    };
+    set(first, pool.x, pool.z, pool.opacity);
+    for (let step = 0; step <= SEGMENTS; step += 1) {
+      const angle = (step / SEGMENTS) * Math.PI * 2;
+      set(first + 1 + step, pool.x + Math.cos(angle) * radius, pool.z + Math.sin(angle) * radius, 0);
+    }
+    for (let step = 0; step < SEGMENTS; step += 1) {
+      const index = (poolIndex * SEGMENTS + step) * 3;
+      indices[index] = first;
+      indices[index + 1] = first + 1 + step;
+      indices[index + 2] = first + 2 + step;
+    }
+  });
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(positions, 3));
+  geometry.setAttribute('normal', new BufferAttribute(normals, 3));
+  geometry.setAttribute('uv', new BufferAttribute(uvs, 2));
+  geometry.setAttribute('color', new BufferAttribute(colors, 3));
+  geometry.setIndex(new BufferAttribute(indices, 1));
+  return geometry;
+}
+
 export function bakeSceneGeometry(
   scene: SceneDescriptor,
   atlasWidth: number,
@@ -525,20 +581,25 @@ export async function createWorldRenderer25(
   renderer.toneMapping = toneMapping === 'aces' ? ACESFilmicToneMapping : NoToneMapping;
   renderer.toneMappingExposure = ACES_EXPOSURE;
   renderer.sortObjects = false;
-  // Same clear colour as the 2D path, so anything outside the map reads as ground rather than a
-  // black hole. Task 15's skirt covers the rest.
-  renderer.setClearColor('#b77945', 1);
+  // Near-black, not the 2D path's sunny brown. The reference reads as an enclosed stage because
+  // everything outside the lit pocket falls away into void; a mid-brown surround says "sunny
+  // field" and destroys the night contrast the whole look depends on.
+  renderer.setClearColor(VOID_COLOR, 1);
 
   const texture = await loadAtlasTexture(atlasUrl);
   const atlasWidth = (texture.image as { width: number }).width;
   const atlasHeight = (texture.image as { height: number }).height;
 
   const scene = new Scene();
+  // No fog. It looks like the obvious way to swallow an open map into the void, and it is a trap
+  // here: the camera is ORTHOGRAPHIC and sits 256 tiles back, so distance-based fog blackens the
+  // entire scene at any useful density. The skirt going near-black after dusk does the same job.
   const camera = cameraForYaw(yawDegrees, CAMERA_DISTANCE_TILES);
 
   // Stage 1 ships lights. MeshStandardMaterial with no light source renders pure black, so without
   // this the villa is an empty frame and every capture is worthless.
   const hemisphere = new HemisphereLight('#f5dcb0', '#202824', shadowPath === 'lit' ? 1.1 : 1.7);
+  const dayHemisphereIntensity = hemisphere.intensity;
   scene.add(hemisphere);
 
   /**
@@ -581,6 +642,21 @@ export async function createWorldRenderer25(
   blobMesh.frustumCulled = false;
   blobMesh.renderOrder = 1;
   scene.add(blobMesh);
+
+  /**
+   * Warm light pools under the lamps. Additive, so they brighten the floor instead of painting a
+   * flat disc over it, and they never write depth so nothing standing in one gets clipped.
+   */
+  const poolMaterial = new MeshBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
+  const poolMesh = new Mesh(new BufferGeometry(), poolMaterial);
+  poolMesh.frustumCulled = false;
+  poolMesh.renderOrder = 2;
+  scene.add(poolMesh);
 
   /**
    * One material for every sprite. `alphaTest` rather than `transparent` keeps the atlas cutout
@@ -726,6 +802,12 @@ export async function createWorldRenderer25(
       signature = nextSignature;
     }
 
+    // The reference is a dark world with bright objects and one warm pocket. A flat ambient fill
+    // at night washes that out, so the sky light follows the sun down rather than holding station,
+    // and fog thickens after dusk to swallow the open remainder of the map into the void.
+    const daylight = next.lighting.sun.elevation;
+    hemisphere.intensity = dayHemisphereIntensity * (0.09 + 0.91 * daylight);
+
     // Lamp lights: add and remove by id so a pan does not churn the light list.
     const wanted = new Map(lampLights(next).map((light) => [light.id, light]));
     for (const [id, light] of lamps) {
@@ -737,7 +819,9 @@ export async function createWorldRenderer25(
     for (const [id, descriptor] of wanted) {
       let light = lamps.get(id);
       if (!light) {
-        light = new PointLight('#ffffff', 1, 6, 2);
+        // Short range and quadratic decay, so a lamp makes a tight warm pocket rather than a
+        // wash. `castShadow` stays off: one shadow light is the budget, and the sun holds it.
+        light = new PointLight('#ffffff', 1, 7, 2);
         lamps.set(id, light);
         scene.add(light);
       }
@@ -770,6 +854,11 @@ export async function createWorldRenderer25(
     // shadow.
     const blobAlpha = blobs[0]?.tint.length === 9 ? Number.parseInt(blobs[0].tint.slice(7), 16) / 255 : 0.45;
     blobMaterial.opacity = blobAlpha;
+
+    const pools = lampPools(next);
+    poolMesh.geometry.dispose();
+    poolMesh.geometry = bakeLampPools(pools);
+    poolMesh.visible = pools.length > 0;
 
     // Characters turn to face the camera's bearing, so their quads are rebuilt from the camera
     // basis every frame rather than kept in the world batch. Only the horizontal component of the
@@ -840,6 +929,8 @@ export async function createWorldRenderer25(
       flatMaterial.dispose();
       billboardMesh.geometry.dispose();
       billboardMaterial.dispose();
+      poolMesh.geometry.dispose();
+      poolMaterial.dispose();
       blobMesh.geometry.dispose();
       blobMaterial.dispose();
       for (const light of lamps.values()) {

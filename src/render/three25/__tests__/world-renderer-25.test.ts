@@ -9,7 +9,7 @@ import {
   worldToScreenTilted,
 } from '../projection';
 import { buildScene } from '../scene-builder';
-import { bakeBillboardGeometry, bakeSceneGeometry, cameraForYaw, frameCamera } from '../world-renderer-25';
+import { bakeBillboardGeometry, bakeLampPools, bakeSceneGeometry, cameraForYaw, frameCamera } from '../world-renderer-25';
 import { indoorFrame } from './fixtures';
 
 describe('2.5D camera placement', () => {
@@ -391,5 +391,47 @@ describe('flat-shaded boxes bake into their own batch', () => {
   test('an all-textured scene leaves the flat batch empty', () => {
     const baked = bakeSceneGeometry({ floors: [], boxes: [make()] }, ATLAS, ATLAS);
     expect(baked.flatBoxes.getAttribute('position').count).toBe(0);
+  });
+});
+
+describe('lamp light pools', () => {
+  const pool = {
+    id: 'pool-a', sprite: 'lamp-pool',
+    source: { x: 0, y: 0, width: 0, height: 0 } as never,
+    x: 5, z: 7, width: 3.2, depth: 3.2, tint: '#ffd9a0', opacity: 0.5,
+  };
+
+  /** A quad would give a square of light. A lamp does not do that. */
+  test('bakes a radial fan, not a quad', () => {
+    const geometry = bakeLampPools([pool]);
+    expect(geometry.getAttribute('position').count).toBe(18);
+    expect(geometry.getIndex()!.count).toBe(16 * 3);
+  });
+
+  test('is bright at the centre and black at the rim, so additive gives a falloff', () => {
+    const color = bakeLampPools([pool]).getAttribute('color');
+    expect(color.getX(0)).toBeGreaterThan(0);
+    for (let index = 1; index < color.count; index += 1) {
+      expect(color.getX(index)).toBe(0);
+    }
+  });
+
+  test('sits above the floor so it never z-fights the tiles it brightens', () => {
+    const position = bakeLampPools([pool]).getAttribute('position');
+    for (let index = 0; index < position.count; index += 1) {
+      expect(position.getY(index)).toBeGreaterThan(0);
+    }
+  });
+
+  test('every rim vertex is one radius from the centre', () => {
+    const position = bakeLampPools([pool]).getAttribute('position');
+    for (let index = 1; index < position.count; index += 1) {
+      const distance = Math.hypot(position.getX(index) - pool.x, position.getZ(index) - pool.z);
+      expect(distance).toBeCloseTo(pool.width / 2, 5);
+    }
+  });
+
+  test('an empty lamp list bakes without error', () => {
+    expect(bakeLampPools([]).getAttribute('position').count).toBe(0);
   });
 });
