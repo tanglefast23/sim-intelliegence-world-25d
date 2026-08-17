@@ -313,3 +313,60 @@ describe('four-neighborhood v2 catalog', () => {
     })).toThrow();
   });
 });
+
+/**
+ * The office cubicle farm is derived from a grid in `build-map-v2.ts`, so it is checked against the
+ * same grid here rather than against a hand-copied list of ninety-six part ids. A shared wall is
+ * the thing that breaks: column n's east partition IS column n+1's west partition, and placing it
+ * twice puts two boxes in one cell, which reads as one column of thicker wall and nothing else.
+ */
+describe('Ledger Annex cubicle farm', () => {
+  const map = WORLD_MAP_CATALOG.west_office;
+  const COLUMN_WEST = [8, 13, 18, 23];
+  const ROW_NORTH = [8, 13, 18];
+
+  test('places every shared partition exactly once', () => {
+    const expected = new Set<string>();
+    for (const north of ROW_NORTH) {
+      for (const west of COLUMN_WEST) {
+        for (let offset = 1; offset <= 4; offset += 1) expected.add(`${west + offset},${north}`);
+        for (let offset = 1; offset <= 3; offset += 1) {
+          expected.add(`${west},${north + offset}`);
+          expected.add(`${west + 5},${north + offset}`);
+        }
+      }
+    }
+    const placed = [...map.objectPartById.values()]
+      .filter(({ sprite }) => sprite.startsWith('tile.cubicle-partition'))
+      .map(({ tile }) => `${tile.x},${tile.y}`);
+    expect(new Set(placed)).toEqual(expected);
+    // The set comparison alone would pass if a cell were placed twice, so count as well.
+    expect(placed).toHaveLength(expected.size);
+  });
+
+  test('keeps every clerk stand tile walkable and reachable from the portal', () => {
+    for (const north of ROW_NORTH) {
+      for (const west of COLUMN_WEST) {
+        const stand = { x: west + 2, y: north + 2 };
+        expect(map.blockedKeys.has(tileKey(stand))).toBe(false);
+        const route = findPath({
+          width: map.source.width,
+          height: map.source.height,
+          start: { x: 62, y: 24 },
+          target: stand,
+          blockedKeys: map.blockedKeys,
+        });
+        expect(route.status).toBe('found');
+      }
+    }
+  });
+
+  test('gives every interior area furniture that clears its own density gate', () => {
+    for (const areaId of ['cubicle-floor', 'annex-hall', 'manager-office', 'cooler-nook', 'annex-kitchen', 'annex-lobby']) {
+      const metrics = map.densityByAreaId.get(areaId);
+      expect(metrics?.profile).toBe('furnished-interior');
+      expect(metrics!.objectSolidRatio).toBeGreaterThanOrEqual(0.08);
+      expect(metrics!.detailRatio).toBeGreaterThanOrEqual(0.12);
+    }
+  });
+});
