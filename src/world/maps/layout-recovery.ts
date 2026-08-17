@@ -122,6 +122,26 @@ export function recoverWorldLayout(
   if (staleMapIds.length === 0) return { state: original, migratedMapIds: [] };
 
   const draft = structuredClone(original);
+
+  /**
+   * A save written before a map existed carries no record for it, and `maps` is an open record so
+   * nothing rejects that at parse time. The failure surfaces much later and looks unrelated: the
+   * `transition-protagonist` reducer throws "does not match the active source map" the first time
+   * the player walks through the new portal, on a save that loaded cleanly.
+   *
+   * This is the right place to close it rather than a schema bump. Recovery already runs on every
+   * load whatever the envelope version, already treats a missing `layoutRevisions` entry as 0 and
+   * therefore already lists the new map in `migratedMapIds`, and already forces a re-save.
+   *
+   * `discoveredEntranceIds` starts EMPTY on purpose. A fresh game seeds a couple of entrances as
+   * authored player knowledge, and a returning player has not been to the new map, so seeding them
+   * here would hand out knowledge the save never earned.
+   */
+  for (const mapId of staleMapIds) {
+    if (draft.maps[mapId]) continue;
+    draft.maps[mapId] = { id: mapId, active: false, unlocked: true, discoveredEntranceIds: [] };
+  }
+
   const evidence = [...draft.layoutMigrationEvidence];
   const claimedByMap = new Map<MapId, Set<string>>(staleMapIds.map((mapId) => [mapId, new Set()]));
 
