@@ -151,11 +151,18 @@ describe('prop contact shadows', () => {
     expect(propContactShadows(frame)).toHaveLength(frame.propShadows.length);
   });
 
-  test('sits on the prop, not offset like a cast shadow', () => {
+  /**
+   * `worldX` is the cluster's LEFT EDGE and `worldY` is its base pushed 25px south, because the 2D
+   * renderer draws this record as a strip anchored under a sprite. Reading either as a centre put
+   * every stain low and to the right of its object, detached, which is how it shipped once.
+   */
+  test('centres on the prop rather than on the 2D strip anchor', () => {
     for (const contact of propContactShadows(frame)) {
       const shadow = frame.propShadows.find((one) => contact.id === `contact-${one.id}`)!;
-      expect(contact.x).toBeCloseTo(shadow.worldX / 32, 6);
-      expect(contact.z).toBeCloseTo(shadow.worldY / 32, 6);
+      expect(contact.x).toBeCloseTo((shadow.worldX + shadow.width / 2) / 32, 6);
+      expect(contact.z).toBeCloseTo((shadow.worldY - 25) / 32, 6);
+      // And specifically NOT the raw record, which is the bug this test exists to catch.
+      expect(contact.z).toBeLessThan(shadow.worldY / 32);
     }
   });
 
