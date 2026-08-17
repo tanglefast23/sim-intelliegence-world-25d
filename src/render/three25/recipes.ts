@@ -193,8 +193,10 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   'tile.cargo-crane-nw': {
     boxes: [
       { x: 0.5, y: 0.16, z: 0.5, width: 1.9, height: 0.32, depth: 1.9 },
-      { x: 0.5, y: 1.3, z: 0.5, width: 0.34, height: 2.0, depth: 0.34 },
-      { x: 0.5, y: 2.4, z: 0.4, width: 0.28, height: 0.22, depth: 1.8 },
+      { x: 0.5, y: 1.3, z: 0.5, width: 0.34, height: 2.0, depth: 0.34, tint: '#c8b45a' },
+      { x: 0.5, y: 2.4, z: 0.4, width: 0.28, height: 0.22, depth: 1.8, tint: '#c8b45a' },
+      // A hanging hook, so the jib reads as a crane rather than a beam on a pole.
+      { x: 0.5, y: 1.95, z: -0.35, width: 0.09, height: 0.7, depth: 0.09, tint: '#6a6a72' },
     ],
     consumes: ['tile.cargo-crane-ne', 'tile.cargo-crane-sw', 'tile.cargo-crane-se'],
   },
@@ -203,9 +205,15 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   'tile.cargo-stack-right': { boxes: crateTile(0.5) },
   'tile.pallet-rack-nw': {
     boxes: [
-      { x: 0.5, y: 0.12, z: 0.5, width: 1.9, height: 0.24, depth: 1.9 },
-      { x: 0.5, y: 0.72, z: 0.5, width: 1.9, height: 0.14, depth: 1.9 },
-      { x: 0.5, y: 1.25, z: 0.5, width: 1.9, height: 0.14, depth: 1.9 },
+      // Uprights on the CORNERS of the shelves, not inside them. Set in by even a tenth of a tile
+      // and the top shelf hides all four from above, leaving the rack a flat plate again.
+      { x: -0.42, y: 0.7, z: -0.42, width: 0.16, height: 1.4, depth: 0.16, tint: '#8a6a44' },
+      { x: 1.42, y: 0.7, z: -0.42, width: 0.16, height: 1.4, depth: 0.16, tint: '#8a6a44' },
+      { x: -0.42, y: 0.7, z: 1.42, width: 0.16, height: 1.4, depth: 0.16, tint: '#8a6a44' },
+      { x: 1.42, y: 0.7, z: 1.42, width: 0.16, height: 1.4, depth: 0.16, tint: '#8a6a44' },
+      { x: 0.5, y: 0.12, z: 0.5, width: 1.7, height: 0.24, depth: 1.7 },
+      { x: 0.5, y: 0.72, z: 0.5, width: 1.7, height: 0.14, depth: 1.7 },
+      { x: 0.5, y: 1.25, z: 0.5, width: 1.7, height: 0.14, depth: 1.7 },
     ],
     consumes: ['tile.pallet-rack-ne', 'tile.pallet-rack-sw', 'tile.pallet-rack-se'],
   },
