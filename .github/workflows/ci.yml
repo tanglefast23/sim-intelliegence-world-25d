@@ -163,7 +163,12 @@ jobs:
   package-windows-x64:
     name: package-windows-x64
     runs-on: windows-2025
-    timeout-minutes: 30
+    # 30 was calibrated while this job died at minute ~13 on the camera-wait freeze; no green run
+    # existed to size it. With that fixed, the full pipeline runs for the first time: a slow-runner
+    # checkout alone has taken 12 minutes, art-quality takes ~11, and the responsive matrix,
+    # presentation restart, and save migration steps had never executed on Windows before. The
+    # first attempt at all of them was cancelled at the 30-minute wall mid-responsive-matrix.
+    timeout-minutes: 50
     steps:
       - name: Check out tested commit
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
