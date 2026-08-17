@@ -49,6 +49,11 @@ const LAMP_GLOW_MAGENTA = '#ff9de0';
 const NEON_SIGN_GLOW = '#d98cff';
 const MARKET_SIGN_GLOW = '#ffc46b';
 
+/** The housing a lit panel sits in, and the two ways a sign's lettering is faked. */
+const SIGN_FRAME = '#2b2333';
+const SIGN_TEXT_NEON = '#fff2ff';
+const SIGN_TEXT_PAINT = '#efe4cf';
+
 /**
  * A lamp, lantern or bollard-style post: footing, stem, head. `headWidth` is what separates a
  * slim neon post from a wide dock lamp.
@@ -62,10 +67,45 @@ const post = (height: number, headWidth: number, glow = LAMP_GLOW): readonly Box
   { x: 0, y: height + 0.12, z: 0, width: headWidth, height: 0.24, depth: headWidth, tint: glow, glow: true },
 ];
 
+/**
+ * Three bars across a sign panel, standing in for lettering.
+ *
+ * A sign with a blank face is the loudest unfinished thing in a frame: the eye knows a sign is
+ * supposed to say something, and a plain rectangle reads as a placeholder swatch rather than as
+ * signage. Real text is out of the question — the copy does not exist yet, and at this scale a
+ * glyph is two pixels tall anyway — but the SHAPE of text is what the eye is actually reading.
+ *
+ * Ragged widths on purpose. Three bars of equal length read as a barcode; a long line, a shorter
+ * one and a short one read as a heading and two lines under it.
+ *
+ * `depth` is proud of the panel so the bars sit on its front face instead of z-fighting inside it,
+ * and they are placed by fraction of the panel height so one helper serves every sign size.
+ */
+const signText = (
+  panelHeight: number,
+  depth: number,
+  tint: string,
+  glow?: boolean,
+): readonly BoxRecipe[] => [
+  { width: 0.58, at: 0.72 },
+  { width: 0.48, at: 0.5 },
+  { width: 0.34, at: 0.3 },
+].map((line) => ({
+  x: (0.58 - line.width) / 2 - 0.06,
+  y: 0.7 + panelHeight * line.at,
+  z: 0,
+  width: line.width,
+  height: panelHeight * 0.1,
+  depth,
+  tint,
+  ...(glow === true ? { glow: true } : {}),
+}));
+
 /** A standing sign: one thin post carrying a flat panel that faces the camera at yaw 0. */
 const sign = (panelHeight: number): readonly BoxRecipe[] => [
   { x: 0, y: 0.35, z: 0, width: 0.09, height: 0.7, depth: 0.09 },
   { x: 0, y: 0.7 + panelHeight / 2, z: 0, width: 0.8, height: panelHeight, depth: 0.12 },
+  ...signText(panelHeight, 0.14, SIGN_TEXT_PAINT),
 ];
 
 /**
@@ -82,7 +122,14 @@ const sign = (panelHeight: number): readonly BoxRecipe[] => [
  */
 const neonSign = (panelHeight: number, glow: string): readonly BoxRecipe[] => [
   { x: 0, y: 0.35, z: 0, width: 0.09, height: 0.7, depth: 0.09 },
+  // A dark surround, so the lit panel reads as mounted in something rather than as a floating
+  // swatch of colour. Thinner than the panel, so it shows as a border rather than covering it.
+  {
+    x: 0, y: 0.7 + panelHeight / 2, z: 0,
+    width: 0.9, height: panelHeight + 0.09, depth: 0.1, tint: SIGN_FRAME, glow: true,
+  },
   { x: 0, y: 0.7 + panelHeight / 2, z: 0, width: 0.8, height: panelHeight, depth: 0.12, tint: glow, glow: true },
+  ...signText(panelHeight, 0.15, SIGN_TEXT_NEON, true),
 ];
 
 /** Seat slab plus a back rail along the north edge. */
