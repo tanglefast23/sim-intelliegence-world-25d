@@ -1891,6 +1891,11 @@ async function beginWorldSmoke(window: BrowserWindow, directory: string): Promis
   };
   progress('new-game');
   await waitForSelector(window, '#new-game-flow');
+  // Wait for a painted frame before capturing. `capturePage` returns whatever the compositor last
+  // produced, so without this the new-game shot can be a stale frame of the loading shell — which
+  // then byte-matches `packaged-loading.png` and trips the inequality check in
+  // `run-package-smoke.ts`. `captureDistinctSmokeScreenshot` already does this for the same reason.
+  await waitForRendererPaint(window);
   await captureSmokeScreenshot(window, join(directory, 'world-new-game.png'));
   const newGameText = (await rendererText(window, '#new-game-flow')).replace(/\s+/gu, ' ').trim();
   const newGameFlow = newGameText.includes('WELCOME TO HALCYRA') && newGameText.includes('$800');
