@@ -2900,6 +2900,26 @@ app.on('before-quit', (event) => {
   });
 });
 
+/**
+ * How long a smoke run may take to reach `smokeFinished` before the watchdog kills it.
+ *
+ * The WebGL 2 probe gets its own budget because it is not waiting for the same thing. A probe run
+ * loads `WEBGL2_PROBE_URL`, a bare page with no renderer, and finishes on `did-finish-load`; the
+ * diagnostic this watchdog prints asks for `canvas`, `#loading-shell` and `#new-game-flow`, none of
+ * which exist there. So the 30 s figure was never sized against the probe's work.
+ *
+ * It was too small. `package-macos-x64` runs an x64 build under Rosetta on an arm64 runner, where a
+ * cold Electron start can pass 30 s on its own. The watchdog then fired mid-probe and called
+ * `app.exit(1)` while the probe was still running, so CI failed with a readiness timeout AFTER
+ * printing `SI_WORLD_WEBGL2_PROBE_RESULT ... "available":true` — the probe had passed. `arm64`
+ * and the functional x64 job never hit it, which is why this read as flake rather than a race.
+ *
+ * Raised rather than removed: a watchdog that never fires cannot catch a genuine hang. 180 s still
+ * sits well inside the harness `FULL_WORLD_SMOKE_TIMEOUT_MS` of 1_200_000 in
+ * `scripts/electron/run-package-smoke.ts`, so the harness stays the outer bound.
+ */
+const SMOKE_WATCHDOG_MS = webgl2ProbeMode ? 180_000 : 30_000;
+
 if (smokeMode) {
   setTimeout(() => {
     if (!smokeFinished) {
@@ -2918,5 +2938,5 @@ if (smokeMode) {
         app.exit(1);
       });
     }
-  }, 30_000);
+  }, SMOKE_WATCHDOG_MS);
 }
