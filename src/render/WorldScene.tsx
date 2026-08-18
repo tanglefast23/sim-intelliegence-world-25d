@@ -655,11 +655,13 @@ export function WorldScene({
   useLayoutEffect(() => {
     const previous = previousSurface.current;
     if (previous.width === surface.width && previous.height === surface.height) return;
-    const nextZoom = explicitWorldZoom ? camera.zoom : automaticWorldZoom(surface);
-    setCamera((current) => resizeCameraPreservingCenter(current, previous, surface, nextZoom, MAP_PIXELS, clamp));
+    // Zoom is picked ONCE, at mount, by `automaticWorldZoom`. A resize keeps it, so going
+    // fullscreen shows more world at the same pixel scale instead of re-picking a chunkier zoom
+    // and rescaling the picture under the player.
+    setCamera((current) => resizeCameraPreservingCenter(current, previous, surface, camera.zoom, MAP_PIXELS, clamp));
     if (!explicitUiScale) setUiScale(automaticUiScale(surface));
     previousSurface.current = surface;
-  }, [camera.zoom, clamp, explicitUiScale, explicitWorldZoom, surface]);
+  }, [camera.zoom, clamp, explicitUiScale, surface]);
 
   useEffect(() => {
     // A director shot must never be persisted. A `hold` keeps the camera still, so a queue holding
