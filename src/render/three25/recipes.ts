@@ -266,6 +266,15 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   'tile.counter-left': {
     boxes: [{ x: 0, y: 0.42, z: 0, width: 0.96, height: 0.84, depth: 0.8 }],
   },
+  /**
+   * The kettle stands ON the counter, so its box starts at the counter's 0.84 top rather than on
+   * the floor. Kept short deliberately: `vfx-25.ts` starts the steam plume at the top of whatever
+   * prop the emitter stands on, and the annex ceiling is 1.45, so every tile of kettle is a tile
+   * the plume does not get to climb.
+   */
+  'tile.kitchen-kettle': {
+    boxes: [{ x: 0, y: 0.95, z: 0, width: 0.42, height: 0.22, depth: 0.42, tint: '#a8623a' }],
+  },
   'tile.counter-right': {
     boxes: [{ x: 0, y: 0.42, z: 0, width: 0.96, height: 0.84, depth: 0.8 }],
   },

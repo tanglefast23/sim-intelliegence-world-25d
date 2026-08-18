@@ -1,6 +1,7 @@
 import type { WorldFrameState } from '../../world-frame';
 import { declaredVfxBounds } from '../../vfx/procedural-effects';
 import { VFX_KINDS } from '../../vfx/types';
+import { WALL_HEIGHT_TILES } from '../recipes';
 import { vfxGlowPools, vfxQuads } from '../vfx-25';
 import { outdoorFrame } from './fixtures';
 
@@ -34,6 +35,58 @@ function frameWithEffect(
       },
       rects: [{ role, x: tileCentreX - 1, y: tileCentreY - 9, width: 2, height: 8 }],
     }],
+  } as unknown as WorldFrameState;
+}
+
+/** The tile the probe emitter above sits on: `frameWithEffect` centres it at world (320, 640). */
+const PROBE_TILE = { x: 10, y: 20 } as const;
+
+/**
+ * The same frame with one prop standing on the probe emitter's tile, so the plume has a source.
+ *
+ * `roofedCells` is cleared as well. The fixture map's villa interior is x9 y8 w16 h16 and the probe
+ * tile is (10,20), so the probe is INSIDE it by default - which silently put every "outdoor" steam
+ * assertion on the indoor path.
+ */
+function withPropUnderEmitter(frame: WorldFrameState, sprite: string): WorldFrameState {
+  return {
+    ...frame,
+    roofedCells: [],
+    shelterCells: [],
+    props: [{ id: 'probe-prop', sprite, tile: { ...PROBE_TILE }, source: { x: 0, y: 0, width: 32, height: 32 }, color: '#ffffff' }],
+  } as unknown as WorldFrameState;
+}
+
+/**
+ * A roofed frame carrying one steam wisp at animation step `rise`, with a kettle under it.
+ *
+ * The rect mirrors `procedural-effects.ts` exactly - `center.y - 9 - rise`, two by six - and the
+ * bounds come from `declaredVfxBounds`, because the indoor scale is measured against that declared
+ * envelope rather than against the rects of whichever step is being drawn.
+ */
+function indoorSteamFrame(rise: number): WorldFrameState {
+  const base = withPropUnderEmitter(
+    frameWithEffect('steam', 'steam-primary', '#fff0d6a6', 2),
+    'tile.kitchen-kettle',
+  );
+  const tileCentreY = 640;
+  // The steam extents from `declaredVfxBounds`, placed on the fixture's own emitter centre rather
+  // than on a tile centre — `frameWithEffect` anchors at (320, 640), which is the tile ORIGIN.
+  const steam = declaredVfxBounds({ kind: 'steam', tile: { x: 0, y: 0 } });
+  const centre = { x: 16, y: 16 };
+  return {
+    ...base,
+    roofedCells: [{ x: PROBE_TILE.x - 2, y: PROBE_TILE.y - 2, width: 5, height: 5 }],
+    effects: base.effects.map((effect) => ({
+      ...effect,
+      bounds: {
+        left: 320 - (centre.x - steam.left),
+        right: 320 + (steam.right - centre.x),
+        top: tileCentreY - (centre.y - steam.top),
+        bottom: tileCentreY + (steam.bottom - centre.y),
+      },
+      rects: [{ role: 'steam-primary', x: 319, y: tileCentreY - 9 - rise, width: 2, height: 6 }],
+    })),
   } as unknown as WorldFrameState;
 }
 
@@ -109,12 +162,42 @@ describe('vfx kind placement', () => {
 
   /**
    * A steam plume comes off a food stall, and its emitter is authored ON the stall tile. Without a
-   * minimum height the wisps render inside a 1.35-tile counter and the effect is invisible - and
+   * base height the wisps render inside a 1.35-tile counter and the effect is invisible - and
    * widening them makes it worse, because a wider quad falls further inside the box.
+   *
+   * The base is the top of the prop the emitter STANDS ON, read per emitter. It used to be a flat
+   * `steam: 1.55`, sized for the tallest stall in the game and applied everywhere; indoors that put
+   * the office kettle's plume above the 1.45 wall top and through the roof lid, so it drew on top
+   * of the annex roof.
    */
-  test('steam clears the counter it rises from', () => {
-    const [wisp] = vfxQuads(frameWithEffect('steam', 'steam-primary', '#fff0d6a6', 2)).alpha;
-    expect(wisp!.y).toBeGreaterThan(1.4);
+  test('steam rises from the top of the prop it stands on, not from the floor', () => {
+    // The fixture map has its own furniture on the probe tile, so "no prop" has to be explicit.
+    const bare = vfxQuads({
+      ...frameWithEffect('steam', 'steam-primary', '#fff0d6a6', 2),
+      props: [],
+    } as unknown as WorldFrameState).alpha[0];
+    const onStall = vfxQuads(withPropUnderEmitter(
+      frameWithEffect('steam', 'steam-primary', '#fff0d6a6', 2),
+      'tile.food-stall-left',
+    )).alpha[0];
+    expect(bare!.y).toBeLessThan(0.5);
+    // `tile.food-stall-left` tops out at 1.45, so the plume starts a stall's height higher.
+    expect(onStall!.y).toBeGreaterThan(1.4);
+  });
+
+  /**
+   * A flat clamp at the ceiling is the obvious fix and the wrong one: every step of the four-step
+   * cycle lands on the same value and the plume freezes into a still column. The climb is scaled
+   * into the headroom instead, so the steps stay distinct AND stay under the lid.
+   */
+  test('an indoor plume stays under the ceiling and still climbs', () => {
+    const heights = [0, 6].map((rise) => {
+      const frame = indoorSteamFrame(rise);
+      const [wisp] = vfxQuads(frame).alpha;
+      return wisp!.y + wisp!.height / 2;
+    });
+    for (const top of heights) expect(top).toBeLessThan(WALL_HEIGHT_TILES);
+    expect(heights[1]!).toBeGreaterThan(heights[0]!);
   });
 
   test('no effect is ever buried below the floor', () => {

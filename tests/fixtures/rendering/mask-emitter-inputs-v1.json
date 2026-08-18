@@ -5,7 +5,7 @@
       "fixtureId": "northwest-1280x720-dpr1-zoom1",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -33,7 +33,7 @@
       "fixtureId": "northeast-1440x900-dpr1-zoom2",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -61,7 +61,7 @@
       "fixtureId": "southwest-1600x720-dpr1-zoom3",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -89,7 +89,7 @@
       "fixtureId": "southeast-1920x1080-dpr1-zoom1",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -117,7 +117,7 @@
       "fixtureId": "northwest-2560x1440-dpr1-zoom1",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -145,7 +145,7 @@
       "fixtureId": "northwest-1440x900-dpr1_25-zoom1",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -173,7 +173,7 @@
       "fixtureId": "northeast-1600x720-dpr1_25-zoom2",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -201,7 +201,7 @@
       "fixtureId": "southwest-1920x1080-dpr1_25-zoom3",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -229,7 +229,7 @@
       "fixtureId": "southeast-2560x1440-dpr1_25-zoom1",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -257,7 +257,7 @@
       "fixtureId": "northwest-1600x720-dpr1_5-zoom2",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -285,7 +285,7 @@
       "fixtureId": "northeast-1920x1080-dpr1_5-zoom3",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -313,7 +313,7 @@
       "fixtureId": "southwest-2560x1440-dpr1_5-zoom1",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -341,7 +341,7 @@
       "fixtureId": "southeast-1280x720-dpr1_5-zoom2",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -369,7 +369,7 @@
       "fixtureId": "northwest-1920x1080-dpr2-zoom3",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -397,7 +397,7 @@
       "fixtureId": "northeast-2560x1440-dpr2-zoom1",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -425,7 +425,7 @@
       "fixtureId": "southwest-1280x720-dpr2-zoom2",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -453,7 +453,7 @@
       "fixtureId": "southeast-1440x900-dpr2-zoom3",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -481,7 +481,7 @@
       "fixtureId": "maximum-load-2560x1440-dpr2-zoom1",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30
@@ -509,7 +509,7 @@
       "fixtureId": "fallback-circle-1280x720-dpr1-zoom1",
       "sprite": "character.protagonist.front-1",
       "source": {
-        "x": 885,
+        "x": 911,
         "y": 341,
         "width": 24,
         "height": 30

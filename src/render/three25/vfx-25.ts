@@ -1,5 +1,6 @@
+import { recipeFor, WALL_HEIGHT_TILES } from './recipes';
 import type { QuadDescriptor } from './scene-builder';
-import type { WorldFrameState } from '../world-frame';
+import { shelteredTileKeys, type WorldFrameState } from '../world-frame';
 
 const TILE_SIZE = 32;
 
@@ -61,6 +62,7 @@ const COMPOSITING_ONLY_ROLES: ReadonlySet<string> = new Set([
  */
 const SILHOUETTE_BACKER_ROLES: ReadonlySet<string> = new Set([
   'steam-shadow',
+  'steam-wisp-shadow',
   'water-shadow',
 ]);
 
@@ -133,7 +135,7 @@ const AERIAL_TRANSIENT_HEIGHT = 0.5;
 const MINIMUM_RISE = 0.03;
 
 /**
- * How high a kind's plume must start, in tiles, because of what it rises OUT of.
+ * How high a `rise` plume starts: the top of whatever it rises OUT of, at the emitter's tile.
  *
  * Steam comes off a food stall, and the emitter is authored on the stall's own tile. In 2D that is
  * fine - the plume is composited over the sprite. Here the stall is a box 1.35 tiles tall and the
@@ -143,8 +145,64 @@ const MINIMUM_RISE = 0.03;
  * of the counter and changed 18 pixels; at 4x the whole quad fell within the box's silhouette and
  * changed none. The probe that settled it forced the same quads to three tiles wide, at which size
  * they cleared the stall and changed 67,326.
+ *
+ * **Measured per emitter, not fixed per kind.** The first fix was a flat `steam: 1.55` minimum,
+ * sized for the tallest stall in the game and applied to every steam emitter. Indoors that is above
+ * the 1.45-tile wall top and inside the 1.45-1.57 roof lid, so the office kettle's plume rendered
+ * ON TOP of the annex roof - two pale wisps floating on the shingles from outside the building.
+ * Reading the prop the emitter actually stands on puts each plume on its own source instead: 1.45
+ * on the food stall, 1.11 on the produce stall, the counter top on the office kettle.
+ *
+ * The tile test is the box FOOTPRINT, not the prop's anchor tile, so a multi-tile prop whose
+ * recipe lives on a sibling tile still counts.
  */
-const KIND_MINIMUM_HEIGHT: Readonly<Record<string, number>> = Object.freeze({ steam: 1.55 });
+function riseBaseHeights(frame: WorldFrameState): ReadonlyMap<string, number> {
+  const tops = new Map<string, number>();
+  for (const prop of frame.props) {
+    for (const box of recipeFor(prop.sprite)?.boxes ?? []) {
+      const centreX = prop.tile.x + 0.5 + box.x;
+      const centreZ = prop.tile.y + 0.5 + box.z;
+      const top = box.y + box.height / 2;
+      for (let x = Math.floor(centreX - box.width / 2); x < Math.ceil(centreX + box.width / 2); x += 1) {
+        for (let y = Math.floor(centreZ - box.depth / 2); y < Math.ceil(centreZ + box.depth / 2); y += 1) {
+          const key = `${x},${y}`;
+          tops.set(key, Math.max(tops.get(key) ?? 0, top));
+        }
+      }
+    }
+  }
+  return tops;
+}
+
+/**
+ * The highest a quad may reach on a roofed tile, in tiles.
+ *
+ * A roof lid spans `WALL_HEIGHT_TILES` to `WALL_HEIGHT_TILES + 0.12`, so anything that reaches the
+ * wall top pokes through it and draws on the outside of the building. The margin keeps an upright
+ * quad's TOP edge clear of the lid, not just its centre.
+ */
+const INDOOR_CEILING_TILES = WALL_HEIGHT_TILES - 0.03;
+
+/**
+ * How much of its authored climb a `rise` plume keeps under a ceiling. 1 outdoors, always.
+ *
+ * A flat clamp is the obvious fix and it is the wrong one. The office ceiling is 1.45 tiles and the
+ * kettle it rises from tops out at 1.06, so every step of the animation clamps to the same value
+ * and the plume freezes: a still column of steam, which is worse than one poking through the roof
+ * because it looks like a bug in the animation rather than in the geometry.
+ *
+ * Scaling the climb into the headroom keeps all four steps distinct. The plume is shorter indoors,
+ * which is what a low ceiling should do to it.
+ */
+function indoorRiseScale(boundsTop: number, anchorY: number, riseBase: number): number {
+  // Measured against the emitter's declared cull box, NOT against this step's rects. The cull box
+  // is the envelope of the whole animation and never moves; the rects do. Scaling to the rects
+  // renormalises every step, which pins the tallest wisp to the ceiling on every frame and freezes
+  // the plume just as flatly as a clamp would - only at the ceiling instead of at the spout.
+  const envelope = (anchorY - boundsTop) / TILE_SIZE;
+  if (envelope <= 0) return 1;
+  return Math.max(0, Math.min(1, (INDOOR_CEILING_TILES - riseBase) / envelope));
+}
 
 /**
  * How much wider a kind is drawn than its authored rect, per kind.
@@ -201,12 +259,20 @@ function splitColor(color: string): Readonly<{ hex: string; alpha: number }> {
 export function vfxQuads(frame: WorldFrameState): VfxQuads {
   const additive: VfxQuad[] = [];
   const alpha: VfxQuad[] = [];
+  const riseBases = riseBaseHeights(frame);
+  const roofedTiles = shelteredTileKeys([...frame.shelterCells, ...frame.roofedCells]);
 
   for (const geometry of frame.effects) {
     const rule = KIND_RULES[geometry.kind] ?? DEFAULT_RULE;
     const bounds = geometry.bounds;
     // The emitter's tile centre, recovered from the cull box rather than assumed to be its edge.
     const anchorY = bounds.bottom - (BOUNDS_BOTTOM_EXTENT[geometry.kind] ?? 0);
+    const anchorX = (bounds.left + bounds.right) / 2;
+    const emitterTile = `${Math.floor(anchorX / TILE_SIZE)},${Math.floor(anchorY / TILE_SIZE)}`;
+    const riseBase = riseBases.get(emitterTile) ?? 0;
+    const riseScale = roofedTiles.has(emitterTile)
+      ? indoorRiseScale(bounds.top, anchorY, riseBase)
+      : 1;
     geometry.rects.forEach((rect, index) => {
       if (COMPOSITING_ONLY_ROLES.has(rect.role)) return;
       const color = frame.effectRoleColors[rect.role];
@@ -215,21 +281,23 @@ export function vfxQuads(frame: WorldFrameState): VfxQuads {
       const centreX = rect.x + rect.width / 2;
       const centreY = rect.y + rect.height / 2;
       const isBacker = SILHOUETTE_BACKER_ROLES.has(rect.role);
+      const height = rect.height / TILE_SIZE;
       const quad: VfxQuad = {
         id: `${geometry.emitterId}#${String(index)}`,
         x: centreX / TILE_SIZE,
+        // The quad's TOP edge is what the scale is applied to, then the half-height comes back off
+        // to get the centre. Scaling the centre instead leaves every rect clearing the ceiling by
+        // its own half-height. At `riseScale` 1 - every outdoor emitter - this is exactly
+        // `riseBase + (anchorY - centreY) / TILE_SIZE`, so nothing outdoors moves.
         y: rule.mode === 'rise'
-          ? Math.max(
-            (anchorY - centreY) / TILE_SIZE + (KIND_MINIMUM_HEIGHT[geometry.kind] ?? 0),
-            MINIMUM_RISE,
-          )
+          ? Math.max(riseBase + ((anchorY - rect.y) / TILE_SIZE) * riseScale - height / 2, MINIMUM_RISE)
           : rule.height,
         // `spread` keeps the authored offset as depth; the others hold the emitter's own depth.
         z: (rule.mode === 'spread' ? centreY : anchorY) / TILE_SIZE,
         // A backer is drawn slightly wider than the primary it sits behind, so it reads as an
         // outline around it rather than as a second wisp of its own.
         width: (rect.width * (KIND_WIDTH_SCALE[geometry.kind] ?? 1) * (isBacker ? 1.35 : 1)) / TILE_SIZE,
-        height: rect.height / TILE_SIZE,
+        height,
         tint: hex,
         opacity: Math.min(1, opacity * (KIND_OPACITY_SCALE[geometry.kind] ?? 1)),
         upright: rule.upright,

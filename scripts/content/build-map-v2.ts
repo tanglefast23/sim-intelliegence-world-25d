@@ -1517,6 +1517,13 @@ function westMap(): WorldMapV2 {
         { x: 34, y: 28, sprite: 'tile.counter-right', solid: true },
       ],
     }),
+    // The thing `office-kettle-steam` rises out of. The plume was authored on this tile with no
+    // object under it, so the steam came off a bare counter top; the emitter reads the prop's
+    // height, which is why the kettle has to exist for the plume to start in the right place.
+    objectFromTiles({
+      id: 'kitchen-kettle', kind: 'appliance', areaId: 'annex-kitchen',
+      tiles: [{ x: 31, y: 28, sprite: 'tile.kitchen-kettle' }],
+    }),
     objectFromTiles({
       id: 'kitchen-table', kind: 'table', areaId: 'annex-kitchen',
       tiles: [
@@ -1752,9 +1759,10 @@ function westMap(): WorldMapV2 {
         `clerk_${String(index + 1).padStart(2, '0')}`, standTile,
       ])),
     },
+    // No cooler steam. A water cooler dispenses CHILLED water, so a plume over it was wrong twice:
+    // it read as a bug, and it was one of the two wisps drawing on top of the annex roof.
     effects: [
       { id: 'office-kettle-steam', kind: 'steam', tile: { x: 31, y: 28 } },
-      { id: 'office-cooler-steam', kind: 'steam', tile: { x: 24, y: 30 } },
     ],
   });
   map.doors = [

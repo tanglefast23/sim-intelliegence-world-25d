@@ -1016,6 +1016,27 @@
         { "kind": "rect", "token": "D", "x": 13, "y": 18, "width": 6, "height": 3 },
         { "kind": "rect", "token": "K", "x": 14, "y": 21, "width": 4, "height": 2 }
       ]
+    },
+    {
+      "id": "kitchen-kettle",
+      "cellClass": "transparent-part",
+      "role": "fixture",
+      "palette": { "K": "#2f2a2c", "D": "#5d4033", "B": "#a8623a", "M": "#d08a4f", "W": "#f2d7ae", "S": "#8e9aa2" },
+      "commands": [
+        { "kind": "rect", "token": "K", "x": 11, "y": 6, "width": 11, "height": 2 },
+        { "kind": "rect", "token": "K", "x": 11, "y": 7, "width": 2, "height": 5 },
+        { "kind": "rect", "token": "K", "x": 20, "y": 7, "width": 2, "height": 5 },
+        { "kind": "rect", "token": "K", "x": 22, "y": 16, "width": 6, "height": 7 },
+        { "kind": "rect", "token": "B", "x": 22, "y": 17, "width": 5, "height": 5 },
+        { "kind": "rect", "token": "M", "x": 25, "y": 17, "width": 2, "height": 2 },
+        { "kind": "rect", "token": "K", "x": 9, "y": 15, "width": 15, "height": 13 },
+        { "kind": "rect", "token": "B", "x": 10, "y": 16, "width": 13, "height": 11 },
+        { "kind": "rect", "token": "M", "x": 11, "y": 17, "width": 4, "height": 8 },
+        { "kind": "rect", "token": "D", "x": 10, "y": 25, "width": 13, "height": 2 },
+        { "kind": "rect", "token": "K", "x": 11, "y": 11, "width": 11, "height": 5 },
+        { "kind": "rect", "token": "S", "x": 12, "y": 12, "width": 9, "height": 3 },
+        { "kind": "pixels", "token": "W", "points": [[12, 18], [13, 18], [12, 19]] }
+      ]
     }
   ],
   "presentationCells": [

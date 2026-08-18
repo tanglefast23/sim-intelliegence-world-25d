@@ -27,6 +27,11 @@ export type VfxPrimitiveRole =
   | 'palm-primary'
   | 'steam-shadow'
   | 'steam-primary'
+  // The second half of the plume's cycle. A wisp that rises at one opacity and snaps back to the
+  // spout reads as a flickering column; fading it out at the top of the climb is what makes the
+  // four steps read as one plume rising and dissipating.
+  | 'steam-wisp-shadow'
+  | 'steam-wisp'
   | 'water-shadow'
   | 'water-primary';
 
@@ -48,6 +53,8 @@ export const VFX_ROLE_COLORS: Readonly<Record<VfxPrimitiveRole, string>> = Objec
   'palm-primary': '#86a451d9',
   'steam-shadow': '#3f342c4d',
   'steam-primary': '#fff0d6a6',
+  'steam-wisp-shadow': '#3f342c1f',
+  'steam-wisp': '#fff0d647',
   'water-shadow': '#174c5966',
   'water-primary': '#8ef1e6d9',
 });
