@@ -4,6 +4,8 @@ import { isWorldZoom } from '../../domain/presentation/world-zoom';
 import { MAP_IDS } from '../../world/maps/catalog';
 
 export const UiScaleSchema = z.union([z.literal(1), z.literal(1.25), z.literal(1.5)]);
+export const VolumeSchema = z.number().min(0).max(1)
+  .transform((value) => Math.round(value * 20) / 20);
 export const WorldZoomSchema = z.number().refine(isWorldZoom, {
   message: 'World zoom must be from 100% to 300% in 5% increments.',
 });
@@ -11,6 +13,8 @@ export const PresentationPreferencesSchema = z.object({
   schemaVersion: z.literal(1),
   worldZoom: WorldZoomSchema.nullable(),
   uiScale: UiScaleSchema.nullable(),
+  musicVolume: VolumeSchema.default(1),
+  sfxVolume: VolumeSchema.default(1),
   camera: z.object({
     mapId: z.enum(MAP_IDS),
     x: z.number().int().min(-10_000).max(10_000),
@@ -25,6 +29,8 @@ export const PresentationPreferencesSchema = z.object({
 export const RendererPresentationPatchSchema = PresentationPreferencesSchema.pick({
   worldZoom: true,
   uiScale: true,
+  musicVolume: true,
+  sfxVolume: true,
   camera: true,
 }).strict();
 
@@ -35,6 +41,8 @@ export const DEFAULT_PRESENTATION_PREFERENCES: PresentationPreferences = Object.
   schemaVersion: 1,
   worldZoom: null,
   uiScale: null,
+  musicVolume: 1,
+  sfxVolume: 1,
   camera: null,
   windowSize: null,
 });

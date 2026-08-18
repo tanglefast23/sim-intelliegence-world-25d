@@ -14,6 +14,7 @@ import {
   type MusicTrackId,
   type RelationshipSound,
 } from './halcyra-audio-policy';
+import { useAudioVolumes } from './volume-store';
 
 const MUSIC = {
   music_menu: require('../../assets/source/audio/music_menu.mp3') as number,
@@ -112,13 +113,14 @@ export function useAudioEnabled(): boolean {
 
 function useLoopingTrack(source: number, enabled: boolean, volume: number): void {
   const player = useAudioPlayer(source, { updateInterval: 1_000, preferredForwardBufferDuration: 5 });
+  const { music } = useAudioVolumes();
   useEffect(() => {
     player.loop = true;
-    player.volume = volume;
-    if (enabled) player.play();
+    player.volume = volume * music;
+    if (enabled && music > 0) player.play();
     else player.pause();
     return () => player.pause();
-  }, [enabled, player, volume]);
+  }, [enabled, music, player, volume]);
 }
 
 export function useMenuMusic(enabled: boolean): void {
@@ -136,8 +138,10 @@ export function useInterfaceSounds(enabled: boolean): (sound: InterfaceSoundId) 
   const relationshipPositive = useAudioPlayer(INTERFACE_SOUNDS['relationship-positive']);
   const relationshipNegative = useAudioPlayer(INTERFACE_SOUNDS['relationship-negative']);
   const pressIndex = useRef(0);
+  const { sfx } = useAudioVolumes();
 
   return useCallback((sound) => {
+    if (sfx <= 0) return;
     if (!enabled && (!userGestureReceived || AppState.currentState !== 'active')) return;
     const player = sound === 'press'
       ? (pressIndex.current++ % 2 === 0 ? pressOne : pressTwo)
@@ -151,9 +155,9 @@ export function useInterfaceSounds(enabled: boolean): (sound: InterfaceSoundId) 
         'relationship-negative': relationshipNegative,
       }[sound];
     player.loop = false;
-    player.volume = 0.34;
+    player.volume = 0.34 * sfx;
     void player.seekTo(0).then(() => player.play()).catch(() => undefined);
-  }, [cancel, confirm, enabled, panelClose, panelOpen, pressOne, pressTwo, relationshipNegative, relationshipPositive, saveComplete]);
+  }, [cancel, confirm, enabled, panelClose, panelOpen, pressOne, pressTwo, relationshipNegative, relationshipPositive, saveComplete, sfx]);
 }
 
 type WorldAudioInput = Readonly<{
@@ -178,6 +182,7 @@ export function useWorldAudio({
   useLoopingTrack(music, enabled, 0.16);
   useLoopingTrack(ambience, enabled, 0.1);
 
+  const { sfx } = useAudioVolumes();
   const footstepPlayer = useAudioPlayer(null);
   const doorOpenPlayer = useAudioPlayer(doorOpenSound);
   const doorClosePlayer = useAudioPlayer(doorClose);
@@ -191,28 +196,28 @@ export function useWorldAudio({
     if (!segment || !segmentKey || !materialId) return;
     if (previousSegment.current === segmentKey) return;
     previousSegment.current = segmentKey;
-    if (!enabled) return;
+    if (!enabled || sfx <= 0) return;
 
     const surface = footstepSurface(materialId);
     const variations = FOOTSTEPS[surface];
     const variation = variations[Math.abs(segment.to.x * 31 + segment.to.y * 17) % variations.length]!;
     footstepPlayer.replace(variation);
     footstepPlayer.loop = false;
-    footstepPlayer.volume = 0.3;
+    footstepPlayer.volume = 0.3 * sfx;
     footstepPlayer.play();
 
     return undefined;
-  }, [enabled, footstepPlayer, materialId, segmentKey]);
+  }, [enabled, footstepPlayer, materialId, segmentKey, sfx]);
 
   useEffect(() => {
     const sounds = doorSoundsForTransition(previousDoorPhases.current, doorPhases);
     previousDoorPhases.current = doorPhases;
-    if (!enabled) return;
+    if (!enabled || sfx <= 0) return;
     for (const sound of sounds) {
       const player = sound === 'open' ? doorOpenPlayer : doorClosePlayer;
       player.loop = false;
-      player.volume = sound === 'open' ? 0.28 : 0.24;
+      player.volume = (sound === 'open' ? 0.28 : 0.24) * sfx;
       void player.seekTo(0).then(() => player.play()).catch(() => undefined);
     }
-  }, [doorClosePlayer, doorOpenPlayer, doorPhases, enabled]);
+  }, [doorClosePlayer, doorOpenPlayer, doorPhases, enabled, sfx]);
 }

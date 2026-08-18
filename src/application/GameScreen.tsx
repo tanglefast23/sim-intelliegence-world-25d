@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { createInitialState } from '../domain/state/initial-state';
 import { useAudioEnabled, useInterfaceSounds } from '../audio/halcyra-audio';
+import { setAudioVolumes } from '../audio/volume-store';
 import type { WorldState } from '../domain/state/schema';
 import { WorldScene } from '../render/WorldScene';
 import { WorldErrorBoundary } from '../ui/WorldErrorBoundary';
@@ -48,6 +49,7 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
     let active = true;
     void Promise.all([bridge.loadSave('slot-001'), bridge.loadPresentationPreferences()]).then(([result, preferences]) => {
       if (!active) return;
+      setAudioVolumes({ music: preferences.musicVolume, sfx: preferences.sfxVolume });
       if (result.status === 'unchanged' || result.status === 'migrated') {
         setBoot({
           status: 'active',
