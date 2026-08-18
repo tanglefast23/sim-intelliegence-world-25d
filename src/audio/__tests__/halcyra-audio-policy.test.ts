@@ -38,6 +38,12 @@ describe('Halcyra audio routing', () => {
     ]);
   });
 
+  test('plays the office track in the office at every hour', () => {
+    expect(musicTrackId('west_office', 600)).toBe('music_office');
+    expect(musicTrackId('west_office', 1_100)).toBe('music_office');
+    expect(ambienceTrackId('west_office')).toBe('ambience_sunward_loop');
+  });
+
   test('selects one relationship sound from the net score change', () => {
     const before = createInitialState().relationships;
     const linda = before.linda!;
