@@ -176,11 +176,18 @@ instead of throwing. The UI disables that button so it is unreachable in practic
 - New props: `devMode: boolean`, `onDevMode: () => void`,
   `onJumpToMinute: (minuteOfDay: number) => void`, `onJumpForwardHour: () => void`,
   `jumpDisabled: boolean`.
-- Add the `DEV` toggle as a **new last row inside the settings drawer**
-  (`#world-ui-display-settings`, [Hud.tsx:128](../../src/ui/Hud.tsx)), after the SFX slider.
-  **Not** in `styles.actions` — that is the always-visible HUD footer holding QUESTS / SOCIAL /
-  SAVE / SETTINGS ([Hud.tsx:117](../../src/ui/Hud.tsx)). A button there would change every packaged
-  HUD screenshot, drawer open or closed.
+- Put the `DEV` toggle on the **existing UI SCALE row**, after the three scale buttons. It must not
+  be a new row, and it must not go in `styles.actions` (the always-visible HUD footer holding
+  QUESTS / SOCIAL / SAVE / SETTINGS, [Hud.tsx:117](../../src/ui/Hud.tsx)).
+
+  **The drawer height must not change while dev mode is off.** `clickZoomButton` opens the settings
+  drawer and never closes it, so it stays open for the rest of every packaged smoke. `clickWorldTile`
+  then fires a **real OS mouse event** at a screen coordinate
+  ([electron/main/index.ts:882](../../electron/main/index.ts)), and the HUD has `pointerEvents: 'auto'`
+  over the world. One extra drawer row makes the HUD taller, the HUD swallows the click, and the
+  player never moves. This is not theoretical: a first attempt that added a separate DEV row failed
+  `package-windows-x64` with `Timed out waiting for tile 15,23` in the `villa-interior` step. The
+  clearance there is only tens of pixels.
 - When `devMode` is true, render one extra row with `nativeID="world-ui-dev-time"`: six preset
   buttons labelled `00:00 05:00 09:30 13:00 17:00 21:00` plus `+1H`.
 - Give that dev row its own style with `flexWrap: 'wrap'`. Seven buttons clip inside the 540px HUD
@@ -194,10 +201,10 @@ Do **not** rename `Open display settings`. `clickZoomButton` in `electron/main/i
 SETTINGS button by that exact string and the packaged smoke fails otherwise (comment at
 [src/ui/Hud.tsx:124](../../src/ui/Hud.tsx)).
 
-**Packaged evidence:** `devMode` defaults false, so the dev row does not render. The only change to
-existing smoke screenshots is one `DEV` row at the bottom of the open drawer, which `clickZoomButton`
-leaves open for the zoom captures. No smoke toggles `DEV`, so nothing else shifts. HUD shots with the
-drawer closed are unchanged.
+**Packaged evidence:** `devMode` defaults false, so the TIME JUMP row does not render and the drawer
+is exactly as tall as before. The only change to existing smoke screenshots is one `DEV` button on
+the UI SCALE row. No smoke toggles `DEV`, so no captured layout shifts and no native click is
+blocked.
 
 `src/render/WorldScene.tsx`:
 
