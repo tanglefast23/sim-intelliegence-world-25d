@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "scores": [
+    {
+      "name": "northeast-downtown",
+      "deadFraction": 0.208,
+      "flatDeadFraction": 0.101,
+      "poolingRatio": 2.187,
+      "meanLuminance": 54.726,
+      "meanSaturation": 0.409,
+      "detail": 3.131
+    },
+    {
+      "name": "northwest-villa",
+      "deadFraction": 0.106,
+      "flatDeadFraction": 0.054,
+      "poolingRatio": 1.914,
+      "meanLuminance": 51.938,
+      "meanSaturation": 0.701,
+      "detail": 2.729
+    },
+    {
+      "name": "southeast-docks",
+      "deadFraction": 0.157,
+      "flatDeadFraction": 0.089,
+      "poolingRatio": 2.529,
+      "meanLuminance": 72.107,
+      "meanSaturation": 0.481,
+      "detail": 3.032
+    },
+    {
+      "name": "southwest-commercial",
+      "deadFraction": 0.098,
+      "flatDeadFraction": 0.051,
+      "poolingRatio": 2.158,
+      "meanLuminance": 58.971,
+      "meanSaturation": 0.763,
+      "detail": 2.341
+    }
+  ]
+}

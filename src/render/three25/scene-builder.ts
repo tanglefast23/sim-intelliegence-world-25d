@@ -329,7 +329,7 @@ export const GROUND_LIGHTING_SPRITES: ReadonlySet<string> = new Set([
   'tile.fixture-ceiling-panel',
 ]);
 
-const LIGHT_FALLOFF_INNER_TILES = 4;
+const LIGHT_FALLOFF_INNER_TILES = 3.2;
 const LIGHT_FALLOFF_OUTER_TILES = 15;
 
 /**

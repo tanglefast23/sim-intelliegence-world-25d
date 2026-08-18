@@ -67,10 +67,10 @@
       },
       {
         "id": "courtyard-market-rug",
-        "x": 7,
-        "y": 31,
-        "width": 19,
-        "height": 14,
+        "x": 9,
+        "y": 32,
+        "width": 8,
+        "height": 6,
         "sprite": "tile.sunset-mosaic"
       },
       {
@@ -2598,6 +2598,109 @@
       "interactions": []
     },
     {
+      "id": "courtyard-green-mass",
+      "kind": "market-greenery",
+      "areaId": "sunset-courtyard",
+      "anchor": {
+        "x": 18,
+        "y": 38
+      },
+      "depthAnchorOffset": {
+        "x": -2,
+        "y": 2
+      },
+      "renderParts": [
+        {
+          "id": "courtyard-green-mass-part-01",
+          "sprite": "tile.decal-canopy-tree",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "courtyard-green-mass-part-02",
+          "sprite": "tile.decal-canopy-tree",
+          "offset": {
+            "x": 3,
+            "y": 5
+          }
+        },
+        {
+          "id": "courtyard-green-mass-part-03",
+          "sprite": "tile.decal-canopy-tree",
+          "offset": {
+            "x": -4,
+            "y": 4
+          }
+        },
+        {
+          "id": "courtyard-green-mass-part-04",
+          "sprite": "tile.flowering-market-planter",
+          "offset": {
+            "x": 2,
+            "y": -2
+          }
+        },
+        {
+          "id": "courtyard-green-mass-part-05",
+          "sprite": "tile.flowering-market-planter",
+          "offset": {
+            "x": -2,
+            "y": 2
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "courtyard-green-mass-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "courtyard-green-mass-solid-02",
+          "bounds": {
+            "x": 3,
+            "y": 5,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "courtyard-green-mass-solid-03",
+          "bounds": {
+            "x": -4,
+            "y": 4,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "courtyard-green-mass-solid-04",
+          "bounds": {
+            "x": 2,
+            "y": -2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "courtyard-green-mass-solid-05",
+          "bounds": {
+            "x": -2,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
       "id": "courtyard-edge-fixtures",
       "kind": "market-lights",
       "areaId": "sunset-courtyard",
@@ -2628,7 +2731,7 @@
         },
         {
           "id": "courtyard-edge-fixtures-part-03",
-          "sprite": "tile.fixture-lamp",
+          "sprite": "tile.flowering-market-planter",
           "offset": {
             "x": 12,
             "y": 0
@@ -2636,7 +2739,7 @@
         },
         {
           "id": "courtyard-edge-fixtures-part-04",
-          "sprite": "tile.fixture-lamp",
+          "sprite": "tile.flowering-market-planter",
           "offset": {
             "x": 16,
             "y": 0
@@ -2644,7 +2747,7 @@
         },
         {
           "id": "courtyard-edge-fixtures-part-05",
-          "sprite": "tile.fixture-lamp",
+          "sprite": "tile.flowering-market-planter",
           "offset": {
             "x": 0,
             "y": 12
@@ -2652,7 +2755,7 @@
         },
         {
           "id": "courtyard-edge-fixtures-part-06",
-          "sprite": "tile.fixture-lamp",
+          "sprite": "tile.flowering-market-planter",
           "offset": {
             "x": 4,
             "y": 12
@@ -2668,7 +2771,7 @@
         },
         {
           "id": "courtyard-edge-fixtures-part-08",
-          "sprite": "tile.fixture-lamp",
+          "sprite": "tile.flowering-market-planter",
           "offset": {
             "x": 16,
             "y": 12
@@ -2707,7 +2810,53 @@
           }
         }
       ],
-      "solidFootprints": [],
+      "solidFootprints": [
+        {
+          "id": "courtyard-edge-fixtures-solid-03",
+          "bounds": {
+            "x": 12,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "courtyard-edge-fixtures-solid-04",
+          "bounds": {
+            "x": 16,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "courtyard-edge-fixtures-solid-05",
+          "bounds": {
+            "x": 0,
+            "y": 12,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "courtyard-edge-fixtures-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 12,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "courtyard-edge-fixtures-solid-08",
+          "bounds": {
+            "x": 16,
+            "y": 12,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
       "interactions": []
     },
     {
@@ -2944,7 +3093,7 @@
           "id": "sunset-promenade-lanterns-part-05",
           "sprite": "tile.fixture-festival-lantern",
           "offset": {
-            "x": -16,
+            "x": 14,
             "y": 16
           }
         },
@@ -2952,7 +3101,7 @@
           "id": "sunset-promenade-lanterns-part-06",
           "sprite": "tile.fixture-festival-lantern",
           "offset": {
-            "x": -6,
+            "x": 26,
             "y": 16
           }
         },
@@ -2961,43 +3110,11 @@
           "sprite": "tile.fixture-festival-lantern",
           "offset": {
             "x": 14,
-            "y": 16
+            "y": 22
           }
         },
         {
           "id": "sunset-promenade-lanterns-part-08",
-          "sprite": "tile.fixture-festival-lantern",
-          "offset": {
-            "x": 26,
-            "y": 16
-          }
-        },
-        {
-          "id": "sunset-promenade-lanterns-part-09",
-          "sprite": "tile.fixture-festival-lantern",
-          "offset": {
-            "x": -16,
-            "y": 22
-          }
-        },
-        {
-          "id": "sunset-promenade-lanterns-part-10",
-          "sprite": "tile.fixture-festival-lantern",
-          "offset": {
-            "x": -6,
-            "y": 22
-          }
-        },
-        {
-          "id": "sunset-promenade-lanterns-part-11",
-          "sprite": "tile.fixture-festival-lantern",
-          "offset": {
-            "x": 14,
-            "y": 22
-          }
-        },
-        {
-          "id": "sunset-promenade-lanterns-part-12",
           "sprite": "tile.fixture-festival-lantern",
           "offset": {
             "x": 26,
@@ -3045,7 +3162,7 @@
         {
           "id": "sunset-promenade-lanterns-solid-05",
           "bounds": {
-            "x": -16,
+            "x": 14,
             "y": 16,
             "width": 1,
             "height": 1
@@ -3054,7 +3171,7 @@
         {
           "id": "sunset-promenade-lanterns-solid-06",
           "bounds": {
-            "x": -6,
+            "x": 26,
             "y": 16,
             "width": 1,
             "height": 1
@@ -3064,49 +3181,13 @@
           "id": "sunset-promenade-lanterns-solid-07",
           "bounds": {
             "x": 14,
-            "y": 16,
+            "y": 22,
             "width": 1,
             "height": 1
           }
         },
         {
           "id": "sunset-promenade-lanterns-solid-08",
-          "bounds": {
-            "x": 26,
-            "y": 16,
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "id": "sunset-promenade-lanterns-solid-09",
-          "bounds": {
-            "x": -16,
-            "y": 22,
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "id": "sunset-promenade-lanterns-solid-10",
-          "bounds": {
-            "x": -6,
-            "y": 22,
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "id": "sunset-promenade-lanterns-solid-11",
-          "bounds": {
-            "x": 14,
-            "y": 22,
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "id": "sunset-promenade-lanterns-solid-12",
           "bounds": {
             "x": 26,
             "y": 22,

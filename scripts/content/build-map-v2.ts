@@ -862,11 +862,55 @@ function southwestMap(): WorldMapV2 {
       { x: 20, y: 42, sprite: 'tile.table-left', solid: true },
       { x: 21, y: 42, sprite: 'tile.table-right', solid: true },
     ] }),
+    /**
+     * THREE posts, not eight, and the five that went are planters rather than gaps.
+     *
+     * Eight lamps on a 4-by-12 lattice is what held this district at 8.9 while the other three
+     * passed. It is not a brightness problem and the night key was already swept 0.65 to 1.6 with
+     * the pooling ratio stuck at 1.41-1.45 the whole way: an even grid has no pocket to find, so
+     * every lever that raises light raises all of it. The three that stay are a PAIR at the stall
+     * row, which overlap into one warm pocket, and one far south so the frame keeps depth instead
+     * of ending in a black plate.
+     *
+     * Converted, not deleted. `sunset-courtyard` is `active-public`, so `detailRatio` has to stay
+     * above 0.08 and five vanished detail cells would fail the build rather than dim the yard.
+     * Planters are solid where lamps are not, which also lifts a solid ratio sitting near its
+     * floor.
+     */
+    /**
+     * Green mass and ground texture in the bare south-east of the yard.
+     *
+     * With the flood gone the capture showed the other half of the problem: the frame was one hue
+     * over large empty ground. Everything in it — paver, stalls, canopies, even the shadows — is a
+     * shade of orange, and a wide bare apron carried no material at all. The fountain and a single
+     * planter were the only things that were not orange, and they read instantly, which is what
+     * said the fix was contrast rather than more light.
+     *
+     * Trees are upright billboards, so they add a tall green silhouette against the warm ground
+     * rather than another low box.
+     *
+     * The obvious cheap half does NOT work and is not here: `tile.market-detail-*` are in
+     * `FLAT_SPRITES`, which in 2.5D means they emit no box AND no floor quad. They render nothing
+     * at all. Six of them were placed on the dark apron and then moved into the lit pocket, and
+     * both captures came back byte-identical.
+     */
+    objectFromTiles({ id: 'courtyard-green-mass', kind: 'market-greenery', areaId: 'sunset-courtyard', tiles: [
+      { x: 18, y: 38, sprite: 'tile.decal-canopy-tree', solid: true },
+      // Not (22,41): that is rafael_cruz's authored work tile, and a solid on it fails the
+      // cardinal-reachability gate rather than just looking wrong.
+      { x: 21, y: 43, sprite: 'tile.decal-canopy-tree', solid: true },
+      { x: 14, y: 42, sprite: 'tile.decal-canopy-tree', solid: true },
+      { x: 20, y: 36, sprite: 'tile.flowering-market-planter', solid: true },
+      { x: 16, y: 40, sprite: 'tile.flowering-market-planter', solid: true },
+    ] }),
     objectFromTiles({ id: 'courtyard-edge-fixtures', kind: 'market-lights', areaId: 'sunset-courtyard', tiles: [
       { x: 8, y: 32, sprite: 'tile.fixture-lamp' }, { x: 12, y: 32, sprite: 'tile.fixture-lamp' },
-      { x: 20, y: 32, sprite: 'tile.fixture-lamp' }, { x: 24, y: 32, sprite: 'tile.fixture-lamp' },
-      { x: 8, y: 44, sprite: 'tile.fixture-lamp' }, { x: 12, y: 44, sprite: 'tile.fixture-lamp' },
-      { x: 20, y: 44, sprite: 'tile.fixture-lamp' }, { x: 24, y: 44, sprite: 'tile.fixture-lamp' },
+      { x: 20, y: 32, sprite: 'tile.flowering-market-planter', solid: true },
+      { x: 24, y: 32, sprite: 'tile.flowering-market-planter', solid: true },
+      { x: 8, y: 44, sprite: 'tile.flowering-market-planter', solid: true },
+      { x: 12, y: 44, sprite: 'tile.flowering-market-planter', solid: true },
+      { x: 20, y: 44, sprite: 'tile.fixture-lamp' },
+      { x: 24, y: 44, sprite: 'tile.flowering-market-planter', solid: true },
       { x: 8, y: 35, sprite: 'tile.flowering-market-planter' }, { x: 8, y: 41, sprite: 'tile.flowering-market-planter' },
       { x: 24, y: 35, sprite: 'tile.flowering-market-planter' }, { x: 24, y: 41, sprite: 'tile.flowering-market-planter' },
     ] }),
@@ -890,12 +934,12 @@ function southwestMap(): WorldMapV2 {
       { x: 35, y: 6, sprite: 'tile.fixture-festival-lantern', solid: true },
       { x: 28, y: 18, sprite: 'tile.fixture-festival-lantern', solid: true },
       { x: 35, y: 18, sprite: 'tile.fixture-festival-lantern', solid: true },
-      { x: 12, y: 22, sprite: 'tile.fixture-festival-lantern', solid: true },
-      { x: 22, y: 22, sprite: 'tile.fixture-festival-lantern', solid: true },
+      // The four on the COURTYARD lip are gone: (12,22) (22,22) (12,28) (22,28). They stood four
+      // to six tiles from the lamp row below and kept the outdoor distance crush at zero across
+      // the top of the capture, so the yard had no falloff to read. The east pair is kept — it
+      // lights the restaurant frontage, which is a different frame.
       { x: 42, y: 22, sprite: 'tile.fixture-festival-lantern', solid: true },
       { x: 54, y: 22, sprite: 'tile.fixture-festival-lantern', solid: true },
-      { x: 12, y: 28, sprite: 'tile.fixture-festival-lantern', solid: true },
-      { x: 22, y: 28, sprite: 'tile.fixture-festival-lantern', solid: true },
       { x: 42, y: 28, sprite: 'tile.fixture-festival-lantern', solid: true },
       { x: 54, y: 28, sprite: 'tile.fixture-festival-lantern', solid: true },
     ] }),
@@ -916,7 +960,10 @@ function southwestMap(): WorldMapV2 {
       { id: 'east-west-promenade', x: 0, y: 23, width: 64, height: 5, sprite: 'tile.sunset-promenade' },
       { id: 'north-south-promenade', x: 30, y: 0, width: 5, height: 48, sprite: 'tile.sunset-promenade' },
       { id: 'central-market-mosaic', x: 28, y: 21, width: 9, height: 9, sprite: 'tile.sunset-mosaic' },
-      { id: 'courtyard-market-rug', x: 7, y: 31, width: 19, height: 14, sprite: 'tile.sunset-mosaic' },
+      // Pocket-sized. A 19x14 gold mosaic under overlapping pools is a lit plate, not a focus:
+      // it was the brightest thing in frame everywhere it reached. Shrunk to the stall row, it is
+      // the warm centre and the darker paver apron around it becomes the world.
+      { id: 'courtyard-market-rug', x: 9, y: 32, width: 8, height: 6, sprite: 'tile.sunset-mosaic' },
       { id: 'courtyard-customer-lane', x: 8, y: 36, width: 17, height: 3, sprite: 'tile.sunset-promenade' },
       { id: 'market-hall-floor', x: 6, y: 7, width: 22, height: 14, sprite: 'tile.sunset-floor' },
       { id: 'food-arcade-floor', x: 39, y: 7, width: 21, height: 14, sprite: 'tile.sunset-floor' },
