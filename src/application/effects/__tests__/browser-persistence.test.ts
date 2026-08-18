@@ -75,7 +75,7 @@ describe('browser persistence', () => {
       .resolves.toEqual(DEFAULT_PRESENTATION_PREFERENCES);
 
     const saved = await browserPersistence.savePresentationPreferences({
-      worldZoom: 1.5, uiScale: 1.25, camera: null,
+      worldZoom: 1.5, uiScale: 1.25, musicVolume: 0.8, sfxVolume: 0.8, camera: null,
     });
     expect(saved.worldZoom).toBe(1.5);
     await expect(browserPersistence.loadPresentationPreferences()).resolves.toEqual(saved);
