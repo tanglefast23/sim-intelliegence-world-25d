@@ -2,6 +2,7 @@ import {
   CAMERA_YAW_DEGREES,
   GROUND_TILT_DEGREES,
   GROUND_Z_SCALE,
+  GROUND_TILE_TRANSFORM,
   groundFootprint,
   screenToTileTilted,
   screenToWorldTilted,
@@ -131,5 +132,38 @@ describe('billboard facing under the tilted camera', () => {
     expect(tiltedFacing('down')).toBe('left');
     expect(tiltedFacing('up')).toBe('right');
     expect(tiltedFacing('up', { player: origin, previousTile: origin, segment: undefined })).toBe('up');
+  });
+});
+
+describe('the ground-tile overlay transform', () => {
+  /**
+   * The travel pad in `ZoneGate` is a plain square View, so on the tilted path it only lands on the
+   * tile it marks if this transform reproduces the projection. Applied in React Native's order -
+   * right entry first - to each corner offset of a tile, it must give the same screen offsets
+   * `worldToScreenTilted` gives for that tile's corners. Reversing the two entries passes no case.
+   */
+  test('maps a square overlay onto the projected tile', () => {
+    const TILE_SIZE = 32;
+    const tile = { x: 4, y: 7 } as const;
+    const center = tileCenterWorld(tile, TILE_SIZE);
+    const centerScreen = worldToScreenTilted(CAMERA, center);
+
+    const scaleY = GROUND_TILE_TRANSFORM[0].scaleY;
+    const yawRadians = (Number.parseFloat(GROUND_TILE_TRANSFORM[1].rotate) * Math.PI) / 180;
+    const apply = (x: number, y: number): readonly [number, number] => {
+      const rotatedX = x * Math.cos(yawRadians) - y * Math.sin(yawRadians);
+      const rotatedY = x * Math.sin(yawRadians) + y * Math.cos(yawRadians);
+      return [rotatedX, rotatedY * scaleY];
+    };
+
+    const corners: readonly (readonly [number, number])[] = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+    corners.forEach(([signX, signY]) => {
+      const offsetX = (signX * TILE_SIZE) / 2;
+      const offsetY = (signY * TILE_SIZE) / 2;
+      const projected = worldToScreenTilted(CAMERA, { x: center.x + offsetX, y: center.y + offsetY });
+      const [transformedX, transformedY] = apply(offsetX, offsetY);
+      expect(transformedX).toBeCloseTo(projected.x - centerScreen.x, 6);
+      expect(transformedY).toBeCloseTo(projected.y - centerScreen.y, 6);
+    });
   });
 });

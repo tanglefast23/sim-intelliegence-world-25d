@@ -81,6 +81,22 @@ export function worldToScreenTilted(
   };
 }
 
+/**
+ * Turns a square screen-space overlay into the diamond a ground tile projects to.
+ *
+ * `worldToScreenTilted` is a rotation by the yaw followed by a compression of the depth axis, and
+ * these two entries are that same pair. React Native applies a transform list right to left, like
+ * CSS, so the rotate runs first and the flatten second — swapping them flattens the square before
+ * rotating it and gives a lozenge leaning the wrong way. It pivots on the element's centre, so a
+ * caller positions the overlay from the tile CENTRE, not its north-west corner.
+ *
+ * Only overlays outside the three.js scene need this: the travel pads in `ZoneGate` today.
+ */
+export const GROUND_TILE_TRANSFORM = [
+  { scaleY: GROUND_Z_SCALE },
+  { rotate: `${CAMERA_YAW_DEGREES}deg` },
+] as const;
+
 /** The exact inverse of `worldToScreenTilted`: un-compress the depth axis, then un-rotate. */
 export function screenToWorldTilted(
   camera: CameraState,

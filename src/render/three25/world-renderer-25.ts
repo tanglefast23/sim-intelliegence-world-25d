@@ -133,9 +133,9 @@ export type WorldRenderer25 = Readonly<{
 /**
  * Places the orthographic camera at a fixed elevation and the given yaw, looking at the origin.
  *
- * Production ships yaw 0 — see section 1 of the plan. The yaw argument exists so the comparison
- * capture can render the spike angle from the same scene, and so a later decision to switch is a
- * constant change rather than a rewrite.
+ * The 2.5D path ships `CAMERA_YAW_DEGREES`, which is 45 — `yawForEnvironment` in
+ * `renderer-selection.ts` returns it everywhere except a localhost `?testYaw=` capture, and
+ * `projection.test.ts` locks that. The yaw argument exists for those captures.
  */
 export function cameraForYaw(yawDegrees: number = CAMERA_YAW_DEGREES, distance: number): OrthographicCamera {
   const camera = new OrthographicCamera(-distance, distance, distance, -distance, 0.1, distance * 8);

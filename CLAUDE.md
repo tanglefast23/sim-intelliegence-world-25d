@@ -75,18 +75,18 @@ matching builder (`content:build`, `art:atlas`, `audio:build`, `proof:assets`).
 
 ## Architecture
 
-**three.js here is a 2D compositor today. A 2.5D renderer is specified but not built.**
+**Two renderers exist. Production ships the 2D one.**
 `rendererForEnvironment()` ([src/render/renderer-selection.ts](src/render/renderer-selection.ts))
-currently returns the literal `'threejs-2d'`. Stage 0 of the 2.5D spec widens that union to
-`'threejs-2d' | 'threejs-2-5d'`. Production stays on `'threejs-2d'` until the 2.5D acceptance gate
-passes. The 2D path is the rollback path and must stay green.
+returns `'threejs-2d'` everywhere except a localhost or smoke `?testRenderer=2-5d`, and stays that
+way until the 2.5D acceptance gate passes. The 2D path is the rollback path and must stay green.
 
 The 2D path ([src/render/three/world-renderer.ts](src/render/three/world-renderer.ts)) draws
 textured quads through an `OrthographicCamera` with `NearestFilter` on a generated sprite atlas,
 compositing the ordered batches in `COMPOSITE_BATCHES`. Do not change it while 2.5D is in progress.
 
-The 2.5D path will live in `src/render/three25/` and does not exist yet. It draws the same
-`WorldFrameState` as box geometry under a tilted `OrthographicCamera`. **Boxes with authored
+The 2.5D path lives in `src/render/three25/`. It draws the same
+`WorldFrameState` as box geometry under a tilted `OrthographicCamera` at
+`CAMERA_YAW_DEGREES` (45) and `GROUND_TILT_DEGREES` (30). **Boxes with authored
 heights are allowed.** Heightmaps, displacement maps, imported models, perspective cameras, and
 free camera orbit are not. Pixel rules are absolute: `NearestFilter`, integer scaling, flat
 shading, no anti-aliasing. **Characters stay upright four-direction billboards in both renderers**
@@ -94,6 +94,11 @@ shading, no anti-aliasing. **Characters stay upright four-direction billboards i
 world geometry becomes boxes. Shadow maps are allowed only in the 2.5D lit path, per spec section 8.7:
 a no-lights fallback with flat blob shadows must also ship, hold 60 FPS, and carry its own packaged
 smoke, and path selection is explicit rather than a runtime FPS probe.
+
+`three25` draws world geometry only. The selection ring, destination pulse, journal pins and
+failed-click X are composite batches of the 2D renderer, so on the 2.5D path they come from the
+DOM overlay in [src/ui/WorldMarkers.tsx](src/ui/WorldMarkers.tsx), projected by `WorldScene`. If
+you ever bake them into `three25`, drop that overlay in the same change or they draw twice.
 
 **To take any location to a 10/10 render, follow
 [docs/25d-scene-playbook.md](docs/25d-scene-playbook.md).** It carries the rating rubric, the
