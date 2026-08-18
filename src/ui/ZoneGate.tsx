@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
 export type ZoneGateCell = Readonly<{ key: string; left: number; top: number }>;
 
@@ -13,6 +13,13 @@ export type ZoneGateVisual = Readonly<{
 
 type ZoneGateOverlayProps = Readonly<{
   accent: string;
+  /**
+   * Shears each square pad into the shape a tile actually projects to. Undefined on the 2D path,
+   * where a tile is an axis-aligned square already; the tilted path passes a rotate-and-flatten
+   * that turns the square into the same diamond the renderer draws the tile as. `cells` are
+   * positioned from the tile centre whenever this is set, because the transform pivots there.
+   */
+  cellTransform?: ViewStyle['transform'];
   gates: readonly ZoneGateVisual[];
   size: number;
   viewport: Readonly<{ width: number; height: number }>;
@@ -21,13 +28,16 @@ type ZoneGateOverlayProps = Readonly<{
 const LABEL_WIDTH = 152;
 
 function onScreen(gate: ZoneGateVisual, size: number, viewport: Readonly<{ width: number; height: number }>): boolean {
+  // One `size` of slack on every edge: a sheared pad reaches wider than its untransformed box, so a
+  // tight test drops the pad that is half on screen — the one the player is walking onto.
   return gate.cells.some((cell) => (
-    cell.left + size > 0 && cell.left < viewport.width && cell.top + size > 0 && cell.top < viewport.height
+    cell.left + size * 2 > 0 && cell.left < viewport.width + size
+    && cell.top + size * 2 > 0 && cell.top < viewport.height + size
   ));
 }
 
 /** Paints the travel pad in front of each map portal and names the neighborhood it leads to. */
-export function ZoneGateOverlay({ accent, gates, size, viewport }: ZoneGateOverlayProps) {
+export function ZoneGateOverlay({ accent, cellTransform, gates, size, viewport }: ZoneGateOverlayProps) {
   const visible = gates.filter((gate) => onScreen(gate, size, viewport));
   if (visible.length === 0) return null;
   return (
@@ -49,6 +59,7 @@ export function ZoneGateOverlay({ accent, gates, size, viewport }: ZoneGateOverl
                 height: size,
                 left: cell.left,
                 top: cell.top,
+                transform: cellTransform,
                 width: size,
               }]}
             />
