@@ -100,10 +100,13 @@ A location looks good when its objects have mass. That comes from box recipes in
 3. **Structure must be visible from above.** The camera looks down 30°, so uprights hidden inside a
    shelf span are invisible. Put a rack's uprights at the shelf CORNERS and trim the shelf so the
    frame shows. This is the difference between a structure and a painted plate.
-4. **Wall side faces need the opaque variant.** Wall sprites are top-down stamps with transparent
-   margins — `tile.wall-villa-5` is 81% opaque. Mapped onto a vertical face and cut by `alphaTest`,
-   those margins punch holes straight through the wall. Use the family's fully-connected `-f`
-   variant for `sideSource` (96% opaque).
+4. **Wall side faces need the opaque variant, CROPPED.** Wall sprites are top-down stamps with
+   transparent margins — `tile.wall-villa-5` is 81% opaque. Mapped onto a vertical face and cut by
+   `alphaTest`, those margins punch holes straight through the wall. Use the family's
+   fully-connected `-f` variant for `sideSource` — but `-f` is 95.9% opaque, not solid, so crop 4
+   texel columns off each side as well. Its remaining 42 cut texels are all in columns 0-3 and
+   28-31, and `atlasCell` puts them at the wall's base and top, one notch per tile. Crop columns
+   only; the rows are clean and a square crop just stretches the brick.
 5. **Doors must face their doorway.** The frame resolves the axis into the sprite id
    (`-vertical` / `-horizontal`). Read it. A door slab turned broadside leaves the gap open on one
    side and a stub sticking out the other.
@@ -408,6 +411,8 @@ Every one of these cost a capture round. The right-hand column is what settled i
 | Lit path has no shadows | `castShadow` unset, sun aimed at the camera, frustum set without `updateProjectionMatrix` | Three separate fixes, all silent |
 | 2345 draw calls | One `Mesh` per descriptor | Merged baked geometry: 2 calls from 4000 descriptors |
 | Walls striped or holed | Transparent margins on top-down wall sprites cut by `alphaTest` | Use the `-f` opaque family variant for sides |
+| A notch at every wall's base, once per tile | `-f` is 95.9% opaque, not solid; its 42 cut texels are corner columns, and `atlasCell` maps the sprite's bottom row to the wall's base | Crop 4 texel COLUMNS off each side of the `-f` cell. Rows are clean |
+| Mask-15 walls keep a defect the other masks lost | `wallSideSource` returned `undefined` when the sprite already WAS `-f`, so the bake fell back to the uncropped `source` | An already-solid wall still needs the cropped cell |
 | Hole punched in a wall | "Greatest tile.y per column" hit an interior partition | Generalised to camera-facing sides |
 | Billboards lean | Card oriented to the view plane instead of world-vertical | World-vertical, yaw-facing only |
 | Production renders yaw 0 | `selectedYawDegrees()` defaulted to 0 instead of `CAMERA_YAW_DEGREES` | Defaulting a derived constant to 0 is a bug, not a safe fallback |

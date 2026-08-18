@@ -47,7 +47,8 @@ export type BoxDescriptor = Readonly<{
    * Wall sprites are top-down stamps whose margins are transparent — `tile.wall-villa-5` is only
    * 81% opaque. Mapped onto a vertical face and cut by `alphaTest`, those margins punch holes
    * straight through the wall. The fully-connected `-f` variant of the same family is the same
-   * brick art at 96% opaque, so it reads as a side rather than a sieve.
+   * brick art at 95.9% opaque — better, but NOT solid, and the remaining 4% is what this cell
+   * has to crop. See `wallSideSource`.
    */
   sideSource?: AtlasRectangle;
   /**
@@ -84,16 +85,40 @@ export type SceneDescriptor = Readonly<{
 }>;
 
 /**
- * The opaque side texture for a wall sprite: the fully-connected `-f` variant of its own family.
+ * How many texel columns to crop off each side of an `-f` cell before it becomes a side texture.
  *
- * `tile.wall-villa-5` becomes `tile.wall-villa-f`. Same brick, same palette, 96% opaque instead of
- * 81%, so the vertical faces stop being cut to lace by `alphaTest`. Falls back to the sprite itself
- * if the family has no `-f` variant, which no current family does.
+ * The `-f` variant is NOT solid. Measured against `assets/generated/world-atlas.png`, all four
+ * families — civic, commercial, downtown, villa — carry exactly 42 texels below the `alphaTest`
+ * cutoff, and every one sits in columns 0-3 or 28-31: the rounded corners of the top-down stamp.
+ * Columns 4-27 are alpha 255 on all 32 rows.
+ *
+ * That margin is why walls kept a notch at their base. `atlasCell` maps image row 31 to the BOTTOM
+ * of a vertical face, so the 12 cut texels in rows 28-31 landed exactly on the wall/ground line,
+ * once per tile. Cropping the columns removes them and leaves vertical sampling untouched — a
+ * square crop would have thrown away 8 rows of brick and stretched the rest for nothing.
  */
-function wallSideSource(sprite: string): AtlasRectangle | undefined {
+const WALL_SIDE_INSET_TEXELS = 4;
+
+/**
+ * The opaque side texture for a wall sprite: the `-f` variant of its own family, cropped.
+ *
+ * `tile.wall-villa-5` becomes the middle 24 columns of `tile.wall-villa-f`. Same brick, same
+ * palette, and now actually solid, so the vertical faces stop being cut to lace by `alphaTest`.
+ *
+ * A wall that IS already `-f` gets the cropped version of its own cell rather than `undefined`.
+ * Returning `undefined` there is what left mask-15 walls holed: the bake falls back to `source`,
+ * which is the uncropped cell. `undefined` now means only "this family has no `-f` at all", where
+ * falling back to `source` is the safe answer instead of an invalid rect.
+ */
+export function wallSideSource(sprite: string): AtlasRectangle | undefined {
   const solid = `${sprite.replace(/-[0-9a-f]$/u, '')}-f`;
-  if (solid === sprite || !(solid in ATLAS_INDEX.sprites)) return undefined;
-  return atlasRectangle(solid);
+  if (!(solid in ATLAS_INDEX.sprites)) return undefined;
+  const cell = atlasRectangle(solid);
+  return {
+    ...cell,
+    x: cell.x + WALL_SIDE_INSET_TEXELS,
+    width: cell.width - 2 * WALL_SIDE_INSET_TEXELS,
+  };
 }
 
 /**
