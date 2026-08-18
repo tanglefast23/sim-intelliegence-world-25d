@@ -19,6 +19,13 @@ describe('renderer selection', () => {
     expect(rendererForEnvironment({ ...base, hostname: 'siworld.example', smokeRenderer: 'threejs-2-5d' })).toBe('threejs-2d');
   });
 
+  test('the dev harness defaults to 2.5D and can be sent back to 2D', () => {
+    const harness = { ...base, hostname: 'game', devHarnessMode: true } as const;
+    expect(rendererForEnvironment(harness)).toBe('threejs-2-5d');
+    expect(rendererForEnvironment({ ...harness, smokeRenderer: 'threejs-2d' })).toBe('threejs-2d');
+    expect(rendererForEnvironment({ ...harness, smokeRenderer: 'threejs-2-5d' })).toBe('threejs-2-5d');
+  });
+
   test('defaults to the 2D renderer with no window', () => {
     expect(selectedRenderer()).toBe('threejs-2d');
   });

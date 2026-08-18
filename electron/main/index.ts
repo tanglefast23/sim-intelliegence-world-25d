@@ -2750,7 +2750,12 @@ async function createMainWindow(): Promise<void> {
           ...(smokeRenderer ? [`--si-world-test-renderer=${smokeRenderer}`] : []),
           ...(smokeToneMapping ? [`--si-world-test-tone-mapping=${smokeToneMapping}`] : []),
         ] : []),
-        ...(devHarnessMode ? ['--si-world-dev-harness=1'] : []),
+        ...(devHarnessMode ? [
+          '--si-world-dev-harness=1',
+          // The harness loads over app://game/, where the localhost ?testRenderer override cannot
+          // fire. Without this the harness is locked to threejs-2d and can never show 2.5D.
+          ...(smokeRenderer ? [`--si-world-test-renderer=${smokeRenderer}`] : []),
+        ] : []),
       ],
     },
     width: initialPresentation.windowSize?.width ?? 1280,

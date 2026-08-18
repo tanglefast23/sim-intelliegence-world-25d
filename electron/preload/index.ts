@@ -103,7 +103,10 @@ if (process.argv.includes('--si-world-smoke-mode=1') && (smokeVfxMode === 'circl
   contextBridge.exposeInMainWorld('siWorldVfxMode', smokeVfxMode);
 }
 const smokeRenderer = process.argv.find((argument) => argument.startsWith('--si-world-test-renderer='))?.split('=')[1];
-if (process.argv.includes('--si-world-smoke-mode=1') && (smokeRenderer === 'threejs-2d' || smokeRenderer === 'threejs-2-5d')) {
+if (
+  (process.argv.includes('--si-world-smoke-mode=1') || process.argv.includes('--si-world-dev-harness=1')) &&
+  (smokeRenderer === 'threejs-2d' || smokeRenderer === 'threejs-2-5d')
+) {
   contextBridge.exposeInMainWorld('siWorldTestRenderer', smokeRenderer);
 }
 const smokeShadowPath = process.argv.find((argument) => argument.startsWith('--si-world-shadow-path='))?.split('=')[1];

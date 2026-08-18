@@ -16,9 +16,14 @@ export function rendererForEnvironment(input: Readonly<{
   hostname: string;
   search: string;
   smokeMode: boolean;
+  /** The dev harness loads over `app://game/`, so the localhost query override never fires there. */
+  devHarnessMode?: boolean;
   smokeRenderer?: RendererKind;
 }>): RendererKind {
   if (input.smokeMode && input.smokeRenderer) return input.smokeRenderer;
+  // The dev harness exists to review the renderer under construction, so it defaults to 2.5D.
+  // `SI_WORLD_TEST_RENDERER=threejs-2d` is the way back to the 2D rollback path.
+  if (input.devHarnessMode === true) return input.smokeRenderer ?? 'threejs-2-5d';
   const local = input.hostname === 'localhost' || input.hostname === '127.0.0.1';
   if (!local) return 'threejs-2d';
   const requested = new URLSearchParams(input.search).get('testRenderer');
@@ -31,6 +36,7 @@ export function selectedRenderer(): RendererKind {
     hostname: window.location.hostname,
     search: window.location.search,
     smokeMode: window.siWorldSmokeMode === true,
+    devHarnessMode: window.siWorldDevHarnessMode === true,
     smokeRenderer: window.siWorldTestRenderer,
   });
 }
