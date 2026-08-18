@@ -3,23 +3,39 @@ import { type CameraState, type ClampFn, type ViewportSize } from '../camera';
 import { groundFootprintBounds, screenToWorldTilted } from './projection';
 
 /**
+ * How far past a map edge the tilted camera may travel, as a fraction of the visible footprint.
+ *
+ * This is the calibration knob for how much void a pan may show. At 0 the map always covers the
+ * screen and pan range collapses to `|map − footprint|`, which is what made middle-drag read as
+ * broken: measured on a 2048x1536 map, 1280x720 at the default 1x zoom allowed 125 x 387 world
+ * pixels of travel, and 1920x1080 at 2x allowed 94 on the vertical axis. A few pixels of movement
+ * before a hard stop feels like a dead button.
+ *
+ * At 0.5 the travel range is exactly the map size on both axes at every zoom, and the worst case a
+ * player can drag to is half the screen showing void. The renderer's skirt follows the camera, so
+ * that void is painted ground, not black.
+ */
+export const TILTED_PAN_OVERSCAN = 0.5;
+
+/**
  * Where the north-west corner of the visible ground may sit, on one axis.
  *
- * While the footprint fits, this is `clampCamera`'s rule exactly: the corner stays on the map.
- *
- * Once it does not fit, `clampCamera` centres the axis and pins it — no pan at all. That is fine
- * for the 2D view, which only exceeds a map by being zoomed out past it, but the tilted view sees
- * the map's ROTATED bounding box: at 1x a 1250x738 viewport spans about 1928 world pixels on each
- * axis, taller than a 1536px map, so the whole vertical axis froze at the default zoom. Instead the
- * camera travels until the map edge meets the screen edge. The map stays fully covered either way,
- * so the void the renderer's skirt paints is bounded to one edge at a time.
+ * `clampCamera` keeps that corner on the map, and centres-and-pins any axis whose extent exceeds
+ * it. That is fine for the 2D view, which only exceeds a map by being zoomed out past it, but the
+ * tilted view sees the map's ROTATED bounding box — at 1x a 1250x738 viewport spans about 1928
+ * world pixels on each axis, taller than a 1536px map — so the whole vertical axis froze at the
+ * default zoom. Here the corner may instead travel `TILTED_PAN_OVERSCAN` of a footprint past each
+ * edge, which is what gives pan a usable range at every zoom.
  */
 function tiltedAxisBounds(
   footprintPixels: number,
   mapPixels: number,
 ): Readonly<{ minimum: number; maximum: number }> {
-  if (footprintPixels >= mapPixels) return { minimum: mapPixels - footprintPixels, maximum: 0 };
-  return { minimum: 0, maximum: mapPixels - footprintPixels };
+  const slack = footprintPixels * TILTED_PAN_OVERSCAN;
+  // Non-empty for any footprint: the gap `footprint − map` never exceeds `2 · slack` while the
+  // overscan is at least 0.5, and below that the wider footprint simply pins the axis at its centre.
+  const minimum = -slack;
+  return { minimum, maximum: Math.max(minimum, mapPixels - footprintPixels + slack) };
 }
 
 /**

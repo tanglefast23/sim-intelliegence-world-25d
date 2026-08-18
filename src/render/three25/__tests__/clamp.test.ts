@@ -1,5 +1,4 @@
-import { clampCamera } from '../../camera';
-import { clampCameraTilted, panCameraTilted } from '../clamp';
+import { clampCameraTilted, panCameraTilted, TILTED_PAN_OVERSCAN } from '../clamp';
 import { groundFootprintBounds, screenToWorldTilted } from '../projection';
 
 const VIEWPORT = { width: 1280, height: 720 } as const;
@@ -20,50 +19,39 @@ describe('tilted camera clamp', () => {
   /**
    * The invariant that matters. `clampCamera` assumes the camera IS the north-west corner of what
    * is visible; under rotation the anchor sits inside the footprint instead. So the assertion is
-   * about the FOOTPRINT staying on the map, not about the anchor's own coordinates.
+   * about the FOOTPRINT's overhang, not about the anchor's own coordinates.
+   *
+   * The overhang is measured against the ROTATED footprint, which is what stops anyone reaching for
+   * `clampCamera` here: at 3x that footprint is 641px on each axis where the flat viewport is only
+   * 427 wide, so a flat rule would let the camera travel a third of a screen further east.
    */
-  test('keeps the visible footprint on the map when it fits', () => {
-    const zoom = 3;
-    const bounds = groundFootprintBounds(VIEWPORT, zoom);
-    expect(bounds.width).toBeLessThan(MAP_PIXELS.width);
-    expect(bounds.height).toBeLessThan(MAP_PIXELS.height);
-    for (const wild of [{ x: -9999, y: -9999 }, { x: 9999, y: 9999 }, { x: -9999, y: 9999 }]) {
-      const box = visibleBox(clampCameraTilted({ ...wild, zoom }, VIEWPORT, MAP_PIXELS));
-      expect(box.left).toBeGreaterThanOrEqual(-1);
-      expect(box.top).toBeGreaterThanOrEqual(-1);
-      expect(box.right).toBeLessThanOrEqual(MAP_PIXELS.width + 1);
-      expect(box.bottom).toBeLessThanOrEqual(MAP_PIXELS.height + 1);
+  test('lets the footprint overhang the map by one overscan and no further', () => {
+    for (const zoom of [1, 2, 3] as const) {
+      const bounds = groundFootprintBounds(VIEWPORT, zoom);
+      expect(bounds.width).toBeGreaterThan(VIEWPORT.width / zoom);
+      const slack = { x: bounds.width * TILTED_PAN_OVERSCAN, y: bounds.height * TILTED_PAN_OVERSCAN };
+      for (const wild of [{ x: -9999, y: -9999 }, { x: 9999, y: 9999 }, { x: -9999, y: 9999 }]) {
+        const box = visibleBox(clampCameraTilted({ ...wild, zoom }, VIEWPORT, MAP_PIXELS));
+        expect(box.left).toBeGreaterThanOrEqual(-slack.x - 1);
+        expect(box.top).toBeGreaterThanOrEqual(-slack.y - 1);
+        expect(box.right).toBeLessThanOrEqual(MAP_PIXELS.width + slack.x + 1);
+        expect(box.bottom).toBeLessThanOrEqual(MAP_PIXELS.height + slack.y + 1);
+      }
     }
   });
 
   /**
-   * At yaw 0 the horizontal axis matched the 2D clamp exactly. Under rotation the player sees
-   * further east and west as well as further south, so the camera has to stop sooner on both axes.
+   * The regression middle-drag actually felt. Clamping the map to full coverage left a travel range
+   * of `|map − footprint|`, which at the default 1x zoom on this viewport was 125 x 387 world
+   * pixels — a drag that stops almost before it starts. The overscan makes the range the map size
+   * at every zoom, so a pan can always cross the whole map.
    */
-  test('allows less travel than the 2D clamp on both axes', () => {
-    const zoom = 3;
-    const far = { x: 9999, y: 9999, zoom } as const;
-    const tilted = clampCameraTilted(far, VIEWPORT, MAP_PIXELS);
-    const flat = clampCamera(far, VIEWPORT, MAP_PIXELS);
-    expect(tilted.x).toBeLessThan(flat.x);
-    expect(tilted.y).toBeLessThan(flat.y);
-  });
-
-  /**
-   * The 1x default. Centring this axis pinned it, which is what left the tilted view unable to pan
-   * at all — see `tiltedAxisBounds`.
-   */
-  test('still pans an axis whose rotated footprint exceeds the map', () => {
-    // At zoom 1 the footprint is about 1923px square, already larger than this 1536px-tall map.
-    const bounds = groundFootprintBounds(VIEWPORT, 1);
-    expect(bounds.height).toBeGreaterThan(MAP_PIXELS.height);
-    const low = clampCameraTilted({ x: 0, y: -9999, zoom: 1 }, VIEWPORT, MAP_PIXELS);
-    const high = clampCameraTilted({ x: 0, y: 9999, zoom: 1 }, VIEWPORT, MAP_PIXELS);
-    expect(high.y - low.y).toBeCloseTo(bounds.height - MAP_PIXELS.height, 0);
-    // The map stays fully covered at both stops, so void is bounded to one edge at a time.
-    for (const box of [visibleBox(low), visibleBox(high)]) {
-      expect(box.top).toBeLessThanOrEqual(1);
-      expect(box.bottom).toBeGreaterThanOrEqual(MAP_PIXELS.height - 1);
+  test('pans a full map on both axes at every zoom', () => {
+    for (const zoom of [1, 2, 3] as const) {
+      const low = clampCameraTilted({ x: -9999, y: -9999, zoom }, VIEWPORT, MAP_PIXELS);
+      const high = clampCameraTilted({ x: 9999, y: 9999, zoom }, VIEWPORT, MAP_PIXELS);
+      expect(high.x - low.x).toBeCloseTo(MAP_PIXELS.width, 0);
+      expect(high.y - low.y).toBeCloseTo(MAP_PIXELS.height, 0);
     }
   });
 
