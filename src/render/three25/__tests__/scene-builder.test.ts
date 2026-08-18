@@ -273,7 +273,12 @@ describe('face texturing', () => {
    * The load-bearing one. Wall sprites are top-down stamps with transparent margins — measured,
    * `tile.wall-villa-5` is 81% opaque and `tile.wall-villa-a` 84%. Mapped onto a vertical face and
    * cut by `alphaTest: 0.5`, that punches holes straight through the wall: grass shows through the
-   * courtyard. The `-f` variant is the same brick at 96% opaque.
+   * courtyard.
+   *
+   * Swapping in the `-f` variant is only most of the fix. `-f` is 95.9% opaque, not solid, and its
+   * remaining 42 cut texels all sit in the outer 4 columns — which `atlasCell` puts at the wall's
+   * base and top. So the side cell is the `-f` cell CROPPED by 4 columns each side. The pixel proof
+   * lives in `wall-side-opacity.test.ts`; this test only pins the rectangle the builder hands over.
    */
   test('walls take an opaque side texture from their own family', () => {
     const boxes = buildWallBoxes(frame);
@@ -283,21 +288,32 @@ describe('face texturing', () => {
     for (const box of boxes) {
       const wall = byId.get(box.id)!;
       const solid = `${wall.sprite.replace(/-[0-9a-f]$/u, '')}-f`;
-      if (wall.sprite === solid) {
-        // Already the fully-connected variant, so it is its own side texture.
-        expect({ id: box.id, side: box.sideSource }).toEqual({ id: box.id, side: undefined });
-        continue;
-      }
-      expect(box.sideSource).toEqual(ATLAS_INDEX.sprites[solid]);
-      substituted += 1;
+      const cell = ATLAS_INDEX.sprites[solid]!;
+      expect(box.sideSource).toEqual({ ...cell, x: cell.x + 4, width: cell.width - 8 });
+      if (wall.sprite !== solid) substituted += 1;
     }
     // The villa is mostly partial-adjacency walls, so this is the common case, not an edge one.
     expect(substituted).toBeGreaterThan(boxes.length / 2);
   });
 
-  test('an already-solid wall keeps its own cell on every face', () => {
-    const solid = buildWallBoxes(frame).filter((box) => box.sideSource === undefined);
-    expect(solid.length).toBeGreaterThan(0);
+  /**
+   * The regression guard for mask-15 walls.
+   *
+   * This test used to assert the OPPOSITE — that an already-`-f` wall gets `sideSource: undefined`
+   * and reuses `source` on its vertical faces. That was the bug: `source` is the uncropped cell, so
+   * every mask-15 wall kept the transparent corner texels that notch the wall/ground line. An
+   * already-solid wall must get the cropped cell like every other wall.
+   */
+  test('an already-solid wall still gets a cropped side texture', () => {
+    const boxes = buildWallBoxes(frame);
+    const alreadySolid = boxes.filter((box) => box.sprite.endsWith('-f'));
+    expect(alreadySolid.length).toBeGreaterThan(0);
+    for (const box of boxes) {
+      expect({ id: box.id, defined: box.sideSource !== undefined })
+        .toEqual({ id: box.id, defined: true });
+      expect({ id: box.id, width: box.sideSource!.width, height: box.sideSource!.height })
+        .toEqual({ id: box.id, width: 24, height: 32 });
+    }
   });
 
   test('the side texture is a different cell from the top texture', () => {
