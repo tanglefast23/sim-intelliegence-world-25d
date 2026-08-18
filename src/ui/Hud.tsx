@@ -118,11 +118,14 @@ export function Hud({
           <Pressable accessibilityLabel="Open quests" onPress={onJournal} role="button" style={({ pressed }) => [styles.actionButton, { minHeight: metrics.pointerTarget }, pressed && styles.buttonPressed]}><Text style={[styles.actionText, { fontSize: metrics.secondaryText }]}>QUESTS · Q</Text></Pressable>
           <Pressable accessibilityLabel="Open relationships" onPress={onSocial} role="button" style={({ pressed }) => [styles.actionButton, { minHeight: metrics.pointerTarget }, pressed && styles.buttonPressed]}><Text style={[styles.actionText, { fontSize: metrics.secondaryText }]}>SOCIAL</Text></Pressable>
           <Pressable accessibilityLabel="Save game" disabled={saveDisabled} onPress={() => { onPressSound(); onSave(); }} role="button" style={({ pressed }) => [styles.actionButton, { minHeight: metrics.pointerTarget }, saveDisabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.actionText, { fontSize: metrics.secondaryText }]}>SAVE</Text></Pressable>
-          <Pressable accessibilityLabel="Open display and audio settings" onPress={() => { onPressSound(); setSettingsOpen((open) => !open); }} role="button" style={({ pressed }) => [styles.settingsButton, { minHeight: metrics.pointerTarget }, settingsOpen && styles.settingsActive, pressed && styles.buttonPressed]}><Text style={[styles.settingsText, { fontSize: metrics.secondaryText }]}>SETTINGS</Text></Pressable>
+          <Pressable accessibilityLabel="Open display settings" onPress={() => { onPressSound(); setSettingsOpen((open) => !open); }} role="button" style={({ pressed }) => [styles.settingsButton, { minHeight: metrics.pointerTarget }, settingsOpen && styles.settingsActive, pressed && styles.buttonPressed]}><Text style={[styles.settingsText, { fontSize: metrics.secondaryText }]}>SETTINGS</Text></Pressable>
         </View>
       </View>
+      {/* clickZoomButton in electron/main/index.ts finds the SETTINGS button by its exact
+          "Open display settings" label. Rename it and the packaged smoke fails with
+          "Display settings button is missing." */}
       {settingsOpen ? (
-        <View accessibilityLabel="Display and audio settings" nativeID="world-ui-display-settings" style={styles.settingsDrawer}>
+        <View accessibilityLabel="Display settings" nativeID="world-ui-display-settings" style={styles.settingsDrawer}>
           <View nativeID="world-ui-zoom" style={styles.settingRow}>
             <Text style={[styles.settingLabel, { fontSize: metrics.secondaryText }]}>VIEW</Text>
             <Pressable accessibilityLabel="Decrease world zoom" disabled={zoomOutDisabled} onPress={() => { onPressSound(); onZoom(-1); }} role="button" style={({ pressed }) => [styles.settingButton, { height: metrics.pointerTarget }, zoomOutDisabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>−</Text></Pressable>
