@@ -545,4 +545,31 @@ describe('ground stains fade at the rim', () => {
   test('an empty list bakes without error', () => {
     expect(bakeGroundStains([]).getAttribute('color').count).toBe(0);
   });
+
+  describe('the selection ring', () => {
+    const ring = { x: 3, z: 5, radius: 0.5, width: 0.1, tint: '#f1c65b', opacity: 1 };
+
+    test('is an annulus: every vertex sits on the inner or the outer radius', () => {
+      const position = bakeGroundStains([], [], undefined, [ring]).getAttribute('position');
+      expect(position.count).toBeGreaterThan(0);
+      for (let index = 0; index < position.count; index += 1) {
+        const distance = Math.hypot(position.getX(index) - ring.x, position.getZ(index) - ring.z);
+        expect(Math.min(Math.abs(distance - 0.45), Math.abs(distance - 0.55))).toBeCloseTo(0, 6);
+      }
+    });
+
+    test('is opaque at every vertex, unlike the stains that fade at the rim', () => {
+      const color = bakeGroundStains([], [], undefined, [ring]).getAttribute('color');
+      for (let index = 0; index < color.count; index += 1) expect(color.getW(index)).toBe(1);
+    });
+
+    test('sits above the blob shadow under the same character', () => {
+      const stain = { ...ring, sprite: 'blob', width: 0.8, depth: 0.5, opacity: 1, id: 'blob' } as never;
+      const position = bakeGroundStains([stain], [], undefined, [ring]).getAttribute('position');
+      const stainY = position.getY(0);
+      const ringY = position.getY(position.count - 1);
+      expect(ringY).toBeGreaterThan(stainY);
+      expect(ringY).toBeLessThan(0.02);
+    });
+  });
 });

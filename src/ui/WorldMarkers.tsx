@@ -1,25 +1,23 @@
 import { StyleSheet, View } from 'react-native';
 
 /**
- * Selection ring, destination pulse, journal pins and the failed-click X, in SCREEN pixels.
+ * Destination pulse, journal pins and the failed-click X, in SCREEN pixels.
  *
- * The 2D renderer draws these four as composite batches of its own (`selection-ring`,
- * `destination-pulse`, `journal-markers`, `failure-marker` in `three/world-renderer.ts`). The 2.5D
- * renderer draws world geometry only and never reads those frame fields, so on `?testRenderer=2-5d`
- * a journal entry printed `PINNED` with nothing on the map, a click showed no pulse, a rejected
- * click showed no X, and the selected character had no ring — the protagonist gets no nameplate
- * either, so selection had no visible state at all.
+ * The 2D renderer draws these as composite batches of its own (`destination-pulse`,
+ * `journal-markers`, `failure-marker` in `three/world-renderer.ts`). The 2.5D renderer draws world
+ * geometry only and never reads those frame fields, so on the 2.5D path a journal entry printed
+ * `PINNED` with nothing on the map, a click showed no pulse and a rejected click showed no X.
  *
- * These are player affordances, not world geometry: in 2D three of the four composite ABOVE
- * everything, so a DOM overlay reproduces the same stacking. The caller projects; this file only
- * paints. That keeps the tilted projection in one place and mirrors how `ZoneGate` is fed.
+ * These are player affordances, not world geometry: in 2D all three composite ABOVE everything, so
+ * a DOM overlay reproduces the same stacking. The caller projects; this file only paints. That
+ * keeps the tilted projection in one place and mirrors how `ZoneGate` is fed.
  *
- * The one fidelity gap against 2D: the selection ring composites under characters there and over
- * them here. A ring at the foot is barely occluded either way, and closing it would mean baking
- * ground geometry into `three25`.
+ * The SELECTION RING is not here. It composites UNDER characters in 2D, and an overlay is above
+ * the canvas by construction, so drawn here it cut across the character it names. `three25` bakes
+ * it into the ground batch instead (`GroundRing` in `three25/world-renderer-25.ts`), where the
+ * depth test hides the half of it that runs behind the character.
  */
 export type WorldMarkerVisuals = Readonly<{
-  selectionRing: Readonly<{ x: number; y: number; radiusX: number; radiusY: number; color: string; strokeWidth: number }>;
   /** An ellipse, not a circle: the pulse lies on the ground, so the depth axis is compressed. */
   destinationPulse?: Readonly<{ x: number; y: number; radiusX: number; radiusY: number; color: string; opacity: number }>;
   /** `x`/`y` is the pin's FOOT — the point on the ground it names. */
@@ -84,7 +82,7 @@ function Dot({ color, opacity, radius, x, y }: DotProps) {
 }
 
 export function WorldMarkerOverlay({ markers, zoom }: Readonly<{ markers: WorldMarkerVisuals; zoom: number }>) {
-  const { destinationPulse, failure, journalPins, selectionRing } = markers;
+  const { destinationPulse, failure, journalPins } = markers;
   return (
     <View
       accessibilityElementsHidden
@@ -93,18 +91,6 @@ export function WorldMarkerOverlay({ markers, zoom }: Readonly<{ markers: WorldM
       pointerEvents="none"
       style={styles.overlay}
     >
-      <View
-        style={{
-          borderColor: selectionRing.color,
-          borderRadius: Math.max(selectionRing.radiusX, selectionRing.radiusY),
-          borderWidth: selectionRing.strokeWidth,
-          height: selectionRing.radiusY * 2,
-          left: selectionRing.x - selectionRing.radiusX,
-          position: 'absolute',
-          top: selectionRing.y - selectionRing.radiusY,
-          width: selectionRing.radiusX * 2,
-        }}
-      />
       {destinationPulse ? (
         <View
           style={{

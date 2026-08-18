@@ -1629,17 +1629,18 @@ export function WorldScene({
       : runtime.npcMovements[selected]?.status === 'moving',
   );
   /**
-   * Only the 2.5D path. The 2D renderer draws all four of these as composite batches of its own;
+   * Only the 2.5D path. The 2D renderer draws all three of these as composite batches of its own;
    * `three25` draws world geometry and never reads these frame fields, so without this overlay a
-   * journal entry reads `PINNED` with no pin on the map, a click shows no pulse, a rejected click
-   * shows no X, and a selected character has no ring. Projected here so `WorldMarkers` never learns
-   * which renderer is mounted. Radii are world pixels in the frame, hence the zoom.
+   * journal entry reads `PINNED` with no pin on the map, a click shows no pulse and a rejected
+   * click shows no X. Projected here so `WorldMarkers` never learns which renderer is mounted.
+   * Radii are world pixels in the frame, hence the zoom.
+   *
+   * The selection ring is NOT one of them: it composites under characters, which an overlay cannot
+   * do, so `three25` bakes it into its own ground batch.
    */
   const markerVisuals = useMemo((): WorldMarkerVisuals | undefined => {
     if (!renderer2_5d) return undefined;
     const { zoom } = renderCamera;
-    const ring = worldFrame.selectionRing;
-    const ringScreen = project(renderCamera, { x: ring.worldX, y: ring.worldY });
     const pulse = worldFrame.destinationPulse;
     const pulseScreen = pulse ? project(renderCamera, { x: pulse.worldX, y: pulse.worldY }) : undefined;
     const failureMarker = worldFrame.failureMarker;
@@ -1675,14 +1676,6 @@ export function WorldScene({
           y: foot.y,
         };
       }),
-      selectionRing: {
-        color: ring.color,
-        radiusX: ring.radiusX * zoom,
-        radiusY: ring.radiusY * zoom,
-        strokeWidth: ring.strokeWidth,
-        x: ringScreen.x,
-        y: ringScreen.y,
-      },
     };
   }, [project, renderCamera, renderer2_5d, worldFrame]);
   const portalZones = useMemo(() => map.source.portals.map((portal) => ({
