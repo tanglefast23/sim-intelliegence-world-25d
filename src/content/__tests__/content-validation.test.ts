@@ -16,10 +16,10 @@ describe('content validation', () => {
 
   test('the locked content layout and minimum fixtures validate', () => {
     const catalog = buildContentCatalog(validBundle);
-    expect(catalog.characters).toHaveLength(35);
+    expect(catalog.characters).toHaveLength(48);
     expect(catalog.characters.filter(({ tier }) => tier === 'full_ai')).toHaveLength(8);
-    expect(catalog.characters.filter(({ tier }) => tier === 'ambient')).toHaveLength(26);
-    expect(catalog.locations).toHaveLength(14);
+    expect(catalog.characters.filter(({ tier }) => tier === 'ambient')).toHaveLength(39);
+    expect(catalog.locations).toHaveLength(16);
     expect(catalog.factions).toHaveLength(2);
     expect(catalog.rules).toHaveLength(10);
     expect(catalog.rules.some(({ npcId }) => npcId === 'resident_01')).toBe(false);
@@ -35,7 +35,7 @@ describe('content validation', () => {
   test('indexes every world location under one known neighborhood', () => {
     const catalog = buildContentCatalog(validBundle);
     const index = buildLocationNeighborhoodIndex(catalog.locations);
-    expect(index.size).toBe(14);
+    expect(index.size).toBe(16);
     expect(index.get('protagonist_villa')).toBe('northwest_residential');
     expect(index.get('devon_bar')).toBe('northeast_downtown');
     expect(index.get('sora_boutique')).toBe('southwest_commercial');

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import northwestMapJson from '../../../content/maps/northwest.json';
-import revision15PixelHashes from '../../../assets/source/art/revision-15-pixel-hashes.json';
+import revision16PixelHashes from '../../../assets/source/art/revision-16-pixel-hashes.json';
 import { buildAtlas } from '../build-world-atlas';
 import { decodePng } from '../png';
 import {
@@ -25,7 +25,7 @@ const SUNWARD_SPRITES = [
   'tile.villa-floor-c', 'tile.villa-floor-d', 'tile.plaza-paver-b',
   'tile.boardwalk-b', 'tile.decal-sand-shells',
 ] as const;
-const MAP_SOURCE_SHA256 = '046b9bfee85770a51ba4588873179a404312a301ab6b10eedd9b0bffdf74ba36';
+const MAP_SOURCE_SHA256 = '8a2bd0b59b11f37152ccfa75a6085c1649eba0bf45b2d86ad2461ddd6a0138a5';
 
 function rectanglePixels(
   bitmap: ReturnType<typeof decodePng>,
@@ -53,19 +53,19 @@ function alphaCount(pixels: Buffer): number {
 describe('Phase 30 complete Tier A Sunward art', () => {
   const built = buildAtlas();
   const bitmap = decodePng(built.png);
-  const revision15Cells = revision15PixelHashes.cells as Readonly<Record<string, string>>;
+  const revision15Cells = revision16PixelHashes.cells as Readonly<Record<string, string>>;
 
   test('keeps the revised Sunward geometry generated and versioned', () => {
     const source = readFileSync(resolve(process.cwd(), 'content/maps/northwest.json'));
     expect(createHash('sha256').update(source).digest('hex')).toBe(MAP_SOURCE_SHA256);
-    expect(northwestMapJson.layoutRevision).toBe(2);
+    expect(northwestMapJson.layoutRevision).toBe(3);
     expect(northwestMapJson.ground.regions).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'sunward-shallows', sprite: 'tile.shallow-water' }),
     ]));
   });
 
   test('makes all completed Sunward materials and states public and revisioned', () => {
-    expect(ART_PRESENTATION_REVISION).toBe(15);
+    expect(ART_PRESENTATION_REVISION).toBe(16);
     expect(MATERIAL_RECIPE_BY_ID['warm-sand']?.publicVariantSprites).toEqual([
       'tile.warm-sand', 'tile.warm-sand-b', 'tile.warm-sand-c', 'tile.warm-sand-d',
     ]);

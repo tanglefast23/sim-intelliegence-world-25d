@@ -7,6 +7,7 @@ export const NeighborhoodIdSchema = z.enum([
   'northeast_downtown',
   'southwest_commercial',
   'southeast_docks',
+  'west_office',
 ]);
 
 export const WorldLocationSchema = z.object({

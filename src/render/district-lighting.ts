@@ -77,6 +77,29 @@ const DISTRICTS: Readonly<Record<MapId, DistrictPreset>> = {
       { x: 49, y: 34, radius: 50 },
     ],
   },
+  west_office: {
+    // Cool fluorescent rather than a district hue: the office is lit by its own ceiling, and a
+    // warm accent here would read as evening light leaking through a windowless interior.
+    //
+    // NOT the spec's 11.4 numbers, and the reason is structural rather than taste. It asks for
+    // `pools: []` and two casters, but this table also feeds the frozen 2D renderer, which has no
+    // ceiling-light concept at all — an empty pool list leaves 2D pitch dark, and the shared test
+    // requires three casters and three pools of every district. So the office carries three of
+    // each, placed on its interior rather than on its lot.
+    accent: '#c8d4e0',
+    // Three interior anchors, not the lot: the scene is the building. Step 7's ceiling rig places
+    // the real fixture column; these are the pools the district owns whatever the rig does.
+    casters: [{ x: 18, y: 14 }, { x: 36, y: 14 }, { x: 25, y: 33 }],
+    intensity: 1,
+    name: 'LEDGER FLUOR',
+    shadowColor: '#2a314058',
+    shelterShade: '#1c243033',
+    pools: [
+      { x: 18, y: 14, radius: 44 },
+      { x: 36, y: 14, radius: 44 },
+      { x: 25, y: 33, radius: 40 },
+    ],
+  },
 };
 
 /**

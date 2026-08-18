@@ -202,6 +202,7 @@ export async function validateContent(rootPath = process.cwd()): Promise<void> {
     northeast_downtown: 'northeast.json',
     southwest_commercial: 'southwest.json',
     southeast_docks: 'southeast.json',
+    west_office: 'west.json',
   };
   const mapEntries = await Promise.all(MAP_IDS.map(async (mapId) => [
     mapId,

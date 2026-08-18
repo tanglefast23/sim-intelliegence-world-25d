@@ -9,6 +9,7 @@ export const MAP_IDS = [
   'northeast_downtown',
   'southwest_commercial',
   'southeast_docks',
+  'west_office',
 ] as const;
 export type MapId = typeof MAP_IDS[number];
 
@@ -55,6 +56,7 @@ export function buildWorldMapCatalog(
     northeast_downtown: compileWorldMap(candidates.northeast_downtown, knownSprites),
     southwest_commercial: compileWorldMap(candidates.southwest_commercial, knownSprites),
     southeast_docks: compileWorldMap(candidates.southeast_docks, knownSprites),
+    west_office: compileWorldMap(candidates.west_office, knownSprites),
   } satisfies WorldMapCatalog;
   assertReciprocalPortals(catalog);
   assertNeighborhoodRoutes(catalog);
@@ -125,6 +127,7 @@ export function buildWorldMapV2Catalog(
     northeast_downtown: compile(candidates.northeast_downtown),
     southwest_commercial: compile(candidates.southwest_commercial),
     southeast_docks: compile(candidates.southeast_docks),
+    west_office: compile(candidates.west_office),
   } satisfies WorldMapV2Catalog;
   for (const mapId of MAP_IDS) {
     if (catalog[mapId].source.id !== mapId) {

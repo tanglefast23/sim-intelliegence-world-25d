@@ -2,9 +2,10 @@
 export const GENERATED_LAYOUT = {
   "layoutRevisions": {
     "northeast_downtown": 2,
-    "northwest_residential": 2,
+    "northwest_residential": 3,
     "southeast_docks": 2,
-    "southwest_commercial": 2
+    "southwest_commercial": 2,
+    "west_office": 1
   },
   "actorTiles": {
     "protagonist": {

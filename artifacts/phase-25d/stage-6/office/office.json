@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "scenes": [
+    {
+      "name": "cubicles-night",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "cubicles-night.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 931,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 0,
+        "vfxAlphaQuads": 0,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.4,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "cubicles-noon",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "cubicles-noon.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 931,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 0,
+        "vfxAlphaQuads": 0,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.3,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "hall-night",
+      "yawDegrees": 45,
+      "shadowPath": "lit",
+      "screenshot": "hall-night.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 10,
+        "meshCount": 907,
+        "yawDegrees": 45,
+        "shadowPath": "lit",
+        "shadowMapEnabled": true,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 0,
+        "vfxAlphaQuads": 8,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.4,
+        "frameSamples": 120
+      }
+    },
+    {
+      "name": "cubicles-night-fallback",
+      "yawDegrees": 45,
+      "shadowPath": "fallback",
+      "screenshot": "cubicles-night-fallback.png",
+      "evidence": {
+        "rendererKind": "threejs-2-5d",
+        "drawCalls": 8,
+        "meshCount": 931,
+        "yawDegrees": 45,
+        "shadowPath": "fallback",
+        "shadowMapEnabled": false,
+        "atlasDrawCalls": 3,
+        "vfxAdditiveQuads": 0,
+        "vfxAlphaQuads": 0,
+        "frameMedianMs": 8.3,
+        "frameP95Ms": 9.1,
+        "frameSamples": 120
+      }
+    }
+  ]
+}

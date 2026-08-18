@@ -7,10 +7,11 @@ import type { TilePoint, WorldMapV2 } from '../../src/world/maps/schema';
 import { deriveNeighborhoodRoutes } from '../../src/world/transfers/routes';
 
 const LAYOUT_REVISIONS: Readonly<Record<MapId, number>> = {
-  northwest_residential: 2,
+  northwest_residential: 3,
   northeast_downtown: 2,
   southwest_commercial: 2,
   southeast_docks: 2,
+  west_office: 1,
 };
 
 type MapObject = WorldMapV2['objects'][number];
@@ -424,11 +425,12 @@ function northwestMap(): WorldMapV2 {
     portals: [
       { id: 'to-downtown', edge: 'east', tile: { x: 63, y: 24 }, destinationMapId: 'northeast_downtown', destinationEntranceId: 'from-residential' },
       { id: 'to-commercial', edge: 'south', tile: { x: 32, y: 47 }, destinationMapId: 'southwest_commercial', destinationEntranceId: 'from-residential' },
+      { id: 'to-office', edge: 'west', tile: { x: 0, y: 24 }, destinationMapId: 'west_office', destinationEntranceId: 'from-residential' },
     ],
     terrainSolids: [
       { id: 'sunward-shallows', kind: 'water', bounds: { x: 35, y: 42, width: 24, height: 6 } },
     ],
-    stagingTiles: [{ x: 62, y: 24 }, { x: 32, y: 46 }, { x: 16, y: 25 }],
+    stagingTiles: [{ x: 62, y: 24 }, { x: 32, y: 46 }, { x: 16, y: 25 }, { x: 1, y: 24 }],
     spawns: {
       protagonist: { x: 18, y: 18 }, linda: { x: 23, y: 28 }, generic_resident: { x: 29, y: 33 },
       linda_boyfriend: { x: 25, y: 28 }, mina_park: { x: 34, y: 15 }, rafael_cruz: { x: 27, y: 5 },
@@ -860,11 +862,55 @@ function southwestMap(): WorldMapV2 {
       { x: 20, y: 42, sprite: 'tile.table-left', solid: true },
       { x: 21, y: 42, sprite: 'tile.table-right', solid: true },
     ] }),
+    /**
+     * THREE posts, not eight, and the five that went are planters rather than gaps.
+     *
+     * Eight lamps on a 4-by-12 lattice is what held this district at 8.9 while the other three
+     * passed. It is not a brightness problem and the night key was already swept 0.65 to 1.6 with
+     * the pooling ratio stuck at 1.41-1.45 the whole way: an even grid has no pocket to find, so
+     * every lever that raises light raises all of it. The three that stay are a PAIR at the stall
+     * row, which overlap into one warm pocket, and one far south so the frame keeps depth instead
+     * of ending in a black plate.
+     *
+     * Converted, not deleted. `sunset-courtyard` is `active-public`, so `detailRatio` has to stay
+     * above 0.08 and five vanished detail cells would fail the build rather than dim the yard.
+     * Planters are solid where lamps are not, which also lifts a solid ratio sitting near its
+     * floor.
+     */
+    /**
+     * Green mass and ground texture in the bare south-east of the yard.
+     *
+     * With the flood gone the capture showed the other half of the problem: the frame was one hue
+     * over large empty ground. Everything in it — paver, stalls, canopies, even the shadows — is a
+     * shade of orange, and a wide bare apron carried no material at all. The fountain and a single
+     * planter were the only things that were not orange, and they read instantly, which is what
+     * said the fix was contrast rather than more light.
+     *
+     * Trees are upright billboards, so they add a tall green silhouette against the warm ground
+     * rather than another low box.
+     *
+     * The obvious cheap half does NOT work and is not here: `tile.market-detail-*` are in
+     * `FLAT_SPRITES`, which in 2.5D means they emit no box AND no floor quad. They render nothing
+     * at all. Six of them were placed on the dark apron and then moved into the lit pocket, and
+     * both captures came back byte-identical.
+     */
+    objectFromTiles({ id: 'courtyard-green-mass', kind: 'market-greenery', areaId: 'sunset-courtyard', tiles: [
+      { x: 18, y: 38, sprite: 'tile.decal-canopy-tree', solid: true },
+      // Not (22,41): that is rafael_cruz's authored work tile, and a solid on it fails the
+      // cardinal-reachability gate rather than just looking wrong.
+      { x: 21, y: 43, sprite: 'tile.decal-canopy-tree', solid: true },
+      { x: 14, y: 42, sprite: 'tile.decal-canopy-tree', solid: true },
+      { x: 20, y: 36, sprite: 'tile.flowering-market-planter', solid: true },
+      { x: 16, y: 40, sprite: 'tile.flowering-market-planter', solid: true },
+    ] }),
     objectFromTiles({ id: 'courtyard-edge-fixtures', kind: 'market-lights', areaId: 'sunset-courtyard', tiles: [
       { x: 8, y: 32, sprite: 'tile.fixture-lamp' }, { x: 12, y: 32, sprite: 'tile.fixture-lamp' },
-      { x: 20, y: 32, sprite: 'tile.fixture-lamp' }, { x: 24, y: 32, sprite: 'tile.fixture-lamp' },
-      { x: 8, y: 44, sprite: 'tile.fixture-lamp' }, { x: 12, y: 44, sprite: 'tile.fixture-lamp' },
-      { x: 20, y: 44, sprite: 'tile.fixture-lamp' }, { x: 24, y: 44, sprite: 'tile.fixture-lamp' },
+      { x: 20, y: 32, sprite: 'tile.flowering-market-planter', solid: true },
+      { x: 24, y: 32, sprite: 'tile.flowering-market-planter', solid: true },
+      { x: 8, y: 44, sprite: 'tile.flowering-market-planter', solid: true },
+      { x: 12, y: 44, sprite: 'tile.flowering-market-planter', solid: true },
+      { x: 20, y: 44, sprite: 'tile.fixture-lamp' },
+      { x: 24, y: 44, sprite: 'tile.flowering-market-planter', solid: true },
       { x: 8, y: 35, sprite: 'tile.flowering-market-planter' }, { x: 8, y: 41, sprite: 'tile.flowering-market-planter' },
       { x: 24, y: 35, sprite: 'tile.flowering-market-planter' }, { x: 24, y: 41, sprite: 'tile.flowering-market-planter' },
     ] }),
@@ -888,12 +934,12 @@ function southwestMap(): WorldMapV2 {
       { x: 35, y: 6, sprite: 'tile.fixture-festival-lantern', solid: true },
       { x: 28, y: 18, sprite: 'tile.fixture-festival-lantern', solid: true },
       { x: 35, y: 18, sprite: 'tile.fixture-festival-lantern', solid: true },
-      { x: 12, y: 22, sprite: 'tile.fixture-festival-lantern', solid: true },
-      { x: 22, y: 22, sprite: 'tile.fixture-festival-lantern', solid: true },
+      // The four on the COURTYARD lip are gone: (12,22) (22,22) (12,28) (22,28). They stood four
+      // to six tiles from the lamp row below and kept the outdoor distance crush at zero across
+      // the top of the capture, so the yard had no falloff to read. The east pair is kept — it
+      // lights the restaurant frontage, which is a different frame.
       { x: 42, y: 22, sprite: 'tile.fixture-festival-lantern', solid: true },
       { x: 54, y: 22, sprite: 'tile.fixture-festival-lantern', solid: true },
-      { x: 12, y: 28, sprite: 'tile.fixture-festival-lantern', solid: true },
-      { x: 22, y: 28, sprite: 'tile.fixture-festival-lantern', solid: true },
       { x: 42, y: 28, sprite: 'tile.fixture-festival-lantern', solid: true },
       { x: 54, y: 28, sprite: 'tile.fixture-festival-lantern', solid: true },
     ] }),
@@ -914,7 +960,10 @@ function southwestMap(): WorldMapV2 {
       { id: 'east-west-promenade', x: 0, y: 23, width: 64, height: 5, sprite: 'tile.sunset-promenade' },
       { id: 'north-south-promenade', x: 30, y: 0, width: 5, height: 48, sprite: 'tile.sunset-promenade' },
       { id: 'central-market-mosaic', x: 28, y: 21, width: 9, height: 9, sprite: 'tile.sunset-mosaic' },
-      { id: 'courtyard-market-rug', x: 7, y: 31, width: 19, height: 14, sprite: 'tile.sunset-mosaic' },
+      // Pocket-sized. A 19x14 gold mosaic under overlapping pools is a lit plate, not a focus:
+      // it was the brightest thing in frame everywhere it reached. Shrunk to the stall row, it is
+      // the warm centre and the darker paver apron around it becomes the world.
+      { id: 'courtyard-market-rug', x: 9, y: 32, width: 8, height: 6, sprite: 'tile.sunset-mosaic' },
       { id: 'courtyard-customer-lane', x: 8, y: 36, width: 17, height: 3, sprite: 'tile.sunset-promenade' },
       { id: 'market-hall-floor', x: 6, y: 7, width: 22, height: 14, sprite: 'tile.sunset-floor' },
       { id: 'food-arcade-floor', x: 39, y: 7, width: 21, height: 14, sprite: 'tile.sunset-floor' },
@@ -1202,10 +1251,570 @@ function southeastMap(): WorldMapV2 {
   };
   return map;
 }
+/**
+ * The twelve cubicle modules, derived from the grid rather than hand-listed.
+ *
+ * A module is 6 wide by 4 deep. East partitions are SHARED: column n's east wall at `west + 5` is
+ * column n+1's west wall, so it is placed once by whichever module reaches it first. Hand-listing
+ * ninety-six part ids in the builder and again in a test is how a shared wall silently becomes two
+ * boxes stacked in one cell, which reads as a thicker wall on exactly one column.
+ *
+ * The south face is deliberately open. That is the aisle, and it is how a clerk walks in.
+ */
+const CUBICLE_COLUMN_WEST = [8, 13, 18, 23] as const;
+const CUBICLE_ROW_NORTH = [8, 13, 18] as const;
+
+type CubicleModule = Readonly<{
+  id: string;
+  standTile: TilePoint;
+  objects: readonly MapObject[];
+}>;
+
+function cubicleModules(): readonly CubicleModule[] {
+  const placedPartitions = new Set<string>();
+  const modules: CubicleModule[] = [];
+  for (const [rowIndex, north] of CUBICLE_ROW_NORTH.entries()) {
+    for (const [columnIndex, west] of CUBICLE_COLUMN_WEST.entries()) {
+      const id = `cubicle-r${rowIndex}c${columnIndex}`;
+      const partitionTiles: ObjectTile[] = [];
+      const claim = (x: number, y: number, sprite: string): void => {
+        const key = `${x},${y}`;
+        if (placedPartitions.has(key)) return;
+        placedPartitions.add(key);
+        partitionTiles.push({ x, y, sprite, solid: true });
+      };
+      for (let offset = 1; offset <= 4; offset += 1) {
+        claim(west + offset, north, 'tile.cubicle-partition-h');
+      }
+      for (let offset = 1; offset <= 3; offset += 1) {
+        claim(west, north + offset, 'tile.cubicle-partition-v');
+        claim(west + 5, north + offset, 'tile.cubicle-partition-v');
+      }
+      modules.push({
+        id,
+        standTile: { x: west + 2, y: north + 2 },
+        objects: [
+          objectFromTiles({
+            id: `${id}-north`, kind: 'cubicle-partition', areaId: 'cubicle-floor',
+            tiles: partitionTiles,
+          }),
+          objectFromTiles({
+            id: `${id}-desk`, kind: 'desk', areaId: 'cubicle-floor',
+            tiles: [
+              { x: west + 1, y: north + 1, sprite: 'tile.table-left', solid: true },
+              { x: west + 2, y: north + 1, sprite: 'tile.table-right', solid: true },
+            ],
+          }),
+          objectFromTiles({
+            id: `${id}-filing`, kind: 'filing', areaId: 'cubicle-floor',
+            tiles: [{ x: west + 4, y: north + 1, sprite: 'tile.counter-left', solid: true }],
+          }),
+          // The panel is NOT solid and deliberately shares the desk's cell. It is a ceiling
+          // fixture: the desk owns the furniture, the panel owns the light above it.
+          objectFromTiles({
+            id: `${id}-ceiling`, kind: 'ceiling-fixture', areaId: 'cubicle-floor',
+            tiles: [{ x: west + 2, y: north + 1, sprite: 'tile.fixture-ceiling-panel' }],
+          }),
+        ],
+      });
+    }
+  }
+  return modules;
+}
+
+/** Ceiling panels outside the cubicle farm. Spec 10.6, one object per area so density counts it. */
+function ceilingPanels(
+  id: string,
+  areaId: string,
+  tiles: readonly TilePoint[],
+): MapObject {
+  return objectFromTiles({
+    id, kind: 'ceiling-fixture', areaId,
+    tiles: tiles.map((tile) => ({ ...tile, sprite: 'tile.fixture-ceiling-panel' })),
+  });
+}
+
+/**
+ * The Ledger Annex: a parking strip on the east, one office building filling the west.
+ *
+ * Seven areas, one building. `measureAndValidateDensity` runs its whole gate PER AREA, so each of
+ * the six interior areas has to clear `objectSolidRatio` 0.08-0.30 and `detailRatio` 0.12 on its
+ * own bounds — the outer shell runs sit outside every one of them and count for nothing.
+ *
+ * Every large walkable rectangle is declared in `intentionalOpenAreas`. That is not a formality:
+ * the aisles, the door-to-desk walk and the service corridor are all bigger than 6x6, and an
+ * undeclared one fails the build rather than the eye.
+ */
+function westMap(): WorldMapV2 {
+  const modules = cubicleModules();
+  const lotFixtures = objectFromTiles({
+    id: 'annex-lot-fixtures', kind: 'lot-fixtures', areaId: 'annex-lot',
+    tiles: [
+      { x: 56, y: 10, sprite: 'tile.parked-car-cyan-left', solid: true },
+      { x: 57, y: 10, sprite: 'tile.parked-car-cyan-right', solid: true },
+      { x: 56, y: 36, sprite: 'tile.parked-car-coral-left', solid: true },
+      { x: 57, y: 36, sprite: 'tile.parked-car-coral-right', solid: true },
+      { x: 58, y: 22, sprite: 'tile.sign-civic', solid: true },
+      { x: 55, y: 20, sprite: 'tile.fixture-planter', solid: true },
+      { x: 55, y: 28, sprite: 'tile.fixture-planter' },
+      // The spec's lot is seven cells; the placeholder gate wants eight. This is the eighth.
+      //
+      // A PLANTER, not the lamp post that was here first. Spec 11.6 is explicit: there are no lot
+      // lamps in v1, the lot is meant to fall toward the void at night, and the building is the
+      // stage. A post here is not a neutral filler — it carries a point light and a floor pool, so
+      // it lights the car park the spec deliberately leaves dark.
+      { x: 58, y: 30, sprite: 'tile.fixture-planter' },
+    ],
+  });
+  // Aisle troffers, between the module rows rather than inside them.
+  //
+  // Twelve panels one-per-cubicle light the desks and leave the walkways between them dark, which
+  // measures as pooling 2.04 against a 1.9 ceiling. The spec's own instruction for that reading is
+  // to add a panel rather than lift the hemisphere, and the aisles are exactly where the light is
+  // missing. Not solid, so they do not narrow the walkway they light.
+  const aisleCeiling = ceilingPanels('annex-ceiling-aisles', 'cubicle-floor', [
+    { x: 10, y: 12 }, { x: 16, y: 12 }, { x: 22, y: 12 },
+    { x: 10, y: 17 }, { x: 16, y: 17 }, { x: 22, y: 17 },
+  ]);
+  const corridorFixtures = [
+    objectFromTiles({
+      id: 'annex-copier', kind: 'copier', areaId: 'cubicle-floor',
+      tiles: [
+        { x: 36, y: 9, sprite: 'tile.counter-left', solid: true },
+        { x: 37, y: 9, sprite: 'tile.counter-right', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'annex-corridor-planter', kind: 'planter', areaId: 'cubicle-floor',
+      tiles: [{ x: 32, y: 9, sprite: 'tile.fixture-planter', solid: true }],
+    }),
+    objectFromTiles({
+      id: 'annex-corridor-sign', kind: 'sign', areaId: 'cubicle-floor',
+      tiles: [{ x: 40, y: 10, sprite: 'tile.sign-civic', solid: true }],
+    }),
+  ];
+  // The hall is 37x5, and `furnished-interior` wants a solid-object ratio of at least 0.08 on
+  // those 185 cells. A bare corridor scores 0.016. Six bench pairs along the north wall and five
+  // planters carry it without closing the spine: y = 24 stays clear end to end, and y = 26 stays
+  // clear at x = 24, which is the only route south to the lower rooms.
+  const hallFixtures = [
+    objectFromTiles({
+      id: 'annex-hall-benches', kind: 'bench', areaId: 'annex-hall',
+      // On y = 25, the hall's SOUTH edge. They sat on y = 22 first, directly under the cubicle
+      // wall, which is where a bench belongs in a real office and exactly where it hurts here:
+      // spec 8.5 keeps the hall open so a yaw-45 frame reads cubicle faces to the north, and a
+      // row of counters along that edge is the one thing that occludes them.
+      tiles: [10, 16, 22, 28, 34, 40].flatMap((west) => [
+        { x: west, y: 25, sprite: 'tile.counter-left', solid: true },
+        { x: west + 1, y: 25, sprite: 'tile.counter-right', solid: true },
+      ]),
+    }),
+    objectFromTiles({
+      id: 'annex-hall-planters', kind: 'planter', areaId: 'annex-hall',
+      tiles: [
+        { x: 12, y: 23, sprite: 'tile.fixture-planter', solid: true },
+        { x: 30, y: 23, sprite: 'tile.fixture-planter', solid: true },
+        { x: 42, y: 23, sprite: 'tile.fixture-planter', solid: true },
+        { x: 8, y: 23, sprite: 'tile.fixture-planter', solid: true },
+        { x: 36, y: 23, sprite: 'tile.fixture-planter', solid: true },
+      ],
+    }),
+    ceilingPanels('annex-ceiling-hall', 'annex-hall', [
+      { x: 18, y: 23 }, { x: 28, y: 23 }, { x: 38, y: 23 },
+      { x: 13, y: 25 }, { x: 21, y: 25 }, { x: 33, y: 25 }, { x: 41, y: 25 },
+      { x: 9, y: 23 }, { x: 24, y: 23 },
+    ]),
+  ];
+  const managerFixtures = [
+    objectFromTiles({
+      id: 'manager-desk', kind: 'desk', areaId: 'manager-office',
+      tiles: [
+        { x: 11, y: 30, sprite: 'tile.table-left', solid: true },
+        { x: 12, y: 30, sprite: 'tile.table-right', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'manager-filing', kind: 'filing', areaId: 'manager-office',
+      tiles: [
+        { x: 8, y: 29, sprite: 'tile.counter-left', solid: true },
+        { x: 9, y: 29, sprite: 'tile.counter-right', solid: true },
+        { x: 10, y: 29, sprite: 'tile.counter-left', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'manager-sofa', kind: 'sofa', areaId: 'manager-office',
+      tiles: [
+        { x: 14, y: 37, sprite: 'tile.sofa-left', solid: true },
+        { x: 15, y: 37, sprite: 'tile.sofa-right', solid: true },
+      ],
+      interactions: [{ id: 'manager-sofa-seat', kind: 'social', approachTiles: [{ x: 14, y: 38 }] }],
+    }),
+    objectFromTiles({
+      id: 'manager-meeting-table', kind: 'table', areaId: 'manager-office',
+      tiles: [
+        { x: 15, y: 34, sprite: 'tile.table-left', solid: true },
+        { x: 16, y: 34, sprite: 'tile.table-right', solid: true },
+      ],
+      interactions: [{ id: 'manager-meeting-seat', kind: 'social', approachTiles: [{ x: 15, y: 35 }] }],
+    }),
+    objectFromTiles({
+      id: 'manager-shelves', kind: 'filing', areaId: 'manager-office',
+      tiles: [
+        { x: 17, y: 35, sprite: 'tile.counter-left', solid: true },
+        { x: 17, y: 36, sprite: 'tile.counter-right', solid: true },
+        { x: 17, y: 37, sprite: 'tile.counter-left', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'manager-planter', kind: 'planter', areaId: 'manager-office',
+      tiles: [
+        { x: 17, y: 29, sprite: 'tile.fixture-planter', solid: true },
+        { x: 8, y: 39, sprite: 'tile.fixture-planter', solid: true },
+        { x: 18, y: 39, sprite: 'tile.fixture-planter', solid: true },
+        { x: 11, y: 39, sprite: 'tile.fixture-planter', solid: true },
+      ],
+    }),
+    ceilingPanels('annex-ceiling-manager', 'manager-office', [
+      { x: 13, y: 33 }, { x: 9, y: 36 }, { x: 17, y: 33 },
+      { x: 11, y: 35 }, { x: 15, y: 31 }, { x: 9, y: 32 },
+    ]),
+  ];
+  const coolerFixtures = [
+    objectFromTiles({
+      id: 'cooler-station', kind: 'cooler', areaId: 'cooler-nook',
+      tiles: [{ x: 24, y: 30, sprite: 'tile.water-cooler', solid: true }],
+    }),
+    objectFromTiles({
+      id: 'cooler-planters', kind: 'planter', areaId: 'cooler-nook',
+      tiles: [
+        { x: 22, y: 28, sprite: 'tile.fixture-planter', solid: true },
+        { x: 26, y: 28, sprite: 'tile.fixture-planter', solid: true },
+        { x: 22, y: 33, sprite: 'tile.fixture-planter', solid: true },
+        { x: 27, y: 37, sprite: 'tile.fixture-planter', solid: true },
+        { x: 22, y: 39, sprite: 'tile.fixture-planter', solid: true },
+        { x: 27, y: 31, sprite: 'tile.fixture-planter', solid: true },
+        { x: 23, y: 39, sprite: 'tile.fixture-planter', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'cooler-storage', kind: 'counter', areaId: 'cooler-nook',
+      tiles: [
+        { x: 25, y: 37, sprite: 'tile.counter-left', solid: true },
+        { x: 26, y: 37, sprite: 'tile.counter-right', solid: true },
+      ],
+    }),
+    ceilingPanels('annex-ceiling-cooler', 'cooler-nook', [
+      { x: 24, y: 31 }, { x: 26, y: 33 }, { x: 24, y: 38 }, { x: 22, y: 35 }, { x: 27, y: 29 },
+    ]),
+  ];
+  const kitchenFixtures = [
+    objectFromTiles({
+      id: 'kitchen-counter', kind: 'counter', areaId: 'annex-kitchen',
+      tiles: [
+        { x: 31, y: 28, sprite: 'tile.counter-left', solid: true },
+        { x: 32, y: 28, sprite: 'tile.counter-right', solid: true },
+        { x: 33, y: 28, sprite: 'tile.counter-left', solid: true },
+        { x: 34, y: 28, sprite: 'tile.counter-right', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'kitchen-table', kind: 'table', areaId: 'annex-kitchen',
+      tiles: [
+        { x: 34, y: 33, sprite: 'tile.table-left', solid: true },
+        { x: 35, y: 33, sprite: 'tile.table-right', solid: true },
+      ],
+      interactions: [{ id: 'kitchen-table-seat', kind: 'social', approachTiles: [{ x: 34, y: 34 }] }],
+    }),
+    objectFromTiles({
+      id: 'kitchen-planters', kind: 'planter', areaId: 'annex-kitchen',
+      tiles: [
+        { x: 31, y: 36, sprite: 'tile.fixture-planter', solid: true },
+        { x: 40, y: 36, sprite: 'tile.fixture-planter', solid: true },
+        { x: 40, y: 28, sprite: 'tile.fixture-planter', solid: true },
+        { x: 34, y: 39, sprite: 'tile.fixture-planter', solid: true },
+        { x: 42, y: 33, sprite: 'tile.fixture-planter', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'kitchen-appliances', kind: 'counter', areaId: 'annex-kitchen',
+      tiles: [
+        { x: 37, y: 28, sprite: 'tile.counter-left', solid: true },
+        { x: 38, y: 28, sprite: 'tile.counter-right', solid: true },
+        { x: 39, y: 28, sprite: 'tile.counter-left', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'kitchen-second-table', kind: 'table', areaId: 'annex-kitchen',
+      tiles: [
+        { x: 37, y: 36, sprite: 'tile.table-left', solid: true },
+        { x: 38, y: 36, sprite: 'tile.table-right', solid: true },
+      ],
+      interactions: [{ id: 'kitchen-second-seat', kind: 'social', approachTiles: [{ x: 37, y: 37 }] }],
+    }),
+    ceilingPanels('annex-ceiling-kitchen', 'annex-kitchen', [
+      { x: 33, y: 31 }, { x: 39, y: 35 }, { x: 37, y: 31 },
+      { x: 31, y: 33 }, { x: 35, y: 38 }, { x: 41, y: 30 }, { x: 38, y: 33 },
+    ]),
+  ];
+  const lobbyFixtures = [
+    objectFromTiles({
+      id: 'lobby-reception', kind: 'counter', areaId: 'annex-lobby',
+      tiles: [
+        { x: 46, y: 22, sprite: 'tile.counter-left', solid: true },
+        { x: 46, y: 23, sprite: 'tile.counter-right', solid: true },
+        { x: 46, y: 24, sprite: 'tile.counter-left', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'lobby-sofa', kind: 'sofa', areaId: 'annex-lobby',
+      tiles: [
+        { x: 46, y: 14, sprite: 'tile.sofa-left', solid: true },
+        { x: 47, y: 14, sprite: 'tile.sofa-right', solid: true },
+      ],
+      interactions: [{ id: 'lobby-sofa-seat', kind: 'social', approachTiles: [{ x: 46, y: 15 }] }],
+    }),
+    objectFromTiles({
+      id: 'lobby-planters', kind: 'planter', areaId: 'annex-lobby',
+      tiles: [
+        { x: 45, y: 9, sprite: 'tile.fixture-planter', solid: true },
+        { x: 50, y: 9, sprite: 'tile.fixture-planter', solid: true },
+        { x: 45, y: 37, sprite: 'tile.fixture-planter', solid: true },
+        { x: 50, y: 37, sprite: 'tile.fixture-planter', solid: true },
+        { x: 45, y: 17, sprite: 'tile.fixture-planter', solid: true },
+        { x: 50, y: 30, sprite: 'tile.fixture-planter', solid: true },
+        { x: 48, y: 10, sprite: 'tile.fixture-planter', solid: true },
+        { x: 52, y: 15, sprite: 'tile.fixture-planter', solid: true },
+        { x: 52, y: 33, sprite: 'tile.fixture-planter', solid: true },
+        { x: 46, y: 39, sprite: 'tile.fixture-planter', solid: true },
+        { x: 45, y: 33, sprite: 'tile.fixture-planter', solid: true },
+        { x: 51, y: 8, sprite: 'tile.fixture-planter', solid: true },
+        { x: 46, y: 30, sprite: 'tile.fixture-planter', solid: true },
+        { x: 51, y: 39, sprite: 'tile.fixture-planter', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'lobby-waiting-sofa', kind: 'sofa', areaId: 'annex-lobby',
+      tiles: [
+        { x: 49, y: 14, sprite: 'tile.sofa-left', solid: true },
+        { x: 50, y: 14, sprite: 'tile.sofa-right', solid: true },
+      ],
+      interactions: [{ id: 'lobby-waiting-seat', kind: 'social', approachTiles: [{ x: 49, y: 15 }] }],
+    }),
+    objectFromTiles({
+      id: 'lobby-mail-counter', kind: 'counter', areaId: 'annex-lobby',
+      tiles: [
+        { x: 45, y: 27, sprite: 'tile.counter-left', solid: true },
+        { x: 45, y: 28, sprite: 'tile.counter-right', solid: true },
+        { x: 45, y: 29, sprite: 'tile.counter-left', solid: true },
+      ],
+    }),
+    objectFromTiles({
+      id: 'lobby-sign', kind: 'sign', areaId: 'annex-lobby',
+      tiles: [{ x: 48, y: 20, sprite: 'tile.sign-civic', solid: true }],
+    }),
+    ceilingPanels('annex-ceiling-lobby', 'annex-lobby', [
+      { x: 47, y: 12 }, { x: 47, y: 24 }, { x: 47, y: 36 }, { x: 47, y: 18 }, { x: 47, y: 30 },
+      { x: 47, y: 8 }, { x: 47, y: 15 }, { x: 47, y: 21 }, { x: 47, y: 27 }, { x: 47, y: 33 },
+      { x: 47, y: 39 },
+    ]),
+  ];
+  const map = commonMap({
+    id: 'west_office',
+    displayName: 'Ledger Annex',
+    defaultSprite: 'tile.pale-concrete',
+    regions: [
+      { id: 'annex-carpet', x: 7, y: 7, width: 37, height: 34, sprite: 'tile.dock-floor' },
+      { id: 'annex-kitchen-floor', x: 30, y: 28, width: 13, height: 13, sprite: 'tile.sunset-floor' },
+      { id: 'annex-approach', x: 54, y: 23, width: 10, height: 3, sprite: 'tile.plaza-paver' },
+    ],
+    areas: [
+      {
+        id: 'cubicle-floor', bounds: { x: 7, y: 7, width: 37, height: 15 },
+        densityProfile: 'furnished-interior',
+        intentionalOpenAreas: [
+          { x: 8, y: 12, width: 21, height: 1 },
+          { x: 8, y: 17, width: 21, height: 1 },
+          { x: 7, y: 21, width: 37, height: 1 },
+          { x: 29, y: 7, width: 15, height: 15 },
+          { x: 7, y: 7, width: 1, height: 15 },
+        ],
+        // The spec calls y = 21 a buffer, but a 4-deep module at row north 18 occupies
+        // y = 18..21, so the only lanes that cross the farm unblocked are the two aisles.
+        entranceTiles: [{ x: 20, y: 21 }],
+        primaryRoutes: [{ x: 8, y: 12, width: 21, height: 1 }, { x: 8, y: 17, width: 21, height: 1 }],
+        requiredPortalIds: [],
+      },
+      {
+        id: 'annex-hall', bounds: { x: 7, y: 22, width: 37, height: 5 },
+        densityProfile: 'furnished-interior',
+        intentionalOpenAreas: [{ x: 7, y: 22, width: 37, height: 5 }],
+        entranceTiles: [{ x: 43, y: 23 }, { x: 20, y: 22 }, { x: 24, y: 25 }],
+        primaryRoutes: [{ x: 7, y: 24, width: 37, height: 1 }],
+        requiredPortalIds: [],
+      },
+      {
+        id: 'manager-office', bounds: { x: 7, y: 27, width: 14, height: 14 },
+        densityProfile: 'furnished-interior',
+        intentionalOpenAreas: [
+          { x: 10, y: 33, width: 8, height: 3 },
+          { x: 7, y: 27, width: 14, height: 2 },
+          { x: 7, y: 30, width: 4, height: 11 },
+          { x: 11, y: 36, width: 10, height: 5 },
+          { x: 13, y: 28, width: 8, height: 5 },
+        ],
+        entranceTiles: [{ x: 20, y: 33 }], primaryRoutes: [{ x: 12, y: 33, width: 8, height: 1 }],
+        requiredPortalIds: [],
+      },
+      {
+        id: 'cooler-nook', bounds: { x: 21, y: 27, width: 8, height: 14 },
+        densityProfile: 'furnished-interior',
+        intentionalOpenAreas: [
+          { x: 21, y: 29, width: 8, height: 4 },
+          { x: 21, y: 35, width: 8, height: 6 },
+        ],
+        entranceTiles: [{ x: 24, y: 27 }], primaryRoutes: [{ x: 25, y: 28, width: 1, height: 6 }],
+        requiredPortalIds: [],
+      },
+      {
+        id: 'annex-kitchen', bounds: { x: 29, y: 27, width: 15, height: 14 },
+        densityProfile: 'furnished-interior',
+        intentionalOpenAreas: [
+          { x: 29, y: 29, width: 15, height: 4 },
+          { x: 29, y: 34, width: 15, height: 7 },
+          { x: 35, y: 27, width: 9, height: 2 },
+        ],
+        entranceTiles: [{ x: 29, y: 33 }], primaryRoutes: [{ x: 30, y: 30, width: 13, height: 1 }],
+        requiredPortalIds: [],
+      },
+      {
+        id: 'annex-lobby', bounds: { x: 44, y: 7, width: 9, height: 34 },
+        densityProfile: 'furnished-interior',
+        intentionalOpenAreas: [
+          { x: 48, y: 20, width: 5, height: 9 },
+          { x: 44, y: 7, width: 9, height: 7 },
+          { x: 44, y: 25, width: 4, height: 12 },
+          { x: 44, y: 15, width: 9, height: 5 },
+          { x: 44, y: 38, width: 9, height: 3 },
+          { x: 48, y: 29, width: 5, height: 8 },
+        ],
+        entranceTiles: [{ x: 52, y: 24 }, { x: 44, y: 23 }],
+        primaryRoutes: [{ x: 48, y: 24, width: 5, height: 1 }],
+        requiredPortalIds: [],
+      },
+      {
+        id: 'annex-lot', bounds: { x: 54, y: 0, width: 10, height: 48 },
+        densityProfile: 'structural-placeholder', intentionalOpenAreas: [],
+        entranceTiles: [{ x: 62, y: 24 }], primaryRoutes: [],
+        requiredPortalIds: ['from-residential'],
+      },
+    ],
+    wallRuns: [
+      { id: 'annex-north', material: 'civic', bounds: { x: 6, y: 6, width: 48, height: 1 }, openings: [] },
+      { id: 'annex-south', material: 'civic', bounds: { x: 6, y: 41, width: 48, height: 1 }, openings: [] },
+      { id: 'annex-west', material: 'civic', bounds: { x: 6, y: 7, width: 1, height: 34 }, openings: [] },
+      { id: 'annex-east', material: 'civic', bounds: { x: 53, y: 7, width: 1, height: 34 }, openings: [{ id: 'annex-front-opening', tile: { x: 53, y: 24 } }] },
+      // The lower rooms hang off the water-cooler nook, and the nook's north side is deliberately
+      // open — that gap at y = 27 IS the hallway's route south, and walling it would seal three
+      // rooms behind a hallway with no way in.
+      //
+      // The spec's `cooler-east` run is dropped. It put an opening at (28,30) whose east side is
+      // `kitchen-west` at x = 29, so the doorway opened onto a solid wall and the compiler's
+      // reachability check rejected it. The nook and the kitchen already share `kitchen-west`.
+      { id: 'mgr-north', material: 'civic', bounds: { x: 7, y: 27, width: 13, height: 1 }, openings: [] },
+      { id: 'mgr-east', material: 'civic', bounds: { x: 20, y: 27, width: 1, height: 14 }, openings: [{ id: 'mgr-door', tile: { x: 20, y: 33 } }] },
+      { id: 'kitchen-west', material: 'civic', bounds: { x: 29, y: 27, width: 1, height: 14 }, openings: [{ id: 'kitchen-door', tile: { x: 29, y: 33 } }] },
+      { id: 'kitchen-north', material: 'civic', bounds: { x: 30, y: 27, width: 13, height: 1 }, openings: [] },
+      { id: 'lobby-west', material: 'civic', bounds: { x: 44, y: 7, width: 1, height: 16 }, openings: [] },
+      { id: 'lobby-west-south', material: 'civic', bounds: { x: 44, y: 24, width: 1, height: 17 }, openings: [] },
+    ],
+    objects: [
+      ...modules.flatMap(({ objects }) => objects),
+      aisleCeiling, ...corridorFixtures, ...hallFixtures, ...managerFixtures,
+      ...coolerFixtures, ...kitchenFixtures, ...lobbyFixtures,
+      lotFixtures,
+    ],
+    bindings: [
+      { locationId: 'west_office', areaIds: ['annex-lot'], preferredInteractionIds: [] },
+      {
+        locationId: 'ledger_annex',
+        areaIds: ['annex-lobby', 'annex-hall', 'cubicle-floor', 'manager-office', 'cooler-nook', 'annex-kitchen'],
+        preferredInteractionIds: ['lobby-sofa-seat'],
+      },
+    ],
+    portals: [
+      { id: 'from-residential', edge: 'east', tile: { x: 63, y: 24 }, destinationMapId: 'northwest_residential', destinationEntranceId: 'to-office' },
+    ],
+    stagingTiles: [{ x: 62, y: 24 }, { x: 50, y: 24 }],
+    spawns: {
+      'annex-entry': { x: 50, y: 24 },
+      office_manager: { x: 12, y: 32 },
+      ...Object.fromEntries(modules.map(({ standTile }, index) => [
+        `clerk_${String(index + 1).padStart(2, '0')}`, standTile,
+      ])),
+    },
+    effects: [
+      { id: 'office-kettle-steam', kind: 'steam', tile: { x: 31, y: 28 } },
+      { id: 'office-cooler-steam', kind: 'steam', tile: { x: 24, y: 30 } },
+    ],
+  });
+  map.doors = [
+    {
+      id: 'annex-front-door', openingId: 'annex-front-opening', initialState: 'closed-unlocked',
+      sprite: 'tile.closed-door', roofGroupId: 'annex-roof',
+      interaction: { id: 'annex-front-door-use', areaId: 'annex-lobby', approachTiles: [{ x: 52, y: 24 }, { x: 54, y: 24 }] },
+    },
+    {
+      id: 'annex-manager-door', openingId: 'mgr-door', initialState: 'closed-unlocked',
+      sprite: 'tile.closed-door', roofGroupId: 'annex-roof',
+      interaction: { id: 'annex-manager-door-use', areaId: 'manager-office', approachTiles: [{ x: 19, y: 33 }, { x: 21, y: 33 }] },
+    },
+    {
+      id: 'annex-kitchen-door', openingId: 'kitchen-door', initialState: 'closed-unlocked',
+      sprite: 'tile.closed-door', roofGroupId: 'annex-roof',
+      interaction: { id: 'annex-kitchen-door-use', areaId: 'annex-kitchen', approachTiles: [{ x: 28, y: 33 }, { x: 30, y: 33 }] },
+    },
+  ];
+  map.roofGroups = [{
+    id: 'annex-roof',
+    cells: [{ x: 6, y: 6, width: 48, height: 36 }],
+    interiorCells: [{ x: 7, y: 7, width: 46, height: 34 }],
+  }];
+  map.buildings = [{
+    id: 'ledger-annex',
+    areaIds: ['annex-lobby', 'annex-hall', 'cubicle-floor', 'manager-office', 'cooler-nook', 'annex-kitchen'],
+    outerWallRunIds: ['annex-north', 'annex-south', 'annex-west', 'annex-east'],
+    entranceOpeningIds: ['annex-front-opening'],
+    roofGroupId: 'annex-roof',
+  }];
+  /**
+   * The frame this map has to be able to open on.
+   *
+   * NOT the spec's composition, which cannot validate: it anchors the camera in the lobby at
+   * (50,24) and then requires `clerk_01` at (10,10) and the manager at (12,32) to be in shot.
+   * `validateStartComposition` checks every required actor against the viewport around the anchor,
+   * and no viewport holds a lobby anchor and the far corner of the cubicle farm at once.
+   *
+   * So the anchor moves to the farm, which is the scene anyway — the lobby is a corridor with a
+   * counter in it. Actors and parts are drawn from adjacent modules so the frame proves the thing
+   * that matters: cubicles, the people in them, and the light above them, all at once.
+   */
+  map.startComposition = {
+    cameraAnchor: { x: 16, y: 14 },
+    requiredActorIds: ['clerk_01', 'clerk_02', 'clerk_05'],
+    requiredDetailPartIds: [
+      'cubicle-r0c0-desk-part-01',
+      'cubicle-r0c1-north-part-01',
+      'annex-ceiling-aisles-part-01',
+    ],
+    landmarkAreaIds: ['cubicle-floor'],
+  };
+  return map;
+}
 
 const LOCATION_NEIGHBORHOODS = new Map<string, string>([
   ['northwest_residential', 'northwest_residential'], ['northeast_downtown', 'northeast_downtown'],
   ['southwest_commercial', 'southwest_commercial'], ['southeast_docks', 'southeast_docks'],
+  ['west_office', 'west_office'], ['ledger_annex', 'west_office'],
   ['protagonist_villa', 'northwest_residential'], ['linda_villa', 'northwest_residential'],
   ['mina_spa', 'northwest_residential'], ['devon_bar', 'northeast_downtown'],
   ['elise_studio', 'northeast_downtown'], ['rafael_cafe', 'southwest_commercial'],
@@ -1229,6 +1838,7 @@ export async function buildProductionMaps(rootPath = process.cwd()): Promise<voi
     northeast_downtown: northeastMap(),
     southwest_commercial: southwestMap(),
     southeast_docks: southeastMap(),
+    west_office: westMap(),
   } as const;
   const catalog = buildWorldMapV2Catalog(maps, {
     locationNeighborhoodById: LOCATION_NEIGHBORHOODS,
@@ -1238,6 +1848,7 @@ export async function buildProductionMaps(rootPath = process.cwd()): Promise<voi
   const names: Readonly<Record<MapId, string>> = {
     northwest_residential: 'northwest.json', northeast_downtown: 'northeast.json',
     southwest_commercial: 'southwest.json', southeast_docks: 'southeast.json',
+    west_office: 'west.json',
   };
   await Promise.all((Object.keys(maps) as MapId[]).map((mapId) => writeFile(
     resolve(rootPath, 'content', 'maps', names[mapId]),

@@ -11,6 +11,7 @@ const ALL_MAP_IDS = [
   'northwest_residential',
   'southeast_docks',
   'southwest_commercial',
+  'west_office',
 ] as const;
 
 function stale(candidate: WorldState): WorldState {
@@ -36,6 +37,38 @@ describe('deterministic layout recovery', () => {
     expect(result.state.layoutMigrationEvidence).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ recordId: 'protagonist', field: 'world_position' }),
     ]));
+  });
+
+  /**
+   * A save written before a map existed has no record for it, and `maps` is an open record so
+   * nothing rejects that at parse time. Without this insert the save loads clean and then the
+   * `transition-protagonist` reducer throws the first time the player walks through the new portal.
+   */
+  test('inserts a map record the save has never seen, without granting it discovered entrances', () => {
+    const initial = createInitialState();
+    const { west_office: _record, ...maps } = initial.maps;
+    const { west_office: _revision, ...layoutRevisions } = initial.layoutRevisions;
+    // A genuine pre-office save has no office cast either, and the schema rejects a schedule whose
+    // block names a map the save does not have. Dropping the map alone builds a state that could
+    // never have been written.
+    const onOffice = (mapId: string): boolean => mapId === 'west_office';
+    const npcs = Object.fromEntries(Object.entries(initial.npcs)
+      .filter(([, npc]) => npc.presence.kind === 'in_transit' || !onOffice(npc.presence.mapId)));
+    const schedules = Object.fromEntries(Object.entries(initial.schedules)
+      .filter(([, schedule]) => !schedule.blocks.some(({ mapId }) => onOffice(mapId))));
+    const source = WorldStateSchema.parse({
+      ...initial, maps, layoutRevisions, npcs, schedules, layoutMigrationEvidence: [],
+    });
+    expect(source.maps.west_office).toBeUndefined();
+
+    const result = recoverWorldLayout(source, WORLD_MAP_CATALOG);
+    expect(result.migratedMapIds).toEqual(['west_office']);
+    expect(result.state.maps.west_office).toEqual({
+      id: 'west_office', active: false, unlocked: true, discoveredEntranceIds: [],
+    });
+    // The active map is untouched: inserting a record must not move the player.
+    expect(result.state.maps.northwest_residential?.active).toBe(true);
+    expect(result.state.layoutMigrationEvidence).toHaveLength(0);
   });
 
   test('moves a stale Sunward actor out of the new shallows deterministically', () => {

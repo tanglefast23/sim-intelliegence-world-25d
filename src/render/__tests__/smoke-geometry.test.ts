@@ -18,7 +18,7 @@ describe('stable packaged-smoke geometry evidence', () => {
     }));
     expect(map.blockedKeys.has(tileKey(evidence.openDoor.tile))).toBe(false);
     expect(map.interactionById.get(evidence.interaction.id)?.approachTiles).toEqual(evidence.interaction.approachTiles);
-    expect(evidence.portals.map(({ id }) => id)).toEqual(['to-commercial', 'to-downtown']);
+    expect(evidence.portals.map(({ id }) => id)).toEqual(['to-commercial', 'to-downtown', 'to-office']);
     expect(evidence.locations.map(({ id }) => id)).toEqual([
       'linda_villa', 'mina_spa', 'northwest_residential', 'protagonist_villa',
     ]);

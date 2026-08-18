@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 2,
+  "results": [
+    {
+      "name": "office-click-east",
+      "camera": {
+        "x": 31,
+        "y": 721.8834764831844,
+        "zoom": 1
+      },
+      "tile": "26,17",
+      "clickedAt": {
+        "x": 692,
+        "y": 232
+      },
+      "expectedPixel": {
+        "x": 692,
+        "y": 232
+      },
+      "eventPoint": {
+        "x": 692,
+        "y": 232
+      },
+      "targetBefore": null,
+      "target": "26,17",
+      "status": "moving",
+      "arrived": true,
+      "arrivedAfterMs": 1020,
+      "tileBefore": "20,17",
+      "tileAfter": "26,17"
+    },
+    {
+      "name": "office-click-west",
+      "camera": {
+        "x": 31,
+        "y": 721.8834764831844,
+        "zoom": 1
+      },
+      "tile": "12,17",
+      "clickedAt": {
+        "x": 375,
+        "y": 73
+      },
+      "expectedPixel": {
+        "x": 375,
+        "y": 73
+      },
+      "eventPoint": {
+        "x": 375,
+        "y": 73
+      },
+      "targetBefore": null,
+      "target": "12,17",
+      "status": "moving",
+      "arrived": true,
+      "arrivedAfterMs": 1380,
+      "tileBefore": "20,17",
+      "tileAfter": "12,17"
+    },
+    {
+      "name": "office-click-north",
+      "camera": {
+        "x": 31,
+        "y": 721.8834764831844,
+        "zoom": 1
+      },
+      "tile": "20,12",
+      "clickedAt": {
+        "x": 670,
+        "y": 107
+      },
+      "expectedPixel": {
+        "x": 670,
+        "y": 107
+      },
+      "eventPoint": {
+        "x": 670,
+        "y": 107
+      },
+      "targetBefore": null,
+      "target": "20,12",
+      "status": "moving",
+      "arrived": true,
+      "arrivedAfterMs": 3960,
+      "tileBefore": "20,17",
+      "tileAfter": "20,12"
+    },
+    {
+      "name": "office-click-south",
+      "camera": {
+        "x": 31,
+        "y": 721.8834764831844,
+        "zoom": 1
+      },
+      "tile": "20,21",
+      "clickedAt": {
+        "x": 466,
+        "y": 209
+      },
+      "expectedPixel": {
+        "x": 466,
+        "y": 209
+      },
+      "eventPoint": {
+        "x": 466,
+        "y": 209
+      },
+      "targetBefore": null,
+      "target": "20,21",
+      "status": "moving",
+      "arrived": true,
+      "arrivedAfterMs": 4080,
+      "tileBefore": "20,17",
+      "tileAfter": "20,21"
+    }
+  ],
+  "control": {
+    "at": {
+      "x": 1104,
+      "y": 40
+    },
+    "target": null
+  },
+  "knownGap": "Input-side only. Does not prove the drawn scene uses the same yaw as the picking."
+}

@@ -10,6 +10,7 @@ import type { WorldState } from '../../domain/state/schema';
 import { ATLAS_INDEX, CHARACTER_IDS, type CharacterId } from '../../render/atlas';
 import { centerCameraOnTile, type ViewportSize } from '../../render/camera';
 import { EXPECTED_VFX_ANCHORS } from '../../render/vfx/fixtures';
+import type { MapId } from '../../world/maps/catalog';
 import { WorldScene } from '../../render/WorldScene';
 import { ShootingScene } from './ShootingScene';
 import type { ShootingSceneVariant } from './shooting-scene';
@@ -96,13 +97,19 @@ const WORLD_MAP_LABELS: Readonly<Record<(typeof DEV_HARNESS_MAP_IDS)[number], st
   northeast_downtown: 'DOWNTOWN',
   southwest_commercial: 'SHOPS',
   southeast_docks: 'DOCKS',
+  west_office: 'ANNEX',
 };
 
-const ATLAS_MAP_NAMES: Readonly<Record<(typeof DEV_HARNESS_MAP_IDS)[number], string>> = {
+/**
+ * Keyed by every MapId, not by `DEV_HARNESS_MAP_IDS`. A VFX anchor can name a map the harness has
+ * no full scenario for yet — the office is one — and this is only the label it prints.
+ */
+const ATLAS_MAP_NAMES: Readonly<Record<MapId, string>> = {
   northwest_residential: 'Sunward Villas',
   northeast_downtown: 'Neon Crescent',
   southwest_commercial: 'Saffron Bazaar',
   southeast_docks: 'Greywake Harbor',
+  west_office: 'Ledger Annex',
 };
 
 const mapCases = DEV_HARNESS_MAP_IDS.map((mapId) => ({

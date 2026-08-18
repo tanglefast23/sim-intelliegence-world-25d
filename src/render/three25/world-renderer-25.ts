@@ -37,6 +37,7 @@ import {
   blobShadows,
   lampLights,
   lampPools,
+  indoorOverheadKeyOrigin,
   nightKeyOrigin,
   propContactShadows,
   type ShadowPath,
@@ -1142,7 +1143,33 @@ export async function createWorldRenderer25(
     // world outside a lamp pool disappeared, which is what made unlit furniture look necessary in
     // the first place. 0.62 keeps a sofa plainly green in the dark without flattening the pool.
     const daylight = next.lighting.sun.elevation;
-    hemisphere.intensity = dayHemisphereIntensity * (0.78 + 0.22 * daylight);
+    /**
+     * The night floor under the sky light, per map.
+     *
+     * 0.78 is the outdoor number: a district at night is meant to fall toward the void so its lamps
+     * can be the brightest thing in frame. An interior lit only by ceiling troffers has no such
+     * void to fall into — a desk at the edge of a panel crushes to black — so the office sits at
+     * 0.84.
+     *
+     * This is a FLOOR, not a flood, and it is the knob to move if a night capture measures wrong.
+     * Pooling below 1.45 means lower it; above 1.9 means add a panel or lift panel intensity, and
+     * NOT raise this. Raising a hemisphere to fix pooling is how the bazaar courtyard flooded.
+     */
+    const nightSkyFloor = next.mapId === 'west_office' ? 0.84 : 0.78;
+    /**
+     * The fallback path loses BOTH the point lights and the directional key. Outdoors that is the
+     * intended dark world — the sky still reads and the ground is meant to fall away. Indoors at
+     * night it leaves literally no light source but this one, and a windowless room measured 53%
+     * of the frame under the dead cut: not "flatter", a black plate with furniture floating in it.
+     *
+     * So the fallback's existing 1.1 -> 1.7 stand-in gets a second, narrower step for the case
+     * where it is standing in for everything. Scoped to the fallback path, at night, inside a
+     * shelter that actually has ceiling fixtures in it — the same test the overhead key uses — so
+     * the lit path, every outdoor frame, and the villa are all untouched.
+     */
+    const fallbackInteriorFill = shadowPath === 'fallback' && indoorOverheadKeyOrigin(next) ? 1.9 : 1;
+    hemisphere.intensity = dayHemisphereIntensity * fallbackInteriorFill
+      * (nightSkyFloor + (1 - nightSkyFloor) * daylight);
     // Tried and rejected: falling the SKY term further at night than the ground term, so floors
     // darken while props keep what the night floor gave them. The idea is sound — one hemisphere
     // light has two knobs and they light different things, sky for the floors and ground for every
@@ -1234,16 +1261,22 @@ export async function createWorldRenderer25(
     for (const [id, descriptor] of wantedLights) {
       let light = lamps.get(id);
       if (!light) {
-        // Short range and quadratic decay, so a lamp makes a tight warm pocket rather than a
-        // wash. `castShadow` stays off: one shadow light is the budget, and the sun holds it.
-        light = new PointLight('#ffffff', 1, 11, 1.4);
+        // Range and decay come from the descriptor, not from a constant here. A lamp post makes a
+        // tight warm pocket; a ceiling troffer washes a room from higher up with a softer falloff,
+        // and fourteen of them on a post's numbers would blow the office white.
+        // `castShadow` stays off on all of them: one shadow light is the budget, and the sun holds it.
+        light = new PointLight('#ffffff', 1, descriptor.distance, descriptor.decay);
         lamps.set(id, light);
         scene.add(light);
       }
       light.color.setStyle(descriptor.color.slice(0, 7));
       light.color.convertSRGBToLinear();
       light.intensity = descriptor.intensity;
-      light.position.set(descriptor.x, 1.1, descriptor.z);
+      light.distance = descriptor.distance;
+      light.decay = descriptor.decay;
+      // A post's head sits at about a tile; a troffer hangs just under the roof lid. Lighting a
+      // room from a metre off the floor is what made the first indoor test read as a campfire.
+      light.position.set(descriptor.x, descriptor.kind === 'ceiling' ? descriptor.y : 1.1, descriptor.z);
     }
 
     if (sun) {
@@ -1284,8 +1317,25 @@ export async function createWorldRenderer25(
        * lamps at once but moves smoothly on a pan, where a nearest-lamp pick would jump every
        * shadow in the scene the moment the ranking changed.
        */
-      const key = nightKeyOrigin(next);
-      if (key) {
+      /**
+       * Indoors under troffers the key comes STRAIGHT DOWN, not from nine tiles out.
+       *
+       * The raking key below is right for a street of lamp posts and wrong for a ceiling-lit room:
+       * at 20 degrees it turns a fluorescent office into a sunset and throws a desk's shadow the
+       * length of the aisle. Checked before the lamp key, and only fires when ceiling fixtures are
+       * actually in frame, so the villa at night keeps the behaviour it already has.
+       */
+      const overhead = indoorOverheadKeyOrigin(next);
+      const key = overhead ? undefined : nightKeyOrigin(next);
+      if (overhead) {
+        // 8 up over a half-tile offset is about 86 degrees: enough of a lean that a partition still
+        // marks the floor, nowhere near enough to rake. Shadows read as puddles under the furniture.
+        sun.position.set(overhead.x + 0.5, 8, overhead.z + 0.5);
+        if (daySunColor) sun.color.copy(daySunColor);
+        // Lower than the 1.3 raking key. A light from directly above hits floors square, so the
+        // same intensity that carves a shadow at 20 degrees would flood the room from 86.
+        sun.intensity = 0.7;
+      } else if (key) {
         const toLookX = lookAt.x - key.x;
         const toLookZ = lookAt.z - key.z;
         const span = Math.hypot(toLookX, toLookZ);

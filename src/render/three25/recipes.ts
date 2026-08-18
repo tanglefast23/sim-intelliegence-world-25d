@@ -357,6 +357,26 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   'tile.fixture-neon-lamp-cyan': { boxes: post(1.3, 0.22, LAMP_GLOW_CYAN) },
   'tile.fixture-neon-lamp-magenta': { boxes: post(1.3, 0.22, LAMP_GLOW_MAGENTA) },
   'tile.fixture-planter': { boxes: planter(0.7) },
+  // --- Ledger Annex office ----------------------------------------------------------------
+  // One-tile recipes on purpose. A partition run compiled as a consumed group would give one box
+  // spanning several tiles, and a shared wall between two cubicles would overhang its neighbour.
+  // 1.015 is WALL_HEIGHT_TILES * 0.7: tall enough to enclose a desk, short enough that the corner
+  // camera still sees the clerk's head over it.
+  'tile.cubicle-partition-h': {
+    boxes: [{ x: 0, y: 0.5075, z: 0, width: 0.98, height: 1.015, depth: 0.14, tint: '#c4b8a0' }],
+  },
+  'tile.cubicle-partition-v': {
+    boxes: [{ x: 0, y: 0.5075, z: 0, width: 0.14, height: 1.015, depth: 0.98, tint: '#c4b8a0' }],
+  },
+  // The jug is plastic, not a lamp. It is deliberately NOT `glow` and joins no lamp set.
+  'tile.water-cooler': {
+    boxes: [
+      { x: 0, y: 0.36, z: 0, width: 0.42, height: 0.72, depth: 0.42, tint: '#8a9298' },
+      { x: 0, y: 0.90, z: 0, width: 0.30, height: 0.28, depth: 0.30, tint: '#bfe4ff' },
+      { x: 0, y: 1.07, z: 0, width: 0.12, height: 0.08, depth: 0.12, tint: '#8a9298' },
+      { x: 0, y: 0.52, z: 0.24, width: 0.08, height: 0.08, depth: 0.12, tint: '#6a7278' },
+    ],
+  },
   'tile.plant-palm': {
     boxes: [
       { x: 0, y: 0.75, z: 0, width: 0.22, height: 1.5, depth: 0.22, tint: '#8a6a44' },
@@ -444,6 +464,12 @@ export const PROP_CORES: Readonly<Record<string, Readonly<{
   'tile.fixture-neon-lamp-cyan': { x: 10, y: 3, width: 12, height: 10, luminance: 74.4 },
   'tile.fixture-neon-lamp-magenta': { x: 10, y: 3, width: 12, height: 10, luminance: 81.3 },
   'tile.fixture-planter': { x: 7, y: 9, width: 18, height: 22, luminance: 71.7 },
+  // Measured by scripts/art/measure-prop-cores.ts, not guessed. The partitions are full-bleed
+  // opaque, so their core is the whole cell and a box face UV'd to it samples cloth everywhere.
+  'tile.cubicle-partition-h': { x: 0, y: 0, width: 32, height: 32, luminance: 165.7 },
+  'tile.cubicle-partition-v': { x: 0, y: 0, width: 32, height: 32, luminance: 165.7 },
+  'tile.fixture-ceiling-panel': { x: 3, y: 3, width: 26, height: 26, luminance: 212.7 },
+  'tile.water-cooler': { x: 10, y: 3, width: 12, height: 28, luminance: 155.4 },
   'tile.flowering-market-planter': { x: 7, y: 13, width: 18, height: 18, luminance: 95.0 },
   'tile.food-stall-left': { x: 3, y: 7, width: 29, height: 23, luminance: 88.4 },
   'tile.food-stall-right': { x: 0, y: 7, width: 29, height: 23, luminance: 88.4 },
@@ -472,6 +498,19 @@ export const PROP_CORES: Readonly<Record<string, Readonly<{
 });
 
 export const FLAT_SPRITES: ReadonlySet<string> = new Set<string>([
+  /**
+   * The ceiling troffer draws NO box in 2.5D, on purpose.
+   *
+   * It is mounted at 1.33 tiles, and an interior hides its own roof so the player can see the
+   * room — so there is nothing above it for it to be attached to. Drawn, it reads as a blank slab
+   * hanging in mid-air, and at this camera angle it projects up-screen over whatever stands
+   * behind it, so it also appears to sit on top of unrelated furniture.
+   *
+   * Nothing is lost by dropping it. The light and its floor pool are what a player actually reads
+   * as "there is a light here", and both come from `lighting.ts`, not from this geometry. In 2D
+   * the sprite still stamps the floor, which is the read spec 9.2 asked for there.
+   */
+  'tile.fixture-ceiling-panel',
   'tile.market-detail-chalk',
   'tile.market-detail-herbs',
   'tile.market-detail-paper',

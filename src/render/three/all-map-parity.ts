@@ -31,6 +31,7 @@ export const ALL_MAP_PARITY_CASES: readonly AllMapParityCase[] = Object.freeze([
   { id: 'northeast-2560x1440-dpr2-zoom1', mapId: 'northeast_downtown', effectId: 'club-neon-east', viewport: { width: 2560, height: 1440 }, devicePixelRatio: 2, zoom: 1, vfxMode: 'procedural' },
   { id: 'southwest-1280x720-dpr2-zoom2', mapId: 'southwest_commercial', effectId: 'courtyard-insects', viewport: { width: 1280, height: 720 }, devicePixelRatio: 2, zoom: 2, vfxMode: 'procedural' },
   { id: 'southeast-1440x900-dpr2-zoom3', mapId: 'southeast_docks', effectId: 'yard-steam', viewport: { width: 1440, height: 900 }, devicePixelRatio: 2, zoom: 3, vfxMode: 'procedural' },
+  { id: 'west-office-1280x720-dpr1-zoom1', mapId: 'west_office', effectId: 'office-kettle-steam', viewport: { width: 1280, height: 720 }, devicePixelRatio: 1, zoom: 1, vfxMode: 'procedural' },
   { id: 'maximum-load-2560x1440-dpr2-zoom1', mapId: 'northwest_residential', effectId: 'patio-fire', viewport: { width: 2560, height: 1440 }, devicePixelRatio: 2, zoom: 1, vfxMode: 'procedural' },
   // Stage 3 amendment 2026-08-15: the only case that renders effects through the fallback-circle batch.
   { id: 'fallback-circle-1280x720-dpr1-zoom1', mapId: 'northwest_residential', effectId: 'patio-fire', viewport: { width: 1280, height: 720 }, devicePixelRatio: 1, zoom: 1, vfxMode: 'circle' },

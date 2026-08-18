@@ -67,6 +67,7 @@ import {
   type AtlasRectangle,
   type CharacterId,
 } from './atlas';
+import { idleFacingForNpc, visualIdForNpc } from './character-visuals';
 import {
   assertWorldZoom,
   MAX_WORLD_ZOOM,
@@ -197,10 +198,6 @@ function areaName(map: CompiledMapV2, tile: TilePoint): string {
   return (area?.id ?? map.source.displayName).replaceAll('-', ' ').toUpperCase();
 }
 
-function visualIdForNpc(stateId: string, _tier: 'full_ai' | 'ambient'): CharacterId {
-  const candidate = stateId.replaceAll('_', '-') as CharacterId;
-  return CHARACTER_IDS.includes(candidate) ? candidate : 'generic-resident';
-}
 
 /**
  * Progress through the route's FINAL segment, for the deceleration lean, or undefined anywhere else.
@@ -235,8 +232,10 @@ function actorTiles(
       const movement = movements[stateId];
       output[stateId] = {
         tile,
-        visualId: visualIdForNpc(stateId, npc.tier),
-        direction: movement?.direction ?? 'down',
+        visualId: visualIdForNpc(stateId),
+        // A moving actor keeps its movement direction. A STILL one may name its own idle facing:
+        // an office clerk who never walks would otherwise stand with their back to their desk.
+        direction: movement?.direction ?? idleFacingForNpc(stateId) ?? 'down',
         visualFoot: snapWorldPoint(movement?.visualFoot ?? tileFootPoint(tile), zoom, dpr),
         walkFrame: movement?.walkFrame ?? 0,
         moving: movement?.segment !== undefined,

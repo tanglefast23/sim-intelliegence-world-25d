@@ -254,5 +254,109 @@
     "tier": "ambient",
     "homeLocationId": "southeast_docks",
     "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_01",
+    "displayName": "Clerk 01",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_02",
+    "displayName": "Clerk 02",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_03",
+    "displayName": "Clerk 03",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_04",
+    "displayName": "Clerk 04",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_05",
+    "displayName": "Clerk 05",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_06",
+    "displayName": "Clerk 06",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_07",
+    "displayName": "Clerk 07",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_08",
+    "displayName": "Clerk 08",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_09",
+    "displayName": "Clerk 09",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_10",
+    "displayName": "Clerk 10",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_11",
+    "displayName": "Clerk 11",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "clerk_12",
+    "displayName": "Clerk 12",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "office_manager",
+    "displayName": "Annex Manager",
+    "tier": "ambient",
+    "homeLocationId": "ledger_annex",
+    "factionIds": []
   }
 ]

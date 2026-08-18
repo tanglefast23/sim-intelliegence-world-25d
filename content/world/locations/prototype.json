@@ -1,9 +1,11 @@
 [
-  {"schemaVersion":1,"id":"northwest_residential","displayName":"Residential and Beach","neighborhoodId":"northwest_residential","kind":"neighborhood","adjacentLocationIds":["northeast_downtown","southwest_commercial","protagonist_villa","linda_villa"]},
+  {"schemaVersion":1,"id":"northwest_residential","displayName":"Residential and Beach","neighborhoodId":"northwest_residential","kind":"neighborhood","adjacentLocationIds":["northeast_downtown","southwest_commercial","west_office","protagonist_villa","linda_villa"]},
   {"schemaVersion":1,"id":"northeast_downtown","displayName":"Downtown Entertainment","neighborhoodId":"northeast_downtown","kind":"neighborhood","adjacentLocationIds":["northwest_residential","southeast_docks"]},
   {"schemaVersion":1,"id":"southwest_commercial","displayName":"Commercial District","neighborhoodId":"southwest_commercial","kind":"neighborhood","adjacentLocationIds":["northwest_residential","southeast_docks"]},
   {"schemaVersion":1,"id":"southeast_docks","displayName":"Docks and Government","neighborhoodId":"southeast_docks","kind":"neighborhood","adjacentLocationIds":["northeast_downtown","southwest_commercial","ferry_terminal"]},
   {"schemaVersion":1,"id":"protagonist_villa","displayName":"Protagonist's Villa","neighborhoodId":"northwest_residential","kind":"home","adjacentLocationIds":["northwest_residential"]},
   {"schemaVersion":1,"id":"linda_villa","displayName":"Linda's Villa","neighborhoodId":"northwest_residential","kind":"home","adjacentLocationIds":["northwest_residential"]},
-  {"schemaVersion":1,"id":"ferry_terminal","displayName":"Ferry Terminal","neighborhoodId":"southeast_docks","kind":"transport","adjacentLocationIds":["southeast_docks"]}
+  {"schemaVersion":1,"id":"ferry_terminal","displayName":"Ferry Terminal","neighborhoodId":"southeast_docks","kind":"transport","adjacentLocationIds":["southeast_docks"]},
+  {"schemaVersion":1,"id":"west_office","displayName":"Ledger Annex Lot","neighborhoodId":"west_office","kind":"neighborhood","adjacentLocationIds":["northwest_residential","ledger_annex"]},
+  {"schemaVersion":1,"id":"ledger_annex","displayName":"Ledger Annex","neighborhoodId":"west_office","kind":"civic","adjacentLocationIds":["west_office"]}
 ]

@@ -1252,5 +1252,499 @@
         "tileY": 34
       }
     ]
+  },
+  {
+    "id": "clerk_01_daily",
+    "npcId": "clerk_01",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 10
+      }
+    ]
+  },
+  {
+    "id": "clerk_02_daily",
+    "npcId": "clerk_02",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 10
+      }
+    ]
+  },
+  {
+    "id": "clerk_03_daily",
+    "npcId": "clerk_03",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 10
+      }
+    ]
+  },
+  {
+    "id": "clerk_04_daily",
+    "npcId": "clerk_04",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 10
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 10
+      }
+    ]
+  },
+  {
+    "id": "clerk_05_daily",
+    "npcId": "clerk_05",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 15
+      }
+    ]
+  },
+  {
+    "id": "clerk_06_daily",
+    "npcId": "clerk_06",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 15
+      }
+    ]
+  },
+  {
+    "id": "clerk_07_daily",
+    "npcId": "clerk_07",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 15
+      }
+    ]
+  },
+  {
+    "id": "clerk_08_daily",
+    "npcId": "clerk_08",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 15
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 15
+      }
+    ]
+  },
+  {
+    "id": "clerk_09_daily",
+    "npcId": "clerk_09",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 10,
+        "tileY": 20
+      }
+    ]
+  },
+  {
+    "id": "clerk_10_daily",
+    "npcId": "clerk_10",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 15,
+        "tileY": 20
+      }
+    ]
+  },
+  {
+    "id": "clerk_11_daily",
+    "npcId": "clerk_11",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 20,
+        "tileY": 20
+      }
+    ]
+  },
+  {
+    "id": "clerk_12_daily",
+    "npcId": "clerk_12",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 20
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 25,
+        "tileY": 20
+      }
+    ]
+  },
+  {
+    "id": "office_manager_daily",
+    "npcId": "office_manager",
+    "blocks": [
+      {
+        "startMinuteOfDay": 0,
+        "locationId": "ledger_annex",
+        "activityId": "sleep",
+        "mapId": "west_office",
+        "tileX": 12,
+        "tileY": 32
+      },
+      {
+        "startMinuteOfDay": 480,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 12,
+        "tileY": 32
+      },
+      {
+        "startMinuteOfDay": 720,
+        "locationId": "ledger_annex",
+        "activityId": "work",
+        "mapId": "west_office",
+        "tileX": 12,
+        "tileY": 32
+      },
+      {
+        "startMinuteOfDay": 1320,
+        "locationId": "ledger_annex",
+        "activityId": "evening",
+        "mapId": "west_office",
+        "tileX": 12,
+        "tileY": 32
+      }
+    ]
   }
 ]

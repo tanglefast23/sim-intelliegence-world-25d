@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "artRevision": 16,
-  "allPublicCellsAggregateSha256": "6e7c08d0559fcba39f44e361efa325c79e5961c632615d76be5d565d20478a63",
+  "allPublicCellsAggregateSha256": "7d3f0a59b978557da477f792ca4850eef1b7148a95d010a176d45d32878785c0",
   "cells": {
     "character.devon-price.eyes": "c6ee3216adb03feb7f8791f16a2038227d0b603422706353cd9a75ad33c0f627",
     "character.devon-price.front-1": "1b5560cc75ee57ea802870cafa09e72801555f03b58b6357c6b860881575b5b8",
@@ -392,6 +392,8 @@
     "tile.closed-locked-door-vertical": "bf60bd571ec835d696644d033f08fee2d2e54f10c9a1a31bac4664761162fc7d",
     "tile.counter-left": "2697d4ad2793bfc0eaab85e2b03273e5e029032b47b4ccdf51ba756524714c4c",
     "tile.counter-right": "efbb26b205a242d15af0e30430d7aad1038636792610e3008282edd066ce0af8",
+    "tile.cubicle-partition-h": "ebce5c22624bc7669becb6250b128960f6ea50b2bb486e3c309296f3aba79cd0",
+    "tile.cubicle-partition-v": "e568a58de34310ce76212ada64eb6f319a9d4a5755b205c6627db33fc12d6081",
     "tile.dark-asphalt": "a14bce58b42dd18be1e8d909293989897c4bea9b7efa0bbb84219052af4d4076",
     "tile.dark-asphalt-b": "6ea8aaef2ce647d44ba4439b410469f83f7030a23f90a29d9add185e274a930b",
     "tile.dark-asphalt-c": "522369cbf2233de0df4972334b48adfcc6319dc784eea5f079011fd12b3cde2c",
@@ -439,6 +441,7 @@
     "tile.dune-grass-b": "d35ccf528415c075cd8072dbe37ada03a72b1f95c921818881c4f580cc7f16e1",
     "tile.dune-grass-c": "c32cb480aaae23b2b3e05306e2bcac99a7f0624c7cdce67b785a0ca3745ef6f2",
     "tile.dune-grass-d": "db6f0e9a98bfcae9b8cef5c632de4fb71d3e0add331e8d472d361ebf405ced40",
+    "tile.fixture-ceiling-panel": "8435efcde36a01d0d078f7d608e008deae1838091a18b8feff129e409e49c305",
     "tile.fixture-dock-lamp-amber": "d95b7849ffa2397f621488f025accb8a1c1bbfb932370dd8e972ca368924679f",
     "tile.fixture-dock-lamp-cold": "cb7288c136a395e8d577a9e052e8a7d0177141b0c4ca3ed67048c254eb6d5d78",
     "tile.fixture-festival-lantern": "44a3efd63d55537d13974eea3c30d92b0e9b5dc8dce4cbb9bb68bc92aa980411",
@@ -649,6 +652,7 @@
     "tile.warm-sand": "e394fedfdeb918fdd55b51e63326f38c1af348c4a2f68ec284144a9686471336",
     "tile.warm-sand-b": "88dc1fff77bed97a95c39f28d0a866934514757b313beb946ed11cbc5fbee18a",
     "tile.warm-sand-c": "56b5d0c49a520935914cb1f32b3ab0f2022dcd034ce00d175481a05b8a290490",
-    "tile.warm-sand-d": "7e3f2b81b25074e6798c5e740679a4614d38ac267646c8dad21723a0a9727980"
+    "tile.warm-sand-d": "7e3f2b81b25074e6798c5e740679a4614d38ac267646c8dad21723a0a9727980",
+    "tile.water-cooler": "d3f7b82a02a0e06156c189712c2995cfa4c7922205b8f1f5769c557ca7d414eb"
   }
 }

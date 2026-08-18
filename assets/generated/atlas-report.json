@@ -28,9 +28,9 @@
       "rawRectangleArea": 3468
     },
     "object-landmark": {
-      "actualCount": 62,
-      "maximumCount": 64,
-      "rawRectangleArea": 71672
+      "actualCount": 66,
+      "maximumCount": 68,
+      "rawRectangleArea": 76296
     },
     "world-character": {
       "actualCount": 280,
@@ -54,22 +54,22 @@
     }
   },
   "actual": {
-    "cellCount": 647,
-    "rawRectangleArea": 602752,
+    "cellCount": 651,
+    "rawRectangleArea": 607376,
     "width": 1024,
     "height": 600,
     "boundingRectangleArea": 614400,
-    "occupancy": 0.9810416666666667
+    "occupancy": 0.9885677083333333
   },
   "forecast": {
-    "cellCount": 784,
-    "rawRectangleArea": 761124,
-    "rawAreaRatio": 0.7258644104003906,
+    "cellCount": 788,
+    "rawRectangleArea": 765748,
+    "rawAreaRatio": 0.7302742004394531,
     "width": 1024,
     "height": 768,
     "boundingRectangleArea": 786432,
     "packedAreaRatio": 0.75,
-    "occupancy": 0.9678192138671875
+    "occupancy": 0.9736989339192709
   },
   "largestCells": [
     {
@@ -159,7 +159,7 @@
   ],
   "indexVersion": 3,
   "toolVersion": "atlas-v9-authored-full-cast",
-  "imageSha256": "5066881c3edfd99508af030c3c9d9d50797770db9a63d4209ea30bc62dd72da8",
-  "publicSpriteCount": 647,
+  "imageSha256": "d56f2b9988363ca0d9b2141498ef6ad4d749e9ea7a56b3d7d18ffb14cda7a4bb",
+  "publicSpriteCount": 651,
   "internalReviewSpriteCount": 0
 }

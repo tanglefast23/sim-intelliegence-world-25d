@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "artRevision": 15,
+  "artRevision": 16,
   "materials": [
     {
       "publicBaseSprite": "tile.city-lot",
@@ -829,7 +829,7 @@
       "edgeMode": "soft",
       "decalFamily": "sand-traces",
       "transitionPriority": 40,
-      "selectionSalt": "warm-sand-v11"
+      "selectionSalt": "warm-sand-v14"
     }
   ],
   "defaultRoof": {

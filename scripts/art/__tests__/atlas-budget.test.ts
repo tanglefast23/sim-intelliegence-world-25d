@@ -18,8 +18,9 @@ describe('atlas category and forecast budget', () => {
     const manifest = loadArtManifest();
     const report = createAtlasBudgetReport([], manifest);
     expect(report.forecast).toMatchObject({
-      cellCount: 784,
-      rawRectangleArea: 761_124,
+      // Union of both branches' grants: 749 base + 4 office landmarks + 35 blink eye bands.
+      cellCount: 788,
+      rawRectangleArea: 765_748,
       width: 1024,
     });
     expect(report.forecast.height).toBeLessThanOrEqual(1024);
@@ -36,7 +37,9 @@ describe('atlas category and forecast budget', () => {
       width: 24,
       height: 3,
     });
-    expect(report.forecast.rawRectangleArea - 756_574).toBe(4_550);
+    // The base is everything except the eye bands: 756_574 original + 4_624 office landmarks.
+    // The assertion's point survives the merge: the blink category costs exactly 4_550.
+    expect(report.forecast.rawRectangleArea - 761_198).toBe(4_550);
     expect(report.forecast.rawAreaRatio).toBeLessThan(0.75);
     expect(report.forecast.packedAreaRatio).toBeLessThan(0.8);
   });
@@ -46,7 +49,7 @@ describe('atlas category and forecast budget', () => {
     const cells: BudgetCell[] = [{ id: 'tile.warm-sand', category: 'ground-base', width: 32, height: 32 }];
     const report = createAtlasBudgetReport(cells, manifest);
     expect(report.categories['ground-base']).toMatchObject({ actualCount: 1, maximumCount: 96 });
-    expect(report.forecast.rawRectangleArea).toBe(761_124);
+    expect(report.forecast.rawRectangleArea).toBe(765_748);
   });
 
   test('stops a category overrun with the required reduction action', () => {

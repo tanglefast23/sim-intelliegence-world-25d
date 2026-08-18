@@ -8,10 +8,16 @@ import { buildPromptProjection, estimatePromptTokens, MAX_PROMPT_ESTIMATED_TOKEN
 import { FileCharacterWritingStore } from '../../ai/registry/file-writing-store';
 import { buildSceneRegistry } from '../../ai/registry/scene-registry';
 import { BROWSER_NAMED_WRITING } from '../../ai/registry/generated-browser-writing';
+import { visualIdForNpc } from '../../render/character-visuals';
+import { LAMP_SPRITE_IDS_25D } from '../../render/three25/lighting';
+import { parseWorldState } from '../../domain/state/schema';
+import { simulateWorldInterval } from '../../world/schedules/simulation';
 import {
   PRODUCTION_AMBIENT_RESIDENTS,
   PRODUCTION_CAST_COUNTS,
   PRODUCTION_FULL_AI_CAST,
+  PRODUCTION_OFFICE_STAFF,
+  createProductionSchedules,
   migrateProductionSchedules,
 } from '../../domain/state/production-cast';
 import { createInitialState } from '../../domain/state/initial-state';
@@ -40,11 +46,11 @@ const performanceFixture = JSON.parse(
 describe('Phase 13 production content bill', () => {
   test('ships the locked full-AI and deterministic ambient cast', () => {
     const state = createInitialState();
-    expect(PRODUCTION_CAST_COUNTS).toEqual({ fullAi: 8, ambient: 26, totalNpcs: 34 });
+    expect(PRODUCTION_CAST_COUNTS).toEqual({ fullAi: 8, ambient: 39, totalNpcs: 47 });
     expect(Object.values(state.npcs).filter(({ tier }) => tier === 'full_ai')).toHaveLength(8);
-    expect(Object.values(state.npcs).filter(({ tier }) => tier === 'ambient')).toHaveLength(26);
+    expect(Object.values(state.npcs).filter(({ tier }) => tier === 'ambient')).toHaveLength(39);
     expect(bill.fullAiCount).toBe(8);
-    expect(bill.ambientCount).toBe(26);
+    expect(bill.ambientCount).toBe(39);
     expect(new Set(bill.fullAiNpcIds)).toEqual(new Set(Object.values(state.npcs).filter(({ tier }) => tier === 'full_ai').map(({ id }) => id)));
     expect(new Set(bill.ambientNpcIds)).toEqual(new Set(Object.values(state.npcs).filter(({ tier }) => tier === 'ambient').map(({ id }) => id)));
     expect(new Set(bill.scheduleIds)).toEqual(new Set(Object.keys(state.schedules)));
@@ -249,5 +255,158 @@ describe('Phase 13 production content bill', () => {
       );
     }
     expect(performance.now() - start).toBeLessThan(performanceFixture.maximumFrameBuildMilliseconds);
+  });
+});
+
+/**
+ * The office cast borrows resident art, and the borrowing is the part that can silently fail.
+ * `visualIdForNpc` matches a literal id against `CHARACTER_IDS`, so `clerk_01` becomes `clerk-01`,
+ * which is in no atlas, and every clerk falls through to `generic-resident`. Nothing throws. The
+ * only symptom is twelve identical people in twelve cubicles.
+ */
+describe('Ledger Annex staff', () => {
+  test('gives every clerk a different face', () => {
+    const visuals = PRODUCTION_OFFICE_STAFF.map(({ id }) => visualIdForNpc(id));
+    expect(new Set(visuals).size).toBe(PRODUCTION_OFFICE_STAFF.length);
+    expect(visuals).not.toContain('generic-resident');
+  });
+
+  test('stands every clerk on a walkable desk tile inside the annex', () => {
+    const map = WORLD_MAP_CATALOG.west_office;
+    for (const staff of PRODUCTION_OFFICE_STAFF) {
+      expect(staff.position.mapId).toBe('west_office');
+      expect(staff.position.locationId).toBe('ledger_annex');
+      expect(map.blockedKeys.has(`${staff.position.x},${staff.position.y}`)).toBe(false);
+    }
+  });
+
+  /**
+   * EVERY block, not just the work one.
+   *
+   * The first version of this test checked the `work` block alone and passed while the clerks were
+   * on a resident schedule that sent all thirteen of them to one shared social tile at midday. The
+   * office emptied at lunch and the assertion never noticed, because it asserted the block that had
+   * been built rather than the behaviour the scene needs.
+   */
+  /**
+   * The stand tiles written out, from spec 8.4, rather than recomputed.
+   *
+   * `PRODUCTION_OFFICE_STAFF` derives these from the same `west + 2, north + 2` expression the map
+   * builder uses, so comparing a schedule block to `staff.work` only proves the two copies of one
+   * formula agree. A wrong offset in that formula passes. This list is the independent source.
+   */
+  const SPEC_STAND_TILES = [
+    { x: 10, y: 10 }, { x: 15, y: 10 }, { x: 20, y: 10 }, { x: 25, y: 10 },
+    { x: 10, y: 15 }, { x: 15, y: 15 }, { x: 20, y: 15 }, { x: 25, y: 15 },
+    { x: 10, y: 20 }, { x: 15, y: 20 }, { x: 20, y: 20 }, { x: 25, y: 20 },
+  ];
+
+  test('stands the twelve clerks on the tiles the spec names', () => {
+    const clerks = PRODUCTION_OFFICE_STAFF.filter(({ id }) => id.startsWith('clerk_'));
+    expect(clerks.map(({ work }) => ({ x: work.x, y: work.y }))).toEqual(SPEC_STAND_TILES);
+  });
+
+  test('keeps every clerk on their own desk tile in all four blocks', () => {
+    const schedules = createProductionSchedules();
+    const occupiedAt = new Map<number, string[]>();
+    for (const staff of PRODUCTION_OFFICE_STAFF) {
+      const blocks = schedules[`${staff.id}_daily`]!.blocks;
+      expect(blocks.map(({ startMinuteOfDay }) => startMinuteOfDay)).toEqual([0, 480, 720, 1_320]);
+      for (const block of blocks) {
+        expect({ x: block.tileX, y: block.tileY }).toEqual({ x: staff.work.x, y: staff.work.y });
+        expect(block.mapId).toBe('west_office');
+        expect(block.locationId).toBe('ledger_annex');
+        const key = `${block.startMinuteOfDay}`;
+        occupiedAt.set(block.startMinuteOfDay, [
+          ...(occupiedAt.get(block.startMinuteOfDay) ?? []),
+          `${block.tileX},${block.tileY}#${key}`,
+        ]);
+      }
+    }
+    // No two members of the office staff may be sent to the same tile at the same time.
+    for (const [, tiles] of occupiedAt) {
+      expect(new Set(tiles).size).toBe(tiles.length);
+    }
+  });
+
+  test('never plants a lamp post in the car park', () => {
+    // Spec 11.6: the lot falls toward the void at night on purpose, and a lamp post is not neutral
+    // filler — it carries a point light and a floor pool.
+    const lot = WORLD_MAP_CATALOG.west_office.source.objects.find(({ areaId }) => areaId === 'annex-lot');
+    expect(lot).toBeDefined();
+    for (const part of lot!.renderParts) {
+      expect(LAMP_SPRITE_IDS_25D.has(part.sprite)).toBe(false);
+    }
+  });
+});
+
+/**
+ * The load path rewrites a save whenever this repair reports a change, and it decides that by
+ * comparing `JSON.stringify`. So a repair that is not a byte-level no-op on an already-current
+ * state makes every clean load re-save — and the way that happened was field ORDER, not data: one
+ * schedule builder emitted `activityId` before `locationId` and every clean load called itself
+ * migrated.
+ */
+describe('the production cast repair', () => {
+  test('is a no-op on a state that is already current', () => {
+    const initial = createInitialState();
+    const repaired = migrateProductionSchedules(initial);
+    expect(JSON.stringify(repaired.schedules)).toBe(JSON.stringify(initial.schedules));
+    expect(JSON.stringify(repaired.npcs)).toBe(JSON.stringify(initial.npcs));
+  });
+});
+
+/**
+ * Two assertions the spec asked for by name and that were missing until an audit found them.
+ *
+ * Both are about BEHAVIOUR rather than data. The schedule tests above compare the authored blocks
+ * to the same grid expression that produced them, so they cannot see a clerk who is authored
+ * correctly and then walks away, or one who is authored correctly and cannot be talked to.
+ */
+describe('the office cast in motion', () => {
+  test('every clerk is still at their desk after a minute of simulation', () => {
+    const initial = createInitialState();
+    const onOffice = parseWorldState({
+      ...initial,
+      protagonist: {
+        ...initial.protagonist,
+        locationId: 'ledger_annex',
+        worldPosition: { mapId: 'west_office', tileX: 20, tileY: 17 },
+      },
+      maps: Object.fromEntries(Object.entries(initial.maps).map(([id, map]) => [
+        id,
+        { ...map, active: id === 'west_office' },
+      ])),
+    });
+    const simulated = simulateWorldInterval({
+      state: onOffice,
+      toAbsoluteMinute: onOffice.clock.absoluteMinute + 1,
+      toSubMinuteMilliseconds: 0,
+      awake: false,
+      frameMovement: false,
+    }).state;
+    for (const staff of PRODUCTION_OFFICE_STAFF) {
+      const presence = simulated.npcs[staff.id]!.presence;
+      if (presence.kind === 'in_transit') throw new Error(`${staff.id} left the annex.`);
+      expect({ x: presence.tileX, y: presence.tileY }).toEqual({ x: staff.work.x, y: staff.work.y });
+    }
+  });
+
+  test('a clerk opens an ambient conversation and never asks for a writing pack', async () => {
+    let writingCalls = 0;
+    const inference = new RecordedInferencePort([]);
+    const service = new ConversationService(inference, {
+      get: async () => {
+        writingCalls += 1;
+        throw new Error('An office clerk must not load a writing pack.');
+      },
+    });
+    const state = createInitialState();
+    const result = await service.begin({
+      conversationId: 'conversation-clerk-01', npcId: 'clerk_01', state,
+    });
+    expect(result).toEqual(expect.objectContaining({ kind: 'ambient', npcId: 'clerk_01' }));
+    expect(writingCalls).toBe(0);
+    expect(inference.requests).toHaveLength(0);
   });
 });

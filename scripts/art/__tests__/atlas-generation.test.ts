@@ -69,15 +69,18 @@ describe('deterministic SI World atlas generation', () => {
     expect(first.index.version).toBe(3);
     expect(first.index.artRevision).toBe(16);
     expect(first.index.image).toMatchObject({ colorType: 'rgba', gutter: 1 });
-    expect(Object.keys(first.index.sprites)).toHaveLength(647);
-    expect(first.index.tiles).toHaveLength(279);
+    // 612 base + 35 blink eye bands (character walk) + 4 office landmarks = 651.
+    expect(Object.keys(first.index.sprites)).toHaveLength(651);
+    expect(first.index.tiles).toHaveLength(283);
     expect(first.index.groundCells).toHaveLength(81);
-    expect(first.index.transparentPartCells).toHaveLength(138);
+    expect(first.index.transparentPartCells).toHaveLength(142);
     expect(first.index.presentationCells).toHaveLength(60);
     expect(createHash('sha256').update(first.png).digest('hex')).toBe(first.index.image.sha256);
     expect(first.index.publicSpriteIds).toEqual(Object.keys(first.index.sprites));
     expect(first.index.internalReviewSpriteIds).toEqual([]);
-    expect(first.report.forecast).toMatchObject({ rawRectangleArea: 761_124, width: 1024 });
+    // Union of both grants: +4 object-landmark slots (office) and +35 world-character-eyes
+    // (blink), over the 756_574 base. Computed from the merged manifest, not by hand.
+    expect(first.report.forecast).toMatchObject({ rawRectangleArea: 765_748, width: 1024 });
   });
 
   test('keeps all atlas cells inside the generated image', () => {

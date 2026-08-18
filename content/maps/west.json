@@ -1,0 +1,6506 @@
+{
+  "schemaVersion": 2,
+  "layoutRevision": 1,
+  "id": "west_office",
+  "displayName": "Ledger Annex",
+  "width": 64,
+  "height": 48,
+  "tileSize": 32,
+  "ground": {
+    "defaultSprite": "tile.pale-concrete",
+    "regions": [
+      {
+        "id": "annex-carpet",
+        "x": 7,
+        "y": 7,
+        "width": 37,
+        "height": 34,
+        "sprite": "tile.dock-floor"
+      },
+      {
+        "id": "annex-kitchen-floor",
+        "x": 30,
+        "y": 28,
+        "width": 13,
+        "height": 13,
+        "sprite": "tile.sunset-floor"
+      },
+      {
+        "id": "annex-approach",
+        "x": 54,
+        "y": 23,
+        "width": 10,
+        "height": 3,
+        "sprite": "tile.plaza-paver"
+      }
+    ]
+  },
+  "terrainSolids": [],
+  "walls": {
+    "runs": [
+      {
+        "id": "annex-north",
+        "material": "civic",
+        "bounds": {
+          "x": 6,
+          "y": 6,
+          "width": 48,
+          "height": 1
+        },
+        "openings": []
+      },
+      {
+        "id": "annex-south",
+        "material": "civic",
+        "bounds": {
+          "x": 6,
+          "y": 41,
+          "width": 48,
+          "height": 1
+        },
+        "openings": []
+      },
+      {
+        "id": "annex-west",
+        "material": "civic",
+        "bounds": {
+          "x": 6,
+          "y": 7,
+          "width": 1,
+          "height": 34
+        },
+        "openings": []
+      },
+      {
+        "id": "annex-east",
+        "material": "civic",
+        "bounds": {
+          "x": 53,
+          "y": 7,
+          "width": 1,
+          "height": 34
+        },
+        "openings": [
+          {
+            "id": "annex-front-opening",
+            "tile": {
+              "x": 53,
+              "y": 24
+            }
+          }
+        ]
+      },
+      {
+        "id": "mgr-north",
+        "material": "civic",
+        "bounds": {
+          "x": 7,
+          "y": 27,
+          "width": 13,
+          "height": 1
+        },
+        "openings": []
+      },
+      {
+        "id": "mgr-east",
+        "material": "civic",
+        "bounds": {
+          "x": 20,
+          "y": 27,
+          "width": 1,
+          "height": 14
+        },
+        "openings": [
+          {
+            "id": "mgr-door",
+            "tile": {
+              "x": 20,
+              "y": 33
+            }
+          }
+        ]
+      },
+      {
+        "id": "kitchen-west",
+        "material": "civic",
+        "bounds": {
+          "x": 29,
+          "y": 27,
+          "width": 1,
+          "height": 14
+        },
+        "openings": [
+          {
+            "id": "kitchen-door",
+            "tile": {
+              "x": 29,
+              "y": 33
+            }
+          }
+        ]
+      },
+      {
+        "id": "kitchen-north",
+        "material": "civic",
+        "bounds": {
+          "x": 30,
+          "y": 27,
+          "width": 13,
+          "height": 1
+        },
+        "openings": []
+      },
+      {
+        "id": "lobby-west",
+        "material": "civic",
+        "bounds": {
+          "x": 44,
+          "y": 7,
+          "width": 1,
+          "height": 16
+        },
+        "openings": []
+      },
+      {
+        "id": "lobby-west-south",
+        "material": "civic",
+        "bounds": {
+          "x": 44,
+          "y": 24,
+          "width": 1,
+          "height": 17
+        },
+        "openings": []
+      }
+    ]
+  },
+  "doors": [
+    {
+      "id": "annex-front-door",
+      "openingId": "annex-front-opening",
+      "initialState": "closed-unlocked",
+      "sprite": "tile.closed-door",
+      "roofGroupId": "annex-roof",
+      "interaction": {
+        "id": "annex-front-door-use",
+        "areaId": "annex-lobby",
+        "approachTiles": [
+          {
+            "x": 52,
+            "y": 24
+          },
+          {
+            "x": 54,
+            "y": 24
+          }
+        ]
+      }
+    },
+    {
+      "id": "annex-manager-door",
+      "openingId": "mgr-door",
+      "initialState": "closed-unlocked",
+      "sprite": "tile.closed-door",
+      "roofGroupId": "annex-roof",
+      "interaction": {
+        "id": "annex-manager-door-use",
+        "areaId": "manager-office",
+        "approachTiles": [
+          {
+            "x": 19,
+            "y": 33
+          },
+          {
+            "x": 21,
+            "y": 33
+          }
+        ]
+      }
+    },
+    {
+      "id": "annex-kitchen-door",
+      "openingId": "kitchen-door",
+      "initialState": "closed-unlocked",
+      "sprite": "tile.closed-door",
+      "roofGroupId": "annex-roof",
+      "interaction": {
+        "id": "annex-kitchen-door-use",
+        "areaId": "annex-kitchen",
+        "approachTiles": [
+          {
+            "x": 28,
+            "y": 33
+          },
+          {
+            "x": 30,
+            "y": 33
+          }
+        ]
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "cubicle-r0c0-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 9,
+        "y": 8
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c0-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": -1,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": -1,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-part-08",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-part-09",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": -1,
+            "y": 3
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-part-10",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c0-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-solid-05",
+          "bounds": {
+            "x": -1,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-solid-07",
+          "bounds": {
+            "x": -1,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-solid-08",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-solid-09",
+          "bounds": {
+            "x": -1,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-north-solid-10",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c0-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 9,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c0-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c0-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c0-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c0-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c0-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 12,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c0-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c0-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c0-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 10,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c0-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c1-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 14,
+        "y": 8
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c1-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c1-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-solid-05",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c1-north-solid-07",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c1-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 14,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c1-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c1-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c1-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c1-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c1-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 17,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c1-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c1-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c1-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 15,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c1-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c2-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 19,
+        "y": 8
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c2-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c2-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-solid-05",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c2-north-solid-07",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c2-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 19,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c2-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c2-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c2-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c2-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c2-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 22,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c2-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c2-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c2-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 20,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c2-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c3-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 24,
+        "y": 8
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c3-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c3-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-solid-05",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c3-north-solid-07",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c3-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 24,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c3-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r0c3-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c3-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r0c3-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c3-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 27,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c3-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r0c3-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c3-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 25,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c3-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c0-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 9,
+        "y": 13
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c0-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": -1,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": -1,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-part-08",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-part-09",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": -1,
+            "y": 3
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-part-10",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c0-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-solid-05",
+          "bounds": {
+            "x": -1,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-solid-07",
+          "bounds": {
+            "x": -1,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-solid-08",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-solid-09",
+          "bounds": {
+            "x": -1,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-north-solid-10",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c0-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 9,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c0-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c0-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c0-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c0-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c0-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 12,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c0-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c0-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c0-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 10,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c0-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c1-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 14,
+        "y": 13
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c1-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c1-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-solid-05",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c1-north-solid-07",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c1-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 14,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c1-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c1-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c1-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c1-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c1-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 17,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c1-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c1-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c1-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 15,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c1-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c2-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 19,
+        "y": 13
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c2-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c2-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-solid-05",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c2-north-solid-07",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c2-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 19,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c2-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c2-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c2-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c2-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c2-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 22,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c2-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c2-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c2-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 20,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c2-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c3-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 24,
+        "y": 13
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c3-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c3-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-solid-05",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c3-north-solid-07",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c3-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 24,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c3-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r1c3-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c3-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r1c3-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c3-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 27,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c3-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r1c3-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c3-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 25,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c3-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c0-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 9,
+        "y": 18
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c0-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": -1,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": -1,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-part-08",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-part-09",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": -1,
+            "y": 3
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-part-10",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c0-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-solid-05",
+          "bounds": {
+            "x": -1,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-solid-07",
+          "bounds": {
+            "x": -1,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-solid-08",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-solid-09",
+          "bounds": {
+            "x": -1,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-north-solid-10",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c0-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 9,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c0-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c0-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c0-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c0-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c0-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 12,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c0-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c0-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c0-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 10,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c0-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c1-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 14,
+        "y": 18
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c1-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c1-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-solid-05",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c1-north-solid-07",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c1-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 14,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c1-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c1-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c1-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c1-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c1-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 17,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c1-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c1-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c1-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 15,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c1-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c2-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 19,
+        "y": 18
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c2-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c2-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-solid-05",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c2-north-solid-07",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c2-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 19,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c2-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c2-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c2-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c2-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c2-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 22,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c2-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c2-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c2-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 20,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c2-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c3-north",
+      "kind": "cubicle-partition",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 24,
+        "y": 18
+      },
+      "depthAnchorOffset": {
+        "x": 4,
+        "y": 3
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c3-north-part-01",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-part-02",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-part-03",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-part-04",
+          "sprite": "tile.cubicle-partition-h",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-part-05",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-part-06",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-part-07",
+          "sprite": "tile.cubicle-partition-v",
+          "offset": {
+            "x": 4,
+            "y": 3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c3-north-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-solid-05",
+          "bounds": {
+            "x": 4,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-solid-06",
+          "bounds": {
+            "x": 4,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c3-north-solid-07",
+          "bounds": {
+            "x": 4,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c3-desk",
+      "kind": "desk",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 24,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c3-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cubicle-r2c3-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c3-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cubicle-r2c3-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c3-filing",
+      "kind": "filing",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 27,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c3-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cubicle-r2c3-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c3-ceiling",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 25,
+        "y": 19
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c3-ceiling-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "annex-ceiling-aisles",
+      "kind": "ceiling-fixture",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 10,
+        "y": 12
+      },
+      "depthAnchorOffset": {
+        "x": 12,
+        "y": 5
+      },
+      "renderParts": [
+        {
+          "id": "annex-ceiling-aisles-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-aisles-part-02",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 6,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-aisles-part-03",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 12,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-aisles-part-04",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 5
+          }
+        },
+        {
+          "id": "annex-ceiling-aisles-part-05",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 6,
+            "y": 5
+          }
+        },
+        {
+          "id": "annex-ceiling-aisles-part-06",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 12,
+            "y": 5
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "annex-copier",
+      "kind": "copier",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 36,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "annex-copier-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-copier-part-02",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "annex-copier-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-copier-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "annex-corridor-planter",
+      "kind": "planter",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 32,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "annex-corridor-planter-part-01",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "annex-corridor-planter-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "annex-corridor-sign",
+      "kind": "sign",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 40,
+        "y": 10
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "annex-corridor-sign-part-01",
+          "sprite": "tile.sign-civic",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "annex-corridor-sign-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "annex-hall-benches",
+      "kind": "bench",
+      "areaId": "annex-hall",
+      "anchor": {
+        "x": 10,
+        "y": 25
+      },
+      "depthAnchorOffset": {
+        "x": 31,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "annex-hall-benches-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-02",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-03",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 6,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-04",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 7,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-05",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 12,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-06",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 13,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-07",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 18,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-08",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 19,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-09",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 24,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-10",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 25,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-11",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 30,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-benches-part-12",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 31,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "annex-hall-benches-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-03",
+          "bounds": {
+            "x": 6,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-04",
+          "bounds": {
+            "x": 7,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-05",
+          "bounds": {
+            "x": 12,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-06",
+          "bounds": {
+            "x": 13,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-07",
+          "bounds": {
+            "x": 18,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-08",
+          "bounds": {
+            "x": 19,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-09",
+          "bounds": {
+            "x": 24,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-10",
+          "bounds": {
+            "x": 25,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-11",
+          "bounds": {
+            "x": 30,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-benches-solid-12",
+          "bounds": {
+            "x": 31,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "annex-hall-planters",
+      "kind": "planter",
+      "areaId": "annex-hall",
+      "anchor": {
+        "x": 12,
+        "y": 23
+      },
+      "depthAnchorOffset": {
+        "x": 24,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "annex-hall-planters-part-01",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-planters-part-02",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 18,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-planters-part-03",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 30,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-planters-part-04",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": -4,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-hall-planters-part-05",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 24,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "annex-hall-planters-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-planters-solid-02",
+          "bounds": {
+            "x": 18,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-planters-solid-03",
+          "bounds": {
+            "x": 30,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-planters-solid-04",
+          "bounds": {
+            "x": -4,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-hall-planters-solid-05",
+          "bounds": {
+            "x": 24,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "annex-ceiling-hall",
+      "kind": "ceiling-fixture",
+      "areaId": "annex-hall",
+      "anchor": {
+        "x": 18,
+        "y": 23
+      },
+      "depthAnchorOffset": {
+        "x": 6,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "annex-ceiling-hall-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-hall-part-02",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 10,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-hall-part-03",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 20,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-hall-part-04",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": -5,
+            "y": 2
+          }
+        },
+        {
+          "id": "annex-ceiling-hall-part-05",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 3,
+            "y": 2
+          }
+        },
+        {
+          "id": "annex-ceiling-hall-part-06",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 15,
+            "y": 2
+          }
+        },
+        {
+          "id": "annex-ceiling-hall-part-07",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 23,
+            "y": 2
+          }
+        },
+        {
+          "id": "annex-ceiling-hall-part-08",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": -9,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-hall-part-09",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 6,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "manager-desk",
+      "kind": "desk",
+      "areaId": "manager-office",
+      "anchor": {
+        "x": 11,
+        "y": 30
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "manager-desk-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "manager-desk-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "manager-desk-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "manager-desk-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "manager-filing",
+      "kind": "filing",
+      "areaId": "manager-office",
+      "anchor": {
+        "x": 8,
+        "y": 29
+      },
+      "depthAnchorOffset": {
+        "x": 2,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "manager-filing-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "manager-filing-part-02",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "manager-filing-part-03",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "manager-filing-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "manager-filing-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "manager-filing-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "manager-sofa",
+      "kind": "sofa",
+      "areaId": "manager-office",
+      "anchor": {
+        "x": 14,
+        "y": 37
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "manager-sofa-part-01",
+          "sprite": "tile.sofa-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "manager-sofa-part-02",
+          "sprite": "tile.sofa-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "manager-sofa-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "manager-sofa-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": [
+        {
+          "id": "manager-sofa-seat",
+          "kind": "social",
+          "approachOffsets": [
+            {
+              "x": 0,
+              "y": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "manager-meeting-table",
+      "kind": "table",
+      "areaId": "manager-office",
+      "anchor": {
+        "x": 15,
+        "y": 34
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "manager-meeting-table-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "manager-meeting-table-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "manager-meeting-table-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "manager-meeting-table-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": [
+        {
+          "id": "manager-meeting-seat",
+          "kind": "social",
+          "approachOffsets": [
+            {
+              "x": 0,
+              "y": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "manager-shelves",
+      "kind": "filing",
+      "areaId": "manager-office",
+      "anchor": {
+        "x": 17,
+        "y": 35
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 2
+      },
+      "renderParts": [
+        {
+          "id": "manager-shelves-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "manager-shelves-part-02",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 0,
+            "y": 1
+          }
+        },
+        {
+          "id": "manager-shelves-part-03",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 2
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "manager-shelves-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "manager-shelves-solid-02",
+          "bounds": {
+            "x": 0,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "manager-shelves-solid-03",
+          "bounds": {
+            "x": 0,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "manager-planter",
+      "kind": "planter",
+      "areaId": "manager-office",
+      "anchor": {
+        "x": 17,
+        "y": 29
+      },
+      "depthAnchorOffset": {
+        "x": -6,
+        "y": 10
+      },
+      "renderParts": [
+        {
+          "id": "manager-planter-part-01",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "manager-planter-part-02",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": -9,
+            "y": 10
+          }
+        },
+        {
+          "id": "manager-planter-part-03",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 1,
+            "y": 10
+          }
+        },
+        {
+          "id": "manager-planter-part-04",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": -6,
+            "y": 10
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "manager-planter-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "manager-planter-solid-02",
+          "bounds": {
+            "x": -9,
+            "y": 10,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "manager-planter-solid-03",
+          "bounds": {
+            "x": 1,
+            "y": 10,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "manager-planter-solid-04",
+          "bounds": {
+            "x": -6,
+            "y": 10,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "annex-ceiling-manager",
+      "kind": "ceiling-fixture",
+      "areaId": "manager-office",
+      "anchor": {
+        "x": 13,
+        "y": 33
+      },
+      "depthAnchorOffset": {
+        "x": -4,
+        "y": -1
+      },
+      "renderParts": [
+        {
+          "id": "annex-ceiling-manager-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-manager-part-02",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": -4,
+            "y": 3
+          }
+        },
+        {
+          "id": "annex-ceiling-manager-part-03",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 4,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-manager-part-04",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": -2,
+            "y": 2
+          }
+        },
+        {
+          "id": "annex-ceiling-manager-part-05",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 2,
+            "y": -2
+          }
+        },
+        {
+          "id": "annex-ceiling-manager-part-06",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": -4,
+            "y": -1
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "cooler-station",
+      "kind": "cooler",
+      "areaId": "cooler-nook",
+      "anchor": {
+        "x": 24,
+        "y": 30
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cooler-station-part-01",
+          "sprite": "tile.water-cooler",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cooler-station-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cooler-planters",
+      "kind": "planter",
+      "areaId": "cooler-nook",
+      "anchor": {
+        "x": 22,
+        "y": 28
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 11
+      },
+      "renderParts": [
+        {
+          "id": "cooler-planters-part-01",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cooler-planters-part-02",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 4,
+            "y": 0
+          }
+        },
+        {
+          "id": "cooler-planters-part-03",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 5
+          }
+        },
+        {
+          "id": "cooler-planters-part-04",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 5,
+            "y": 9
+          }
+        },
+        {
+          "id": "cooler-planters-part-05",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 11
+          }
+        },
+        {
+          "id": "cooler-planters-part-06",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 5,
+            "y": 3
+          }
+        },
+        {
+          "id": "cooler-planters-part-07",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 1,
+            "y": 11
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cooler-planters-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cooler-planters-solid-02",
+          "bounds": {
+            "x": 4,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cooler-planters-solid-03",
+          "bounds": {
+            "x": 0,
+            "y": 5,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cooler-planters-solid-04",
+          "bounds": {
+            "x": 5,
+            "y": 9,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cooler-planters-solid-05",
+          "bounds": {
+            "x": 0,
+            "y": 11,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cooler-planters-solid-06",
+          "bounds": {
+            "x": 5,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cooler-planters-solid-07",
+          "bounds": {
+            "x": 1,
+            "y": 11,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "cooler-storage",
+      "kind": "counter",
+      "areaId": "cooler-nook",
+      "anchor": {
+        "x": 25,
+        "y": 37
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cooler-storage-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "cooler-storage-part-02",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "cooler-storage-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "cooler-storage-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "annex-ceiling-cooler",
+      "kind": "ceiling-fixture",
+      "areaId": "cooler-nook",
+      "anchor": {
+        "x": 24,
+        "y": 31
+      },
+      "depthAnchorOffset": {
+        "x": 3,
+        "y": -2
+      },
+      "renderParts": [
+        {
+          "id": "annex-ceiling-cooler-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-cooler-part-02",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 2,
+            "y": 2
+          }
+        },
+        {
+          "id": "annex-ceiling-cooler-part-03",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 7
+          }
+        },
+        {
+          "id": "annex-ceiling-cooler-part-04",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": -2,
+            "y": 4
+          }
+        },
+        {
+          "id": "annex-ceiling-cooler-part-05",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 3,
+            "y": -2
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "kitchen-counter",
+      "kind": "counter",
+      "areaId": "annex-kitchen",
+      "anchor": {
+        "x": 31,
+        "y": 28
+      },
+      "depthAnchorOffset": {
+        "x": 3,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "kitchen-counter-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "kitchen-counter-part-02",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "kitchen-counter-part-03",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        },
+        {
+          "id": "kitchen-counter-part-04",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "kitchen-counter-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-counter-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-counter-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-counter-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "kitchen-table",
+      "kind": "table",
+      "areaId": "annex-kitchen",
+      "anchor": {
+        "x": 34,
+        "y": 33
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "kitchen-table-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "kitchen-table-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "kitchen-table-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-table-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": [
+        {
+          "id": "kitchen-table-seat",
+          "kind": "social",
+          "approachOffsets": [
+            {
+              "x": 0,
+              "y": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kitchen-planters",
+      "kind": "planter",
+      "areaId": "annex-kitchen",
+      "anchor": {
+        "x": 31,
+        "y": 36
+      },
+      "depthAnchorOffset": {
+        "x": 11,
+        "y": -3
+      },
+      "renderParts": [
+        {
+          "id": "kitchen-planters-part-01",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "kitchen-planters-part-02",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 9,
+            "y": 0
+          }
+        },
+        {
+          "id": "kitchen-planters-part-03",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 9,
+            "y": -8
+          }
+        },
+        {
+          "id": "kitchen-planters-part-04",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 3,
+            "y": 3
+          }
+        },
+        {
+          "id": "kitchen-planters-part-05",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 11,
+            "y": -3
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "kitchen-planters-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-planters-solid-02",
+          "bounds": {
+            "x": 9,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-planters-solid-03",
+          "bounds": {
+            "x": 9,
+            "y": -8,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-planters-solid-04",
+          "bounds": {
+            "x": 3,
+            "y": 3,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-planters-solid-05",
+          "bounds": {
+            "x": 11,
+            "y": -3,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "kitchen-appliances",
+      "kind": "counter",
+      "areaId": "annex-kitchen",
+      "anchor": {
+        "x": 37,
+        "y": 28
+      },
+      "depthAnchorOffset": {
+        "x": 2,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "kitchen-appliances-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "kitchen-appliances-part-02",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "kitchen-appliances-part-03",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 2,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "kitchen-appliances-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-appliances-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-appliances-solid-03",
+          "bounds": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "kitchen-second-table",
+      "kind": "table",
+      "areaId": "annex-kitchen",
+      "anchor": {
+        "x": 37,
+        "y": 36
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "kitchen-second-table-part-01",
+          "sprite": "tile.table-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "kitchen-second-table-part-02",
+          "sprite": "tile.table-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "kitchen-second-table-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "kitchen-second-table-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": [
+        {
+          "id": "kitchen-second-seat",
+          "kind": "social",
+          "approachOffsets": [
+            {
+              "x": 0,
+              "y": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "annex-ceiling-kitchen",
+      "kind": "ceiling-fixture",
+      "areaId": "annex-kitchen",
+      "anchor": {
+        "x": 33,
+        "y": 31
+      },
+      "depthAnchorOffset": {
+        "x": 5,
+        "y": 2
+      },
+      "renderParts": [
+        {
+          "id": "annex-ceiling-kitchen-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-kitchen-part-02",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 6,
+            "y": 4
+          }
+        },
+        {
+          "id": "annex-ceiling-kitchen-part-03",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 4,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-kitchen-part-04",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": -2,
+            "y": 2
+          }
+        },
+        {
+          "id": "annex-ceiling-kitchen-part-05",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 2,
+            "y": 7
+          }
+        },
+        {
+          "id": "annex-ceiling-kitchen-part-06",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 8,
+            "y": -1
+          }
+        },
+        {
+          "id": "annex-ceiling-kitchen-part-07",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 5,
+            "y": 2
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "lobby-reception",
+      "kind": "counter",
+      "areaId": "annex-lobby",
+      "anchor": {
+        "x": 46,
+        "y": 22
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 2
+      },
+      "renderParts": [
+        {
+          "id": "lobby-reception-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "lobby-reception-part-02",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 0,
+            "y": 1
+          }
+        },
+        {
+          "id": "lobby-reception-part-03",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 2
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "lobby-reception-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-reception-solid-02",
+          "bounds": {
+            "x": 0,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-reception-solid-03",
+          "bounds": {
+            "x": 0,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "lobby-sofa",
+      "kind": "sofa",
+      "areaId": "annex-lobby",
+      "anchor": {
+        "x": 46,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "lobby-sofa-part-01",
+          "sprite": "tile.sofa-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "lobby-sofa-part-02",
+          "sprite": "tile.sofa-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "lobby-sofa-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-sofa-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": [
+        {
+          "id": "lobby-sofa-seat",
+          "kind": "social",
+          "approachOffsets": [
+            {
+              "x": 0,
+              "y": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lobby-planters",
+      "kind": "planter",
+      "areaId": "annex-lobby",
+      "anchor": {
+        "x": 45,
+        "y": 9
+      },
+      "depthAnchorOffset": {
+        "x": 6,
+        "y": 30
+      },
+      "renderParts": [
+        {
+          "id": "lobby-planters-part-01",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "lobby-planters-part-02",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 5,
+            "y": 0
+          }
+        },
+        {
+          "id": "lobby-planters-part-03",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 28
+          }
+        },
+        {
+          "id": "lobby-planters-part-04",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 5,
+            "y": 28
+          }
+        },
+        {
+          "id": "lobby-planters-part-05",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 8
+          }
+        },
+        {
+          "id": "lobby-planters-part-06",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 5,
+            "y": 21
+          }
+        },
+        {
+          "id": "lobby-planters-part-07",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 3,
+            "y": 1
+          }
+        },
+        {
+          "id": "lobby-planters-part-08",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 7,
+            "y": 6
+          }
+        },
+        {
+          "id": "lobby-planters-part-09",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 7,
+            "y": 24
+          }
+        },
+        {
+          "id": "lobby-planters-part-10",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 1,
+            "y": 30
+          }
+        },
+        {
+          "id": "lobby-planters-part-11",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 0,
+            "y": 24
+          }
+        },
+        {
+          "id": "lobby-planters-part-12",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 6,
+            "y": -1
+          }
+        },
+        {
+          "id": "lobby-planters-part-13",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 1,
+            "y": 21
+          }
+        },
+        {
+          "id": "lobby-planters-part-14",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 6,
+            "y": 30
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "lobby-planters-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-02",
+          "bounds": {
+            "x": 5,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-03",
+          "bounds": {
+            "x": 0,
+            "y": 28,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-04",
+          "bounds": {
+            "x": 5,
+            "y": 28,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-05",
+          "bounds": {
+            "x": 0,
+            "y": 8,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-06",
+          "bounds": {
+            "x": 5,
+            "y": 21,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-07",
+          "bounds": {
+            "x": 3,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-08",
+          "bounds": {
+            "x": 7,
+            "y": 6,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-09",
+          "bounds": {
+            "x": 7,
+            "y": 24,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-10",
+          "bounds": {
+            "x": 1,
+            "y": 30,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-11",
+          "bounds": {
+            "x": 0,
+            "y": 24,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-12",
+          "bounds": {
+            "x": 6,
+            "y": -1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-13",
+          "bounds": {
+            "x": 1,
+            "y": 21,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-planters-solid-14",
+          "bounds": {
+            "x": 6,
+            "y": 30,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "lobby-waiting-sofa",
+      "kind": "sofa",
+      "areaId": "annex-lobby",
+      "anchor": {
+        "x": 49,
+        "y": 14
+      },
+      "depthAnchorOffset": {
+        "x": 1,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "lobby-waiting-sofa-part-01",
+          "sprite": "tile.sofa-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "lobby-waiting-sofa-part-02",
+          "sprite": "tile.sofa-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "lobby-waiting-sofa-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-waiting-sofa-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": [
+        {
+          "id": "lobby-waiting-seat",
+          "kind": "social",
+          "approachOffsets": [
+            {
+              "x": 0,
+              "y": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lobby-mail-counter",
+      "kind": "counter",
+      "areaId": "annex-lobby",
+      "anchor": {
+        "x": 45,
+        "y": 27
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 2
+      },
+      "renderParts": [
+        {
+          "id": "lobby-mail-counter-part-01",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "lobby-mail-counter-part-02",
+          "sprite": "tile.counter-right",
+          "offset": {
+            "x": 0,
+            "y": 1
+          }
+        },
+        {
+          "id": "lobby-mail-counter-part-03",
+          "sprite": "tile.counter-left",
+          "offset": {
+            "x": 0,
+            "y": 2
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "lobby-mail-counter-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-mail-counter-solid-02",
+          "bounds": {
+            "x": 0,
+            "y": 1,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "lobby-mail-counter-solid-03",
+          "bounds": {
+            "x": 0,
+            "y": 2,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "lobby-sign",
+      "kind": "sign",
+      "areaId": "annex-lobby",
+      "anchor": {
+        "x": 48,
+        "y": 20
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "lobby-sign-part-01",
+          "sprite": "tile.sign-civic",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "lobby-sign-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    },
+    {
+      "id": "annex-ceiling-lobby",
+      "kind": "ceiling-fixture",
+      "areaId": "annex-lobby",
+      "anchor": {
+        "x": 47,
+        "y": 12
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 27
+      },
+      "renderParts": [
+        {
+          "id": "annex-ceiling-lobby-part-01",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-ceiling-lobby-part-02",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 12
+          }
+        },
+        {
+          "id": "annex-ceiling-lobby-part-03",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 24
+          }
+        },
+        {
+          "id": "annex-ceiling-lobby-part-04",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 6
+          }
+        },
+        {
+          "id": "annex-ceiling-lobby-part-05",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 18
+          }
+        },
+        {
+          "id": "annex-ceiling-lobby-part-06",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": -4
+          }
+        },
+        {
+          "id": "annex-ceiling-lobby-part-07",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 3
+          }
+        },
+        {
+          "id": "annex-ceiling-lobby-part-08",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 9
+          }
+        },
+        {
+          "id": "annex-ceiling-lobby-part-09",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 15
+          }
+        },
+        {
+          "id": "annex-ceiling-lobby-part-10",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 21
+          }
+        },
+        {
+          "id": "annex-ceiling-lobby-part-11",
+          "sprite": "tile.fixture-ceiling-panel",
+          "offset": {
+            "x": 0,
+            "y": 27
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
+      "id": "annex-lot-fixtures",
+      "kind": "lot-fixtures",
+      "areaId": "annex-lot",
+      "anchor": {
+        "x": 56,
+        "y": 10
+      },
+      "depthAnchorOffset": {
+        "x": 2,
+        "y": 20
+      },
+      "renderParts": [
+        {
+          "id": "annex-lot-fixtures-part-01",
+          "sprite": "tile.parked-car-cyan-left",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-02",
+          "sprite": "tile.parked-car-cyan-right",
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-03",
+          "sprite": "tile.parked-car-coral-left",
+          "offset": {
+            "x": 0,
+            "y": 26
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-04",
+          "sprite": "tile.parked-car-coral-right",
+          "offset": {
+            "x": 1,
+            "y": 26
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-05",
+          "sprite": "tile.sign-civic",
+          "offset": {
+            "x": 2,
+            "y": 12
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-06",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": -1,
+            "y": 10
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-07",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": -1,
+            "y": 18
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-part-08",
+          "sprite": "tile.fixture-planter",
+          "offset": {
+            "x": 2,
+            "y": 20
+          }
+        }
+      ],
+      "solidFootprints": [
+        {
+          "id": "annex-lot-fixtures-solid-01",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-solid-02",
+          "bounds": {
+            "x": 1,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-solid-03",
+          "bounds": {
+            "x": 0,
+            "y": 26,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-solid-04",
+          "bounds": {
+            "x": 1,
+            "y": 26,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-solid-05",
+          "bounds": {
+            "x": 2,
+            "y": 12,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "id": "annex-lot-fixtures-solid-06",
+          "bounds": {
+            "x": -1,
+            "y": 10,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "interactions": []
+    }
+  ],
+  "effects": [
+    {
+      "id": "office-kettle-steam",
+      "kind": "steam",
+      "tile": {
+        "x": 31,
+        "y": 28
+      }
+    },
+    {
+      "id": "office-cooler-steam",
+      "kind": "steam",
+      "tile": {
+        "x": 24,
+        "y": 30
+      }
+    }
+  ],
+  "roofGroups": [
+    {
+      "id": "annex-roof",
+      "cells": [
+        {
+          "x": 6,
+          "y": 6,
+          "width": 48,
+          "height": 36
+        }
+      ],
+      "interiorCells": [
+        {
+          "x": 7,
+          "y": 7,
+          "width": 46,
+          "height": 34
+        }
+      ]
+    }
+  ],
+  "areas": [
+    {
+      "id": "cubicle-floor",
+      "bounds": {
+        "x": 7,
+        "y": 7,
+        "width": 37,
+        "height": 15
+      },
+      "densityProfile": "furnished-interior",
+      "intentionalOpenAreas": [
+        {
+          "x": 8,
+          "y": 12,
+          "width": 21,
+          "height": 1
+        },
+        {
+          "x": 8,
+          "y": 17,
+          "width": 21,
+          "height": 1
+        },
+        {
+          "x": 7,
+          "y": 21,
+          "width": 37,
+          "height": 1
+        },
+        {
+          "x": 29,
+          "y": 7,
+          "width": 15,
+          "height": 15
+        },
+        {
+          "x": 7,
+          "y": 7,
+          "width": 1,
+          "height": 15
+        }
+      ],
+      "entranceTiles": [
+        {
+          "x": 20,
+          "y": 21
+        }
+      ],
+      "primaryRoutes": [
+        {
+          "x": 8,
+          "y": 12,
+          "width": 21,
+          "height": 1
+        },
+        {
+          "x": 8,
+          "y": 17,
+          "width": 21,
+          "height": 1
+        }
+      ],
+      "requiredPortalIds": []
+    },
+    {
+      "id": "annex-hall",
+      "bounds": {
+        "x": 7,
+        "y": 22,
+        "width": 37,
+        "height": 5
+      },
+      "densityProfile": "furnished-interior",
+      "intentionalOpenAreas": [
+        {
+          "x": 7,
+          "y": 22,
+          "width": 37,
+          "height": 5
+        }
+      ],
+      "entranceTiles": [
+        {
+          "x": 43,
+          "y": 23
+        },
+        {
+          "x": 20,
+          "y": 22
+        },
+        {
+          "x": 24,
+          "y": 25
+        }
+      ],
+      "primaryRoutes": [
+        {
+          "x": 7,
+          "y": 24,
+          "width": 37,
+          "height": 1
+        }
+      ],
+      "requiredPortalIds": []
+    },
+    {
+      "id": "manager-office",
+      "bounds": {
+        "x": 7,
+        "y": 27,
+        "width": 14,
+        "height": 14
+      },
+      "densityProfile": "furnished-interior",
+      "intentionalOpenAreas": [
+        {
+          "x": 10,
+          "y": 33,
+          "width": 8,
+          "height": 3
+        },
+        {
+          "x": 7,
+          "y": 27,
+          "width": 14,
+          "height": 2
+        },
+        {
+          "x": 7,
+          "y": 30,
+          "width": 4,
+          "height": 11
+        },
+        {
+          "x": 11,
+          "y": 36,
+          "width": 10,
+          "height": 5
+        },
+        {
+          "x": 13,
+          "y": 28,
+          "width": 8,
+          "height": 5
+        }
+      ],
+      "entranceTiles": [
+        {
+          "x": 20,
+          "y": 33
+        }
+      ],
+      "primaryRoutes": [
+        {
+          "x": 12,
+          "y": 33,
+          "width": 8,
+          "height": 1
+        }
+      ],
+      "requiredPortalIds": []
+    },
+    {
+      "id": "cooler-nook",
+      "bounds": {
+        "x": 21,
+        "y": 27,
+        "width": 8,
+        "height": 14
+      },
+      "densityProfile": "furnished-interior",
+      "intentionalOpenAreas": [
+        {
+          "x": 21,
+          "y": 29,
+          "width": 8,
+          "height": 4
+        },
+        {
+          "x": 21,
+          "y": 35,
+          "width": 8,
+          "height": 6
+        }
+      ],
+      "entranceTiles": [
+        {
+          "x": 24,
+          "y": 27
+        }
+      ],
+      "primaryRoutes": [
+        {
+          "x": 25,
+          "y": 28,
+          "width": 1,
+          "height": 6
+        }
+      ],
+      "requiredPortalIds": []
+    },
+    {
+      "id": "annex-kitchen",
+      "bounds": {
+        "x": 29,
+        "y": 27,
+        "width": 15,
+        "height": 14
+      },
+      "densityProfile": "furnished-interior",
+      "intentionalOpenAreas": [
+        {
+          "x": 29,
+          "y": 29,
+          "width": 15,
+          "height": 4
+        },
+        {
+          "x": 29,
+          "y": 34,
+          "width": 15,
+          "height": 7
+        },
+        {
+          "x": 35,
+          "y": 27,
+          "width": 9,
+          "height": 2
+        }
+      ],
+      "entranceTiles": [
+        {
+          "x": 29,
+          "y": 33
+        }
+      ],
+      "primaryRoutes": [
+        {
+          "x": 30,
+          "y": 30,
+          "width": 13,
+          "height": 1
+        }
+      ],
+      "requiredPortalIds": []
+    },
+    {
+      "id": "annex-lobby",
+      "bounds": {
+        "x": 44,
+        "y": 7,
+        "width": 9,
+        "height": 34
+      },
+      "densityProfile": "furnished-interior",
+      "intentionalOpenAreas": [
+        {
+          "x": 48,
+          "y": 20,
+          "width": 5,
+          "height": 9
+        },
+        {
+          "x": 44,
+          "y": 7,
+          "width": 9,
+          "height": 7
+        },
+        {
+          "x": 44,
+          "y": 25,
+          "width": 4,
+          "height": 12
+        },
+        {
+          "x": 44,
+          "y": 15,
+          "width": 9,
+          "height": 5
+        },
+        {
+          "x": 44,
+          "y": 38,
+          "width": 9,
+          "height": 3
+        },
+        {
+          "x": 48,
+          "y": 29,
+          "width": 5,
+          "height": 8
+        }
+      ],
+      "entranceTiles": [
+        {
+          "x": 52,
+          "y": 24
+        },
+        {
+          "x": 44,
+          "y": 23
+        }
+      ],
+      "primaryRoutes": [
+        {
+          "x": 48,
+          "y": 24,
+          "width": 5,
+          "height": 1
+        }
+      ],
+      "requiredPortalIds": []
+    },
+    {
+      "id": "annex-lot",
+      "bounds": {
+        "x": 54,
+        "y": 0,
+        "width": 10,
+        "height": 48
+      },
+      "densityProfile": "structural-placeholder",
+      "intentionalOpenAreas": [],
+      "entranceTiles": [
+        {
+          "x": 62,
+          "y": 24
+        }
+      ],
+      "primaryRoutes": [],
+      "requiredPortalIds": [
+        "from-residential"
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "id": "ledger-annex",
+      "areaIds": [
+        "annex-lobby",
+        "annex-hall",
+        "cubicle-floor",
+        "manager-office",
+        "cooler-nook",
+        "annex-kitchen"
+      ],
+      "outerWallRunIds": [
+        "annex-north",
+        "annex-south",
+        "annex-west",
+        "annex-east"
+      ],
+      "entranceOpeningIds": [
+        "annex-front-opening"
+      ],
+      "roofGroupId": "annex-roof"
+    }
+  ],
+  "locationBindings": [
+    {
+      "locationId": "west_office",
+      "areaIds": [
+        "annex-lot"
+      ],
+      "preferredInteractionIds": []
+    },
+    {
+      "locationId": "ledger_annex",
+      "areaIds": [
+        "annex-lobby",
+        "annex-hall",
+        "cubicle-floor",
+        "manager-office",
+        "cooler-nook",
+        "annex-kitchen"
+      ],
+      "preferredInteractionIds": [
+        "lobby-sofa-seat"
+      ]
+    }
+  ],
+  "portals": [
+    {
+      "id": "from-residential",
+      "edge": "east",
+      "tile": {
+        "x": 63,
+        "y": 24
+      },
+      "destinationMapId": "northwest_residential",
+      "destinationEntranceId": "to-office"
+    }
+  ],
+  "stagingTiles": [
+    {
+      "x": 62,
+      "y": 24
+    },
+    {
+      "x": 50,
+      "y": 24
+    }
+  ],
+  "spawns": {
+    "annex-entry": {
+      "x": 50,
+      "y": 24
+    },
+    "office_manager": {
+      "x": 12,
+      "y": 32
+    },
+    "clerk_01": {
+      "x": 10,
+      "y": 10
+    },
+    "clerk_02": {
+      "x": 15,
+      "y": 10
+    },
+    "clerk_03": {
+      "x": 20,
+      "y": 10
+    },
+    "clerk_04": {
+      "x": 25,
+      "y": 10
+    },
+    "clerk_05": {
+      "x": 10,
+      "y": 15
+    },
+    "clerk_06": {
+      "x": 15,
+      "y": 15
+    },
+    "clerk_07": {
+      "x": 20,
+      "y": 15
+    },
+    "clerk_08": {
+      "x": 25,
+      "y": 15
+    },
+    "clerk_09": {
+      "x": 10,
+      "y": 20
+    },
+    "clerk_10": {
+      "x": 15,
+      "y": 20
+    },
+    "clerk_11": {
+      "x": 20,
+      "y": 20
+    },
+    "clerk_12": {
+      "x": 25,
+      "y": 20
+    }
+  },
+  "startComposition": {
+    "cameraAnchor": {
+      "x": 16,
+      "y": 14
+    },
+    "requiredActorIds": [
+      "clerk_01",
+      "clerk_02",
+      "clerk_05"
+    ],
+    "requiredDetailPartIds": [
+      "cubicle-r0c0-desk-part-01",
+      "cubicle-r0c1-north-part-01",
+      "annex-ceiling-aisles-part-01"
+    ],
+    "landmarkAreaIds": [
+      "cubicle-floor"
+    ]
+  }
+}
