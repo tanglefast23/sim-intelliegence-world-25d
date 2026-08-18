@@ -519,6 +519,28 @@ export function reduceCommand(state: WorldState, candidate: DomainCommand): Comm
         protagonist: { ...simulation.state.protagonist, energy: nextEnergy },
       }));
     }
+    case 'dev-jump-to-minute': {
+      // Dev tool. `awake: false` is a cheat on purpose: a developer inspecting the map at 03:00
+      // should not pay the energy a real night awake would cost. The resulting state is therefore
+      // not one normal play can reach. Everything else settles exactly as it would in play.
+      if (state.clock.pauseTokens.length > 0) throw new Error('Time jump requires a stable unpaused world.');
+      if (command.toMinute <= state.clock.absoluteMinute) throw new Error('Time jump target must be in the future.');
+      const simulation = simulateWorldInterval({
+        state,
+        toAbsoluteMinute: command.toMinute,
+        toSubMinuteMilliseconds: 0,
+        awake: false,
+        frameMovement: false,
+      });
+      const event: DomainEvent = {
+        ...eventBase(state, command, command.toMinute),
+        type: 'dev-time-jumped',
+        fromMinute: state.clock.absoluteMinute,
+        toMinute: command.toMinute,
+        milestoneIds: [...simulation.milestoneIds],
+      };
+      return settleDueCommitments(commitEvent(state, event, simulation.state));
+    }
     case 'apply-quest-reward': {
       const amount = validateQuestReward(command.rewardKind, command.amount);
       const money = state.inventory.money + amount;

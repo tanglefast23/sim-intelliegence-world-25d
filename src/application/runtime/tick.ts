@@ -41,3 +41,16 @@ export function sleepWorld(state: WorldState, mode: 'nap' | 'overnight'): WorldS
     mode,
   })).state;
 }
+
+/** Dev-mode only. Advances the world to `toMinute`, snapping NPCs to their schedules. */
+export function jumpWorldToMinute(state: WorldState, toMinute: number): WorldState {
+  const suffix = commandSuffix(state, `dev-jump-${toMinute}`);
+  return reduceCommand(state, DomainCommandSchema.parse({
+    type: 'dev-jump-to-minute',
+    commandId: `command-${suffix}`,
+    eventId: `event-${suffix}`,
+    scheduledMinute: state.clock.absoluteMinute,
+    priority: 0,
+    toMinute,
+  })).state;
+}

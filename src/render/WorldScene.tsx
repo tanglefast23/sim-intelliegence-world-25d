@@ -12,7 +12,8 @@ import type {
 import { createBrowserConversationPort } from '../ai/conversation/browser-port';
 import { autosaveStableState } from '../application/runtime/autosave';
 import { WORLD_MAP_CATALOG } from '../application/runtime/map-catalog';
-import { setWorldSpeed, sleepWorld, tickWorld } from '../application/runtime/tick';
+import { jumpWorldToMinute, setWorldSpeed, sleepWorld, tickWorld } from '../application/runtime/tick';
+import { nextMinuteOfDay } from '../domain/clock/clock';
 import { canStartPortalTransition, transitionNeighborhood } from '../application/runtime/transitions';
 import { advanceMovementFrame } from '../application/runtime/movement-frame';
 import { effectiveSpeed } from '../domain/clock/clock';
@@ -388,6 +389,8 @@ export function WorldScene({
   const [poseFrame, setPoseFrame] = useState<0 | 1>(0);
   const [saveStatus, setSaveStatus] = useState(initialSaveStatus);
   const [transitioning, setTransitioning] = useState(false);
+  // Dev tool. React state only: never saved, never in presentation preferences, resets on reload.
+  const [devMode, setDevMode] = useState(false);
   const [armedPortalId, setArmedPortalId] = useState<string>();
   const [arrivalLock, setArrivalLock] = useState<string>();
   const [worldFeedback, setWorldFeedback] = useState<string | undefined>(initialFeedback);
@@ -1272,6 +1275,32 @@ export function WorldScene({
   const changeSpeed = useCallback((nextSpeed: 0 | 1 | 2) => {
     setRuntime((current) => ({ ...current, worldState: setWorldSpeed(current.worldState, nextSpeed) }));
   }, []);
+  // Dev tool. The jump, the pause and both feedback writes stay OUTSIDE the setRuntime updater:
+  // updaters must be pure, and React can call them twice.
+  const jumpToAbsoluteMinute = useCallback((toMinute: number) => {
+    const from = runtime.worldState.clock.absoluteMinute;
+    if (transitioning || runtime.worldState.clock.pauseTokens.length > 0) return;
+    try {
+      const jumped = jumpWorldToMinute(runtime.worldState, toMinute);
+      // Pause, or the next tick moves the clock off the preset and the capture is not repeatable.
+      const next = jumped.clock.selectedSpeed === 0 ? jumped : setWorldSpeed(jumped, 0);
+      setRuntime((current) => ({
+        movement: cancelMovement(current.movement),
+        npcMovements: npcMovementState(next),
+        worldState: next,
+      }));
+      const wrapsDay = Math.floor(toMinute / 1_440) !== Math.floor(from / 1_440);
+      setWorldFeedback(wrapsDay ? 'TIME JUMPED · NEXT DAY · WORLD ADVANCED' : 'TIME JUMPED');
+    } catch (error) {
+      setWorldFeedback(`TIME JUMP FAILED · ${(error instanceof Error ? error.message : String(error)).toUpperCase()}`);
+    }
+  }, [runtime.worldState, transitioning]);
+  const jumpToMinuteOfDay = useCallback((minuteOfDay: number) => {
+    jumpToAbsoluteMinute(nextMinuteOfDay(runtime.worldState.clock.absoluteMinute, minuteOfDay));
+  }, [jumpToAbsoluteMinute, runtime.worldState.clock.absoluteMinute]);
+  const jumpForwardHour = useCallback(() => {
+    jumpToAbsoluteMinute(runtime.worldState.clock.absoluteMinute + 60);
+  }, [jumpToAbsoluteMinute, runtime.worldState.clock.absoluteMinute]);
   const sleep = useCallback((mode: 'nap' | 'overnight') => {
     setRuntime((current) => {
       const next = sleepWorld(current.worldState, mode);
@@ -1911,9 +1940,14 @@ export function WorldScene({
           accent={lighting.accent}
           areaName={currentAreaName}
           availableWidth={surface.width}
+          devMode={devMode}
           hidden={questOfferOpen}
+          jumpDisabled={transitioning || runtime.worldState.clock.pauseTokens.length > 0}
           mapName={map.source.displayName}
+          onDevMode={() => setDevMode((open) => !open)}
           onJournal={toggleQuests}
+          onJumpForwardHour={jumpForwardHour}
+          onJumpToMinute={jumpToMinuteOfDay}
           onMusicVolume={(value) => setAudioVolumes({ music: value })}
           onPressSound={() => playInterfaceSound('press')}
           onSave={() => void requestAutosave(runtime.worldState, 'manual')}

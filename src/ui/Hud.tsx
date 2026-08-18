@@ -1,11 +1,18 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { DEV_TIME_PRESETS } from '../domain/clock/clock';
 import type { WorldState } from '../domain/state/schema';
 import { UI_SCALES, type UiScale } from '../render/responsive-layout';
 import { UI_LAYER } from './ui-layers';
 import { uiMetrics } from './ui-metrics';
 import { VolumeSlider } from './VolumeSlider';
+
+function presetLabel(minuteOfDay: number): string {
+  const hours = Math.floor(minuteOfDay / 60).toString().padStart(2, '0');
+  const minutes = (minuteOfDay % 60).toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
 
 function clockLabel(absoluteMinute: number): string {
   const day = Math.floor(absoluteMinute / 1_440) + 1;
@@ -39,12 +46,18 @@ type HudProps = Readonly<{
   onMusicVolume: (value: number) => void;
   onSfxVolume: (value: number) => void;
   onPressSound: () => void;
+  devMode: boolean;
+  onDevMode: () => void;
+  onJumpToMinute: (minuteOfDay: number) => void;
+  onJumpForwardHour: () => void;
+  jumpDisabled: boolean;
 }>;
 
 export function Hud({
   state, mapName, areaName, zoom, saveStatus, accent, availableWidth, hidden, uiScale, onSpeed,
   onJournal, onSocial, onSave, saveDisabled, onZoom, zoomOutDisabled, zoomInDisabled, onUiScale,
   musicVolume, sfxVolume, onMusicVolume, onSfxVolume, onPressSound,
+  devMode, onDevMode, onJumpToMinute, onJumpForwardHour, jumpDisabled,
 }: HudProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const metrics = uiMetrics(uiScale);
@@ -156,6 +169,34 @@ export function Hud({
             onPressSound={onPressSound}
             value={sfxVolume}
           />
+          {/* DEV lives inside the drawer, not in styles.actions. A button in the always-visible
+              footer would change every packaged HUD screenshot, drawer open or closed. */}
+          <View nativeID="world-ui-dev-toggle" style={styles.settingRow}>
+            <Text style={[styles.settingLabel, { fontSize: metrics.secondaryText }]}>DEV</Text>
+            <Pressable accessibilityLabel="Toggle dev mode" onPress={() => { onPressSound(); onDevMode(); }} role="button" style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, devMode && styles.settingsActive, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>{devMode ? 'ON' : 'OFF'}</Text></Pressable>
+          </View>
+          {devMode ? (
+            <View nativeID="world-ui-dev-time" style={styles.devTimeRow}>
+              <Text style={[styles.settingLabel, { fontSize: metrics.secondaryText }]}>TIME JUMP</Text>
+              {DEV_TIME_PRESETS.map((preset) => {
+                const onPreset = state.clock.absoluteMinute % 1_440 === preset;
+                const disabled = jumpDisabled || onPreset;
+                return (
+                  <Pressable
+                    accessibilityLabel={`Jump to ${presetLabel(preset)}`}
+                    disabled={disabled}
+                    key={preset}
+                    onPress={() => { onPressSound(); onJumpToMinute(preset); }}
+                    role="button"
+                    style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, disabled && styles.disabled, pressed && styles.buttonPressed]}
+                  >
+                    <Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>{presetLabel(preset)}</Text>
+                  </Pressable>
+                );
+              })}
+              <Pressable accessibilityLabel="Jump forward one hour" disabled={jumpDisabled} onPress={() => { onPressSound(); onJumpForwardHour(); }} role="button" style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, jumpDisabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>+1H</Text></Pressable>
+            </View>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -169,6 +210,9 @@ const styles = StyleSheet.create({
   area: { color: '#fff0c7', fontFamily: 'Georgia', fontWeight: '700', marginTop: 1 },
   buttonPressed: { opacity: 0.78, transform: [{ translateY: 1 }] },
   clock: { color: '#f1c65b', fontFamily: 'Silkscreen' },
+  // Seven buttons clip inside the 540px HUD, so this row wraps. The shared settingRow must not:
+  // VIEW and UI SCALE rely on staying one line.
+  devTimeRow: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   disabled: { opacity: 0.35 },
   eyebrow: { color: '#dfa85e', fontFamily: 'Silkscreen' },
   fillEnergy: { backgroundColor: '#d9ad56', bottom: 0, left: 0, position: 'absolute', right: 0, top: 0, transformOrigin: 'left center' },

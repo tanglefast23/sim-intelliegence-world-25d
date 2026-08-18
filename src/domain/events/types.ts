@@ -164,6 +164,12 @@ export const DomainEventSchema = z.discriminatedUnion('type', [
     milestoneIds: z.array(z.string().min(1).max(160)),
   }).strict(),
   EventBaseSchema.extend({
+    type: z.literal('dev-time-jumped'),
+    fromMinute: z.number().int().nonnegative(),
+    toMinute: z.number().int().nonnegative(),
+    milestoneIds: z.array(z.string().min(1).max(160)),
+  }).strict(),
+  EventBaseSchema.extend({
     type: z.literal('quest-reward-applied'),
     rewardKind: z.enum(['ordinary', 'dangerous']),
     amount: z.number().int().nonnegative(),
