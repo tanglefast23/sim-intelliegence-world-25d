@@ -640,6 +640,29 @@ export function bakeLampPools(
 
 
 /**
+ * A stroked ellipse lying on the ground: the selection ring under the chosen character.
+ *
+ * `x`/`z` is the centre and `radius` the semi-axis on the ground plane, both in tile units. The
+ * ring is a CIRCLE in world space — the camera's 30-degree tilt compresses the depth axis to
+ * `GROUND_Z_SCALE`, which is what makes it read as an ellipse on screen, so authoring an ellipse
+ * here would compress it twice.
+ *
+ * `width` is the stroke, also in tile units. A caller that wants a constant stroke on screen
+ * divides its pixel width by the camera zoom before converting.
+ */
+export type GroundRing = Readonly<{
+  x: number;
+  z: number;
+  radius: number;
+  width: number;
+  tint: string;
+  opacity: number;
+}>;
+
+/** A ring is a stroke, not a soft blob, so a 12-gon reads as a dodecagon. */
+const RING_SEGMENTS = 32;
+
+/**
  * Flat ground marks that fade at the rim: character blobs and prop contact stains.
  *
  * These used to bake through the floor-quad path, which makes a SQUARE with one uniform colour. On
@@ -659,17 +682,19 @@ export function bakeGroundStains(
   stains: readonly QuadDescriptor[],
   marks: readonly VfxQuad[] = [],
   cameraRight: Readonly<{ x: number; z: number }> = { x: 1, z: 0 },
+  rings: readonly GroundRing[] = [],
 ): BufferGeometry {
   const SEGMENTS = 12;
   const perStain = SEGMENTS + 2;
+  const perRing = (RING_SEGMENTS + 1) * 2;
   // VFX that are MATTER rather than light ride here: steam, leaves, fronds, a dust smear, a blood
   // stain. They need real alpha blending, which the additive pool batch cannot give them — a dark
   // mark added to a lit floor contributes nothing at all — and this batch already blends normally
   // with per-vertex alpha. Zero extra draw calls, and the ceiling has no room for a ninth mesh.
   //
   // Hard-edged, unlike the stains: a mark is pixel art with an outline, not a soft contact shadow.
-  const vertexCount = stains.length * perStain + marks.length * 4;
-  const indexCount = stains.length * SEGMENTS * 3 + marks.length * 6;
+  const vertexCount = stains.length * perStain + marks.length * 4 + rings.length * perRing;
+  const indexCount = stains.length * SEGMENTS * 3 + marks.length * 6 + rings.length * RING_SEGMENTS * 6;
   const positions = new Float32Array(vertexCount * 3);
   const normals = new Float32Array(vertexCount * 3);
   const uvs = new Float32Array(vertexCount * 2);
@@ -738,6 +763,47 @@ export function bakeGroundStains(
     indices[index + 3] = first;
     indices[index + 4] = first + 2;
     indices[index + 5] = first + 3;
+  });
+
+  // Baked LAST so it paints over the blob shadow it sits on: nothing here writes depth, so within
+  // one batch the later triangle wins.
+  const ringFirstVertex = stains.length * perStain + marks.length * 4;
+  const ringFirstIndex = stains.length * SEGMENTS * 3 + marks.length * 6;
+  rings.forEach((ring, ringIndex) => {
+    const first = ringFirstVertex + ringIndex * perRing;
+    const tint = linearTint(ring.tint);
+    const alpha = ring.tint.length === 9
+      ? (Number.parseInt(ring.tint.slice(7), 16) / 255) * ring.opacity
+      : ring.opacity;
+    const inner = Math.max(0, ring.radius - ring.width / 2);
+    const outer = ring.radius + ring.width / 2;
+    for (let step = 0; step <= RING_SEGMENTS; step += 1) {
+      const angle = (step / RING_SEGMENTS) * Math.PI * 2;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      [inner, outer].forEach((radius, side) => {
+        const vertex = first + step * 2 + side;
+        positions[vertex * 3] = ring.x + cos * radius;
+        // Above the stains, so a character's own blob shadow cannot swallow their ring.
+        positions[vertex * 3 + 1] = 0.014;
+        positions[vertex * 3 + 2] = ring.z + sin * radius;
+        normals[vertex * 3 + 1] = 1;
+        colors[vertex * 4] = tint[0];
+        colors[vertex * 4 + 1] = tint[1];
+        colors[vertex * 4 + 2] = tint[2];
+        colors[vertex * 4 + 3] = alpha;
+      });
+    }
+    for (let step = 0; step < RING_SEGMENTS; step += 1) {
+      const index = ringFirstIndex + (ringIndex * RING_SEGMENTS + step) * 6;
+      const near = first + step * 2;
+      indices[index] = near;
+      indices[index + 1] = near + 1;
+      indices[index + 2] = near + 3;
+      indices[index + 3] = near;
+      indices[index + 4] = near + 3;
+      indices[index + 5] = near + 2;
+    }
   });
 
   const geometry = new BufferGeometry();
@@ -1396,9 +1462,24 @@ export async function createWorldRenderer25(
     const effects = vfxQuads(next);
     lastVfxCounts = { additive: effects.additive.length, alpha: effects.alpha.length };
     const blobs = [...blobShadows(next), ...propContactShadows(next)];
+    // The selection ring rides here too, rather than in the DOM overlay it used to come from. An
+    // overlay is above the canvas by construction, so the ring drew ACROSS the character it names;
+    // baked flat on the ground it is depth-tested against the billboard, and the half of it behind
+    // the character is hidden by the character. `radiusX` is the ground radius — `radiusY` is the
+    // 2D renderer's hand-compressed version of it, and the tilt does that compression here.
+    const ring = next.selectionRing;
+    const rings: readonly GroundRing[] = [{
+      x: ring.worldX / TILE_SIZE,
+      z: ring.worldY / TILE_SIZE,
+      radius: ring.radiusX / TILE_SIZE,
+      // Authored in SCREEN pixels, so the zoom comes off to keep the stroke one width at every zoom.
+      width: ring.strokeWidth / next.camera.zoom / TILE_SIZE,
+      tint: ring.color,
+      opacity: 1,
+    }];
     blobMesh.geometry.dispose();
-    blobMesh.geometry = bakeGroundStains(blobs, effects.alpha, basis);
-    blobMesh.visible = blobs.length > 0 || effects.alpha.length > 0;
+    blobMesh.geometry = bakeGroundStains(blobs, effects.alpha, basis, rings);
+    blobMesh.visible = true;
     // Alpha now rides per vertex in the bake, so there is no material-wide opacity to set.
 
     // Transient glows are stepped additive lights on the floor, which is what a lamp pool is.
