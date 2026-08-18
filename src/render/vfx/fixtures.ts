@@ -17,7 +17,8 @@ export const EXPECTED_VFX_ANCHORS = Object.freeze([
   Object.freeze({ mapId: 'southwest_commercial', id: 'courtyard-insects', kind: 'insects', x: 25, y: 35 }),
   Object.freeze({ mapId: 'southwest_commercial', id: 'courtyard-steam-east', kind: 'steam', x: 14, y: 39 }),
   Object.freeze({ mapId: 'southwest_commercial', id: 'courtyard-steam-west', kind: 'steam', x: 11, y: 34 }),
-  Object.freeze({ mapId: 'west_office', id: 'office-cooler-steam', kind: 'steam', x: 24, y: 30 }),
+  // No `office-cooler-steam`. A water cooler dispenses chilled water, so the plume was wrong on its
+  // own terms as well as being one of the two wisps that drew on top of the annex roof.
   Object.freeze({ mapId: 'west_office', id: 'office-kettle-steam', kind: 'steam', x: 31, y: 28 }),
 ] as const);
 

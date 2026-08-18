@@ -153,11 +153,18 @@ function environmentalGeometry(
   }
   if (emitter.kind === 'steam') {
     const rise = reducedMotion ? 0 : phase * 2;
+    // Past the halfway point of the four-step cycle the plume draws through the faded roles, so it
+    // reads as rising and dissipating rather than as a column that snaps back to the spout. The
+    // rect COUNT is constant across phases on purpose: `evidence.ts` reports primitives per kind,
+    // and a count that moved with the animation step would make that number unreadable.
+    const fading = !reducedMotion && phase >= 2;
+    const wisp = fading ? 'steam-wisp' : 'steam-primary';
+    const backer = fading ? 'steam-wisp-shadow' : 'steam-shadow';
     return Object.freeze([
-      rect('steam-shadow', center.x - 5, center.y - 7 - rise, 3, 7),
-      rect('steam-shadow', center.x + 2, center.y - 11 + rise / 2, 3, 8),
-      rect('steam-primary', center.x - 4 + drift, center.y - 9 - rise, 2, 6),
-      rect('steam-primary', center.x + 3 - drift, center.y - 14 + rise / 2, 2, 7),
+      rect(backer, center.x - 5, center.y - 7 - rise, 3, 7),
+      rect(backer, center.x + 2, center.y - 11 + rise / 2, 3, 8),
+      rect(wisp, center.x - 4 + drift, center.y - 9 - rise, 2, 6),
+      rect(wisp, center.x + 3 - drift, center.y - 14 + rise / 2, 2, 7),
     ]);
   }
   if (emitter.kind === 'water') {

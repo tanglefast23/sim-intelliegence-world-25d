@@ -4817,6 +4817,31 @@
       "interactions": []
     },
     {
+      "id": "kitchen-kettle",
+      "kind": "appliance",
+      "areaId": "annex-kitchen",
+      "anchor": {
+        "x": 31,
+        "y": 28
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "kitchen-kettle-part-01",
+          "sprite": "tile.kitchen-kettle",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
       "id": "kitchen-table",
       "kind": "table",
       "areaId": "annex-kitchen",
@@ -5991,14 +6016,6 @@
       "tile": {
         "x": 31,
         "y": 28
-      }
-    },
-    {
-      "id": "office-cooler-steam",
-      "kind": "steam",
-      "tile": {
-        "x": 24,
-        "y": 30
       }
     }
   ],

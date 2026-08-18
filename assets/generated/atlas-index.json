@@ -1,13 +1,13 @@
 {
   "version": 3,
-  "artRevision": 16,
+  "artRevision": 17,
   "toolVersion": "atlas-v9-authored-full-cast",
   "image": {
     "width": 1024,
     "height": 600,
     "colorType": "rgba",
     "gutter": 1,
-    "sha256": "d56f2b9988363ca0d9b2141498ef6ad4d749e9ea7a56b3d7d18ffb14cda7a4bb"
+    "sha256": "0ebcc2f4fbaf2b9475acfde0327c003cbc381cc49882b8e39f63ff021cfdf9fe"
   },
   "tileSize": 32,
   "worldCell": {
@@ -1161,8 +1161,20 @@
       "cellClass": "ground",
       "wallAdjacencyMask": null
     },
-    "tile.landmark-ferry-left": {
+    "tile.kitchen-kettle": {
       "x": 171,
+      "y": 103,
+      "width": 32,
+      "height": 32,
+      "kind": "tile",
+      "category": "object-landmark",
+      "visibility": "public",
+      "sourceId": "kitchen-kettle",
+      "cellClass": "transparent-part",
+      "wallAdjacencyMask": null
+    },
+    "tile.landmark-ferry-left": {
+      "x": 205,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1174,7 +1186,7 @@
       "wallAdjacencyMask": null
     },
     "tile.landmark-ferry-right": {
-      "x": 205,
+      "x": 239,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1186,7 +1198,7 @@
       "wallAdjacencyMask": null
     },
     "tile.landmark-fountain-ne": {
-      "x": 239,
+      "x": 273,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1198,7 +1210,7 @@
       "wallAdjacencyMask": null
     },
     "tile.landmark-fountain-nw": {
-      "x": 273,
+      "x": 307,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1210,7 +1222,7 @@
       "wallAdjacencyMask": null
     },
     "tile.landmark-fountain-se": {
-      "x": 307,
+      "x": 341,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1222,7 +1234,7 @@
       "wallAdjacencyMask": null
     },
     "tile.landmark-fountain-sw": {
-      "x": 341,
+      "x": 375,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1234,7 +1246,7 @@
       "wallAdjacencyMask": null
     },
     "tile.market-canopy-ne": {
-      "x": 375,
+      "x": 409,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1246,7 +1258,7 @@
       "wallAdjacencyMask": null
     },
     "tile.market-canopy-nw": {
-      "x": 409,
+      "x": 443,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1258,7 +1270,7 @@
       "wallAdjacencyMask": null
     },
     "tile.market-canopy-se": {
-      "x": 443,
+      "x": 477,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1270,7 +1282,7 @@
       "wallAdjacencyMask": null
     },
     "tile.market-canopy-sw": {
-      "x": 477,
+      "x": 511,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1282,7 +1294,7 @@
       "wallAdjacencyMask": null
     },
     "tile.market-detail-chalk": {
-      "x": 511,
+      "x": 545,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1294,7 +1306,7 @@
       "wallAdjacencyMask": null
     },
     "tile.market-detail-herbs": {
-      "x": 545,
+      "x": 579,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1306,7 +1318,7 @@
       "wallAdjacencyMask": null
     },
     "tile.market-detail-paper": {
-      "x": 579,
+      "x": 613,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1318,7 +1330,7 @@
       "wallAdjacencyMask": null
     },
     "tile.market-detail-petals": {
-      "x": 613,
+      "x": 647,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1330,7 +1342,7 @@
       "wallAdjacencyMask": null
     },
     "tile.mooring-bollard": {
-      "x": 647,
+      "x": 681,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1342,7 +1354,7 @@
       "wallAdjacencyMask": null
     },
     "tile.neon-floor": {
-      "x": 681,
+      "x": 715,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1354,7 +1366,7 @@
       "wallAdjacencyMask": null
     },
     "tile.neon-floor-b": {
-      "x": 715,
+      "x": 749,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1366,7 +1378,7 @@
       "wallAdjacencyMask": null
     },
     "tile.neon-floor-c": {
-      "x": 749,
+      "x": 783,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1378,7 +1390,7 @@
       "wallAdjacencyMask": null
     },
     "tile.neon-paver": {
-      "x": 783,
+      "x": 817,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1390,7 +1402,7 @@
       "wallAdjacencyMask": null
     },
     "tile.neon-paver-b": {
-      "x": 817,
+      "x": 851,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1402,7 +1414,7 @@
       "wallAdjacencyMask": null
     },
     "tile.neon-paver-c": {
-      "x": 851,
+      "x": 885,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1414,7 +1426,7 @@
       "wallAdjacencyMask": null
     },
     "tile.neon-paver-d": {
-      "x": 885,
+      "x": 919,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1426,7 +1438,7 @@
       "wallAdjacencyMask": null
     },
     "tile.open-door": {
-      "x": 919,
+      "x": 953,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1438,7 +1450,7 @@
       "wallAdjacencyMask": null
     },
     "tile.open-door-horizontal": {
-      "x": 953,
+      "x": 987,
       "y": 103,
       "width": 32,
       "height": 32,
@@ -1450,8 +1462,8 @@
       "wallAdjacencyMask": null
     },
     "tile.open-door-vertical": {
-      "x": 987,
-      "y": 103,
+      "x": 1,
+      "y": 137,
       "width": 32,
       "height": 32,
       "kind": "tile",
@@ -1462,7 +1474,7 @@
       "wallAdjacencyMask": null
     },
     "tile.opening-door": {
-      "x": 1,
+      "x": 35,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1474,7 +1486,7 @@
       "wallAdjacencyMask": null
     },
     "tile.opening-door-horizontal": {
-      "x": 35,
+      "x": 69,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1486,7 +1498,7 @@
       "wallAdjacencyMask": null
     },
     "tile.opening-door-vertical": {
-      "x": 69,
+      "x": 103,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1498,7 +1510,7 @@
       "wallAdjacencyMask": null
     },
     "tile.pale-concrete": {
-      "x": 103,
+      "x": 137,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1510,7 +1522,7 @@
       "wallAdjacencyMask": null
     },
     "tile.pallet-rack-ne": {
-      "x": 137,
+      "x": 171,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1522,7 +1534,7 @@
       "wallAdjacencyMask": null
     },
     "tile.pallet-rack-nw": {
-      "x": 171,
+      "x": 205,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1534,7 +1546,7 @@
       "wallAdjacencyMask": null
     },
     "tile.pallet-rack-se": {
-      "x": 205,
+      "x": 239,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1546,7 +1558,7 @@
       "wallAdjacencyMask": null
     },
     "tile.pallet-rack-sw": {
-      "x": 239,
+      "x": 273,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1558,7 +1570,7 @@
       "wallAdjacencyMask": null
     },
     "tile.parked-car-coral-left": {
-      "x": 273,
+      "x": 307,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1570,7 +1582,7 @@
       "wallAdjacencyMask": null
     },
     "tile.parked-car-coral-right": {
-      "x": 307,
+      "x": 341,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1582,7 +1594,7 @@
       "wallAdjacencyMask": null
     },
     "tile.parked-car-cyan-left": {
-      "x": 341,
+      "x": 375,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1594,7 +1606,7 @@
       "wallAdjacencyMask": null
     },
     "tile.parked-car-cyan-right": {
-      "x": 375,
+      "x": 409,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1606,7 +1618,7 @@
       "wallAdjacencyMask": null
     },
     "tile.plant-palm": {
-      "x": 409,
+      "x": 443,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1618,7 +1630,7 @@
       "wallAdjacencyMask": null
     },
     "tile.plaza-paver": {
-      "x": 443,
+      "x": 477,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1630,7 +1642,7 @@
       "wallAdjacencyMask": null
     },
     "tile.plaza-paver-b": {
-      "x": 477,
+      "x": 511,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1642,7 +1654,7 @@
       "wallAdjacencyMask": null
     },
     "tile.produce-stall-left": {
-      "x": 511,
+      "x": 545,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1654,7 +1666,7 @@
       "wallAdjacencyMask": null
     },
     "tile.produce-stall-right": {
-      "x": 545,
+      "x": 579,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1666,7 +1678,7 @@
       "wallAdjacencyMask": null
     },
     "tile.road-center-horizontal": {
-      "x": 579,
+      "x": 613,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1678,7 +1690,7 @@
       "wallAdjacencyMask": null
     },
     "tile.road-center-vertical": {
-      "x": 613,
+      "x": 647,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1690,7 +1702,7 @@
       "wallAdjacencyMask": null
     },
     "tile.road-crosswalk-horizontal": {
-      "x": 647,
+      "x": 681,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1702,7 +1714,7 @@
       "wallAdjacencyMask": null
     },
     "tile.road-crosswalk-vertical": {
-      "x": 681,
+      "x": 715,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1714,7 +1726,7 @@
       "wallAdjacencyMask": null
     },
     "tile.roof-sunward-base": {
-      "x": 715,
+      "x": 749,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1726,7 +1738,7 @@
       "wallAdjacencyMask": null
     },
     "tile.roof-sunward-corner": {
-      "x": 749,
+      "x": 783,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1738,7 +1750,7 @@
       "wallAdjacencyMask": null
     },
     "tile.roof-sunward-edge": {
-      "x": 783,
+      "x": 817,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1750,7 +1762,7 @@
       "wallAdjacencyMask": null
     },
     "tile.shallow-water": {
-      "x": 817,
+      "x": 851,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1762,7 +1774,7 @@
       "wallAdjacencyMask": null
     },
     "tile.shallow-water-b": {
-      "x": 851,
+      "x": 885,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1774,7 +1786,7 @@
       "wallAdjacencyMask": null
     },
     "tile.shallow-water-c": {
-      "x": 885,
+      "x": 919,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1786,7 +1798,7 @@
       "wallAdjacencyMask": null
     },
     "tile.shallow-water-d": {
-      "x": 919,
+      "x": 953,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1798,7 +1810,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sign-civic": {
-      "x": 953,
+      "x": 987,
       "y": 137,
       "width": 32,
       "height": 32,
@@ -1810,8 +1822,8 @@
       "wallAdjacencyMask": null
     },
     "tile.sign-harbor": {
-      "x": 987,
-      "y": 137,
+      "x": 1,
+      "y": 171,
       "width": 32,
       "height": 32,
       "kind": "tile",
@@ -1822,7 +1834,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sign-market": {
-      "x": 1,
+      "x": 35,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1834,7 +1846,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sign-neon": {
-      "x": 35,
+      "x": 69,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1846,7 +1858,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sign-spa": {
-      "x": 69,
+      "x": 103,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1858,7 +1870,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sign-sunset-market": {
-      "x": 103,
+      "x": 137,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1870,7 +1882,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sofa-left": {
-      "x": 137,
+      "x": 171,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1882,7 +1894,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sofa-right": {
-      "x": 171,
+      "x": 205,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1894,7 +1906,7 @@
       "wallAdjacencyMask": null
     },
     "tile.spa-stone": {
-      "x": 205,
+      "x": 239,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1906,7 +1918,7 @@
       "wallAdjacencyMask": null
     },
     "tile.spa-stone-b": {
-      "x": 239,
+      "x": 273,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1918,7 +1930,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-cobble": {
-      "x": 273,
+      "x": 307,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1930,7 +1942,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-cobble-b": {
-      "x": 307,
+      "x": 341,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1942,7 +1954,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-cobble-c": {
-      "x": 341,
+      "x": 375,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1954,7 +1966,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-floor": {
-      "x": 375,
+      "x": 409,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1966,7 +1978,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-floor-b": {
-      "x": 409,
+      "x": 443,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1978,7 +1990,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-floor-c": {
-      "x": 443,
+      "x": 477,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -1990,7 +2002,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-fountain-ne": {
-      "x": 477,
+      "x": 511,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2002,7 +2014,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-fountain-nw": {
-      "x": 511,
+      "x": 545,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2014,7 +2026,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-fountain-se": {
-      "x": 545,
+      "x": 579,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2026,7 +2038,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-fountain-sw": {
-      "x": 579,
+      "x": 613,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2038,7 +2050,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-market-bench": {
-      "x": 613,
+      "x": 647,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2050,7 +2062,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-mosaic": {
-      "x": 647,
+      "x": 681,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2062,7 +2074,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-mosaic-b": {
-      "x": 681,
+      "x": 715,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2074,7 +2086,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-mosaic-c": {
-      "x": 715,
+      "x": 749,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2086,7 +2098,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-paver": {
-      "x": 749,
+      "x": 783,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2098,7 +2110,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-paver-b": {
-      "x": 783,
+      "x": 817,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2110,7 +2122,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-paver-c": {
-      "x": 817,
+      "x": 851,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2122,7 +2134,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-promenade": {
-      "x": 851,
+      "x": 885,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2134,7 +2146,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-promenade-b": {
-      "x": 885,
+      "x": 919,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2146,7 +2158,7 @@
       "wallAdjacencyMask": null
     },
     "tile.sunset-promenade-c": {
-      "x": 919,
+      "x": 953,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2158,7 +2170,7 @@
       "wallAdjacencyMask": null
     },
     "tile.table-left": {
-      "x": 953,
+      "x": 987,
       "y": 171,
       "width": 32,
       "height": 32,
@@ -2170,8 +2182,8 @@
       "wallAdjacencyMask": null
     },
     "tile.table-right": {
-      "x": 987,
-      "y": 171,
+      "x": 1,
+      "y": 205,
       "width": 32,
       "height": 32,
       "kind": "tile",
@@ -2182,7 +2194,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-1": {
-      "x": 1,
+      "x": 35,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2194,7 +2206,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-2": {
-      "x": 35,
+      "x": 69,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2206,7 +2218,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-3": {
-      "x": 69,
+      "x": 103,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2218,7 +2230,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-4": {
-      "x": 103,
+      "x": 137,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2230,7 +2242,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-5": {
-      "x": 137,
+      "x": 171,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2242,7 +2254,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-6": {
-      "x": 171,
+      "x": 205,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2254,7 +2266,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-7": {
-      "x": 205,
+      "x": 239,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2266,7 +2278,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-8": {
-      "x": 239,
+      "x": 273,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2278,7 +2290,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-9": {
-      "x": 273,
+      "x": 307,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2290,7 +2302,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-a": {
-      "x": 307,
+      "x": 341,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2302,7 +2314,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-b": {
-      "x": 341,
+      "x": 375,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2314,7 +2326,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-c": {
-      "x": 375,
+      "x": 409,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2326,7 +2338,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-d": {
-      "x": 409,
+      "x": 443,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2338,7 +2350,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-e": {
-      "x": 443,
+      "x": 477,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2350,7 +2362,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-built-f": {
-      "x": 477,
+      "x": 511,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2362,7 +2374,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-1": {
-      "x": 511,
+      "x": 545,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2374,7 +2386,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-2": {
-      "x": 545,
+      "x": 579,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2386,7 +2398,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-3": {
-      "x": 579,
+      "x": 613,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2398,7 +2410,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-4": {
-      "x": 613,
+      "x": 647,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2410,7 +2422,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-5": {
-      "x": 647,
+      "x": 681,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2422,7 +2434,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-6": {
-      "x": 681,
+      "x": 715,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2434,7 +2446,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-7": {
-      "x": 715,
+      "x": 749,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2446,7 +2458,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-8": {
-      "x": 749,
+      "x": 783,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2458,7 +2470,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-9": {
-      "x": 783,
+      "x": 817,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2470,7 +2482,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-a": {
-      "x": 817,
+      "x": 851,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2482,7 +2494,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-b": {
-      "x": 851,
+      "x": 885,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2494,7 +2506,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-c": {
-      "x": 885,
+      "x": 919,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2506,7 +2518,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-d": {
-      "x": 919,
+      "x": 953,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2518,7 +2530,7 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-e": {
-      "x": 953,
+      "x": 987,
       "y": 205,
       "width": 32,
       "height": 32,
@@ -2530,8 +2542,8 @@
       "wallAdjacencyMask": null
     },
     "tile.transition-soft-f": {
-      "x": 987,
-      "y": 205,
+      "x": 1,
+      "y": 239,
       "width": 32,
       "height": 32,
       "kind": "tile",
@@ -2542,7 +2554,7 @@
       "wallAdjacencyMask": null
     },
     "tile.villa-floor": {
-      "x": 1,
+      "x": 35,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2554,7 +2566,7 @@
       "wallAdjacencyMask": null
     },
     "tile.villa-floor-b": {
-      "x": 35,
+      "x": 69,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2566,7 +2578,7 @@
       "wallAdjacencyMask": null
     },
     "tile.villa-floor-c": {
-      "x": 69,
+      "x": 103,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2578,7 +2590,7 @@
       "wallAdjacencyMask": null
     },
     "tile.villa-floor-d": {
-      "x": 103,
+      "x": 137,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2590,7 +2602,7 @@
       "wallAdjacencyMask": null
     },
     "tile.wall-civic-0": {
-      "x": 137,
+      "x": 171,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2602,7 +2614,7 @@
       "wallAdjacencyMask": 0
     },
     "tile.wall-civic-1": {
-      "x": 171,
+      "x": 205,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2614,7 +2626,7 @@
       "wallAdjacencyMask": 1
     },
     "tile.wall-civic-2": {
-      "x": 205,
+      "x": 239,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2626,7 +2638,7 @@
       "wallAdjacencyMask": 2
     },
     "tile.wall-civic-3": {
-      "x": 239,
+      "x": 273,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2638,7 +2650,7 @@
       "wallAdjacencyMask": 3
     },
     "tile.wall-civic-4": {
-      "x": 273,
+      "x": 307,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2650,7 +2662,7 @@
       "wallAdjacencyMask": 4
     },
     "tile.wall-civic-5": {
-      "x": 307,
+      "x": 341,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2662,7 +2674,7 @@
       "wallAdjacencyMask": 5
     },
     "tile.wall-civic-6": {
-      "x": 341,
+      "x": 375,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2674,7 +2686,7 @@
       "wallAdjacencyMask": 6
     },
     "tile.wall-civic-7": {
-      "x": 375,
+      "x": 409,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2686,7 +2698,7 @@
       "wallAdjacencyMask": 7
     },
     "tile.wall-civic-8": {
-      "x": 409,
+      "x": 443,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2698,7 +2710,7 @@
       "wallAdjacencyMask": 8
     },
     "tile.wall-civic-9": {
-      "x": 443,
+      "x": 477,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2710,7 +2722,7 @@
       "wallAdjacencyMask": 9
     },
     "tile.wall-civic-a": {
-      "x": 477,
+      "x": 511,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2722,7 +2734,7 @@
       "wallAdjacencyMask": 10
     },
     "tile.wall-civic-b": {
-      "x": 511,
+      "x": 545,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2734,7 +2746,7 @@
       "wallAdjacencyMask": 11
     },
     "tile.wall-civic-c": {
-      "x": 545,
+      "x": 579,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2746,7 +2758,7 @@
       "wallAdjacencyMask": 12
     },
     "tile.wall-civic-d": {
-      "x": 579,
+      "x": 613,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2758,7 +2770,7 @@
       "wallAdjacencyMask": 13
     },
     "tile.wall-civic-e": {
-      "x": 613,
+      "x": 647,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2770,7 +2782,7 @@
       "wallAdjacencyMask": 14
     },
     "tile.wall-civic-f": {
-      "x": 647,
+      "x": 681,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2782,7 +2794,7 @@
       "wallAdjacencyMask": 15
     },
     "tile.wall-commercial-0": {
-      "x": 681,
+      "x": 715,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2794,7 +2806,7 @@
       "wallAdjacencyMask": 0
     },
     "tile.wall-commercial-1": {
-      "x": 715,
+      "x": 749,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2806,7 +2818,7 @@
       "wallAdjacencyMask": 1
     },
     "tile.wall-commercial-2": {
-      "x": 749,
+      "x": 783,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2818,7 +2830,7 @@
       "wallAdjacencyMask": 2
     },
     "tile.wall-commercial-3": {
-      "x": 783,
+      "x": 817,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2830,7 +2842,7 @@
       "wallAdjacencyMask": 3
     },
     "tile.wall-commercial-4": {
-      "x": 817,
+      "x": 851,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2842,7 +2854,7 @@
       "wallAdjacencyMask": 4
     },
     "tile.wall-commercial-5": {
-      "x": 851,
+      "x": 885,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2854,7 +2866,7 @@
       "wallAdjacencyMask": 5
     },
     "tile.wall-commercial-6": {
-      "x": 885,
+      "x": 919,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2866,7 +2878,7 @@
       "wallAdjacencyMask": 6
     },
     "tile.wall-commercial-7": {
-      "x": 919,
+      "x": 953,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2878,7 +2890,7 @@
       "wallAdjacencyMask": 7
     },
     "tile.wall-commercial-8": {
-      "x": 953,
+      "x": 987,
       "y": 239,
       "width": 32,
       "height": 32,
@@ -2890,8 +2902,8 @@
       "wallAdjacencyMask": 8
     },
     "tile.wall-commercial-9": {
-      "x": 987,
-      "y": 239,
+      "x": 1,
+      "y": 273,
       "width": 32,
       "height": 32,
       "kind": "tile",
@@ -2902,7 +2914,7 @@
       "wallAdjacencyMask": 9
     },
     "tile.wall-commercial-a": {
-      "x": 1,
+      "x": 35,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -2914,7 +2926,7 @@
       "wallAdjacencyMask": 10
     },
     "tile.wall-commercial-b": {
-      "x": 35,
+      "x": 69,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -2926,7 +2938,7 @@
       "wallAdjacencyMask": 11
     },
     "tile.wall-commercial-c": {
-      "x": 69,
+      "x": 103,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -2938,7 +2950,7 @@
       "wallAdjacencyMask": 12
     },
     "tile.wall-commercial-d": {
-      "x": 103,
+      "x": 137,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -2950,7 +2962,7 @@
       "wallAdjacencyMask": 13
     },
     "tile.wall-commercial-e": {
-      "x": 137,
+      "x": 171,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -2962,7 +2974,7 @@
       "wallAdjacencyMask": 14
     },
     "tile.wall-commercial-f": {
-      "x": 171,
+      "x": 205,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -2974,7 +2986,7 @@
       "wallAdjacencyMask": 15
     },
     "tile.wall-downtown-0": {
-      "x": 205,
+      "x": 239,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -2986,7 +2998,7 @@
       "wallAdjacencyMask": 0
     },
     "tile.wall-downtown-1": {
-      "x": 239,
+      "x": 273,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -2998,7 +3010,7 @@
       "wallAdjacencyMask": 1
     },
     "tile.wall-downtown-2": {
-      "x": 273,
+      "x": 307,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3010,7 +3022,7 @@
       "wallAdjacencyMask": 2
     },
     "tile.wall-downtown-3": {
-      "x": 307,
+      "x": 341,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3022,7 +3034,7 @@
       "wallAdjacencyMask": 3
     },
     "tile.wall-downtown-4": {
-      "x": 341,
+      "x": 375,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3034,7 +3046,7 @@
       "wallAdjacencyMask": 4
     },
     "tile.wall-downtown-5": {
-      "x": 375,
+      "x": 409,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3046,7 +3058,7 @@
       "wallAdjacencyMask": 5
     },
     "tile.wall-downtown-6": {
-      "x": 409,
+      "x": 443,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3058,7 +3070,7 @@
       "wallAdjacencyMask": 6
     },
     "tile.wall-downtown-7": {
-      "x": 443,
+      "x": 477,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3070,7 +3082,7 @@
       "wallAdjacencyMask": 7
     },
     "tile.wall-downtown-8": {
-      "x": 477,
+      "x": 511,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3082,7 +3094,7 @@
       "wallAdjacencyMask": 8
     },
     "tile.wall-downtown-9": {
-      "x": 511,
+      "x": 545,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3094,7 +3106,7 @@
       "wallAdjacencyMask": 9
     },
     "tile.wall-downtown-a": {
-      "x": 545,
+      "x": 579,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3106,7 +3118,7 @@
       "wallAdjacencyMask": 10
     },
     "tile.wall-downtown-b": {
-      "x": 579,
+      "x": 613,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3118,7 +3130,7 @@
       "wallAdjacencyMask": 11
     },
     "tile.wall-downtown-c": {
-      "x": 613,
+      "x": 647,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3130,7 +3142,7 @@
       "wallAdjacencyMask": 12
     },
     "tile.wall-downtown-d": {
-      "x": 647,
+      "x": 681,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3142,7 +3154,7 @@
       "wallAdjacencyMask": 13
     },
     "tile.wall-downtown-e": {
-      "x": 681,
+      "x": 715,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3154,7 +3166,7 @@
       "wallAdjacencyMask": 14
     },
     "tile.wall-downtown-f": {
-      "x": 715,
+      "x": 749,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3166,7 +3178,7 @@
       "wallAdjacencyMask": 15
     },
     "tile.wall-villa-0": {
-      "x": 749,
+      "x": 783,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3178,7 +3190,7 @@
       "wallAdjacencyMask": 0
     },
     "tile.wall-villa-1": {
-      "x": 783,
+      "x": 817,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3190,7 +3202,7 @@
       "wallAdjacencyMask": 1
     },
     "tile.wall-villa-2": {
-      "x": 817,
+      "x": 851,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3202,7 +3214,7 @@
       "wallAdjacencyMask": 2
     },
     "tile.wall-villa-3": {
-      "x": 851,
+      "x": 885,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3214,7 +3226,7 @@
       "wallAdjacencyMask": 3
     },
     "tile.wall-villa-4": {
-      "x": 885,
+      "x": 919,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3226,7 +3238,7 @@
       "wallAdjacencyMask": 4
     },
     "tile.wall-villa-5": {
-      "x": 919,
+      "x": 953,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3238,7 +3250,7 @@
       "wallAdjacencyMask": 5
     },
     "tile.wall-villa-6": {
-      "x": 953,
+      "x": 987,
       "y": 273,
       "width": 32,
       "height": 32,
@@ -3250,8 +3262,8 @@
       "wallAdjacencyMask": 6
     },
     "tile.wall-villa-7": {
-      "x": 987,
-      "y": 273,
+      "x": 1,
+      "y": 307,
       "width": 32,
       "height": 32,
       "kind": "tile",
@@ -3262,7 +3274,7 @@
       "wallAdjacencyMask": 7
     },
     "tile.wall-villa-8": {
-      "x": 1,
+      "x": 35,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3274,7 +3286,7 @@
       "wallAdjacencyMask": 8
     },
     "tile.wall-villa-9": {
-      "x": 35,
+      "x": 69,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3286,7 +3298,7 @@
       "wallAdjacencyMask": 9
     },
     "tile.wall-villa-a": {
-      "x": 69,
+      "x": 103,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3298,7 +3310,7 @@
       "wallAdjacencyMask": 10
     },
     "tile.wall-villa-b": {
-      "x": 103,
+      "x": 137,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3310,7 +3322,7 @@
       "wallAdjacencyMask": 11
     },
     "tile.wall-villa-c": {
-      "x": 137,
+      "x": 171,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3322,7 +3334,7 @@
       "wallAdjacencyMask": 12
     },
     "tile.wall-villa-d": {
-      "x": 171,
+      "x": 205,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3334,7 +3346,7 @@
       "wallAdjacencyMask": 13
     },
     "tile.wall-villa-e": {
-      "x": 205,
+      "x": 239,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3346,7 +3358,7 @@
       "wallAdjacencyMask": 14
     },
     "tile.wall-villa-f": {
-      "x": 239,
+      "x": 273,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3358,7 +3370,7 @@
       "wallAdjacencyMask": 15
     },
     "tile.warm-sand": {
-      "x": 273,
+      "x": 307,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3370,7 +3382,7 @@
       "wallAdjacencyMask": null
     },
     "tile.warm-sand-b": {
-      "x": 307,
+      "x": 341,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3382,7 +3394,7 @@
       "wallAdjacencyMask": null
     },
     "tile.warm-sand-c": {
-      "x": 341,
+      "x": 375,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3394,7 +3406,7 @@
       "wallAdjacencyMask": null
     },
     "tile.warm-sand-d": {
-      "x": 375,
+      "x": 409,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3406,7 +3418,7 @@
       "wallAdjacencyMask": null
     },
     "tile.water-cooler": {
-      "x": 409,
+      "x": 443,
       "y": 307,
       "width": 32,
       "height": 32,
@@ -3418,7 +3430,7 @@
       "wallAdjacencyMask": null
     },
     "character.devon-price.front-1": {
-      "x": 443,
+      "x": 477,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3430,7 +3442,7 @@
       "wallAdjacencyMask": null
     },
     "character.devon-price.front-2": {
-      "x": 469,
+      "x": 503,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3442,7 +3454,7 @@
       "wallAdjacencyMask": null
     },
     "character.devon-price.left-1": {
-      "x": 495,
+      "x": 529,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3454,7 +3466,7 @@
       "wallAdjacencyMask": null
     },
     "character.devon-price.left-2": {
-      "x": 521,
+      "x": 555,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3466,7 +3478,7 @@
       "wallAdjacencyMask": null
     },
     "character.devon-price.rear-1": {
-      "x": 547,
+      "x": 581,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3478,7 +3490,7 @@
       "wallAdjacencyMask": null
     },
     "character.devon-price.rear-2": {
-      "x": 573,
+      "x": 607,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3490,7 +3502,7 @@
       "wallAdjacencyMask": null
     },
     "character.devon-price.right-1": {
-      "x": 599,
+      "x": 633,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3502,7 +3514,7 @@
       "wallAdjacencyMask": null
     },
     "character.devon-price.right-2": {
-      "x": 625,
+      "x": 659,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3514,7 +3526,7 @@
       "wallAdjacencyMask": null
     },
     "character.elise-moreau.front-1": {
-      "x": 651,
+      "x": 685,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3526,7 +3538,7 @@
       "wallAdjacencyMask": null
     },
     "character.elise-moreau.front-2": {
-      "x": 677,
+      "x": 711,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3538,7 +3550,7 @@
       "wallAdjacencyMask": null
     },
     "character.elise-moreau.left-1": {
-      "x": 703,
+      "x": 737,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3550,7 +3562,7 @@
       "wallAdjacencyMask": null
     },
     "character.elise-moreau.left-2": {
-      "x": 729,
+      "x": 763,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3562,7 +3574,7 @@
       "wallAdjacencyMask": null
     },
     "character.elise-moreau.rear-1": {
-      "x": 755,
+      "x": 789,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3574,7 +3586,7 @@
       "wallAdjacencyMask": null
     },
     "character.elise-moreau.rear-2": {
-      "x": 781,
+      "x": 815,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3586,7 +3598,7 @@
       "wallAdjacencyMask": null
     },
     "character.elise-moreau.right-1": {
-      "x": 807,
+      "x": 841,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3598,7 +3610,7 @@
       "wallAdjacencyMask": null
     },
     "character.elise-moreau.right-2": {
-      "x": 833,
+      "x": 867,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3610,7 +3622,7 @@
       "wallAdjacencyMask": null
     },
     "character.generic-resident.front-1": {
-      "x": 859,
+      "x": 893,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3622,7 +3634,7 @@
       "wallAdjacencyMask": null
     },
     "character.generic-resident.front-2": {
-      "x": 885,
+      "x": 919,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3634,7 +3646,7 @@
       "wallAdjacencyMask": null
     },
     "character.generic-resident.left-1": {
-      "x": 911,
+      "x": 945,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3646,7 +3658,7 @@
       "wallAdjacencyMask": null
     },
     "character.generic-resident.left-2": {
-      "x": 937,
+      "x": 971,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3658,7 +3670,7 @@
       "wallAdjacencyMask": null
     },
     "character.generic-resident.rear-1": {
-      "x": 963,
+      "x": 997,
       "y": 307,
       "width": 24,
       "height": 30,
@@ -3670,8 +3682,8 @@
       "wallAdjacencyMask": null
     },
     "character.generic-resident.rear-2": {
-      "x": 989,
-      "y": 307,
+      "x": 1,
+      "y": 341,
       "width": 24,
       "height": 30,
       "kind": "world-character",
@@ -3682,7 +3694,7 @@
       "wallAdjacencyMask": null
     },
     "character.generic-resident.right-1": {
-      "x": 1,
+      "x": 27,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3694,7 +3706,7 @@
       "wallAdjacencyMask": null
     },
     "character.generic-resident.right-2": {
-      "x": 27,
+      "x": 53,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3706,7 +3718,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda-boyfriend.front-1": {
-      "x": 53,
+      "x": 79,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3718,7 +3730,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda-boyfriend.front-2": {
-      "x": 79,
+      "x": 105,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3730,7 +3742,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda-boyfriend.left-1": {
-      "x": 105,
+      "x": 131,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3742,7 +3754,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda-boyfriend.left-2": {
-      "x": 131,
+      "x": 157,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3754,7 +3766,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda-boyfriend.rear-1": {
-      "x": 157,
+      "x": 183,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3766,7 +3778,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda-boyfriend.rear-2": {
-      "x": 183,
+      "x": 209,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3778,7 +3790,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda-boyfriend.right-1": {
-      "x": 209,
+      "x": 235,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3790,7 +3802,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda-boyfriend.right-2": {
-      "x": 235,
+      "x": 261,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3802,7 +3814,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda.front-1": {
-      "x": 261,
+      "x": 287,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3814,7 +3826,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda.front-2": {
-      "x": 287,
+      "x": 313,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3826,7 +3838,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda.left-1": {
-      "x": 313,
+      "x": 339,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3838,7 +3850,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda.left-2": {
-      "x": 339,
+      "x": 365,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3850,7 +3862,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda.rear-1": {
-      "x": 365,
+      "x": 391,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3862,7 +3874,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda.rear-2": {
-      "x": 391,
+      "x": 417,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3874,7 +3886,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda.right-1": {
-      "x": 417,
+      "x": 443,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3886,7 +3898,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda.right-2": {
-      "x": 443,
+      "x": 469,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3898,7 +3910,7 @@
       "wallAdjacencyMask": null
     },
     "character.mina-park.front-1": {
-      "x": 469,
+      "x": 495,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3910,7 +3922,7 @@
       "wallAdjacencyMask": null
     },
     "character.mina-park.front-2": {
-      "x": 495,
+      "x": 521,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3922,7 +3934,7 @@
       "wallAdjacencyMask": null
     },
     "character.mina-park.left-1": {
-      "x": 521,
+      "x": 547,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3934,7 +3946,7 @@
       "wallAdjacencyMask": null
     },
     "character.mina-park.left-2": {
-      "x": 547,
+      "x": 573,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3946,7 +3958,7 @@
       "wallAdjacencyMask": null
     },
     "character.mina-park.rear-1": {
-      "x": 573,
+      "x": 599,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3958,7 +3970,7 @@
       "wallAdjacencyMask": null
     },
     "character.mina-park.rear-2": {
-      "x": 599,
+      "x": 625,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3970,7 +3982,7 @@
       "wallAdjacencyMask": null
     },
     "character.mina-park.right-1": {
-      "x": 625,
+      "x": 651,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3982,7 +3994,7 @@
       "wallAdjacencyMask": null
     },
     "character.mina-park.right-2": {
-      "x": 651,
+      "x": 677,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -3994,7 +4006,7 @@
       "wallAdjacencyMask": null
     },
     "character.priya-nair.front-1": {
-      "x": 677,
+      "x": 703,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4006,7 +4018,7 @@
       "wallAdjacencyMask": null
     },
     "character.priya-nair.front-2": {
-      "x": 703,
+      "x": 729,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4018,7 +4030,7 @@
       "wallAdjacencyMask": null
     },
     "character.priya-nair.left-1": {
-      "x": 729,
+      "x": 755,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4030,7 +4042,7 @@
       "wallAdjacencyMask": null
     },
     "character.priya-nair.left-2": {
-      "x": 755,
+      "x": 781,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4042,7 +4054,7 @@
       "wallAdjacencyMask": null
     },
     "character.priya-nair.rear-1": {
-      "x": 781,
+      "x": 807,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4054,7 +4066,7 @@
       "wallAdjacencyMask": null
     },
     "character.priya-nair.rear-2": {
-      "x": 807,
+      "x": 833,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4066,7 +4078,7 @@
       "wallAdjacencyMask": null
     },
     "character.priya-nair.right-1": {
-      "x": 833,
+      "x": 859,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4078,7 +4090,7 @@
       "wallAdjacencyMask": null
     },
     "character.priya-nair.right-2": {
-      "x": 859,
+      "x": 885,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4090,7 +4102,7 @@
       "wallAdjacencyMask": null
     },
     "character.protagonist.front-1": {
-      "x": 885,
+      "x": 911,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4102,7 +4114,7 @@
       "wallAdjacencyMask": null
     },
     "character.protagonist.front-2": {
-      "x": 911,
+      "x": 937,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4114,7 +4126,7 @@
       "wallAdjacencyMask": null
     },
     "character.protagonist.left-1": {
-      "x": 937,
+      "x": 963,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4126,7 +4138,7 @@
       "wallAdjacencyMask": null
     },
     "character.protagonist.left-2": {
-      "x": 963,
+      "x": 989,
       "y": 341,
       "width": 24,
       "height": 30,
@@ -4138,8 +4150,8 @@
       "wallAdjacencyMask": null
     },
     "character.protagonist.rear-1": {
-      "x": 989,
-      "y": 341,
+      "x": 1,
+      "y": 373,
       "width": 24,
       "height": 30,
       "kind": "world-character",
@@ -4150,7 +4162,7 @@
       "wallAdjacencyMask": null
     },
     "character.protagonist.rear-2": {
-      "x": 1,
+      "x": 27,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4162,7 +4174,7 @@
       "wallAdjacencyMask": null
     },
     "character.protagonist.right-1": {
-      "x": 27,
+      "x": 53,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4174,7 +4186,7 @@
       "wallAdjacencyMask": null
     },
     "character.protagonist.right-2": {
-      "x": 53,
+      "x": 79,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4186,7 +4198,7 @@
       "wallAdjacencyMask": null
     },
     "character.rafael-cruz.front-1": {
-      "x": 79,
+      "x": 105,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4198,7 +4210,7 @@
       "wallAdjacencyMask": null
     },
     "character.rafael-cruz.front-2": {
-      "x": 105,
+      "x": 131,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4210,7 +4222,7 @@
       "wallAdjacencyMask": null
     },
     "character.rafael-cruz.left-1": {
-      "x": 131,
+      "x": 157,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4222,7 +4234,7 @@
       "wallAdjacencyMask": null
     },
     "character.rafael-cruz.left-2": {
-      "x": 157,
+      "x": 183,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4234,7 +4246,7 @@
       "wallAdjacencyMask": null
     },
     "character.rafael-cruz.rear-1": {
-      "x": 183,
+      "x": 209,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4246,7 +4258,7 @@
       "wallAdjacencyMask": null
     },
     "character.rafael-cruz.rear-2": {
-      "x": 209,
+      "x": 235,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4258,7 +4270,7 @@
       "wallAdjacencyMask": null
     },
     "character.rafael-cruz.right-1": {
-      "x": 235,
+      "x": 261,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4270,7 +4282,7 @@
       "wallAdjacencyMask": null
     },
     "character.rafael-cruz.right-2": {
-      "x": 261,
+      "x": 287,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4282,7 +4294,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-01.front-1": {
-      "x": 287,
+      "x": 313,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4294,7 +4306,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-01.front-2": {
-      "x": 313,
+      "x": 339,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4306,7 +4318,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-01.left-1": {
-      "x": 339,
+      "x": 365,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4318,7 +4330,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-01.left-2": {
-      "x": 365,
+      "x": 391,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4330,7 +4342,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-01.rear-1": {
-      "x": 391,
+      "x": 417,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4342,7 +4354,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-01.rear-2": {
-      "x": 417,
+      "x": 443,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4354,7 +4366,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-01.right-1": {
-      "x": 443,
+      "x": 469,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4366,7 +4378,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-01.right-2": {
-      "x": 469,
+      "x": 495,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4378,7 +4390,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-02.front-1": {
-      "x": 495,
+      "x": 521,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4390,7 +4402,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-02.front-2": {
-      "x": 521,
+      "x": 547,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4402,7 +4414,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-02.left-1": {
-      "x": 547,
+      "x": 573,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4414,7 +4426,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-02.left-2": {
-      "x": 573,
+      "x": 599,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4426,7 +4438,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-02.rear-1": {
-      "x": 599,
+      "x": 625,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4438,7 +4450,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-02.rear-2": {
-      "x": 625,
+      "x": 651,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4450,7 +4462,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-02.right-1": {
-      "x": 651,
+      "x": 677,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4462,7 +4474,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-02.right-2": {
-      "x": 677,
+      "x": 703,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4474,7 +4486,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-03.front-1": {
-      "x": 703,
+      "x": 729,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4486,7 +4498,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-03.front-2": {
-      "x": 729,
+      "x": 755,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4498,7 +4510,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-03.left-1": {
-      "x": 755,
+      "x": 781,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4510,7 +4522,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-03.left-2": {
-      "x": 781,
+      "x": 807,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4522,7 +4534,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-03.rear-1": {
-      "x": 807,
+      "x": 833,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4534,7 +4546,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-03.rear-2": {
-      "x": 833,
+      "x": 859,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4546,7 +4558,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-03.right-1": {
-      "x": 859,
+      "x": 885,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4558,7 +4570,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-03.right-2": {
-      "x": 885,
+      "x": 911,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4570,7 +4582,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-04.front-1": {
-      "x": 911,
+      "x": 937,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4582,7 +4594,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-04.front-2": {
-      "x": 937,
+      "x": 963,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4594,7 +4606,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-04.left-1": {
-      "x": 963,
+      "x": 989,
       "y": 373,
       "width": 24,
       "height": 30,
@@ -4606,8 +4618,8 @@
       "wallAdjacencyMask": null
     },
     "character.resident-04.left-2": {
-      "x": 989,
-      "y": 373,
+      "x": 1,
+      "y": 405,
       "width": 24,
       "height": 30,
       "kind": "world-character",
@@ -4618,7 +4630,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-04.rear-1": {
-      "x": 1,
+      "x": 27,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4630,7 +4642,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-04.rear-2": {
-      "x": 27,
+      "x": 53,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4642,7 +4654,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-04.right-1": {
-      "x": 53,
+      "x": 79,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4654,7 +4666,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-04.right-2": {
-      "x": 79,
+      "x": 105,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4666,7 +4678,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-05.front-1": {
-      "x": 105,
+      "x": 131,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4678,7 +4690,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-05.front-2": {
-      "x": 131,
+      "x": 157,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4690,7 +4702,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-05.left-1": {
-      "x": 157,
+      "x": 183,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4702,7 +4714,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-05.left-2": {
-      "x": 183,
+      "x": 209,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4714,7 +4726,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-05.rear-1": {
-      "x": 209,
+      "x": 235,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4726,7 +4738,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-05.rear-2": {
-      "x": 235,
+      "x": 261,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4738,7 +4750,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-05.right-1": {
-      "x": 261,
+      "x": 287,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4750,7 +4762,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-05.right-2": {
-      "x": 287,
+      "x": 313,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4762,7 +4774,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-06.front-1": {
-      "x": 313,
+      "x": 339,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4774,7 +4786,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-06.front-2": {
-      "x": 339,
+      "x": 365,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4786,7 +4798,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-06.left-1": {
-      "x": 365,
+      "x": 391,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4798,7 +4810,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-06.left-2": {
-      "x": 391,
+      "x": 417,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4810,7 +4822,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-06.rear-1": {
-      "x": 417,
+      "x": 443,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4822,7 +4834,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-06.rear-2": {
-      "x": 443,
+      "x": 469,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4834,7 +4846,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-06.right-1": {
-      "x": 469,
+      "x": 495,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4846,7 +4858,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-06.right-2": {
-      "x": 495,
+      "x": 521,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4858,7 +4870,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-07.front-1": {
-      "x": 521,
+      "x": 547,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4870,7 +4882,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-07.front-2": {
-      "x": 547,
+      "x": 573,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4882,7 +4894,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-07.left-1": {
-      "x": 573,
+      "x": 599,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4894,7 +4906,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-07.left-2": {
-      "x": 599,
+      "x": 625,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4906,7 +4918,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-07.rear-1": {
-      "x": 625,
+      "x": 651,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4918,7 +4930,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-07.rear-2": {
-      "x": 651,
+      "x": 677,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4930,7 +4942,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-07.right-1": {
-      "x": 677,
+      "x": 703,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4942,7 +4954,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-07.right-2": {
-      "x": 703,
+      "x": 729,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4954,7 +4966,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-08.front-1": {
-      "x": 729,
+      "x": 755,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4966,7 +4978,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-08.front-2": {
-      "x": 755,
+      "x": 781,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4978,7 +4990,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-08.left-1": {
-      "x": 781,
+      "x": 807,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -4990,7 +5002,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-08.left-2": {
-      "x": 807,
+      "x": 833,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -5002,7 +5014,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-08.rear-1": {
-      "x": 833,
+      "x": 859,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -5014,7 +5026,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-08.rear-2": {
-      "x": 859,
+      "x": 885,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -5026,7 +5038,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-08.right-1": {
-      "x": 885,
+      "x": 911,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -5038,7 +5050,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-08.right-2": {
-      "x": 911,
+      "x": 937,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -5050,7 +5062,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-09.front-1": {
-      "x": 937,
+      "x": 963,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -5062,7 +5074,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-09.front-2": {
-      "x": 963,
+      "x": 989,
       "y": 405,
       "width": 24,
       "height": 30,
@@ -5074,8 +5086,8 @@
       "wallAdjacencyMask": null
     },
     "character.resident-09.left-1": {
-      "x": 989,
-      "y": 405,
+      "x": 1,
+      "y": 437,
       "width": 24,
       "height": 30,
       "kind": "world-character",
@@ -5086,7 +5098,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-09.left-2": {
-      "x": 1,
+      "x": 27,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5098,7 +5110,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-09.rear-1": {
-      "x": 27,
+      "x": 53,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5110,7 +5122,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-09.rear-2": {
-      "x": 53,
+      "x": 79,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5122,7 +5134,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-09.right-1": {
-      "x": 79,
+      "x": 105,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5134,7 +5146,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-09.right-2": {
-      "x": 105,
+      "x": 131,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5146,7 +5158,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-10.front-1": {
-      "x": 131,
+      "x": 157,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5158,7 +5170,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-10.front-2": {
-      "x": 157,
+      "x": 183,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5170,7 +5182,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-10.left-1": {
-      "x": 183,
+      "x": 209,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5182,7 +5194,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-10.left-2": {
-      "x": 209,
+      "x": 235,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5194,7 +5206,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-10.rear-1": {
-      "x": 235,
+      "x": 261,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5206,7 +5218,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-10.rear-2": {
-      "x": 261,
+      "x": 287,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5218,7 +5230,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-10.right-1": {
-      "x": 287,
+      "x": 313,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5230,7 +5242,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-10.right-2": {
-      "x": 313,
+      "x": 339,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5242,7 +5254,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-11.front-1": {
-      "x": 339,
+      "x": 365,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5254,7 +5266,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-11.front-2": {
-      "x": 365,
+      "x": 391,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5266,7 +5278,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-11.left-1": {
-      "x": 391,
+      "x": 417,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5278,7 +5290,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-11.left-2": {
-      "x": 417,
+      "x": 443,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5290,7 +5302,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-11.rear-1": {
-      "x": 443,
+      "x": 469,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5302,7 +5314,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-11.rear-2": {
-      "x": 469,
+      "x": 495,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5314,7 +5326,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-11.right-1": {
-      "x": 495,
+      "x": 521,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5326,7 +5338,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-11.right-2": {
-      "x": 521,
+      "x": 547,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5338,7 +5350,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-12.front-1": {
-      "x": 547,
+      "x": 573,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5350,7 +5362,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-12.front-2": {
-      "x": 573,
+      "x": 599,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5362,7 +5374,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-12.left-1": {
-      "x": 599,
+      "x": 625,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5374,7 +5386,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-12.left-2": {
-      "x": 625,
+      "x": 651,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5386,7 +5398,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-12.rear-1": {
-      "x": 651,
+      "x": 677,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5398,7 +5410,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-12.rear-2": {
-      "x": 677,
+      "x": 703,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5410,7 +5422,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-12.right-1": {
-      "x": 703,
+      "x": 729,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5422,7 +5434,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-12.right-2": {
-      "x": 729,
+      "x": 755,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5434,7 +5446,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-13.front-1": {
-      "x": 755,
+      "x": 781,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5446,7 +5458,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-13.front-2": {
-      "x": 781,
+      "x": 807,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5458,7 +5470,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-13.left-1": {
-      "x": 807,
+      "x": 833,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5470,7 +5482,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-13.left-2": {
-      "x": 833,
+      "x": 859,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5482,7 +5494,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-13.rear-1": {
-      "x": 859,
+      "x": 885,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5494,7 +5506,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-13.rear-2": {
-      "x": 885,
+      "x": 911,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5506,7 +5518,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-13.right-1": {
-      "x": 911,
+      "x": 937,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5518,7 +5530,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-13.right-2": {
-      "x": 937,
+      "x": 963,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5530,7 +5542,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-14.front-1": {
-      "x": 963,
+      "x": 989,
       "y": 437,
       "width": 24,
       "height": 30,
@@ -5542,8 +5554,8 @@
       "wallAdjacencyMask": null
     },
     "character.resident-14.front-2": {
-      "x": 989,
-      "y": 437,
+      "x": 1,
+      "y": 469,
       "width": 24,
       "height": 30,
       "kind": "world-character",
@@ -5554,7 +5566,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-14.left-1": {
-      "x": 1,
+      "x": 27,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5566,7 +5578,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-14.left-2": {
-      "x": 27,
+      "x": 53,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5578,7 +5590,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-14.rear-1": {
-      "x": 53,
+      "x": 79,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5590,7 +5602,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-14.rear-2": {
-      "x": 79,
+      "x": 105,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5602,7 +5614,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-14.right-1": {
-      "x": 105,
+      "x": 131,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5614,7 +5626,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-14.right-2": {
-      "x": 131,
+      "x": 157,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5626,7 +5638,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-15.front-1": {
-      "x": 157,
+      "x": 183,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5638,7 +5650,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-15.front-2": {
-      "x": 183,
+      "x": 209,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5650,7 +5662,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-15.left-1": {
-      "x": 209,
+      "x": 235,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5662,7 +5674,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-15.left-2": {
-      "x": 235,
+      "x": 261,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5674,7 +5686,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-15.rear-1": {
-      "x": 261,
+      "x": 287,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5686,7 +5698,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-15.rear-2": {
-      "x": 287,
+      "x": 313,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5698,7 +5710,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-15.right-1": {
-      "x": 313,
+      "x": 339,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5710,7 +5722,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-15.right-2": {
-      "x": 339,
+      "x": 365,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5722,7 +5734,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-16.front-1": {
-      "x": 365,
+      "x": 391,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5734,7 +5746,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-16.front-2": {
-      "x": 391,
+      "x": 417,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5746,7 +5758,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-16.left-1": {
-      "x": 417,
+      "x": 443,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5758,7 +5770,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-16.left-2": {
-      "x": 443,
+      "x": 469,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5770,7 +5782,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-16.rear-1": {
-      "x": 469,
+      "x": 495,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5782,7 +5794,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-16.rear-2": {
-      "x": 495,
+      "x": 521,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5794,7 +5806,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-16.right-1": {
-      "x": 521,
+      "x": 547,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5806,7 +5818,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-16.right-2": {
-      "x": 547,
+      "x": 573,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5818,7 +5830,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-17.front-1": {
-      "x": 573,
+      "x": 599,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5830,7 +5842,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-17.front-2": {
-      "x": 599,
+      "x": 625,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5842,7 +5854,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-17.left-1": {
-      "x": 625,
+      "x": 651,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5854,7 +5866,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-17.left-2": {
-      "x": 651,
+      "x": 677,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5866,7 +5878,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-17.rear-1": {
-      "x": 677,
+      "x": 703,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5878,7 +5890,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-17.rear-2": {
-      "x": 703,
+      "x": 729,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5890,7 +5902,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-17.right-1": {
-      "x": 729,
+      "x": 755,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5902,7 +5914,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-17.right-2": {
-      "x": 755,
+      "x": 781,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5914,7 +5926,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-18.front-1": {
-      "x": 781,
+      "x": 807,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5926,7 +5938,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-18.front-2": {
-      "x": 807,
+      "x": 833,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5938,7 +5950,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-18.left-1": {
-      "x": 833,
+      "x": 859,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5950,7 +5962,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-18.left-2": {
-      "x": 859,
+      "x": 885,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5962,7 +5974,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-18.rear-1": {
-      "x": 885,
+      "x": 911,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5974,7 +5986,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-18.rear-2": {
-      "x": 911,
+      "x": 937,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5986,7 +5998,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-18.right-1": {
-      "x": 937,
+      "x": 963,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -5998,7 +6010,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-18.right-2": {
-      "x": 963,
+      "x": 989,
       "y": 469,
       "width": 24,
       "height": 30,
@@ -6010,8 +6022,8 @@
       "wallAdjacencyMask": null
     },
     "character.resident-19.front-1": {
-      "x": 989,
-      "y": 469,
+      "x": 1,
+      "y": 501,
       "width": 24,
       "height": 30,
       "kind": "world-character",
@@ -6022,7 +6034,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-19.front-2": {
-      "x": 1,
+      "x": 27,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6034,7 +6046,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-19.left-1": {
-      "x": 27,
+      "x": 53,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6046,7 +6058,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-19.left-2": {
-      "x": 53,
+      "x": 79,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6058,7 +6070,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-19.rear-1": {
-      "x": 79,
+      "x": 105,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6070,7 +6082,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-19.rear-2": {
-      "x": 105,
+      "x": 131,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6082,7 +6094,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-19.right-1": {
-      "x": 131,
+      "x": 157,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6094,7 +6106,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-19.right-2": {
-      "x": 157,
+      "x": 183,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6106,7 +6118,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-20.front-1": {
-      "x": 183,
+      "x": 209,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6118,7 +6130,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-20.front-2": {
-      "x": 209,
+      "x": 235,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6130,7 +6142,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-20.left-1": {
-      "x": 235,
+      "x": 261,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6142,7 +6154,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-20.left-2": {
-      "x": 261,
+      "x": 287,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6154,7 +6166,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-20.rear-1": {
-      "x": 287,
+      "x": 313,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6166,7 +6178,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-20.rear-2": {
-      "x": 313,
+      "x": 339,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6178,7 +6190,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-20.right-1": {
-      "x": 339,
+      "x": 365,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6190,7 +6202,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-20.right-2": {
-      "x": 365,
+      "x": 391,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6202,7 +6214,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-21.front-1": {
-      "x": 391,
+      "x": 417,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6214,7 +6226,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-21.front-2": {
-      "x": 417,
+      "x": 443,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6226,7 +6238,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-21.left-1": {
-      "x": 443,
+      "x": 469,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6238,7 +6250,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-21.left-2": {
-      "x": 469,
+      "x": 495,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6250,7 +6262,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-21.rear-1": {
-      "x": 495,
+      "x": 521,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6262,7 +6274,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-21.rear-2": {
-      "x": 521,
+      "x": 547,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6274,7 +6286,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-21.right-1": {
-      "x": 547,
+      "x": 573,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6286,7 +6298,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-21.right-2": {
-      "x": 573,
+      "x": 599,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6298,7 +6310,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-22.front-1": {
-      "x": 599,
+      "x": 625,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6310,7 +6322,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-22.front-2": {
-      "x": 625,
+      "x": 651,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6322,7 +6334,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-22.left-1": {
-      "x": 651,
+      "x": 677,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6334,7 +6346,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-22.left-2": {
-      "x": 677,
+      "x": 703,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6346,7 +6358,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-22.rear-1": {
-      "x": 703,
+      "x": 729,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6358,7 +6370,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-22.rear-2": {
-      "x": 729,
+      "x": 755,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6370,7 +6382,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-22.right-1": {
-      "x": 755,
+      "x": 781,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6382,7 +6394,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-22.right-2": {
-      "x": 781,
+      "x": 807,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6394,7 +6406,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-23.front-1": {
-      "x": 807,
+      "x": 833,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6406,7 +6418,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-23.front-2": {
-      "x": 833,
+      "x": 859,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6418,7 +6430,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-23.left-1": {
-      "x": 859,
+      "x": 885,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6430,7 +6442,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-23.left-2": {
-      "x": 885,
+      "x": 911,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6442,7 +6454,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-23.rear-1": {
-      "x": 911,
+      "x": 937,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6454,7 +6466,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-23.rear-2": {
-      "x": 937,
+      "x": 963,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6466,7 +6478,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-23.right-1": {
-      "x": 963,
+      "x": 989,
       "y": 501,
       "width": 24,
       "height": 30,
@@ -6478,8 +6490,8 @@
       "wallAdjacencyMask": null
     },
     "character.resident-23.right-2": {
-      "x": 989,
-      "y": 501,
+      "x": 1,
+      "y": 533,
       "width": 24,
       "height": 30,
       "kind": "world-character",
@@ -6490,7 +6502,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-24.front-1": {
-      "x": 1,
+      "x": 27,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6502,7 +6514,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-24.front-2": {
-      "x": 27,
+      "x": 53,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6514,7 +6526,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-24.left-1": {
-      "x": 53,
+      "x": 79,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6526,7 +6538,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-24.left-2": {
-      "x": 79,
+      "x": 105,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6538,7 +6550,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-24.rear-1": {
-      "x": 105,
+      "x": 131,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6550,7 +6562,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-24.rear-2": {
-      "x": 131,
+      "x": 157,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6562,7 +6574,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-24.right-1": {
-      "x": 157,
+      "x": 183,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6574,7 +6586,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-24.right-2": {
-      "x": 183,
+      "x": 209,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6586,7 +6598,7 @@
       "wallAdjacencyMask": null
     },
     "character.sora-tan.front-1": {
-      "x": 209,
+      "x": 235,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6598,7 +6610,7 @@
       "wallAdjacencyMask": null
     },
     "character.sora-tan.front-2": {
-      "x": 235,
+      "x": 261,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6610,7 +6622,7 @@
       "wallAdjacencyMask": null
     },
     "character.sora-tan.left-1": {
-      "x": 261,
+      "x": 287,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6622,7 +6634,7 @@
       "wallAdjacencyMask": null
     },
     "character.sora-tan.left-2": {
-      "x": 287,
+      "x": 313,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6634,7 +6646,7 @@
       "wallAdjacencyMask": null
     },
     "character.sora-tan.rear-1": {
-      "x": 313,
+      "x": 339,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6646,7 +6658,7 @@
       "wallAdjacencyMask": null
     },
     "character.sora-tan.rear-2": {
-      "x": 339,
+      "x": 365,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6658,7 +6670,7 @@
       "wallAdjacencyMask": null
     },
     "character.sora-tan.right-1": {
-      "x": 365,
+      "x": 391,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6670,7 +6682,7 @@
       "wallAdjacencyMask": null
     },
     "character.sora-tan.right-2": {
-      "x": 391,
+      "x": 417,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6682,7 +6694,7 @@
       "wallAdjacencyMask": null
     },
     "character.tomas-reed.front-1": {
-      "x": 417,
+      "x": 443,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6694,7 +6706,7 @@
       "wallAdjacencyMask": null
     },
     "character.tomas-reed.front-2": {
-      "x": 443,
+      "x": 469,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6706,7 +6718,7 @@
       "wallAdjacencyMask": null
     },
     "character.tomas-reed.left-1": {
-      "x": 469,
+      "x": 495,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6718,7 +6730,7 @@
       "wallAdjacencyMask": null
     },
     "character.tomas-reed.left-2": {
-      "x": 495,
+      "x": 521,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6730,7 +6742,7 @@
       "wallAdjacencyMask": null
     },
     "character.tomas-reed.rear-1": {
-      "x": 521,
+      "x": 547,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6742,7 +6754,7 @@
       "wallAdjacencyMask": null
     },
     "character.tomas-reed.rear-2": {
-      "x": 547,
+      "x": 573,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6754,7 +6766,7 @@
       "wallAdjacencyMask": null
     },
     "character.tomas-reed.right-1": {
-      "x": 573,
+      "x": 599,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6766,7 +6778,7 @@
       "wallAdjacencyMask": null
     },
     "character.tomas-reed.right-2": {
-      "x": 599,
+      "x": 625,
       "y": 533,
       "width": 24,
       "height": 30,
@@ -6778,7 +6790,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.devon-price": {
-      "x": 625,
+      "x": 651,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6790,7 +6802,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.devon-price.joy": {
-      "x": 651,
+      "x": 677,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6802,7 +6814,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.devon-price.upset": {
-      "x": 677,
+      "x": 703,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6814,7 +6826,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.elise-moreau": {
-      "x": 703,
+      "x": 729,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6826,7 +6838,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.elise-moreau.joy": {
-      "x": 729,
+      "x": 755,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6838,7 +6850,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.elise-moreau.upset": {
-      "x": 755,
+      "x": 781,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6850,7 +6862,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.generic-resident": {
-      "x": 781,
+      "x": 807,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6862,7 +6874,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.linda": {
-      "x": 807,
+      "x": 833,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6874,7 +6886,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.linda-boyfriend": {
-      "x": 833,
+      "x": 859,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6886,7 +6898,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.linda.joy": {
-      "x": 859,
+      "x": 885,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6898,7 +6910,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.linda.upset": {
-      "x": 885,
+      "x": 911,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6910,7 +6922,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.mina-park": {
-      "x": 911,
+      "x": 937,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6922,7 +6934,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.mina-park.joy": {
-      "x": 937,
+      "x": 963,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6934,7 +6946,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.mina-park.upset": {
-      "x": 963,
+      "x": 989,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6946,8 +6958,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.priya-nair": {
-      "x": 989,
-      "y": 533,
+      "x": 1,
+      "y": 565,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -6958,7 +6970,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.priya-nair.joy": {
-      "x": 1,
+      "x": 27,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -6970,7 +6982,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.priya-nair.upset": {
-      "x": 27,
+      "x": 53,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -6982,7 +6994,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.protagonist": {
-      "x": 53,
+      "x": 79,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -6994,7 +7006,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.protagonist.joy": {
-      "x": 79,
+      "x": 105,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7006,7 +7018,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.protagonist.upset": {
-      "x": 105,
+      "x": 131,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7018,7 +7030,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.rafael-cruz": {
-      "x": 131,
+      "x": 157,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7030,7 +7042,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.rafael-cruz.joy": {
-      "x": 157,
+      "x": 183,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7042,7 +7054,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.rafael-cruz.upset": {
-      "x": 183,
+      "x": 209,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7054,7 +7066,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-01": {
-      "x": 209,
+      "x": 235,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7066,7 +7078,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-02": {
-      "x": 235,
+      "x": 261,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7078,7 +7090,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-03": {
-      "x": 261,
+      "x": 287,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7090,7 +7102,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-04": {
-      "x": 287,
+      "x": 313,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7102,7 +7114,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-05": {
-      "x": 313,
+      "x": 339,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7114,7 +7126,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-06": {
-      "x": 339,
+      "x": 365,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7126,7 +7138,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-07": {
-      "x": 365,
+      "x": 391,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7138,7 +7150,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-08": {
-      "x": 391,
+      "x": 417,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7150,7 +7162,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-09": {
-      "x": 417,
+      "x": 443,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7162,7 +7174,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-10": {
-      "x": 443,
+      "x": 469,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7174,7 +7186,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-11": {
-      "x": 469,
+      "x": 495,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7186,7 +7198,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-12": {
-      "x": 495,
+      "x": 521,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7198,7 +7210,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-13": {
-      "x": 521,
+      "x": 547,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7210,7 +7222,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-14": {
-      "x": 547,
+      "x": 573,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7222,7 +7234,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-15": {
-      "x": 573,
+      "x": 599,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7234,7 +7246,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-16": {
-      "x": 599,
+      "x": 625,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7246,7 +7258,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-17": {
-      "x": 625,
+      "x": 651,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7258,7 +7270,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-18": {
-      "x": 651,
+      "x": 677,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7270,7 +7282,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-19": {
-      "x": 677,
+      "x": 703,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7282,7 +7294,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-20": {
-      "x": 703,
+      "x": 729,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7294,7 +7306,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-21": {
-      "x": 729,
+      "x": 755,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7306,7 +7318,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-22": {
-      "x": 755,
+      "x": 781,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7318,7 +7330,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-23": {
-      "x": 781,
+      "x": 807,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7330,7 +7342,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-24": {
-      "x": 807,
+      "x": 833,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7342,7 +7354,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.sora-tan": {
-      "x": 833,
+      "x": 859,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7354,18 +7366,6 @@
       "wallAdjacencyMask": null
     },
     "portrait.sora-tan.joy": {
-      "x": 859,
-      "y": 565,
-      "width": 24,
-      "height": 29,
-      "kind": "portrait",
-      "category": "portrait",
-      "visibility": "public",
-      "sourceId": "sora-tan",
-      "cellClass": null,
-      "wallAdjacencyMask": null
-    },
-    "portrait.sora-tan.upset": {
       "x": 885,
       "y": 565,
       "width": 24,
@@ -7377,7 +7377,7 @@
       "cellClass": null,
       "wallAdjacencyMask": null
     },
-    "portrait.tomas-reed": {
+    "portrait.sora-tan.upset": {
       "x": 911,
       "y": 565,
       "width": 24,
@@ -7385,11 +7385,11 @@
       "kind": "portrait",
       "category": "portrait",
       "visibility": "public",
-      "sourceId": "tomas-reed",
+      "sourceId": "sora-tan",
       "cellClass": null,
       "wallAdjacencyMask": null
     },
-    "portrait.tomas-reed.joy": {
+    "portrait.tomas-reed": {
       "x": 937,
       "y": 565,
       "width": 24,
@@ -7401,7 +7401,7 @@
       "cellClass": null,
       "wallAdjacencyMask": null
     },
-    "portrait.tomas-reed.upset": {
+    "portrait.tomas-reed.joy": {
       "x": 963,
       "y": 565,
       "width": 24,
@@ -7413,9 +7413,21 @@
       "cellClass": null,
       "wallAdjacencyMask": null
     },
-    "character.devon-price.eyes": {
+    "portrait.tomas-reed.upset": {
       "x": 989,
       "y": 565,
+      "width": 24,
+      "height": 29,
+      "kind": "portrait",
+      "category": "portrait",
+      "visibility": "public",
+      "sourceId": "tomas-reed",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.devon-price.eyes": {
+      "x": 1,
+      "y": 596,
       "width": 24,
       "height": 3,
       "kind": "world-character",
@@ -7426,7 +7438,7 @@
       "wallAdjacencyMask": null
     },
     "character.elise-moreau.eyes": {
-      "x": 1,
+      "x": 27,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7438,7 +7450,7 @@
       "wallAdjacencyMask": null
     },
     "character.generic-resident.eyes": {
-      "x": 27,
+      "x": 53,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7450,7 +7462,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda-boyfriend.eyes": {
-      "x": 53,
+      "x": 79,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7462,7 +7474,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda.eyes": {
-      "x": 79,
+      "x": 105,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7474,7 +7486,7 @@
       "wallAdjacencyMask": null
     },
     "character.mina-park.eyes": {
-      "x": 105,
+      "x": 131,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7486,7 +7498,7 @@
       "wallAdjacencyMask": null
     },
     "character.priya-nair.eyes": {
-      "x": 131,
+      "x": 157,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7498,7 +7510,7 @@
       "wallAdjacencyMask": null
     },
     "character.protagonist.eyes": {
-      "x": 157,
+      "x": 183,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7510,7 +7522,7 @@
       "wallAdjacencyMask": null
     },
     "character.rafael-cruz.eyes": {
-      "x": 183,
+      "x": 209,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7522,7 +7534,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-01.eyes": {
-      "x": 209,
+      "x": 235,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7534,7 +7546,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-02.eyes": {
-      "x": 235,
+      "x": 261,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7546,7 +7558,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-03.eyes": {
-      "x": 261,
+      "x": 287,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7558,7 +7570,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-04.eyes": {
-      "x": 287,
+      "x": 313,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7570,7 +7582,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-05.eyes": {
-      "x": 313,
+      "x": 339,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7582,7 +7594,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-06.eyes": {
-      "x": 339,
+      "x": 365,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7594,7 +7606,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-07.eyes": {
-      "x": 365,
+      "x": 391,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7606,7 +7618,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-08.eyes": {
-      "x": 391,
+      "x": 417,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7618,7 +7630,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-09.eyes": {
-      "x": 417,
+      "x": 443,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7630,7 +7642,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-10.eyes": {
-      "x": 443,
+      "x": 469,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7642,7 +7654,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-11.eyes": {
-      "x": 469,
+      "x": 495,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7654,7 +7666,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-12.eyes": {
-      "x": 495,
+      "x": 521,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7666,7 +7678,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-13.eyes": {
-      "x": 521,
+      "x": 547,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7678,7 +7690,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-14.eyes": {
-      "x": 547,
+      "x": 573,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7690,7 +7702,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-15.eyes": {
-      "x": 573,
+      "x": 599,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7702,7 +7714,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-16.eyes": {
-      "x": 599,
+      "x": 625,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7714,7 +7726,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-17.eyes": {
-      "x": 625,
+      "x": 651,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7726,7 +7738,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-18.eyes": {
-      "x": 651,
+      "x": 677,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7738,7 +7750,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-19.eyes": {
-      "x": 677,
+      "x": 703,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7750,7 +7762,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-20.eyes": {
-      "x": 703,
+      "x": 729,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7762,7 +7774,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-21.eyes": {
-      "x": 729,
+      "x": 755,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7774,7 +7786,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-22.eyes": {
-      "x": 755,
+      "x": 781,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7786,7 +7798,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-23.eyes": {
-      "x": 781,
+      "x": 807,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7798,7 +7810,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-24.eyes": {
-      "x": 807,
+      "x": 833,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7810,7 +7822,7 @@
       "wallAdjacencyMask": null
     },
     "character.sora-tan.eyes": {
-      "x": 833,
+      "x": 859,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7822,7 +7834,7 @@
       "wallAdjacencyMask": null
     },
     "character.tomas-reed.eyes": {
-      "x": 859,
+      "x": 885,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7930,6 +7942,7 @@
     "tile.harbor-yard",
     "tile.harbor-yard-b",
     "tile.harbor-yard-c",
+    "tile.kitchen-kettle",
     "tile.landmark-ferry-left",
     "tile.landmark-ferry-right",
     "tile.landmark-fountain-ne",
@@ -9607,6 +9620,7 @@
     "tile.cubicle-partition-v",
     "tile.fixture-ceiling-panel",
     "tile.water-cooler",
+    "tile.kitchen-kettle",
     "tile.cargo-crane-nw",
     "tile.cargo-crane-ne",
     "tile.cargo-crane-sw",
@@ -9894,6 +9908,7 @@
     "tile.cubicle-partition-v",
     "tile.fixture-ceiling-panel",
     "tile.water-cooler",
+    "tile.kitchen-kettle",
     "tile.cargo-crane-nw",
     "tile.cargo-crane-ne",
     "tile.cargo-crane-sw",
