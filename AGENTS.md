@@ -32,80 +32,49 @@ Check before running anything else:
 grep -n "show:\|stayHidden\|setAudioMuted" scripts/verification/hidden-window-capture.ts
 ```
 
-## `package-windows-x64` has never passed
+## The Windows camera freeze — solved, and what it teaches
 
-**Check `main` before you debug any CI failure.**
+**Check `main` before you debug any CI failure.** That rule is evergreen:
 
 ```bash
 gh run list --branch main --limit 5
 gh run view <id> --json jobs --jq '.jobs[] | select(.conclusion=="failure") | .name'
 ```
 
-Every recorded run of this repository has failed `package-windows-x64`, on the same step, with a
-byte-identical message:
+`package-windows-x64` failed every recorded run of this repository until 2026-08-18 — always the
+same step, always `Camera motion never matched ... shake 0.24`. Run `32065610791` was the first
+fully green CI run in the repo's history. The fix chain is three commits on PR #3: `44b1afe`
+(diagnostics), `70cb099` (the fix), `fdeef2a` (a job budget sized for a run that finishes).
 
-```
-Verify Windows x64 packaged art-quality world subset without model qualification claims
-SI_WORLD_SMOKE_FAILURE Error: Camera motion never matched.
-Last label: Camera follow suspended; shake 0.24; shot none; queue 0
-```
+### The durable lesson
 
-macOS ARM64 passes the same step. `package-macos-x64` and `package-macos-x64-functional` never run
-it — only `ci.yml` lines 62 and 202 do, so "macOS is green" is not evidence that your change is
-fine on that step.
+**A hidden `BrowserWindow` on the Windows runner is not composited.** `requestAnimationFrame`
+never fires while JS timers keep running. Measured there: `framesIn500ms=0` with
+`documentHidden=false` and no lost-context overlay. macOS composites hidden windows; Windows does
+not.
 
-**A green PR here means macOS green, Windows red.** That is the normal state. Do not revert work to
-chase it, and do not fix it inside a feature branch — it predates every current branch.
+Consequences, and the rules they impose:
 
-### Reading that message without guessing
+- Anything advancing on rAF — the camera clock, trauma decay, follow easing, pan flushing in
+  `WorldInput` — freezes mid-flight and looks stable.
+- **Any wait that polls renderer state without driving a frame will hang or lie.** A poll loop
+  reading a frozen label sees the same value twice and calls it "settled". `waitForCameraStill`
+  did exactly that: it returned a camera stopped mid-follow-ease, and the leftover ease leaked
+  into the next pan measurement as `dx=-1.5`.
+- `capturePage` is what forces a hidden window to produce a frame. `waitForRendererPaint` is the
+  blessed helper (paired captures plus a rAF race); `waitForCameraMotion` and
+  `waitForCameraStill` show the pattern: **paint first, then read**. `package-smoke.test.ts` pins
+  the raw `capturePage` pattern to that one helper — reuse it, do not add bare calls.
 
-Two things make it misleading:
+### How it was diagnosed, kept as a worked example
 
-**It never says which wait failed.** Five `waitForCameraMotion` calls share the message — `follow
-armed`, `follow suspended`, `shake 0.00`, `shot focus`, `shot queue drains`. Picking the first one
-is how you get a confident wrong answer.
-
-**`shake 0.24` tells you, arithmetically.** Trauma starts at `0` and the only impulse in the smoke
-is `0.8`. Decay is `TRAUMA_DECAY_PER_SECOND = 1000 / IMPACT_MAX_DURATION_MS = 5.556/s`, so:
-
-```
-0.8 − 5.556 × t = 0.24   →   t ≈ 101 ms
-```
-
-The freeze is ~101 ms after that impulse, which is the **shake-decay** wait. Trauma above zero also
-keeps `sampleCameraDirector` returning `active`, so the camera clock should still have been running.
-Something stopped the frames.
-
-### The three candidates, and how to tell them apart
-
-- A lost WebGL context. `WorldScene.tsx` passes `disabled={rendererSuspended}` to `WorldInput`, and
-  `rendererSuspended` is `rendererContextState !== 'ready'`. That kills all world input, `F`
-  included.
-- A dead `requestAnimationFrame`. Note that a lost context does **not** stop rAF — the renderer
-  keeps scheduling frames and only skips drawing.
-- A key that never reached the handler.
-
-The message cannot separate them, which is why `waitForCameraMotion` now names its wait and, on
-timeout only, reports the recovery overlay, frames observed in 500 ms, and document visibility.
-
-Read one Windows log, then decide:
-
-| Windows reports | Conclusion |
-|---|---|
-| `recoveryOverlay` present, or `framesIn500ms=0` | GPU or compositor. Apply the `package-macos-x64` precedent below |
-| Context ready and frames alive, follow still suspended | A real Windows input bug. Moving the smoke would hide it |
-
-### The precedent for a GPU-blocklisted runner
-
-`ci.yml` around line 116 already documents this for `package-macos-x64`: that runner's GPU
-blocklists WebGL 2, `Stage 0 task 19` forbids a software-rendering flag, so the job is qualified by
-packaging, signing and a **recorded** WebGL 2 probe, and functional coverage moves to ARM64. The gap
-is written down in `artifacts/threejs-2d/stage-7/INTEL-WEBGL2.md`.
-
-If Windows turns out to be the same problem, apply the same shape. One thing to know first:
-`scripts/qualification/__tests__/art-quality-final-manifest.test.ts:193-198` asserts that
-`package-windows-x64` keeps `SI_WORLD_TIER_B_ART_SMOKE: '1'`, so moving the smoke off Windows fails
-that test too.
+The original error named neither the wait nor the cause, and five waits shared it. The tell was
+arithmetic: trauma starts at 0, the only impulse is `0.8`, decay is `1000 / IMPACT_MAX_DURATION_MS
+= 5.556/s`, so `0.8 − 5.556t = 0.24` puts the freeze ~101 ms after the impulse — the shake-decay
+wait, not the first wait in the file. The first confident diagnosis (a lost GL context) was wrong,
+and only instrumentation settled it: on timeout, `waitForCameraMotion` now names its wait and
+reports the recovery overlay, frames observed in 500 ms, and document visibility. When a wait
+fails, read that payload before theorising.
 
 ## Known product bug, filed here so it is not lost
 

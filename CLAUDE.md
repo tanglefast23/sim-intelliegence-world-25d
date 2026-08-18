@@ -24,35 +24,20 @@ In practice:
 - Smoke runs drive the UI through `webContents.executeJavaScript` and `sendInputEvent`, not through
   the host keyboard or mouse. Keep it that way.
 
-## `package-windows-x64` is red on main. It is not your change.
-
-**Before debugging any CI failure, check whether `main` already fails it.**
+## Before debugging any CI failure, check whether `main` already fails it
 
 ```bash
 gh run list --branch main --limit 5
 gh run view <id> --json jobs --jq '.jobs[] | select(.conclusion=="failure") | .name'
 ```
 
-`package-windows-x64` has failed **every recorded run** of this repository and has never passed. It
-always fails the same step, `Verify Windows x64 packaged art-quality world subset`, with the same
-message:
+`package-windows-x64` failed every recorded run until 2026-08-18 (fixed across PR #3: `44b1afe`,
+`70cb099`, `fdeef2a`; first green run `32065610791`). The durable lesson: **a hidden
+`BrowserWindow` on the Windows runner is not composited**, so rAF-driven state freezes while JS
+timers keep running, and any smoke wait that polls renderer state without driving a frame will
+hang or lie. Paint first via `waitForRendererPaint`, then read.
 
-```
-Camera motion never matched. Last label: Camera follow suspended; shake 0.24; shot none; queue 0
-```
-
-A green PR here means macOS green and Windows red. Do not treat Windows red as a regression, do not
-revert work to chase it, and do not bury an unrelated fix for it inside a feature branch.
-
-Two traps inside that one message, both of which cost real time:
-
-- **It does not name which wait failed.** Five `waitForCameraMotion` calls share it. Assuming it is
-  the first one produces a confident wrong diagnosis.
-- **`shake 0.24` identifies the wait arithmetically.** Trauma starts at `0` and the smoke's only
-  impulse is `0.8`, decaying at `1000 / IMPACT_MAX_DURATION_MS`. So `0.8 − 5.556t = 0.24` gives
-  `t ≈ 101 ms`, which puts the freeze at the shake-decay wait, not the `follow armed` wait.
-
-[AGENTS.md](AGENTS.md) carries the full diagnosis and the decision table for fixing it.
+[AGENTS.md](AGENTS.md) carries the full post-mortem and the frame-driving rules.
 
 ## Commands
 
