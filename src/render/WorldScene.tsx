@@ -39,6 +39,7 @@ import { SelectionMarker } from '../ui/SelectionMarker';
 import { selectedCharacterSummary } from '../ui/selected-character';
 import { sleepCompletionFeedback } from '../ui/sleep-feedback';
 import { WorldInput } from '../ui/WorldInput';
+import { WorldMarkerOverlay, type WorldMarkerVisuals } from '../ui/WorldMarkers';
 import { ZoneGateOverlay } from '../ui/ZoneGate';
 import { UI_LAYER } from '../ui/ui-layers';
 import { uiMetrics } from '../ui/ui-metrics';
@@ -108,7 +109,13 @@ import { ThreeWorldSurface } from './ThreeWorldSurface';
 import type { RendererKind } from './renderer-selection';
 import { inflatedFrameOrigin, inflatedViewport } from './three25/inflation';
 import { clampCameraTilted } from './three25/clamp';
-import { isScreenPointInsideMapTilted, screenToTileTilted, worldToScreenTilted } from './three25/projection';
+import {
+  GROUND_TILE_TRANSFORM,
+  GROUND_Z_SCALE,
+  isScreenPointInsideMapTilted,
+  screenToTileTilted,
+  worldToScreenTilted,
+} from './three25/projection';
 
 /**
  * `worldToScreenTilted` deliberately does not round — rounding mid-chain would break its inverse.
@@ -1611,9 +1618,63 @@ export function WorldScene({
       ? runtime.movement.status === 'moving'
       : runtime.npcMovements[selected]?.status === 'moving',
   );
-  const feedbackScreen = worldFrame.failureMarker
-    ? project(renderCamera, { x: worldFrame.failureMarker.worldX, y: worldFrame.failureMarker.worldY })
-    : undefined;
+  /**
+   * Only the 2.5D path. The 2D renderer draws all four of these as composite batches of its own;
+   * `three25` draws world geometry and never reads these frame fields, so without this overlay a
+   * journal entry reads `PINNED` with no pin on the map, a click shows no pulse, a rejected click
+   * shows no X, and a selected character has no ring. Projected here so `WorldMarkers` never learns
+   * which renderer is mounted. Radii are world pixels in the frame, hence the zoom.
+   */
+  const markerVisuals = useMemo((): WorldMarkerVisuals | undefined => {
+    if (!renderer2_5d) return undefined;
+    const { zoom } = renderCamera;
+    const ring = worldFrame.selectionRing;
+    const ringScreen = project(renderCamera, { x: ring.worldX, y: ring.worldY });
+    const pulse = worldFrame.destinationPulse;
+    const pulseScreen = pulse ? project(renderCamera, { x: pulse.worldX, y: pulse.worldY }) : undefined;
+    const failureMarker = worldFrame.failureMarker;
+    const failureScreen = failureMarker
+      ? project(renderCamera, { x: failureMarker.worldX, y: failureMarker.worldY })
+      : undefined;
+    return {
+      destinationPulse: pulse && pulseScreen
+        ? {
+          color: pulse.color,
+          opacity: pulse.opacity,
+          radiusX: pulse.radius * zoom,
+          radiusY: pulse.radius * zoom * GROUND_Z_SCALE,
+          x: pulseScreen.x,
+          y: pulseScreen.y,
+        }
+        : undefined,
+      // `radiusPixels` is already screen pixels: the 2D path divides it by zoom so the camera
+      // multiplies it straight back out, which is what keeps the X the same size at every zoom.
+      failure: failureMarker && failureScreen
+        ? { color: failureMarker.color, radius: failureMarker.radiusPixels, x: failureScreen.x, y: failureScreen.y }
+        : undefined,
+      journalPins: worldFrame.journalMarkers.map((marker) => {
+        const foot = project(renderCamera, {
+          x: marker.tile.x * TILE_SIZE + 16,
+          y: marker.tile.y * TILE_SIZE + 29,
+        });
+        return {
+          darkColor: marker.darkColor,
+          key: `${marker.tile.x},${marker.tile.y}`,
+          lightColor: marker.lightColor,
+          x: foot.x,
+          y: foot.y,
+        };
+      }),
+      selectionRing: {
+        color: ring.color,
+        radiusX: ring.radiusX * zoom,
+        radiusY: ring.radiusY * zoom,
+        strokeWidth: ring.strokeWidth,
+        x: ringScreen.x,
+        y: ringScreen.y,
+      },
+    };
+  }, [project, renderCamera, renderer2_5d, worldFrame]);
   const portalZones = useMemo(() => map.source.portals.map((portal) => ({
     id: portal.id,
     label: WORLD_MAP_CATALOG[portal.destinationMapId as MapId]?.source.displayName ?? portal.destinationMapId,
@@ -1627,9 +1688,16 @@ export function WorldScene({
       id: zone.id,
       label: zone.label,
       armed: armedPortalId === zone.id,
+      // A tile is an axis-aligned square on the 2D path, so its north-west corner IS its top-left
+      // on screen. Under the tilted camera it projects to a diamond, so the pad is positioned from
+      // the tile CENTRE and sheared into that diamond by `cellTransform` below. Painting the square
+      // at the projected corner left the pad off the tile it marks and the wrong shape.
       cells: zone.tiles.map((tile) => {
-        const screen = project(renderCamera, { x: tile.x * TILE_SIZE, y: tile.y * TILE_SIZE });
-        return { key: `${tile.x},${tile.y}`, left: screen.x, top: screen.y };
+        const screen = renderer2_5d
+          ? project(renderCamera, { x: tile.x * TILE_SIZE + TILE_SIZE / 2, y: tile.y * TILE_SIZE + TILE_SIZE / 2 })
+          : project(renderCamera, { x: tile.x * TILE_SIZE, y: tile.y * TILE_SIZE });
+        const offset = renderer2_5d ? (TILE_SIZE * renderCamera.zoom) / 2 : 0;
+        return { key: `${tile.x},${tile.y}`, left: screen.x - offset, top: screen.y - offset };
       }),
       labelX: anchor.x,
       labelY: anchor.y - 30,
@@ -1684,10 +1752,12 @@ export function WorldScene({
             />
             <ZoneGateOverlay
               accent={lighting.accent}
+              cellTransform={renderer2_5d ? GROUND_TILE_TRANSFORM : undefined}
               gates={zoneGates}
               size={TILE_SIZE * camera.zoom}
               viewport={surface}
             />
+            {markerVisuals ? <WorldMarkerOverlay markers={markerVisuals} zoom={camera.zoom} /> : null}
             <SelectionMarker
               color={lighting.accent}
               label={selected === 'protagonist' ? undefined : selectedName}
