@@ -201,6 +201,12 @@ The reference look is **dark world, bright objects, one warm pocket**. Four ligh
    - Rescale the glow colour to the day sky's brightness before mixing. An accent or lamp tint is
      chosen to be saturated, not bright, so a raw mix moves EXPOSURE as well as hue: it cost 2-5
      luminance everywhere and raised the dead fraction it was added to cut.
+   - And **none of it under a roof**. A room has no sky. The lamp scan reads `frame.props`, which is
+     the whole map, so an interior was tinted by fixtures in rooms it has no window onto. Gate on
+     `shelterCells` — the same indoor test the overhead key uses, because a frame that kills the
+     rake and keeps the skyglow is still lighting an interior as though it were outdoors. It is
+     safe to gate globally: measured, the villa interior at night moves 0.33 luminance and 0.018
+     saturation, because its amber lamps were already tinting toward the day sky's own hue.
 7. **Anything that IS a light must emit, and must take no face shade.** A glow box's authored tint
    has to reach the pixels unchanged — that is the whole reason the unlit batch exists. Bake glow
    boxes with a flat `[1,1,1,1,1,1]`; the default face shade drew every lamp head's two visible
@@ -445,6 +451,8 @@ Every one of these cost a capture round. The right-hand column is what settled i
 | The fallback path is a black plate indoors | It loses the point lights AND the directional key, and a windowless room has no third source | Scope an extra hemisphere step to fallback-at-night-inside-shelter; do not raise the global floor |
 | The build deadlocks the first time you add a portal | `assertV2CompatibilityRoutes` compares derived routes against the generated file the same build is about to rewrite | Hand-seed the two new rows in `generated-routes.ts`, then let the build rewrite them |
 | Twelve new NPCs all render as the same person | `visualIdForNpc` matches a literal id, so any cast without its own atlas art falls through to `generic-resident` | Give the new ids a derivation onto existing sheets; nothing throws, so only a distinctness test catches it |
+| A room's walkways are dark, so you add fixtures over them | The reach is wider than the fixture pitch, so no panel owns its own cell and the metric can only be moved with hardware | Tighten reach toward the pitch and raise output; count fixtures last |
+| An interior takes a night tint through its own roof | Skyglow is not gated on shelter, and it picks its hue from `frame.props` — the whole map | Gate on `shelterCells`, the same test the overhead key uses |
 
 **Reviewers are not oracles.** A reviewer once diagnosed dark props as shadow acne; measurement
 showed the lit path was BRIGHTER than the fallback with fewer near-black pixels. Another correctly
@@ -465,33 +473,60 @@ evidence, not the verdict.
 4. **Colour.** Measure modal colour per sprite excluding luminance < 55. Add to `PROP_FLAT_COLORS`.
    Run `readableTint`. Author tints only where one prop needs two materials — a desk's pale top
    over a dark pedestal. Verify authored and measured take the same curve.
-5. **Lighting.** Offices are ceiling-lit, so the pooled-lamp look is wrong. This was built and
-   measured; the numbers that worked are in `CEILING_SPRITE_IDS_25D` and its light kind. A troffer
-   is cooler, higher, wider and individually WEAKER than a lamp post — 1.33 up, `#d8e4f0`,
-   distance 10, decay 1.2, intensity `0.6 + lampMix * 7.5` — because a dozen of them overlap and a
-   post's numbers blow the room white. Give the indoor key its own branch: `nightKeyOrigin` aims
-   nine tiles out at 20 degrees, which turns a fluorescent room into a sunset. Straight down at
-   intensity 0.7 instead, gated on ceiling fixtures actually being in frame so the villa at night
-   keeps its lamp key.
+5. **Lighting.** Offices are ceiling-lit, so the pooled-lamp look is wrong. A troffer is cooler and
+   higher than a lamp post — 1.33 up, `#d8e4f0` — and **tighter and stronger**, not wider and
+   weaker: distance 8, decay 1.5, intensity `0.6 + lampMix * 14` against a post's 11 / 1.4 / 11.
+
+   Wide-and-weak was the first round's answer and it is the trap. Panels sit five tiles apart, so a
+   ten-tile reach at decay 1.2 had every fixture in the farm lighting every tile of it: twenty-four
+   lights summing to one flat plate with no falloff anywhere, and no panel owning the cell it hangs
+   in. A ceiling GRID is not a wash. Each fixture has to carry its own cell, which needs a reach
+   near the pitch and enough output to survive the steeper falloff.
+
+   Kill the skyglow indoors, in the same breath. A room has no sky, and the lamp scan that picks
+   the glow colour reads `frame.props`, which is the whole map — so an interior takes a night tint
+   from fixtures in rooms the player cannot see, through its own roof. Gate it on `shelterCells`,
+   the same indoor test the overhead key uses.
+
+   Give the indoor key its own branch too: `nightKeyOrigin` aims nine tiles out at 20 degrees,
+   which turns a fluorescent room into a sunset. Straight down at intensity 0.7 instead, gated on
+   ceiling fixtures actually being in frame so the villa at night keeps its lamp key.
 6. **Staging.** If the floor plate is open, `shelterCells` will crush the surround — check the
    capture actually frames desks and not empty carpet. Pick the densest spot. **Then check what is
    BEHIND it**: the first office framing looked over the north wall and put a wedge of unlit
    exterior in the corner, which cost 0.13 dead fraction and pushed pooling past its ceiling by
    adding void rather than by pooling light. Standing one aisle deeper fixed both.
 7. **Loop.** Capture night and noon. Score. Change one thing. Repeat until 9.4+ with a 0.1 gain.
-   Pooling is the metric to read first indoors: one panel per desk lights the desks and leaves the
-   walkways dark, which measures 2.04 against a 1.9 ceiling. Add panels where the light is missing
-   rather than lifting the hemisphere — the aisles took it to 1.73 and gained 9 mean luminance.
+   Pooling is the metric to read first indoors — and **it is the one most easily gamed**. One panel
+   per desk measured 2.04 against a 1.9 ceiling, so six more panels were authored over the aisles
+   and it fell to 1.73. That fixed the number and left the fault: the walkways were dark because
+   every troffer reached ten tiles at decay 1.2, so no panel lit its own cell any harder than its
+   neighbour's, and the only way to reach a walkway was to hang hardware over it. **A room does not
+   get a light fitting because a metric is high.** Tighten the falloff first; the fixture count is
+   the last lever, not the first.
 8. **Verify.** `npm test`, `check:boundaries`, draw calls under 10, `art:check` green. Commit.
 
-**Measured result for this worked example**, so a later pass has a bar rather than an adjective:
+**Measured result for this worked example**, so a later pass has a bar rather than an adjective.
+Left of the arrow is the wide-troffer round with the six aisle panels; right is the tight rig with
+the panels removed and the interior skyglow off. Both were shot on the same host:
 
 | frame | dead | flat | pool | lum | sat | detail |
 |---|---|---|---|---|---|---|
-| cubicles-night | 0.056 | 0.028 | 1.732 | 86.31 | 0.302 | 2.993 |
-| cubicles-noon | 0.077 | 0.025 | 1.798 | 67.17 | 0.270 | 3.241 |
-| hall-night | 0.032 | 0.002 | 1.647 | 64.83 | 0.287 | 2.977 |
-| cubicles-night-fallback | 0.090 | 0.004 | 2.596 | 50.14 | 0.335 | 2.395 |
+| cubicles-night | 0.039 → 0.049 | 0.017 → 0.018 | 1.703 → 2.056 | 82.49 → 79.05 | 0.319 → 0.307 | 2.529 → 2.653 |
+| cubicles-noon | 0.066 → 0.079 | 0.026 → 0.033 | 1.666 → 1.699 | 63.72 → 61.61 | 0.276 → 0.287 | 2.793 → 2.788 |
+| hall-night | 0.035 → 0.062 | 0.005 → 0.013 | 1.640 → 1.786 | 57.95 → 58.42 | 0.314 → 0.273 | 2.444 → 2.546 |
+| cubicles-night-fallback | 0.095 → 0.101 | 0.004 → 0.002 | 2.379 → 2.521 | 43.60 → 43.80 | 0.345 → 0.402 | 1.991 → 2.008 |
+
+**`cubicles-night` pooling now sits at 2.056, over the 1.9 ceiling, and that is the accepted
+reading rather than a regression to fix.** The ceiling was written in the round that flooded the
+room, and the two levers that would bring the number back are the two the office already rejected:
+authoring fixtures over walkways, or raising the hemisphere. What the frame shows instead is real
+falloff between panels, which is what the ratio is a proxy for in the first place. Read it with the
+dead fraction, which fell where it matters and stayed under 0.07 everywhere.
+
+The cost is honest and worth naming: `hall-night` loses 0.041 saturation, because the skyglow it
+lost was a cool tint on a grey corridor. The warm sky against cool troffers is the contrast the
+scene keeps instead.
 
 ---
 
@@ -518,7 +553,10 @@ evidence, not the verdict.
 | Alpha cutout | `alphaTest: 0.5`, never `transparent` | `three25/world-renderer-25.ts` |
 | Face shade, lit (all lit batches) | `[1, 1, 1, 1, 0.82, 0.82]` | `three25/world-renderer-25.ts` |
 | Lamp light colour | the lamp's own recipe glow (`LAMP_GLOW_COLORS`) | `three25/recipes.ts` |
-| Skyglow | `0.45 * lampMix` toward the mean lamp colour, brightness-rescaled | `three25/world-renderer-25.ts` |
+| Skyglow | `0.45 * lampMix` toward the most saturated lamp colour, brightness-rescaled; ZERO under a roof | `three25/lighting.ts`, `three25/world-renderer-25.ts` |
+| Ceiling troffer light | distance 8, decay 1.5, `0.6 + lampMix * 14`, `#d8e4f0` at y 1.33 | `three25/lighting.ts` |
+| Ceiling troffer pool | radius 4 tiles, opacity `0.28 * lampMix`, additive | `three25/lighting.ts` |
+| Ceiling point-light cap | 24, nearest the protagonist, ties by id | `three25/lighting.ts` |
 | Prop jitter | ±8%, hashed from the prop id, glow boxes exempt | `three25/scene-builder.ts` |
 | Crate lid rim | `#d8c49a` | `three25/recipes.ts` |
 | Face shade, glow | `[1, 1, 1, 1, 1, 1]` — none | `three25/world-renderer-25.ts` |

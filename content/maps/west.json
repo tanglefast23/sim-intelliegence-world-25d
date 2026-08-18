@@ -3382,71 +3382,6 @@
       "interactions": []
     },
     {
-      "id": "annex-ceiling-aisles",
-      "kind": "ceiling-fixture",
-      "areaId": "cubicle-floor",
-      "anchor": {
-        "x": 10,
-        "y": 12
-      },
-      "depthAnchorOffset": {
-        "x": 12,
-        "y": 5
-      },
-      "renderParts": [
-        {
-          "id": "annex-ceiling-aisles-part-01",
-          "sprite": "tile.fixture-ceiling-panel",
-          "offset": {
-            "x": 0,
-            "y": 0
-          }
-        },
-        {
-          "id": "annex-ceiling-aisles-part-02",
-          "sprite": "tile.fixture-ceiling-panel",
-          "offset": {
-            "x": 6,
-            "y": 0
-          }
-        },
-        {
-          "id": "annex-ceiling-aisles-part-03",
-          "sprite": "tile.fixture-ceiling-panel",
-          "offset": {
-            "x": 12,
-            "y": 0
-          }
-        },
-        {
-          "id": "annex-ceiling-aisles-part-04",
-          "sprite": "tile.fixture-ceiling-panel",
-          "offset": {
-            "x": 0,
-            "y": 5
-          }
-        },
-        {
-          "id": "annex-ceiling-aisles-part-05",
-          "sprite": "tile.fixture-ceiling-panel",
-          "offset": {
-            "x": 6,
-            "y": 5
-          }
-        },
-        {
-          "id": "annex-ceiling-aisles-part-06",
-          "sprite": "tile.fixture-ceiling-panel",
-          "offset": {
-            "x": 12,
-            "y": 5
-          }
-        }
-      ],
-      "solidFootprints": [],
-      "interactions": []
-    },
-    {
       "id": "annex-copier",
       "kind": "copier",
       "areaId": "cubicle-floor",
@@ -6497,7 +6432,7 @@
     "requiredDetailPartIds": [
       "cubicle-r0c0-desk-part-01",
       "cubicle-r0c1-north-part-01",
-      "annex-ceiling-aisles-part-01"
+      "cubicle-r1c1-ceiling-part-01"
     ],
     "landmarkAreaIds": [
       "cubicle-floor"

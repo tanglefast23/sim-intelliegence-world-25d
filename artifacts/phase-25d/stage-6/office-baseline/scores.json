@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "scores": [
+    {
+      "name": "cubicles-night-fallback",
+      "deadFraction": 0.095,
+      "flatDeadFraction": 0.004,
+      "poolingRatio": 2.379,
+      "meanLuminance": 43.601,
+      "meanSaturation": 0.364,
+      "detail": 1.991
+    },
+    {
+      "name": "cubicles-night",
+      "deadFraction": 0.039,
+      "flatDeadFraction": 0.017,
+      "poolingRatio": 1.703,
+      "meanLuminance": 82.492,
+      "meanSaturation": 0.319,
+      "detail": 2.529
+    },
+    {
+      "name": "cubicles-noon",
+      "deadFraction": 0.066,
+      "flatDeadFraction": 0.026,
+      "poolingRatio": 1.666,
+      "meanLuminance": 63.717,
+      "meanSaturation": 0.276,
+      "detail": 2.793
+    },
+    {
+      "name": "hall-night",
+      "deadFraction": 0.035,
+      "flatDeadFraction": 0.005,
+      "poolingRatio": 1.64,
+      "meanLuminance": 57.954,
+      "meanSaturation": 0.314,
+      "detail": 2.444
+    }
+  ]
+}

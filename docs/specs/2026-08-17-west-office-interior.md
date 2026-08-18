@@ -518,7 +518,22 @@ intensity: 1.05
 
 Sky night floor for tiles on this map is **0.84 of day**, not 0.78. That is a floor so a desk at the edge of a panel does not crush to the void. It is not a flood. If a night capture measures pooling `< 1.45`, **lower** this number, do not raise panel intensity. If pooling `> 1.9`, add a panel or raise intensity slightly, do not raise the hemisphere.
 
+> **Amended 2026-08-18 — the `> 1.9` half of that rule is withdrawn.** It was obeyed once, by
+> authoring six ceiling panels over the aisles to pull 2.04 down to 1.73, and that was fixing the
+> metric. The walkways were dark because the troffers reached ten tiles at decay 1.2, so no panel
+> lit its own cell harder than its neighbour's. The reach is 8 at decay 1.5 now, output is 14, the
+> six aisle panels are gone, and `cubicles-night` reads 2.056 — accepted, because it is falloff
+> between fixtures rather than void in the corner. Fixture count is the last lever, not the first.
+> The `< 1.45` half stands, and the hemisphere still never rises to answer a pooling reading.
+
 Sky colour stays `#f5dcb0` over `#4a4a44`. Do not tint the sky with the district accent. A grey office that paints its sky teal-grey loses the little warm/cool it has. Skyglow for this map is off, or at `0.15 * lampMix` toward `#d8e4f0` brightness-rescaled. Measure both. Keep the one that does not drop mean saturation.
+
+> **Resolved 2026-08-18 — off, and off for every interior, not just this map.** Skyglow is gated on
+> `shelterCells` in `skyglowMix`. The measured cost is `hall-night` saturation 0.314 → 0.273, so the
+> "keep the one that does not drop saturation" test would have chosen the tint; it is overruled on
+> the ground that the tint was physically wrong twice — a room has no sky, and the hue was drawn
+> from `frame.props`, which is the whole map, so the annex was being coloured by fixtures in rooms
+> the player cannot see. Saturation bought that way is a wrong picture that measures well.
 
 ### 11.5 Day and fallback
 

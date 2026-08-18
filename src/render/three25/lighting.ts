@@ -43,9 +43,13 @@ export const LAMP_SPRITE_IDS_25D: ReadonlySet<string> = new Set([
  * Ceiling troffers. A SEPARATE set from the lamp posts, on purpose.
  *
  * An office is ceiling-lit, and the pooled-post night model is the wrong default for it: fourteen
- * posts' worth of amber at 20 degrees turns a fluorescent room into a sunset. These sit higher,
- * read cooler, fall off wider, and are individually weaker, so the overlap is an even wash rather
- * than fourteen hot spots.
+ * posts' worth of amber at 20 degrees turns a fluorescent room into a sunset. These sit higher and
+ * read cooler.
+ *
+ * They do NOT fall off wider, and they are not individually weaker. Both were true of the first
+ * office round and both were wrong: a ten-tile reach at decay 1.2 had every panel in the farm
+ * lighting every tile of it, which is a flat plate, not a ceiling grid. A troffer now reaches
+ * eight tiles at 1.5 and carries its own cell — see the constants below for the measured trade.
  *
  * Kept out of `LAMP_SPRITE_IDS_25D` because that set is a verified copy of the frozen 2D
  * renderer's. Adding a ceiling sprite there would demand an edit to a file the Stage 4 closeout
@@ -69,7 +73,8 @@ export type LampLight = Readonly<{
   intensity: number;
   /**
    * How high the point sits, and which falloff and pool it carries. A post lights a pocket; a
-   * troffer washes a room. The renderer reads this rather than inferring a kind from the sprite.
+   * troffer lights the cell of the grid it belongs to. The renderer reads this rather than
+   * inferring a kind from the sprite.
    */
   kind: 'post' | 'ceiling';
   y: number;
@@ -152,16 +157,39 @@ function ceilingLights(frame: WorldFrameState): readonly LampLight[] {
         z: prop.tile.y + 0.5,
         y: CEILING_LIGHT_HEIGHT,
         color: CEILING_LIGHT_COLOR,
-        // Weaker than a post and with a floor under it, because a roomful of these overlap. A
-        // post's 11 here would blow the room white before the panels even met.
+        // 14, which is STRONGER than a lamp post's 11. That reverses the first office round, and
+        // it is the direct consequence of the tightening below: a panel that reaches eight tiles
+        // instead of ten and falls off at 1.5 instead of 1.2 lights its own five-tile cell nearly
+        // alone, where the old one was one of a dozen contributors to every tile in the farm.
+        // Weak-each was correct for a flood and starves a grid.
         //
-        // 7.5, not the spec's 6. Measured on the office captures: 6 leaves the cubicle frame at 77
-        // mean luminance where 7.5 reaches 86, for the same pooling ratio and the same dead
-        // fraction. The spec's number was written before the scene existed; this one was read off
-        // a capture, and the playbook's rule is that a measurement beats an estimate.
-        intensity: (0.6 + frame.lighting.sun.lampMix * 7.5) * flicker,
-        distance: 10,
-        decay: 1.2,
+        // Measured on `cubicles-night`, holding the tightened falloff and the twelve-panel ceiling:
+        //
+        //     7.5  dead 0.069  pool 2.219  lum 61.5  detail 2.270
+        //     9.5  dead 0.061  pool 2.162  lum 67.4  detail 2.408
+        //     11.5 dead 0.054  pool 2.105  lum 72.9  detail 2.526
+        //     14   dead 0.049  pool 2.056  lum 79.1  detail 2.653
+        //
+        // Every column improves together, which is the signature of a scene that was underexposed
+        // rather than one being flooded — a flood shows up as luminance rising while pooling rises
+        // with it. `hall-night` pooling turns back up at 14 (1.775 -> 1.786), so that is the knee
+        // and the reason this stops here rather than at 16.
+        intensity: (0.6 + frame.lighting.sun.lampMix * 14) * flicker,
+        // Reach of EIGHT tiles falling off at 1.5, not ten at 1.2.
+        //
+        // The wide-and-soft numbers came from the first office round and they overshot: the panels
+        // sit five tiles apart, so a ten-tile window meant every fixture in the farm lit every tile
+        // of it, and the twenty-four nearest lights summed to one even plate. The capture showed a
+        // floor with no falloff anywhere on it — the flood the pooling metric exists to catch, and
+        // the reason six aisle panels had to be authored to fill walkways no single panel owned.
+        //
+        // Eight still overlaps the neighbours at five tiles, so the grid stays continuous and a
+        // clerk never walks through a hole; the steeper decay is what puts a gradient back inside
+        // that overlap. At 1.2 a panel is 70% as bright three tiles out as it is underneath, which
+        // is not a light, it is an ambient term with a position. Six tiles at 1.7 was tried and is
+        // too tight the other way: the aisles went to dead 0.100 and the hall to 0.179.
+        distance: 8,
+        decay: 1.5,
         poolRadius: 4,
         poolOpacity: 0.28,
       };
@@ -197,6 +225,23 @@ function postLights(frame: WorldFrameState): readonly LampLight[] {
         * lampFlicker(id, frame.vfxAgeStep),
       };
     });
+}
+
+/**
+ * How far the sky light is allowed to take the night's lamp colour — and zero indoors.
+ *
+ * A neon street lights its own sky, so after dusk the hemisphere borrows the hue of the most
+ * saturated lamp in frame. A room has no sky, so under a roof it borrows nothing. The office was
+ * taking a night tint through its own ceiling, and taking it from `frame.props`, which is the WHOLE
+ * MAP — so the colour came from fixtures in rooms the player cannot see.
+ *
+ * `shelterCells` is populated only while the player occupies a roof group, which makes it the same
+ * indoor test `indoorOverheadKeyOrigin` uses. Sharing the test is the point: a frame that kills the
+ * rake but keeps the skyglow is still lighting an interior as though it were outdoors.
+ */
+export function skyglowMix(frame: WorldFrameState): number {
+  if (frame.shelterCells.length > 0) return 0;
+  return 0.45 * frame.lighting.sun.lampMix;
 }
 
 /**
