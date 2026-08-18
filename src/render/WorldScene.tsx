@@ -108,7 +108,7 @@ import { automaticUiScale, automaticWorldZoom, type UiScale } from './responsive
 import { ThreeWorldSurface } from './ThreeWorldSurface';
 import type { RendererKind } from './renderer-selection';
 import { inflatedFrameOrigin, inflatedViewport } from './three25/inflation';
-import { clampCameraTilted } from './three25/clamp';
+import { clampCameraTilted, panCameraTilted } from './three25/clamp';
 import {
   GROUND_TILE_TRANSFORM,
   GROUND_Z_SCALE,
@@ -348,6 +348,9 @@ export function WorldScene({
   // every camera helper rather than branched inside them, so `camera.ts` never learns that a
   // second renderer exists.
   const clamp = renderer2_5d ? clampCameraTilted : clampCamera;
+  // A screen drag maps onto both world axes once the camera is yawed, so pan is threaded like the
+  // other four rather than left on the flat rule.
+  const pan = renderer2_5d ? panCameraTilted : panCamera;
   const reducedMotion = useReducedMotion();
   const playVocalCue = useVocalCues();
   const initialTile = useMemo(() => ({
@@ -1184,8 +1187,8 @@ export function WorldScene({
     // Panning means the player is looking at something. Follow stays off until Center says
     // otherwise; an idle timer would yank the view back out from under them.
     updateCameraMotion(suspendFollow);
-    setCamera((current) => panCamera(current, delta, surface, MAP_PIXELS, clamp));
-  }, [clamp, conversationNpcId, openPanel, questOfferOpen, surface, updateCameraMotion]);
+    setCamera((current) => pan(current, delta, surface, MAP_PIXELS, clamp));
+  }, [clamp, conversationNpcId, openPanel, pan, questOfferOpen, surface, updateCameraMotion]);
   const handleZoom = useCallback((direction: -1 | 1, anchor: Readonly<{ x: number; y: number }>) => {
     if (conversationNpcId || questOfferOpen || openPanel) return;
     setExplicitWorldZoom(true);
