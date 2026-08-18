@@ -201,6 +201,19 @@ function postLights(frame: WorldFrameState): readonly LampLight[] {
 }
 
 /**
+ * How hard a character blob is pushed past the frame's shadow alpha.
+ *
+ * `lighting.shadow.color` carries roughly 0.19-0.32 alpha, and the blob fades that to zero at the
+ * rim, so at authored strength a character read as standing on nothing. Characters are the one
+ * thing in the scene with no cast shadow of their own — a billboard has no silhouette for the
+ * shadow map — so their blob has to carry the whole contact cue on its own.
+ *
+ * Prop stains keep the authored alpha: they sit under boxes that DO cast, and doubling both put a
+ * second dark ring under every crate.
+ */
+const BLOB_SHADOW_STRENGTH = 1.9;
+
+/**
  * A flat blob under every character, in BOTH shadow paths.
  *
  * Billboards do not cast into a shadow map — a camera-facing card has no meaningful silhouette from
@@ -238,7 +251,7 @@ export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
     width: 0.82 + Math.abs(cast.x) / TILE_SIZE,
     depth: 0.5 + Math.abs(cast.y) / TILE_SIZE,
     tint: shadow.color,
-    opacity: 1,
+    opacity: BLOB_SHADOW_STRENGTH,
     };
   });
 }
