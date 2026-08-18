@@ -3,20 +3,23 @@ import { rendererForEnvironment, selectedRenderer, toneMappingForEnvironment } f
 describe('renderer selection', () => {
   const base = { hostname: 'localhost', search: '', smokeMode: false } as const;
 
-  test('production always gets the 2D renderer', () => {
-    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example' })).toBe('threejs-2d');
-    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example', search: '?testRenderer=2-5d' })).toBe('threejs-2d');
+  test('production always gets the 2.5D renderer and ignores the query override', () => {
+    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example' })).toBe('threejs-2-5d');
+    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example', search: '?testRenderer=2d' })).toBe('threejs-2-5d');
   });
 
-  test('honours the local development override', () => {
-    expect(rendererForEnvironment({ ...base, search: '?testRenderer=2-5d' })).toBe('threejs-2-5d');
+  test('honours the local development override back to the 2D rollback path', () => {
     expect(rendererForEnvironment({ ...base, search: '?testRenderer=2d' })).toBe('threejs-2d');
-    expect(rendererForEnvironment({ ...base, search: '?testRenderer=bogus' })).toBe('threejs-2d');
+    expect(rendererForEnvironment({ ...base, search: '?testRenderer=2-5d' })).toBe('threejs-2-5d');
+    expect(rendererForEnvironment({ ...base, search: '?testRenderer=bogus' })).toBe('threejs-2-5d');
   });
 
-  test('honours the packaged smoke override only in smoke mode', () => {
+  // Smoke mode stays on the explicit 2D default so `effectiveRenderer` in electron/main/index.ts
+  // keeps naming smoke evidence after the renderer that actually drew it.
+  test('smoke mode defaults to 2D and honours the packaged override only in smoke mode', () => {
+    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example', smokeMode: true })).toBe('threejs-2d');
     expect(rendererForEnvironment({ ...base, hostname: 'siworld.example', smokeMode: true, smokeRenderer: 'threejs-2-5d' })).toBe('threejs-2-5d');
-    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example', smokeRenderer: 'threejs-2-5d' })).toBe('threejs-2d');
+    expect(rendererForEnvironment({ ...base, hostname: 'siworld.example', smokeRenderer: 'threejs-2d' })).toBe('threejs-2-5d');
   });
 
   test('the dev harness defaults to 2.5D and can be sent back to 2D', () => {

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 
 import { getDesktopBridge } from '../application/DesktopBridge';
+import { getSavePort } from '../application/SavePort';
 import { useReducedMotion } from '../application/accessibility';
 import type {
   PresentationPreferences,
@@ -970,19 +971,15 @@ export function WorldScene({
       setSaveStatus('DEV HARNESS · NO DISK SAVE');
       return;
     }
-    const bridge = getDesktopBridge();
-    if (!bridge) {
-      setSaveStatus('BROWSER · NO DISK SAVE');
-      return;
-    }
+    const savePort = getSavePort();
     setSaveStatus('SAVING…');
     try {
       const result = trigger === 'manual'
-        ? await bridge.requestSave({
+        ? await savePort.requestSave({
           slotId: 'slot-001', expectedSaveGeneration: saveGeneration.current, trigger, state,
         })
         : await autosaveStableState({
-          persistence: bridge,
+          persistence: savePort,
           state,
           trigger,
           expectedSaveGeneration: saveGeneration.current,

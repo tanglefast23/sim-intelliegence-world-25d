@@ -9,8 +9,15 @@ const RENDERER_QUERY: Readonly<Record<string, RendererKind>> = {
 
 /**
  * Mirrors `toneMappingForEnvironment` below: the override is unsaved, local-or-smoke only, and
- * production always gets the shipping renderer. The 2D path stays the rollback path until the
- * 2.5D acceptance gate in docs/specs/2026-08-16-threejs-2-5d-renderer.md section 16 passes.
+ * production always gets the shipping renderer. The shipping renderer is 2.5D; the 2D path stays
+ * reachable as the rollback path through the localhost `?testRenderer=2d` override and through
+ * `SI_WORLD_TEST_RENDERER` in smoke mode.
+ *
+ * **Smoke mode keeps the explicit 2D default on purpose.** `effectiveRenderer` in
+ * electron/main/index.ts is `SI_WORLD_TEST_RENDERER ?? 'threejs-2d'`, and it names every screenshot
+ * and evidence file a smoke writes. Defaulting smoke runs to 2.5D here without changing that line
+ * would render 2.5D while labelling the output threejs-2d, which is the exact drift the comment
+ * there warns about. Change both together or neither.
  */
 export function rendererForEnvironment(input: Readonly<{
   hostname: string;
@@ -20,14 +27,14 @@ export function rendererForEnvironment(input: Readonly<{
   devHarnessMode?: boolean;
   smokeRenderer?: RendererKind;
 }>): RendererKind {
-  if (input.smokeMode && input.smokeRenderer) return input.smokeRenderer;
+  if (input.smokeMode) return input.smokeRenderer ?? 'threejs-2d';
   // The dev harness exists to review the renderer under construction, so it defaults to 2.5D.
   // `SI_WORLD_TEST_RENDERER=threejs-2d` is the way back to the 2D rollback path.
   if (input.devHarnessMode === true) return input.smokeRenderer ?? 'threejs-2-5d';
   const local = input.hostname === 'localhost' || input.hostname === '127.0.0.1';
-  if (!local) return 'threejs-2d';
+  if (!local) return 'threejs-2-5d';
   const requested = new URLSearchParams(input.search).get('testRenderer');
-  return (requested !== null ? RENDERER_QUERY[requested] : undefined) ?? 'threejs-2d';
+  return (requested !== null ? RENDERER_QUERY[requested] : undefined) ?? 'threejs-2-5d';
 }
 
 export function selectedRenderer(): RendererKind {

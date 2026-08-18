@@ -46,3 +46,5 @@ saves/
 
 # Worktrees are local scratch checkouts, never repository content.
 .claude/worktrees/
+.vercel
+.env*
