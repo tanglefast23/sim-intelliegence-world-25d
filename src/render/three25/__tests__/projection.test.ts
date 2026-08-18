@@ -7,6 +7,7 @@ import {
   screenToTileTilted,
   screenToWorldTilted,
   tileCenterWorld,
+  tiltedFacing,
   worldToScreenTilted,
 } from '../projection';
 import { selectedYawDegrees, yawForEnvironment } from '../../renderer-selection';
@@ -86,6 +87,51 @@ describe('the shipped camera angle', () => {
   test('a localhost override still works, for captures', () => {
     expect(yawForEnvironment({ hostname: 'localhost', search: '?testYaw=0' })).toBe(0);
     expect(yawForEnvironment({ hostname: 'siworld.example', search: '?testYaw=0' })).toBe(CAMERA_YAW_DEGREES);
+  });
+});
+
+describe('billboard facing under the tilted camera', () => {
+  const walking = (from: { x: number; y: number }, to: { x: number; y: number }) =>
+    ({ player: to, previousTile: undefined, segment: { from, to, elapsedMs: 0, durationMs: 1 } } as const);
+  const stoppedAfter = (from: { x: number; y: number }, to: { x: number; y: number }) =>
+    ({ player: to, previousTile: from, segment: undefined } as const);
+  const origin = { x: 4, y: 4 };
+
+  /**
+   * The bug this exists for. A grid diagonal is the step that travels HORIZONTALLY across a yaw-45
+   * screen, and `movementDirection()` collapses every diagonal to up or down, so the 2.5D path drew
+   * the front and rear cells for every visibly sideways walk.
+   */
+  test('grid diagonals that read as sideways select the lateral cells', () => {
+    expect(tiltedFacing('up', walking(origin, { x: 5, y: 3 }))).toBe('right');
+    expect(tiltedFacing('down', walking(origin, { x: 3, y: 5 }))).toBe('left');
+  });
+
+  test('grid diagonals that read as vertical keep the front and rear cells', () => {
+    expect(tiltedFacing('up', walking(origin, { x: 3, y: 3 }))).toBe('up');
+    expect(tiltedFacing('down', walking(origin, { x: 5, y: 5 }))).toBe('down');
+  });
+
+  /** Depth compression: a cardinal is 26.6 degrees off horizontal on screen, not 45. */
+  test('every grid cardinal reads as lateral, because the depth axis is compressed', () => {
+    expect(tiltedFacing('right', walking(origin, { x: 5, y: 4 }))).toBe('right');
+    expect(tiltedFacing('up', walking(origin, { x: 4, y: 3 }))).toBe('right');
+    expect(tiltedFacing('left', walking(origin, { x: 3, y: 4 }))).toBe('left');
+    expect(tiltedFacing('down', walking(origin, { x: 4, y: 5 }))).toBe('left');
+  });
+
+  /** No pop at the end of a route: the last walked step outlives `segment`. */
+  test('a stopped actor keeps the facing it walked in on', () => {
+    for (const step of [{ x: 5, y: 3 }, { x: 3, y: 3 }, { x: 5, y: 5 }, { x: 4, y: 3 }]) {
+      expect(tiltedFacing('up', stoppedAfter(origin, step)))
+        .toBe(tiltedFacing('up', walking(origin, step)));
+    }
+  });
+
+  test('an actor that has never walked rotates its authored idle facing', () => {
+    expect(tiltedFacing('down')).toBe('left');
+    expect(tiltedFacing('up')).toBe('right');
+    expect(tiltedFacing('up', { player: origin, previousTile: origin, segment: undefined })).toBe('up');
   });
 });
 

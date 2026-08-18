@@ -1,4 +1,5 @@
 import type { TilePoint } from '../../world/maps/schema';
+import type { MovementDirection, MovementState } from '../../world/pathfinding/movement';
 import type { CameraState, ViewportSize } from '../camera';
 
 /**
@@ -116,6 +117,49 @@ export function screenToTileTilted(
 ): TilePoint {
   const world = screenToWorldTilted(camera, screen);
   return { x: Math.floor(world.x / tileSize), y: Math.floor(world.y / tileSize) };
+}
+
+/** Unit ground step for a facing, for the case where no walked step is available. */
+const FACING_STEP: Readonly<Record<MovementDirection, Readonly<{ x: number; y: number }>>> = {
+  up: { x: 0, y: -1 },
+  down: { x: 0, y: 1 },
+  left: { x: -1, y: 0 },
+  right: { x: 1, y: 0 },
+};
+
+/**
+ * The four-direction billboard facing that matches how a walk LOOKS under the tilted camera.
+ *
+ * `MovementState.direction` is a GRID facing, and `movementDirection()` collapses every diagonal to
+ * `up` or `down`. At yaw 0 that is exactly right — the grid axes are the screen axes. At yaw 45 they
+ * are 45 degrees apart, and the grid diagonals are precisely the steps that travel horizontally
+ * across the screen. So the 2.5D path drew the front or rear cell for every left-and-right walk and
+ * never reached the `left-*` / `right-*` cells the atlas already carries.
+ *
+ * Compares the SCREEN delta, not the rotated ground delta: `GROUND_Z_SCALE` is what makes a grid
+ * cardinal read as lateral instead of landing on an exact 45-degree tie, so no tie-break is needed.
+ *
+ * The diagonal only survives on the step being walked, so that is the first source. `previousTile`
+ * is the second: a route that ends on a diagonal would otherwise pop to a different facing the
+ * instant `segment` clears. `direction` is the last resort — a spawned or authored idle facing that
+ * has never walked anywhere.
+ */
+export function tiltedFacing(
+  direction: MovementDirection,
+  movement?: Readonly<Pick<MovementState, 'segment' | 'previousTile' | 'player'>>,
+): MovementDirection {
+  const segment = movement?.segment;
+  const previousTile = movement?.previousTile;
+  const step = segment
+    ? { x: segment.to.x - segment.from.x, y: segment.to.y - segment.from.y }
+    : previousTile && movement
+      ? { x: movement.player.x - previousTile.x, y: movement.player.y - previousTile.y }
+      : FACING_STEP[direction];
+  const screenX = step.x * YAW_COS - step.y * YAW_SIN;
+  const screenY = (step.x * YAW_SIN + step.y * YAW_COS) * GROUND_Z_SCALE;
+  if (screenX === 0 && screenY === 0) return direction;
+  if (Math.abs(screenX) >= Math.abs(screenY)) return screenX < 0 ? 'left' : 'right';
+  return screenY < 0 ? 'up' : 'down';
 }
 
 /**

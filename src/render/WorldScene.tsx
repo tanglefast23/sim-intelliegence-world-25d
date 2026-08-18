@@ -114,6 +114,7 @@ import {
   GROUND_Z_SCALE,
   isScreenPointInsideMapTilted,
   screenToTileTilted,
+  tiltedFacing,
   worldToScreenTilted,
 } from './three25/projection';
 
@@ -231,18 +232,20 @@ function actorTiles(
   conversationNpcId: string | undefined,
   reactionId: string | undefined,
   poseFrame: 0 | 1,
+  tilted: boolean,
 ): WorldActors {
   const output: Record<string, WorldActors[string]> = {};
   for (const [stateId, npc] of Object.entries(state.npcs)) {
     const tile = activeNpcTile(state, stateId, mapId);
     if (tile) {
       const movement = movements[stateId];
+      // A moving actor keeps its movement direction. A STILL one may name its own idle facing:
+      // an office clerk who never walks would otherwise stand with their back to their desk.
+      const facing = movement?.direction ?? idleFacingForNpc(stateId) ?? 'down';
       output[stateId] = {
         tile,
         visualId: visualIdForNpc(stateId),
-        // A moving actor keeps its movement direction. A STILL one may name its own idle facing:
-        // an office clerk who never walks would otherwise stand with their back to their desk.
-        direction: movement?.direction ?? idleFacingForNpc(stateId) ?? 'down',
+        direction: tilted ? tiltedFacing(facing, movement) : facing,
         visualFoot: snapWorldPoint(movement?.visualFoot ?? tileFootPoint(tile), zoom, dpr),
         walkFrame: movement?.walkFrame ?? 0,
         moving: movement?.segment !== undefined,
@@ -513,7 +516,8 @@ export function WorldScene({
     conversationNpcId,
     reactionId,
     poseFrame,
-  ), [camera.zoom, conversationNpcId, dpr, mapId, poseFrame, reactionId, reducedMotion, runtime.npcMovements, runtime.worldState, selected]);
+    renderer2_5d,
+  ), [camera.zoom, conversationNpcId, dpr, mapId, poseFrame, reactionId, reducedMotion, renderer2_5d, runtime.npcMovements, runtime.worldState, selected]);
   const speed = effectiveSpeed(runtime.worldState.clock);
   const selectedNpcId = stateNpcId(selected, runtime.worldState);
   const lindaQuestActions = lindaContextActions(runtime.worldState, selectedNpcId);
@@ -1459,7 +1463,9 @@ export function WorldScene({
     ? playerVisualFoot
     : npcTiles[selected]?.visualFoot ?? tileFootPoint(npcTiles[selected]?.tile ?? runtime.movement.player);
   const worldFrame = useMemo(
-    () => buildWorldFrameState(map, runtime.worldState, npcTiles, runtime.movement.direction, 0, {
+    () => buildWorldFrameState(map, runtime.worldState, npcTiles, renderer2_5d
+      ? tiltedFacing(runtime.movement.direction, runtime.movement)
+      : runtime.movement.direction, 0, {
       visualFoot: playerVisualFoot,
       walkFrame: runtime.movement.walkFrame,
       moving: runtime.movement.segment !== undefined,
