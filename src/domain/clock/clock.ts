@@ -50,6 +50,27 @@ export function advanceClock(
   };
 }
 
+/**
+ * Dev-mode time-jump targets, as minutes of day.
+ *
+ * Each one lands on a boundary the lighting art already switches on: the four `worldAtmosphere`
+ * buckets, plus peak sun. 780 is peak, not 720 — `worldSun` elevation is
+ * `sin(PI * (minute - 300) / 960)`, which is exactly 1 at the sunrise/sunset midpoint.
+ */
+export const DEV_TIME_PRESETS = [0, 300, 570, 780, 1_020, 1_260] as const;
+
+/** Next absolute minute at `minuteOfDay`, wrapping to the following day when already past. */
+export function nextMinuteOfDay(absoluteMinute: number, minuteOfDay: number): number {
+  if (!Number.isSafeInteger(absoluteMinute) || absoluteMinute < 0) {
+    throw new RangeError('Absolute minute must be a non-negative safe integer.');
+  }
+  if (!Number.isSafeInteger(minuteOfDay) || minuteOfDay < 0 || minuteOfDay > 1_439) {
+    throw new RangeError('Minute of day must be a safe integer in 0..1439.');
+  }
+  const target = Math.floor(absoluteMinute / 1_440) * 1_440 + minuteOfDay;
+  return target > absoluteMinute ? target : target + 1_440;
+}
+
 export function clockParts(absoluteMinute: number): Readonly<{
   day: number;
   hour: number;

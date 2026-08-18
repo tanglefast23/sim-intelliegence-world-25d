@@ -113,6 +113,10 @@ export const DomainCommandSchema = z.discriminatedUnion('type', [
     mode: z.enum(['nap', 'overnight']),
   }).strict(),
   CommandBaseSchema.extend({
+    type: z.literal('dev-jump-to-minute'),
+    toMinute: z.number().int().nonnegative(),
+  }).strict(),
+  CommandBaseSchema.extend({
     type: z.literal('apply-quest-reward'),
     rewardKind: z.enum(['ordinary', 'dangerous']),
     amount: z.number().int().nonnegative(),

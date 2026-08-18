@@ -337,6 +337,8 @@ describe('Verbal Mission commands', () => {
     ['advance-clock', { realMilliseconds: 120_000 }],
     ['advance-simulation', { realMilliseconds: 120_000 }],
     ['sleep-protagonist', { mode: 'nap' }],
+    // 600 is not arbitrary: agreementState() starts at 480 and the assertion below expects 600.
+    ['dev-jump-to-minute', { toMinute: 600 }],
   ])('resolves due commitments after %s', (type, body) => {
     const result = reduceCommand(agreementState(), command(type, `time-${type}`, body));
     expect(result.state.clock.absoluteMinute).toBe(600);
