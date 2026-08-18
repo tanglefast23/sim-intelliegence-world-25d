@@ -5,6 +5,7 @@ import type { WorldState } from '../domain/state/schema';
 import { UI_SCALES, type UiScale } from '../render/responsive-layout';
 import { UI_LAYER } from './ui-layers';
 import { uiMetrics } from './ui-metrics';
+import { VolumeSlider } from './VolumeSlider';
 
 function clockLabel(absoluteMinute: number): string {
   const day = Math.floor(absoluteMinute / 1_440) + 1;
@@ -33,13 +34,17 @@ type HudProps = Readonly<{
   zoomOutDisabled: boolean;
   zoomInDisabled: boolean;
   onUiScale: (scale: UiScale) => void;
+  musicVolume: number;
+  sfxVolume: number;
+  onMusicVolume: (value: number) => void;
+  onSfxVolume: (value: number) => void;
   onPressSound: () => void;
 }>;
 
 export function Hud({
   state, mapName, areaName, zoom, saveStatus, accent, availableWidth, hidden, uiScale, onSpeed,
   onJournal, onSocial, onSave, saveDisabled, onZoom, zoomOutDisabled, zoomInDisabled, onUiScale,
-  onPressSound,
+  musicVolume, sfxVolume, onMusicVolume, onSfxVolume, onPressSound,
 }: HudProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const metrics = uiMetrics(uiScale);
@@ -116,6 +121,9 @@ export function Hud({
           <Pressable accessibilityLabel="Open display settings" onPress={() => { onPressSound(); setSettingsOpen((open) => !open); }} role="button" style={({ pressed }) => [styles.settingsButton, { minHeight: metrics.pointerTarget }, settingsOpen && styles.settingsActive, pressed && styles.buttonPressed]}><Text style={[styles.settingsText, { fontSize: metrics.secondaryText }]}>SETTINGS</Text></Pressable>
         </View>
       </View>
+      {/* clickZoomButton in electron/main/index.ts finds the SETTINGS button by its exact
+          "Open display settings" label. Rename it and the packaged smoke fails with
+          "Display settings button is missing." */}
       {settingsOpen ? (
         <View accessibilityLabel="Display settings" nativeID="world-ui-display-settings" style={styles.settingsDrawer}>
           <View nativeID="world-ui-zoom" style={styles.settingRow}>
@@ -130,6 +138,24 @@ export function Hud({
               <Pressable accessibilityLabel={`Set ${Math.round(scale * 100)} percent interface scale`} key={scale} onPress={() => { onPressSound(); onUiScale(scale); }} role="button" style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, uiScale === scale && styles.settingsActive, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>{Math.round(scale * 100)}%</Text></Pressable>
             ))}
           </View>
+          <VolumeSlider
+            accent={accent}
+            label="MUSIC"
+            metrics={metrics}
+            nativeID="world-ui-music-volume"
+            onChange={onMusicVolume}
+            onPressSound={onPressSound}
+            value={musicVolume}
+          />
+          <VolumeSlider
+            accent={accent}
+            label="SFX"
+            metrics={metrics}
+            nativeID="world-ui-sfx-volume"
+            onChange={onSfxVolume}
+            onPressSound={onPressSound}
+            value={sfxVolume}
+          />
         </View>
       ) : null}
     </View>

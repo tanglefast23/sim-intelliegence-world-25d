@@ -29,6 +29,7 @@ import { VOCAL_CUE_CAPTIONS, type VocalCueId } from '../audio/vocal-cue-policy';
 import { useVocalCues } from '../audio/vocal-cues';
 import { relationshipSound } from '../audio/halcyra-audio-policy';
 import { useWorldAudio, type InterfaceSoundId } from '../audio/halcyra-audio';
+import { setAudioVolumes, useAudioVolumes } from '../audio/volume-store';
 import { BedActions } from '../ui/BedActions';
 import { ConversationPanel } from '../ui/ConversationPanel';
 import { Hud } from '../ui/Hud';
@@ -381,6 +382,7 @@ export function WorldScene({
   const [explicitWorldZoom, setExplicitWorldZoom] = useState(initialPresentationPreferences.worldZoom !== null);
   const [uiScale, setUiScale] = useState<UiScale>(() => initialPresentationPreferences.uiScale ?? automaticUiScale(surface));
   const [explicitUiScale, setExplicitUiScale] = useState(initialPresentationPreferences.uiScale !== null);
+  const volumes = useAudioVolumes();
   const [selected, setSelected] = useState<string>(initialConversationFixtureId ?? 'protagonist');
   const [reactionId, setReactionId] = useState<string>();
   const [poseFrame, setPoseFrame] = useState<0 | 1>(0);
@@ -668,11 +670,13 @@ export function WorldScene({
       onPresentationPreferencesChange({
         worldZoom: explicitWorldZoom ? camera.zoom : null,
         uiScale: explicitUiScale ? uiScale : null,
+        musicVolume: volumes.music,
+        sfxVolume: volumes.sfx,
         camera: { mapId, x: Math.round(camera.x), y: Math.round(camera.y) },
       });
     }, 160);
     return () => clearTimeout(timer);
-  }, [camera, explicitUiScale, explicitWorldZoom, mapId, onPresentationPreferencesChange, uiScale]);
+  }, [camera, explicitUiScale, explicitWorldZoom, mapId, onPresentationPreferencesChange, uiScale, volumes]);
 
   const triggerVocalCue = useCallback((cue: VocalCueId) => {
     playVocalCue(cue);
@@ -1910,14 +1914,18 @@ export function WorldScene({
           hidden={questOfferOpen}
           mapName={map.source.displayName}
           onJournal={toggleQuests}
+          onMusicVolume={(value) => setAudioVolumes({ music: value })}
           onPressSound={() => playInterfaceSound('press')}
           onSave={() => void requestAutosave(runtime.worldState, 'manual')}
           onSocial={() => { playInterfaceSound('panel-open'); setOpenPanel('relationships'); }}
+          onSfxVolume={(value) => setAudioVolumes({ sfx: value })}
           onSpeed={changeSpeed}
           onUiScale={selectUiScale}
           onZoom={changeWorldZoom}
           saveStatus={saveStatus}
           saveDisabled={transitioning || runtime.movement.status === 'moving' || runtime.worldState.clock.pauseTokens.length > 0}
+          musicVolume={volumes.music}
+          sfxVolume={volumes.sfx}
           state={runtime.worldState}
           uiScale={uiScale}
           zoom={camera.zoom}

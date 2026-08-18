@@ -26,19 +26,20 @@ export function SelectedCharacterCard({
   uiScale: UiScale;
 }>) {
   const metrics = uiMetrics(uiScale);
+  const px = (base: number) => Math.round(base * uiScale);
   const poseLabel = pose === 'reaction' ? 'REACTION POSE' : pose === 'talk' ? 'TALKING POSE' : 'IDLE POSE';
   if (compact) return (
     <View
       accessibilityLabel={`${summary.displayName}. Mood ${summary.mood}. Activity ${summary.activity}.`}
       nativeID="world-ui-character-card"
-      style={[styles.compactCard, { borderLeftColor: accent }]}
+      style={[styles.compactCard, { borderLeftColor: accent, gap: px(14), paddingHorizontal: px(10), paddingVertical: px(8) }]}
     >
       <View>
-        <Text style={[styles.compactName, { color: accent }]}>{summary.displayName.toUpperCase()}</Text>
-        <Text style={styles.compactState}>{summary.mood} · {summary.activity}</Text>
+        <Text style={[styles.compactName, { color: accent, fontSize: px(14) }]}>{summary.displayName.toUpperCase()}</Text>
+        <Text style={[styles.compactState, { fontSize: px(7), marginTop: px(2) }]}>{summary.mood} · {summary.activity}</Text>
       </View>
-      <Pressable accessibilityLabel={`Center view on ${summary.displayName}`} onPress={onCenter} role="button" style={({ pressed }) => [styles.compactButton, pressed && styles.pressed]}>
-        <Text style={styles.secondaryButtonText}>CENTER</Text>
+      <Pressable accessibilityLabel={`Center view on ${summary.displayName}`} onPress={onCenter} role="button" style={({ pressed }) => [styles.compactButton, { minHeight: px(30), paddingHorizontal: px(12) }, pressed && styles.pressed]}>
+        <Text style={[styles.secondaryButtonText, { fontSize: px(8) }]}>CENTER</Text>
       </Pressable>
     </View>
   );
@@ -46,30 +47,30 @@ export function SelectedCharacterCard({
     <View
       accessibilityLabel={`${summary.displayName}. ${poseLabel}. Mood ${summary.mood}. Activity ${summary.activity}. Relationship ${summary.relationship}. Destination ${summary.destination}.`}
       nativeID="world-ui-character-card"
-      style={[styles.card, { borderLeftColor: accent, width: Math.min(availableWidth - 28, Math.round(390 * uiScale)) }]}
+      style={[styles.card, { borderLeftColor: accent, gap: px(10), padding: px(8), width: Math.min(availableWidth - 28, Math.round(390 * uiScale)) }]}
     >
-      <View style={[styles.portraitWrap, { borderColor: accent }, pose === 'reaction' && styles.portraitReaction, pose === 'talk' && styles.portraitTalk]}>
+      <View style={[styles.portraitWrap, { borderColor: accent, height: px(90), width: px(82) }, pose === 'reaction' && styles.portraitReaction, pose === 'talk' && styles.portraitTalk]}>
         <CharacterPortrait
           displayName={summary.displayName}
           expression={summary.portraitExpression}
           npcId={summary.id}
         />
-        <View style={[styles.moodBadge, { backgroundColor: accent }]}><Text style={styles.moodText}>{summary.mood}</Text></View>
+        <View style={[styles.moodBadge, { backgroundColor: accent, paddingHorizontal: px(5), paddingVertical: px(3) }]}><Text style={[styles.moodText, { fontSize: px(7) }]}>{summary.mood}</Text></View>
       </View>
       <View style={styles.details}>
-        <Text style={styles.selectedLabel}>CURRENT FOCUS · {poseLabel}</Text>
+        <Text style={[styles.selectedLabel, { fontSize: px(7) }]}>CURRENT FOCUS · {poseLabel}</Text>
         <Text numberOfLines={1} style={[styles.name, { fontSize: metrics.titleText }]}>{summary.displayName}</Text>
         <Text numberOfLines={1} style={[styles.relationship, { color: accent, fontSize: metrics.secondaryText }]}>{summary.relationship}</Text>
-        <View style={styles.rule} />
-        <View style={styles.factRow}><Text style={styles.factLabel}>NOW</Text><Text numberOfLines={1} style={styles.factValue}>{summary.activity}</Text></View>
-        <View style={styles.factRow}><Text style={styles.factLabel}>GOING</Text><Text numberOfLines={2} style={styles.factValue}>{summary.destination}</Text></View>
-        <View style={styles.actions}>
-          <Pressable accessibilityLabel={`Center view on ${summary.displayName}`} onPress={onCenter} role="button" style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
-            <Text style={styles.secondaryButtonText}>CENTER</Text>
+        <View style={[styles.rule, { marginVertical: px(5) }]} />
+        <View style={[styles.factRow, { marginTop: px(4) }]}><Text style={[styles.factLabel, { fontSize: px(7), width: px(42) }]}>NOW</Text><Text numberOfLines={1} style={[styles.factValue, { fontSize: px(8) }]}>{summary.activity}</Text></View>
+        <View style={[styles.factRow, { marginTop: px(4) }]}><Text style={[styles.factLabel, { fontSize: px(7), width: px(42) }]}>GOING</Text><Text numberOfLines={2} style={[styles.factValue, { fontSize: px(8) }]}>{summary.destination}</Text></View>
+        <View style={[styles.actions, { gap: px(6), marginTop: px(8) }]}>
+          <Pressable accessibilityLabel={`Center view on ${summary.displayName}`} onPress={onCenter} role="button" style={({ pressed }) => [styles.secondaryButton, { minHeight: px(28) }, pressed && styles.pressed]}>
+            <Text style={[styles.secondaryButtonText, { fontSize: px(8) }]}>CENTER</Text>
           </Pressable>
           {onTalk ? (
-            <Pressable accessibilityLabel={`Talk to ${summary.displayName}`} onPress={onTalk} role="button" style={({ pressed }) => [styles.primaryButton, { backgroundColor: accent }, pressed && styles.pressed]}>
-              <Text style={styles.primaryButtonText}>TALK</Text>
+            <Pressable accessibilityLabel={`Talk to ${summary.displayName}`} onPress={onTalk} role="button" style={({ pressed }) => [styles.primaryButton, { backgroundColor: accent, minHeight: px(28) }, pressed && styles.pressed]}>
+              <Text style={[styles.primaryButtonText, { fontSize: px(8) }]}>TALK</Text>
             </Pressable>
           ) : null}
         </View>
