@@ -9,6 +9,9 @@ import {
   type PortraitExpression,
 } from './character-look-roster';
 import { applyConnectedHairLighting } from './hair-lighting';
+// Runtime import, but not a cycle: protagonist-reference.ts imports only `type TokenFrame`
+// from this module, and type imports are erased.
+import { protagonistReferenceFrames } from './protagonist-reference';
 import { createBitmap, decodePng, fillRect, parseHexColor, setPixel, type Bitmap, type Rgba } from './png';
 
 export const WORLD_CELL = { width: 24, height: 30 } as const;
@@ -511,8 +514,30 @@ function worldLegCommands(): CharacterSource['sourceLayers']['legs'] {
     rectCommand('D', 7, 28, 10, 1),
     rectCommand('K', 7, 29, 10, 1),
   ];
+  /**
+   * The stride pose.
+   *
+   * Row 28 stays one painted run so the contact shadow keeps a single anchor and
+   * `shadowWorldY` does not move. Row 29 splits into two feet with a two-pixel gap. That gap
+   * is the whole leg animation at this cell size, and it is enough because it alternates
+   * against the arm swing in `composeFrontFrame`.
+   *
+   * Before this, both frames were the same commands and every walk cell was a byte-for-byte
+   * duplicate of its pair — the "rounded floating movement" the old atlas check enforced.
+   */
+  const stride = [
+    rectCommand('D', 7, 28, 10, 1),
+    // Asymmetric on purpose: a 3px trailing foot and a 5px leading foot read as mid-stride,
+    // where an even split either side of centre just reads as standing with the feet apart.
+    rectCommand('K', 7, 29, 3, 1),
+    rectCommand('K', 12, 29, 5, 1),
+  ];
   return {
-    frontFrames: [[...roundedBase], [...roundedBase]],
+    frontFrames: [[...roundedBase], [...stride]],
+    // `composeLateralFrame` does not read this layer — lateral feet come from
+    // `lateralBodyCommands`, at a different width and offset. These stay two rounded bases so
+    // nothing implies a lateral stride lives here; only the review sheet and a layer-signature
+    // test consume them.
     lateralFrames: [[...roundedBase], [...roundedBase]],
   };
 }
@@ -978,11 +1003,80 @@ function staticWorldLayers(source: CharacterSource): readonly DrawCommand[][] {
   ];
 }
 
+/**
+ * The two-pixel gap that turns the rounded base into two feet on the stride frame.
+ *
+ * The lateral gap sits at x11-12 rather than x10-11 because the lateral base is narrower and
+ * offset. It is also symmetric about the cell centre, so `mirrorCommand` maps {11,12} back onto
+ * itself and one carve serves both facings.
+ */
+export const STRIDE_GAP = { row: 29, from: 10, to: 11 } as const;
+export const LATERAL_STRIDE_GAP = { row: 29, from: 11, to: 12 } as const;
+
+/**
+ * Clears a stride gap after every layer has drawn.
+ *
+ * The base is painted early, so anything later filling row 29 closes the split back up:
+ * `big-black-boots` emits `rect K 7,29,10,1` from a static layer, and resident-16's feature
+ * covers the same row. Carving last makes the stride survive whatever draws over the contact
+ * row, the same way the hand stamp is applied last.
+ */
+export function carveStrideGap(
+  frame: TokenFrame,
+  gap: Readonly<{ row: number; from: number; to: number }> = STRIDE_GAP,
+): void {
+  const row = frame[gap.row];
+  if (row === undefined) return;
+  const cells = [...row];
+  for (let x = gap.from; x <= gap.to; x += 1) cells[x] = '.';
+  frame[gap.row] = cells.join('');
+}
+
+/**
+ * The stride's swinging arm pixels: one high on the left, one low on the right.
+ *
+ * `torsoAndClothing` is a `StaticLayerSchema` — one command list with no frame index — so the
+ * swing cannot live in that layer. These sit outside the torso rects, at rows the row-24 hand
+ * stamp does not touch, which is why the hands themselves never move.
+ *
+ * The low point is x19, not x20. The torso narrows to x5-18 at row 25, so an arm at x20 leaves
+ * x19 transparent and the hand reads as detached from the body. x19 touches the torso edge.
+ */
+const WORLD_STRIDE_ARM_POINTS: readonly (readonly [number, number])[] = [[3, 23], [19, 25]];
+
+/**
+ * Paints a token only where the cell is still empty.
+ *
+ * Six looks already occupy a swing cell at idle: `giant-gloves` (A 2,18,6,7),
+ * `single-bell-sleeve` (C 2,17,6,8) and `towel-sleeve` (W 3,17,5,8) at [3,23];
+ * `towel-sleeve` (A 17,21,4,5), `luggage-strap` (A 17,20,5,8) and `guitar-case`
+ * (D 17,15,4,13) at [20,25]. Overwriting them would erase costume on every stride, and
+ * `luggage-strap` is the protagonist's own supporting feature. `towel-sleeve` occupies both,
+ * so mina-park swings neither arm and takes its walk from the feet alone.
+ */
+function paintEmptyPoints(
+  frame: TokenFrame,
+  token: string,
+  points: readonly (readonly [number, number])[],
+): void {
+  for (const [x, y] of points) {
+    const row = frame[y];
+    if (row === undefined || row[x] !== '.') continue;
+    const cells = [...row];
+    cells[x] = token;
+    frame[y] = cells.join('');
+  }
+}
+
 export function composeFrontFrame(source: CharacterSource, frameIndex: 0 | 1): TokenFrame {
   const frame = emptyTokenFrame(WORLD_CELL.width, WORLD_CELL.height);
   drawTokenCommands(frame, source.sourceLayers.legs.frontFrames[frameIndex]);
   for (const commands of staticWorldLayers(source)) {
     drawTokenCommands(frame, commands);
+  }
+  if (frameIndex === 1) {
+    paintEmptyPoints(frame, 'L', WORLD_STRIDE_ARM_POINTS);
+    carveStrideGap(frame);
   }
   const hairMask = emptyTokenFrame(WORLD_CELL.width, WORLD_CELL.height);
   drawTokenCommands(hairMask, source.sourceLayers.hair.commands);
@@ -994,6 +1088,41 @@ export function composeFrontFrame(source: CharacterSource, frameIndex: 0 | 1): T
     ]);
   }
   return frame;
+}
+
+/** Rows of the 24x30 cell that the blink overlay replaces. */
+export const EYE_BAND = { top: 12, height: 3 } as const;
+
+/** Columns the eye whites occupy: `rect W 7,13,4,2` and `rect W 13,13,4,2`. */
+const EYE_COLUMNS: readonly number[] = [7, 8, 9, 10, 13, 14, 15, 16];
+
+/**
+ * The idle front frame with the eyes closed, cut to rows 12-14.
+ *
+ * Sliced from a full compose rather than drawn standalone. Several looks paint inside these
+ * rows from other layers — `star-glasses` puts an accent at [10,14], `window-glasses` frames
+ * the whole eye region — and a standalone band would pop those pixels off for the length of a
+ * blink. Only `W`, `K` and `D` inside the eye columns are rewritten, so accessory tokens and
+ * the mouth pixel at [11,14] survive untouched.
+ *
+ * Rows 12-14, not 12-16: the mouth sits at [11,14] and [12,15], and a band reaching row 15
+ * would erase it. A blink that collapses the face is worse than no blink.
+ *
+ * The protagonist's atlas cell is its AUTHORED front-1, not this generated compose, so the
+ * band is sliced from the same source the body cell uses or the eye region would swap to a
+ * different face mid-blink.
+ */
+export function composeEyeBand(source: CharacterSource): TokenFrame {
+  const base = protagonistReferenceFrames(source.id)?.['front-1'] ?? composeFrontFrame(source, 0);
+  const closed = base.map((row, y) => {
+    if (y < 13 || y > 14) return row;
+    const cells = [...row];
+    for (const x of EYE_COLUMNS) {
+      if (['W', 'K', 'D'].includes(cells[x] as string)) cells[x] = y === 13 ? 'K' : 's';
+    }
+    return cells.join('');
+  });
+  return closed.slice(EYE_BAND.top, EYE_BAND.top + EYE_BAND.height) as unknown as TokenFrame;
 }
 
 export function composePortrait(

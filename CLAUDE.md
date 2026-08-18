@@ -24,6 +24,21 @@ In practice:
 - Smoke runs drive the UI through `webContents.executeJavaScript` and `sendInputEvent`, not through
   the host keyboard or mouse. Keep it that way.
 
+## Before debugging any CI failure, check whether `main` already fails it
+
+```bash
+gh run list --branch main --limit 5
+gh run view <id> --json jobs --jq '.jobs[] | select(.conclusion=="failure") | .name'
+```
+
+`package-windows-x64` failed every recorded run until 2026-08-18 (fixed across PR #3: `44b1afe`,
+`70cb099`, `fdeef2a`; first green run `32065610791`). The durable lesson: **a hidden
+`BrowserWindow` on the Windows runner is not composited**, so rAF-driven state freezes while JS
+timers keep running, and any smoke wait that polls renderer state without driving a frame will
+hang or lie. Paint first via `waitForRendererPaint`, then read.
+
+[AGENTS.md](AGENTS.md) carries the full post-mortem and the frame-driving rules.
+
 ## Commands
 
 ```bash

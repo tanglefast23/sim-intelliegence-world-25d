@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "artRevision": 15,
+  "artRevision": 16,
   "categories": {
     "ground-base": {
       "actualCount": 81,
@@ -37,6 +37,11 @@
       "maximumCount": 280,
       "rawRectangleArea": 232960
     },
+    "world-character-eyes": {
+      "actualCount": 35,
+      "maximumCount": 35,
+      "rawRectangleArea": 4550
+    },
     "portrait": {
       "actualCount": 53,
       "maximumCount": 53,
@@ -49,22 +54,22 @@
     }
   },
   "actual": {
-    "cellCount": 612,
-    "rawRectangleArea": 598202,
+    "cellCount": 647,
+    "rawRectangleArea": 602752,
     "width": 1024,
-    "height": 595,
-    "boundingRectangleArea": 609280,
-    "occupancy": 0.9818178834033613
+    "height": 600,
+    "boundingRectangleArea": 614400,
+    "occupancy": 0.9810416666666667
   },
   "forecast": {
-    "cellCount": 749,
-    "rawRectangleArea": 756574,
-    "rawAreaRatio": 0.7215251922607422,
+    "cellCount": 784,
+    "rawRectangleArea": 761124,
+    "rawAreaRatio": 0.7258644104003906,
     "width": 1024,
-    "height": 763,
-    "boundingRectangleArea": 781312,
-    "packedAreaRatio": 0.7451171875,
-    "occupancy": 0.968337872706422
+    "height": 768,
+    "boundingRectangleArea": 786432,
+    "packedAreaRatio": 0.75,
+    "occupancy": 0.9678192138671875
   },
   "largestCells": [
     {
@@ -154,7 +159,7 @@
   ],
   "indexVersion": 3,
   "toolVersion": "atlas-v9-authored-full-cast",
-  "imageSha256": "ebb14d005d38cfce366c5a67e0a3624de702059b68135c2b188584fd214c6bb1",
-  "publicSpriteCount": 612,
+  "imageSha256": "5066881c3edfd99508af030c3c9d9d50797770db9a63d4209ea30bc62dd72da8",
+  "publicSpriteCount": 647,
   "internalReviewSpriteCount": 0
 }

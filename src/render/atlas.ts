@@ -43,7 +43,7 @@ export type MovementDirection = typeof MOVEMENT_DIRECTIONS[number];
 export const ZOOM_LEVELS = [1, 2, 3] as const;
 export type ZoomLevel = typeof ZOOM_LEVELS[number];
 export const WALK_FRAME_MILLISECONDS = 145;
-export const ART_REVISION = 15;
+export const ART_REVISION = 16;
 
 export type AtlasRectangle = Readonly<{
   x: number;
@@ -55,7 +55,7 @@ export type AtlasRectangle = Readonly<{
   cellClass: 'ground' | 'transparent-part' | null;
   wallAdjacencyMask: number | null;
   category: 'ground-base' | 'ground-transition' | 'ground-decal' | 'wall-door' | 'roof' |
-    'object-landmark' | 'world-character' | 'portrait' | 'effect-reserve';
+    'object-landmark' | 'world-character' | 'world-character-eyes' | 'portrait' | 'effect-reserve';
   visibility: 'public' | 'internal-review';
 }>;
 
@@ -76,6 +76,8 @@ export type RuntimeAtlasIndex = Readonly<{
     portrait: string;
     portraits: Readonly<Record<string, string>>;
     frames: Readonly<Record<string, string>>;
+    /** The closed-eye band overlaid during a blink. 24x3, rows 12-14 of the idle front cell. */
+    eyes: string;
     sourceLayers: readonly string[];
   }>>>;
   tiles: readonly string[];

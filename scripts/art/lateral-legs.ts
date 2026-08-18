@@ -1,5 +1,7 @@
 import {
+  LATERAL_STRIDE_GAP,
   WORLD_CELL,
+  carveStrideGap,
   drawTokenCommands,
   emptyTokenFrame,
   getCharacterIdentityCommandSets,
@@ -69,7 +71,7 @@ function lateralHeadCommands(): DrawCommand[] {
   ];
 }
 
-function lateralBodyCommands(look: CharacterLook): DrawCommand[] {
+function lateralBodyCommands(look: CharacterLook, frameIndex: 0 | 1): DrawCommand[] {
   const patterns: readonly DrawCommand[][] = [
     [rect('c', 10, 19, 5, 3), pixels('A', [[12, 23]])],
     [pixels('A', [[9, 18], [10, 20], [11, 21], [12, 23], [13, 25]])],
@@ -88,8 +90,13 @@ function lateralBodyCommands(look: CharacterLook): DrawCommand[] {
     pixels('L', [[6, 24]]),
     pixels('S', [[7, 24], [7, 25]]),
     pixels('s', [[7, 26]]),
+    // Row 28 stays one painted run so the contact shadow keeps a single anchor. Row 29 splits
+    // into two feet on the stride. Lateral feet are 7 wide at x=9, unlike the front's 10 at
+    // x=7, so the front stride commands cannot be reused here.
     rect('D', 9, 28, 7, 1),
-    rect('K', 9, 29, 7, 1),
+    ...(frameIndex === 1
+      ? [rect('K', 9, 29, 2, 1), rect('K', 13, 29, 3, 1)]
+      : [rect('K', 9, 29, 7, 1)]),
   ];
 }
 
@@ -288,20 +295,44 @@ function identityLayerCommands(look: CharacterLook, layer: CharacterLook['oddity
 export function composeLateralFrame(
   source: CharacterSource,
   direction: 'left' | 'right',
-  _frameIndex: 0 | 1,
+  frameIndex: 0 | 1,
 ): TokenFrame {
   const look = lookFor(source);
   const frame = emptyTokenFrame(WORLD_CELL.width, WORLD_CELL.height);
   const draw = (commands: readonly DrawCommand[]): void => drawTokenCommands(frame, orient(commands, direction));
-  draw(lateralBodyCommands(look));
+  // `source.sourceLayers.legs` is deliberately NOT drawn here. This compose has never read it;
+  // lateral feet come from `lateralBodyCommands` itself, at a different width and offset than
+  // the front legs. Drawing the legs layer underneath would add base pixels to the idle frame
+  // and then have the body's own base overdraw the stride gap.
+  draw(lateralBodyCommands(look, frameIndex));
   draw(identityLayerCommands(look, 'torsoAndClothing'));
-  draw(lateralHeadCommands());
+  /**
+   * The head does NOT shift on the stride frame.
+   *
+   * An earlier version moved head and hair one pixel into the direction of travel, to lead the
+   * turn. It tore holes: the head is the top layer and the body does not extend into its
+   * silhouette, so moving it exposes transparent cells with nothing behind them. Measured on
+   * the real composes, seven of thirty-five characters gained interior holes in the face, and
+   * all thirty-five showed a notch where the head's trailing edge pulled away. resident-19 lost
+   * pixels at [15,17] and [16,16]; resident-08 lost its collar pixel at [8,17].
+   *
+   * There is no correct backfill. Any fill either fattens the head or invents pixels that the
+   * artist did not draw.
+   *
+   * The turn cue does not need it. `movementPresentation()` already returns `leanX` of -1 on
+   * left frame 1 and +1 on right frame 1, shifting the whole sprite, and that shipped before
+   * this work. `full-cast-art.test.ts` now asserts the stride opens no interior hole.
+   */
   const hairCommands = [...lateralHairCommands(look), ...identityLayerCommands(look, 'hair')];
+  draw(lateralHeadCommands());
   draw(hairCommands);
   draw(identityLayerCommands(look, 'accessory'));
   draw(identityLayerCommands(look, 'heldItem'));
   const hairMask = emptyTokenFrame(WORLD_CELL.width, WORLD_CELL.height);
   drawTokenCommands(hairMask, orient(hairCommands, direction));
   applyConnectedHairLighting(frame, hairMask, 22);
+  // Carved last, for the same reason the front frame carves: big-black-boots and resident-16's
+  // feature both repaint row 29 from a later layer and would close the split.
+  if (frameIndex === 1) carveStrideGap(frame, LATERAL_STRIDE_GAP);
   return frame;
 }

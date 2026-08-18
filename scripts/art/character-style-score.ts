@@ -219,10 +219,17 @@ export function scoreCharacterAgainstProtagonist(source: CharacterSource): Chara
   const directionsDistinct = silhouette(frames.front) !== silhouette(frames.left) &&
     silhouette(frames.front) !== silhouette(frames.right) &&
     frames.front.slice(12, 16).join('') !== frames.rear.slice(12, 16).join('');
-  const stablePose = source.id === 'protagonist' || (
-    composeFrontFrame(source, 0).join('\n') === composeFrontFrame(source, 1).join('\n') &&
-    composeLateralFrame(source, 'left', 0).join('\n') === composeLateralFrame(source, 'left', 1).join('\n') &&
-    composeLateralFrame(source, 'right', 0).join('\n') === composeLateralFrame(source, 'right', 1).join('\n')
+  /**
+   * Frame 0 is the idle pose; frame 1 is the stride and is REQUIRED to differ. This used to
+   * assert equality, which is precisely what kept every character sliding instead of walking.
+   * The margin and rounded-base checks in `stableFloatingPose` below still carry the quality
+   * bar this name refers to.
+   *
+   */
+  const stablePose = (
+    composeFrontFrame(source, 0).join('\n') !== composeFrontFrame(source, 1).join('\n') &&
+    composeLateralFrame(source, 'left', 0).join('\n') !== composeLateralFrame(source, 'left', 1).join('\n') &&
+    composeLateralFrame(source, 'right', 0).join('\n') !== composeLateralFrame(source, 'right', 1).join('\n')
   );
   const stableFloatingPose = stablePose && Object.values(frames).every(
     (frame) => openMargins(frame) && roundedBase(frame),

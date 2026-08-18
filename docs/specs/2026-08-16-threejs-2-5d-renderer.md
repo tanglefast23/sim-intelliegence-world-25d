@@ -144,11 +144,11 @@ Verified in the worktree on 2026-08-17, after two audits corrected revision 1.
 
 ### 7.3 Atlas
 
-`612` sprites, art revision `15`: `280` `world-character`, `81` `ground-base`, `76` `wall-door`,
+`647` sprites, art revision `16` (was `612` / `15` before `docs/specs/2026-08-17-character-walk-animation.md`): `280` `world-character`, `35` `world-character-eyes`, `81` `ground-base`, `76` `wall-door`,
 `62` `object-landmark`, `53` `portrait`, `30` `ground-transition`, `27` `ground-decal`, `3` `roof`.
 
 `280` = `35` characters × `4` facings × `2` walk frames. `zoomLevels: [1,2,3]` is nearest-neighbour
-scale, not authored copies. No character sprite is redrawn by this work.
+scale, not authored copies. No character sprite is redrawn by *this* work; the walk and blink art in `docs/specs/2026-08-17-character-walk-animation.md` came later.
 
 ### 7.4 Verification surface
 
@@ -348,7 +348,7 @@ in the camera evidence.
 
 ### 8.6 Characters
 
-No character art is created or modified.
+No character art is created or modified by this work. `docs/specs/2026-08-17-character-walk-animation.md` later adds a stride pose to each direction's second cell and a closed-eye band per character.
 
 **Instanced billboard quads, not `THREE.Sprite`.** The 2D port spec section 7.3 states: "The
 renderer must not create one `Sprite`, material, geometry, or texture per tile," and caps atlas
@@ -604,7 +604,7 @@ Elapsed time for the whole game remains `3`–`5` months at either yaw.
 - [ ] `src/domain`, `src/world`, `src/ai`, and `content/` have no diff.
 - [ ] `src/render/world-frame.ts` has no diff.
 - [ ] The only `electron/` diff is the `electron/preload/index.ts` whitelist line.
-- [ ] No character sprite is added or modified. `art:check` is green with no regeneration.
+- [ ] No character sprite is added or modified by this work. `art:check` is green. (Superseded for character cells by `docs/specs/2026-08-17-character-walk-animation.md`, which regenerates the atlas at revision 16.)
 - [ ] Saves load with no migration. The save chain stays `v1`→`v7`.
 - [ ] The round-trip invariant holds at tile centres on all four maps at every zoom step.
 - [ ] No void appears inside the tilted view at any zoom; outside-map area shows the skirt fill.

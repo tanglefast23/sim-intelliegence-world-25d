@@ -145,16 +145,56 @@ const RIGHT = [
   '.........KKKKKK.........',
 ] as const satisfies TokenFrame;
 
+/**
+ * Derives a stride pose from an authored idle frame.
+ *
+ * The protagonist's eight cells are hand-authored token rows, so the generated cast's
+ * `composeFrontFrame` path never touches them. Rather than hand-drawing four more frames and
+ * risking a protagonist that walks differently from everyone else, the same two edits are
+ * applied here: split the contact row into two feet, and swing an arm into any free cell.
+ *
+ * The gap is off-centre so the feet read as mid-stride rather than as standing with the feet
+ * apart, matching `STRIDE_GAP` in `character-source.ts`.
+ *
+ * No head shift on the lateral frames. Every other character leads the turn with a one-pixel
+ * head offset, but the protagonist already has its own turn character from the 15-degree
+ * weighted wobble, and stacking both reads as a lurch.
+ *
+ * `carveStrideGap` and `paintEmptyPoints` are reimplemented rather than imported, because
+ * `character-source.ts` imports this module for the eye band and the cycle would be real.
+ */
+function strideFrom(
+  frame: TokenFrame,
+  gap: Readonly<{ from: number; to: number }>,
+): TokenFrame {
+  const armPoints: readonly (readonly [number, number])[] = [[3, 23], [20, 25]];
+  const rows = frame.map((row) => [...row]);
+  for (const [x, y] of armPoints) {
+    const cells = rows[y];
+    if (cells && cells[x] === '.') cells[x] = 'L';
+  }
+  const contact = rows[frame.length - 1];
+  if (contact) {
+    for (let x = gap.from; x <= gap.to; x += 1) contact[x] = '.';
+  }
+  return rows.map((cells) => cells.join('')) as unknown as TokenFrame;
+}
+
+const FRONT_STRIDE = strideFrom(FRONT, { from: 10, to: 11 });
+const REAR_STRIDE = strideFrom(REAR, { from: 11, to: 12 });
+const LEFT_STRIDE = strideFrom(LEFT, { from: 11, to: 12 });
+const RIGHT_STRIDE = strideFrom(RIGHT, { from: 11, to: 12 });
+
 const PROTAGONIST_REFERENCE_FRAMES: Readonly<Record<ProtagonistReferenceFrameId, TokenFrame>> =
   Object.freeze({
     'front-1': FRONT,
-    'front-2': FRONT,
+    'front-2': FRONT_STRIDE,
     'rear-1': REAR,
-    'rear-2': REAR,
+    'rear-2': REAR_STRIDE,
     'left-1': LEFT,
-    'left-2': LEFT,
+    'left-2': LEFT_STRIDE,
     'right-1': RIGHT,
-    'right-2': RIGHT,
+    'right-2': RIGHT_STRIDE,
   });
 
 export function protagonistReferenceFrames(

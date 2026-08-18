@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import pixelBaseline from '../../assets/source/art/revision-15-pixel-hashes.json';
+import pixelBaseline from '../../assets/source/art/revision-16-pixel-hashes.json';
 import { buildAtlas, type AtlasIndex } from './build-world-atlas';
 import { decodePng } from './png';
 
@@ -17,7 +17,7 @@ const REQUIRED_GENERATED_ARTIFACTS = [
   'assets/source/art/roof-recipes.json',
   'assets/source/art/decal-recipes.json',
   'assets/source/art/transition-recipes.json',
-  'assets/source/art/revision-15-pixel-hashes.json',
+  'assets/source/art/revision-16-pixel-hashes.json',
 ] as const;
 
 type AtlasRect = Readonly<{ x: number; y: number; width: number; height: number }>;
@@ -48,7 +48,15 @@ function aggregatePublicCellHash(
   return hash.digest('hex');
 }
 
-function assertStableRoundedCells(index: AtlasIndex, atlas: ReturnType<typeof decodePng>): void {
+/**
+ * Both cells of a direction pair must exist at 24x30, and the animated directions must DIFFER.
+ *
+ * This rule used to require every pair to be byte-identical, which is what enforced the old
+ * "rounded floating movement" — the walk frame swapped between two copies of the same pixels.
+ * Directions are added to `animated` as their stride art lands, so the check stays meaningful
+ * at every step rather than being switched off wholesale.
+ */
+function assertWalkCells(index: AtlasIndex, atlas: ReturnType<typeof decodePng>): void {
   for (const [characterId, character] of Object.entries(index.characters)) {
     for (const direction of ['front', 'rear', 'left', 'right'] as const) {
       const first = index.sprites[character.frames[`${direction}-1`] as string];
@@ -56,8 +64,8 @@ function assertStableRoundedCells(index: AtlasIndex, atlas: ReturnType<typeof de
       if (!first || !second || first.width !== 24 || first.height !== 30 || second.width !== 24 || second.height !== 30) {
         throw new Error(`${characterId} ${direction} must have two 24x30 atlas cells.`);
       }
-      if (!rectanglePixels(atlas, first).equals(rectanglePixels(atlas, second))) {
-        throw new Error(`${characterId} ${direction} cells must be byte-identical for rounded floating movement.`);
+      if (rectanglePixels(atlas, first).equals(rectanglePixels(atlas, second))) {
+        throw new Error(`${characterId} ${direction} cells must differ; the walk frame is not animating.`);
       }
     }
   }
@@ -95,7 +103,7 @@ function main(root = process.cwd()): void {
     const digest = createHash('sha256').update(rectanglePixels(atlas, rectangle)).digest('hex');
     if (digest !== expected) throw new Error(`${id} changed without a new revisioned pixel baseline.`);
   }
-  assertStableRoundedCells(built.index, atlas);
+  assertWalkCells(built.index, atlas);
   const generatedPaths = [
     'assets/generated/world-atlas.png',
     'assets/generated/atlas-index.json',

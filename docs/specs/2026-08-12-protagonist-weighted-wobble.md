@@ -7,6 +7,9 @@ status: implemented-and-verified
 
 # Protagonist Weighted Wobble Trial
 
+> **Superseded 2026-08-17** by `docs/specs/2026-08-17-character-walk-animation.md`. Every character, the protagonist included, now has a distinct stride pose in each direction's second atlas cell. The protagonist's stride is derived from its authored idle frames, and the byte-identical-pair exception described below no longer holds.
+
+
 ## Goal
 
 Test the supplied rounded, black-haired protagonist in the real game. The character floats along the existing path instead of showing leg-based walking. When horizontal travel starts, the body leans into the movement and settles like a rounded Russian doll with weight at its base.

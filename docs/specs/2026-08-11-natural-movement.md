@@ -8,6 +8,9 @@ base_sha: b4b014397be82cdccee60cb3bed3ee3e9ef02ff1
 
 # Natural click-to-move and readable walking
 
+> **Superseded 2026-08-17** by `docs/specs/2026-08-17-character-walk-animation.md`. Every character, the protagonist included, now has a distinct stride pose in each direction's second atlas cell. The protagonist's stride is derived from its authored idle frames, and the byte-identical-pair exception described below no longer holds.
+
+
 ## 1. Outcome
 
 Click-to-move must look like a person crossing a place, not a chess piece moving on hidden graph paper.

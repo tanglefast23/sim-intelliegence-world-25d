@@ -11,6 +11,7 @@ export const ART_CATEGORY_IDS = [
   'roof',
   'object-landmark',
   'world-character',
+  'world-character-eyes',
   'portrait',
   'effect-reserve',
 ] as const;
