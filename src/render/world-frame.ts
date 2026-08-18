@@ -1106,7 +1106,7 @@ export function buildWorldFrameState(
       radiusX: 17 * Math.min(1.5, view.camera.zoom) / view.camera.zoom,
       radiusY: 9 * Math.min(1.5, view.camera.zoom) / view.camera.zoom,
       color: lighting.accent,
-      strokeWidth: 2,
+      strokeWidth: 3,
     },
     destinationPulse: view.destinationMarker && pulse ? {
       id: 'destination-pulse',
