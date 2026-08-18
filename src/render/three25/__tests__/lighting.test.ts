@@ -18,6 +18,7 @@ import {
   propContactShadows,
   shadowPathForEnvironment,
 } from '../lighting';
+import { CHARACTER_CONTACT_OFFSET } from '../billboards';
 import { LAMP_GLOW_COLORS } from '../recipes';
 import { GROUND_LIGHTING_SPRITES } from '../scene-builder';
 import { indoorFrame, outdoorFrame } from './fixtures';
@@ -67,7 +68,8 @@ describe('2.5D lighting', () => {
     const shadow = frame.characterShadows[0]!;
     const blob = blobShadows(frame)[0]!;
     expect(blob.tint).toBe(shadow.color);
-    const leanX = blob.x - shadow.worldX / 32;
+    // From the FOOT, not the strip's left edge: `blobShadows` adds `CHARACTER_CONTACT_OFFSET`.
+    const leanX = blob.x - (shadow.worldX + CHARACTER_CONTACT_OFFSET) / 32;
     const leanZ = blob.z - shadow.worldY / 32;
     // Same direction as the frame's cast, and no further than half of it.
     if (shadow.castX !== 0) {

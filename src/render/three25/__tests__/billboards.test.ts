@@ -1,5 +1,6 @@
 import {
   BLINK_PERIOD_MILLISECONDS,
+  CHARACTER_CONTACT_OFFSET,
   UNLIT_NIGHT_STRENGTH,
   buildBillboards,
   isBlinking,
@@ -29,10 +30,14 @@ describe('character billboards', () => {
   test('anchors at the contact point, not the quad corner', () => {
     const billboard = buildBillboards(frame)[0]!;
     const character = frame.characters[0]!;
-    expect(billboard.x).toBeCloseTo(character.shadowWorldX / 32, 6);
+    expect(billboard.x).toBeCloseTo((character.shadowWorldX + CHARACTER_CONTACT_OFFSET) / 32, 6);
     expect(billboard.z).toBeCloseTo(character.shadowWorldY / 32, 6);
     // The quad corner is a different point, so this is a real distinction and not a coincidence.
     expect(billboard.x).not.toBeCloseTo(character.worldX / 32, 6);
+    // And the anchor is the FOOT, which for an idle character is the middle of its own tile. This
+    // is the assertion that fails if `shadowWorldX`'s left edge is ever read as a centre again:
+    // the selection ring is projected from this same foot.
+    expect(billboard.x).toBeCloseTo(character.tile.x + 0.5, 6);
   });
 
   test('keeps the authored pixel aspect ratio', () => {
