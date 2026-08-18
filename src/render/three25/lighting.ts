@@ -1,5 +1,6 @@
 import type { WorldFrameState } from '../world-frame';
 import type { QuadDescriptor } from './scene-builder';
+import { CHARACTER_CONTACT_OFFSET } from './billboards';
 import { LAMP_GLOW_COLORS } from './recipes';
 
 const TILE_SIZE = 32;
@@ -227,7 +228,10 @@ export function blobShadows(frame: WorldFrameState): readonly QuadDescriptor[] {
     // HALF the cast, so the ellipse still touches the feet while reaching away from the light. A
     // full offset translates the whole blob off the character: at four tiles from a lamp they get a
     // detached oval and nothing under them, which is worse than the symmetric blob it replaced.
-    x: (shadow.worldX + cast.x / 2) / TILE_SIZE,
+    // `CHARACTER_CONTACT_OFFSET` because `worldX` is the strip's LEFT EDGE — without it the lean
+    // starts 7 pixels west of the feet, so the character got the blob's transparent rim and the
+    // shadow read as missing entirely.
+    x: (shadow.worldX + CHARACTER_CONTACT_OFFSET + cast.x / 2) / TILE_SIZE,
     z: (shadow.worldY + cast.y / 2) / TILE_SIZE,
     // And it lengthens along the cast rather than staying a fixed oval, which is what "stretches
     // away from the light" has to mean: a shadow gets longer as the light gets lower and further.

@@ -29,6 +29,21 @@ const BLINK_CLOSED_MILLISECONDS = 290;
 const EYE_BAND_LIFT_ROWS = 29 - 14;
 
 /**
+ * World pixels from `shadowWorldX` to the character's actual contact point.
+ *
+ * `world-frame.ts` sets `shadowWorldX = foot.x - 7` because the 2D renderer draws the shadow as a
+ * strip anchored at its LEFT EDGE — it adds the 7 back at the draw call
+ * (`three/world-renderer.ts`: `addEllipse(character.worldX + 7, ...)`). Every 2.5D reader wants a
+ * CENTRE, so it has to add the 7 back too.
+ *
+ * Read raw, the whole character stands 7 world pixels west of their own feet, which is why the
+ * selection ring — projected from the true foot — sat off to their lower right, and why the blob
+ * shadow's soft rim, not its centre, was the only part left under them. Same corner-as-centre trap
+ * `PROP_SHADOW_ANCHOR_OFFSET` in `lighting.ts` documents for props.
+ */
+export const CHARACTER_CONTACT_OFFSET = 7;
+
+/**
  * Whether this character's eyes are shut on this frame.
  *
  * Deterministic by construction: a pure function of the frame's own timestamp and the character
@@ -48,8 +63,9 @@ export function isBlinking(visualId: string, animationTimestampMilliseconds: num
  * gave every direction's second cell a stride pose and added a closed-eye band per character.
  *
  * The frame's `worldX`/`worldY` is the 2D quad's top-left after scale, lean, bob and impact
- * offsets. `shadowWorldX`/`shadowWorldY` is the contact point the frame already computed, which is
- * what a billboard must stand on — placing from `tile` instead would pop every 32 pixels.
+ * offsets. `shadowWorldX`/`shadowWorldY` is the contact anchor the frame already computed, which is
+ * what a billboard must stand on — placing from `tile` instead would pop every 32 pixels. Add
+ * `CHARACTER_CONTACT_OFFSET` to the x: the anchor is a LEFT EDGE, not a centre.
  *
  * `THREE.Sprite` is banned here: it does not batch, and the 2D port spec forbids one `Sprite` per
  * drawn thing. These descriptors bake into one geometry sharing the atlas and one material, which
@@ -84,7 +100,7 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
   const characters = frame.characters.map((character) => ({
     id: character.id,
     source: character.source,
-    x: character.shadowWorldX / TILE_SIZE,
+    x: (character.shadowWorldX + CHARACTER_CONTACT_OFFSET) / TILE_SIZE,
     z: character.shadowWorldY / TILE_SIZE,
     width: (character.source.width * character.scale) / TILE_SIZE,
     height: (character.source.height * character.scale) / TILE_SIZE,
@@ -134,7 +150,7 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
     return [{
       id: `${character.id}:eyes`,
       source: band,
-      x: character.shadowWorldX / TILE_SIZE,
+      x: (character.shadowWorldX + CHARACTER_CONTACT_OFFSET) / TILE_SIZE,
       z: character.shadowWorldY / TILE_SIZE,
       width: (band.width * character.scale) / TILE_SIZE,
       height: (band.height * character.scale) / TILE_SIZE,
