@@ -1,0 +1,57 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "zoom": 1,
+  "footprint": {
+    "width": 1923.3304448274093,
+    "height": 1923.3304448274093
+  },
+  "longDrag": {
+    "from": {
+      "x": 400,
+      "y": 300
+    },
+    "by": {
+      "x": 800,
+      "y": 380
+    },
+    "before": {
+      "x": 479,
+      "y": 662.8834764831844,
+      "zoom": 1
+    },
+    "after": {
+      "x": -625,
+      "y": 690.8834764831844,
+      "zoom": 1
+    },
+    "askedForWorld": 1103.4491379306978,
+    "travelledWorld": 1104.3550153822819,
+    "longEnough": true
+  },
+  "voidDrag": {
+    "from": {
+      "x": 300,
+      "y": 200
+    },
+    "by": {
+      "x": -240,
+      "y": -140
+    },
+    "before": {
+      "x": -625,
+      "y": 690.8834764831844,
+      "zoom": 1
+    },
+    "after": {
+      "x": -257,
+      "y": 718.8834764831844,
+      "zoom": 1
+    },
+    "startedOverVoid": true,
+    "travelledWorld": 369.06368014205896,
+    "panFromVoid": true
+  }
+}

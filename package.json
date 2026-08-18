@@ -57,6 +57,7 @@
     "smoke:art-quality": "tsx scripts/electron/run-art-quality-package-smoke.ts",
     "smoke:procedural-vfx": "tsx scripts/electron/run-procedural-vfx-package-smoke.ts",
     "verify:25d-click": "tsx scripts/verification/verify-25d-click.ts",
+    "verify:25d-pan": "tsx scripts/verification/verify-25d-pan.ts",
     "smoke:day-sweep": "tsx scripts/electron/run-day-sweep-smoke.ts",
     "smoke:25d:lit": "tsx scripts/electron/run-25d-shadow-smoke.ts --lit",
     "smoke:25d:fallback": "tsx scripts/electron/run-25d-shadow-smoke.ts --fallback",

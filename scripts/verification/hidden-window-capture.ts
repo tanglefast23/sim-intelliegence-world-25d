@@ -47,6 +47,19 @@ export type SceneRequest = Readonly<{
    * `unproject` pair is the one actually wired in — not merely that some self-consistent maths ran.
    */
   clickPixel?: Readonly<{ x: number; y: number }>;
+  /**
+   * Middle-button drags, in screen pixels, to verify camera pan end to end.
+   *
+   * Driven with `sendInputEvent`, not a dispatched `PointerEvent`, and that is not a style choice:
+   * `handlePointerDown` calls `setPointerCapture`, which throws `NotFoundError` for a pointer id
+   * the browser has no active pointer for. A synthetic drag would die inside the handler on its
+   * first event and report a frozen camera whether or not panning works.
+   *
+   * Each entry drags `by` starting at `from`. Successive entries run against the camera the
+   * previous one left, so a caller can push the camera to its stop and then start a drag on the
+   * void that exposes.
+   */
+  panDrag?: readonly Readonly<{ from: Readonly<{ x: number; y: number }>; by: Readonly<{ x: number; y: number }> }>[];
   /** Stop NPCs walking, so a tile filtered as NPC-free at selection time is still free at click. */
   freezeNpcMotion?: boolean;
   /**
@@ -127,6 +140,17 @@ export type SceneEvidence = Readonly<{
     arrivedAfterMs: number | null;
     destination: string;
   }>;
+  /**
+   * One entry per requested drag, in order. Reports only where the camera was and where it ended
+   * up; whether the drag started over void, and whether it moved far enough, is the caller's own
+   * maths against the real projection rather than a copy of it inlined here.
+   */
+  pan?: readonly Readonly<{
+    from: Readonly<{ x: number; y: number }>;
+    by: Readonly<{ x: number; y: number }>;
+    before: Readonly<{ x: number; y: number; zoom: number }>;
+    after: Readonly<{ x: number; y: number; zoom: number }>;
+  }>[];
 }>;
 
 const PORT = 8099;
@@ -236,6 +260,11 @@ function ensureWindow() {
 
 async function capture(scene) {
   const window = ensureWindow();
+  // Every scene starts a NEW game, and the web build now saves to local storage. Scene 1's save
+  // turns scene 2's title screen into a continue screen, the name input is never rendered, and the
+  // run dies on "the new-game flow never rendered" - after scene 1 has already passed, which is
+  // what makes it read like a flaky capture rather than leftover state.
+  await window.webContents.session.clearStorageData({ storages: ['localstorage', 'indexdb'] });
   // Omitting yaw exercises the app's own default rather than pinning one.
   const yawQuery = scene.yawDegrees === undefined ? '' : '&testYaw=' + scene.yawDegrees;
   const shadowPath = scene.shadowPath === undefined ? 'fallback' : scene.shadowPath;
@@ -349,6 +378,48 @@ async function capture(scene) {
   // Settle after readiness, so the capture is of a presented frame.
   await new Promise((r) => setTimeout(r, 750));
 
+  let pan;
+  if (scene.panDrag && scene.panDrag.length > 0) {
+    const readCamera = async () => {
+      const label = await window.webContents.executeJavaScript(
+        '(() => { const n = document.querySelector("#world-camera-state"); return n ? (n.getAttribute("aria-label") || "") : ""; })()',
+      );
+      const parsed = /World camera (-?[0-9.]+),(-?[0-9.]+) at ([0-9.]+)x/.exec(label);
+      if (!parsed) throw new Error('camera label unreadable: ' + label);
+      return { x: Number(parsed[1]), y: Number(parsed[2]), zoom: Number(parsed[3]) };
+    };
+    pan = [];
+    for (const drag of scene.panDrag) {
+      // A move sent outside the window is dropped whole, and a half-delivered drag looks exactly
+      // like a clamp stopping the camera early. Refuse it instead of reporting it as a short pan.
+      const end = { x: drag.from.x + drag.by.x, y: drag.from.y + drag.by.y };
+      for (const point of [drag.from, end]) {
+        if (point.x < 0 || point.y < 0 || point.x > viewport.width || point.y > viewport.height) {
+          throw new Error(
+            'panDrag leaves the ' + viewport.width + 'x' + viewport.height + ' window at '
+            + point.x + ',' + point.y + '; every move must land inside it.',
+          );
+        }
+      }
+      const before = await readCamera();
+      window.webContents.sendInputEvent({ type: 'mouseDown', x: drag.from.x, y: drag.from.y, button: 'middle', clickCount: 1 });
+      // Stepped, because WorldInput coalesces moves into one rAF flush and a single jump would
+      // exercise a drag no hand can make.
+      for (let step = 1; step <= 4; step += 1) {
+        window.webContents.sendInputEvent({
+          type: 'mouseMove',
+          x: drag.from.x + Math.round((drag.by.x * step) / 4),
+          y: drag.from.y + Math.round((drag.by.y * step) / 4),
+          button: 'middle',
+        });
+        await new Promise((r) => setTimeout(r, 40));
+      }
+      window.webContents.sendInputEvent({ type: 'mouseUp', x: drag.from.x + drag.by.x, y: drag.from.y + drag.by.y, button: 'middle', clickCount: 1 });
+      await new Promise((r) => setTimeout(r, 200));
+      pan.push({ from: drag.from, by: drag.by, before: before, after: await readCamera() });
+    }
+  }
+
   let click;
   if (scene.clickTile || scene.clickPixel) {
     const clickScript = [
@@ -444,6 +515,7 @@ async function capture(scene) {
     screenshot,
     evidence: shotEvidence,
     click,
+    pan,
   };
 }
 
@@ -489,6 +561,13 @@ export async function captureScenes(
       join(directory, 'capture-preload.js'),
       "const { contextBridge } = require('electron');\n"
       + "contextBridge.exposeInMainWorld('siWorldSmokeMode', true);\n"
+      // Names the renderer through the smoke channel, because `?testRenderer=2-5d` in the URL is
+      // not read once smoke mode is on: `rendererForEnvironment` returns `smokeRenderer ??
+      // 'threejs-2d'` before it ever looks at the query. Without this line every capture here ran
+      // the 2D renderer, `siWorld25dEvidence` was never defined, and each scene failed with "the
+      // 2.5D renderer never published evidence" — the flag the URL sets and the flag smoke mode
+      // reads have to be the same one.
+      + "contextBridge.exposeInMainWorld('siWorldTestRenderer', 'threejs-2-5d');\n"
       // NPCs walk on their schedules, so a tile filtered as NPC-free when the click point was
       // chosen can have someone standing on it by the time the click lands - and an NPC under the
       // point makes handlePrimary open a conversation instead of moving.

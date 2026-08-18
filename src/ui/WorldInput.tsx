@@ -61,13 +61,17 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
       if (handlersRef.current.disabled) return;
       if (isUiTarget(event.target)) return;
       const point = eventPoint(event, element);
-      if (!handlersRef.current.isPointInteractive(point)) return;
       if (event.button === 1) {
+        // Deliberately NOT gated on `isPointInteractive`. That gate asks "is there map under the
+        // cursor", which is the right question for a click on the world and the wrong one for a
+        // camera control: once a pan has brought void on screen, gating here would refuse the very
+        // drag that pans back, and the drag would feel dead exactly where it is needed most.
         event.preventDefault();
         middlePointerId = event.pointerId;
         lastMiddlePoint = point;
         element.setPointerCapture?.(event.pointerId);
       } else if (event.button === 0) {
+        if (!handlersRef.current.isPointInteractive(point)) return;
         handlersRef.current.onPrimary(point);
       }
     };
@@ -88,7 +92,8 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
       if (handlersRef.current.disabled) return;
       if (isUiTarget(event.target)) return;
       const point = eventPoint(event, element);
-      if (!handlersRef.current.isPointInteractive(point)) return;
+      // Same reasoning as the middle button: zoom is a camera control, so void under the cursor is
+      // not a reason to refuse it. `zoomCameraAt` clamps the result either way.
       if (event.deltaY === 0) return;
       event.preventDefault();
       queueZoom(event.deltaY < 0 ? 1 : -1, point);
