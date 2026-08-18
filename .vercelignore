@@ -1,0 +1,14 @@
+# Vercel runs `npm run export:web` itself, so it needs source, content and assets — nothing built.
+# Without this the upload carries 40k files and the deploy is rejected at the 15k limit.
+node_modules
+.git
+
+# Build output, rebuilt on Vercel or irrelevant to the web build.
+dist
+build
+out
+
+# Evidence and review roots. Large, and no part of the web build reads them.
+artifacts
+audits
+spikes

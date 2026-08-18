@@ -6,7 +6,7 @@ import type { WorldState } from '../domain/state/schema';
 import { WorldScene } from '../render/WorldScene';
 import { WorldErrorBoundary } from '../ui/WorldErrorBoundary';
 import type { RendererKind } from '../render/renderer-selection';
-import { getDesktopBridge } from './DesktopBridge';
+import { getSavePort } from './SavePort';
 import { LoadingShell } from './LoadingShell';
 import { NewGameFlow } from './NewGameFlow';
 import {
@@ -40,13 +40,9 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
   const playInterfaceSound = useInterfaceSounds(audioEnabled);
 
   useEffect(() => {
-    const bridge = getDesktopBridge();
-    if (!bridge) {
-      setBoot({ status: 'new', busy: false, preferences: DEFAULT_PRESENTATION_PREFERENCES });
-      return;
-    }
+    const savePort = getSavePort();
     let active = true;
-    void Promise.all([bridge.loadSave('slot-001'), bridge.loadPresentationPreferences()]).then(([result, preferences]) => {
+    void Promise.all([savePort.loadSave('slot-001'), savePort.loadPresentationPreferences()]).then(([result, preferences]) => {
       if (!active) return;
       if (result.status === 'unchanged' || result.status === 'migrated') {
         setBoot({
@@ -88,25 +84,10 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
   const startNewGame = useCallback((displayName: string) => {
     playInterfaceSound('confirm');
     const state = createInitialState(displayName);
-    const bridge = getDesktopBridge();
+    const savePort = getSavePort();
     const preferences = boot.status === 'new' ? boot.preferences : DEFAULT_PRESENTATION_PREFERENCES;
     setBoot({ status: 'new', busy: true, preferences });
-    if (!bridge) {
-      setBoot({
-        status: 'active',
-        session: {
-          key: 'browser-session',
-          saveGeneration: null,
-          saveStatus: 'BROWSER · NO DISK SAVE',
-          state,
-          worldFeedback: 'WELCOME TO HALCYRA · $800 WEEKLY ALLOWANCE RECEIVED.',
-          preferences,
-          newGame: true,
-        },
-      });
-      return;
-    }
-    void bridge.requestSave({
+    void savePort.requestSave({
       slotId: 'slot-001', expectedSaveGeneration: null, trigger: 'manual', state,
     }).then((result) => {
       if (result.status !== 'saved') {
@@ -131,8 +112,7 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
   }, [boot, playInterfaceSound]);
 
   const savePresentationPreferences = useCallback((patch: RendererPresentationPatch) => {
-    const bridge = getDesktopBridge();
-    if (bridge) void bridge.savePresentationPreferences(patch);
+    void getSavePort().savePresentationPreferences(patch);
   }, []);
 
   if (boot.status === 'loading') return <LoadingShell detail="Checking your Halcyra save…" surface={surface} />;
