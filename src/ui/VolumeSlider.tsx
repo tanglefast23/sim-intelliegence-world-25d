@@ -1,9 +1,18 @@
 import { useRef } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import type { UiMetrics } from './ui-metrics';
 
 const STEP = 0.05;
+
+export const clampStep = (raw: number) => Math.max(0, Math.min(1, Math.round(raw * 20) / 20));
+
+/** Next volume for an arrow key, or null when the key is not a slider key. */
+export function volumeForKey(value: number, key: string): number | null {
+  if (key === 'ArrowLeft' || key === 'ArrowDown') return clampStep(value - STEP);
+  if (key === 'ArrowRight' || key === 'ArrowUp') return clampStep(value + STEP);
+  return null;
+}
 
 export function VolumeSlider({
   accent,
@@ -24,61 +33,65 @@ export function VolumeSlider({
 }>) {
   const trackWidth = useRef(0);
   const percent = Math.round(value * 100);
-  const step = (direction: -1 | 1) => {
-    onPressSound();
-    onChange(Math.max(0, Math.min(1, Math.round((value + direction * STEP) * 20) / 20)));
-  };
+  const trackHeight = Math.round(12 * metrics.scale);
+  const knobWidth = Math.round(10 * metrics.scale);
+  const knobHeight = trackHeight + Math.round(6 * metrics.scale);
   const scrub = (locationX: number) => {
     if (trackWidth.current <= 0) return;
-    onChange(Math.max(0, Math.min(1, Math.round((locationX / trackWidth.current) * 20) / 20)));
+    onChange(clampStep(locationX / trackWidth.current));
   };
+  // react-native-web supports keyboard props on View; the react-native types do not.
+  const keyboardProps = {
+    focusable: true,
+    onKeyDown: (event: { key: string; preventDefault: () => void }) => {
+      const next = volumeForKey(value, event.key);
+      if (next === null) return;
+      event.preventDefault();
+      onPressSound();
+      onChange(next);
+    },
+    tabIndex: 0,
+  } as object;
   return (
     <View nativeID={nativeID} style={styles.row}>
       <Text style={[styles.label, { fontSize: metrics.secondaryText, width: Math.round(62 * metrics.scale) }]}>{label}</Text>
-      <Pressable
-        accessibilityLabel={`Decrease ${label.toLowerCase()} volume`}
-        disabled={value <= 0}
-        onPress={() => step(-1)}
-        role="button"
-        style={({ pressed }) => [styles.stepButton, { height: metrics.pointerTarget, width: Math.round(24 * metrics.scale) }, value <= 0 && styles.disabled, pressed && styles.pressed]}
-      >
-        <Text style={[styles.stepText, { fontSize: metrics.secondaryText }]}>−</Text>
-      </Pressable>
       <View
         accessibilityLabel={`${label} volume ${percent} percent`}
         accessibilityValue={{ max: 100, min: 0, now: percent }}
         onLayout={(event) => { trackWidth.current = event.nativeEvent.layout.width; }}
         onMoveShouldSetResponder={() => true}
-        onResponderGrant={(event) => scrub(event.nativeEvent.locationX)}
+        onResponderGrant={(event) => { onPressSound(); scrub(event.nativeEvent.locationX); }}
         onResponderMove={(event) => scrub(event.nativeEvent.locationX)}
         onStartShouldSetResponder={() => true}
         role="slider"
-        style={[styles.track, { height: Math.round(10 * metrics.scale) }]}
+        style={[styles.hitArea, { height: metrics.pointerTarget }]}
+        {...keyboardProps}
       >
-        <View style={[styles.fill, { backgroundColor: accent, transform: [{ scaleX: value }] }]} />
+        <View style={[styles.track, { height: trackHeight }]}>
+          <View style={[styles.fill, { backgroundColor: accent, transform: [{ scaleX: value }] }]} />
+        </View>
+        <View
+          style={[styles.knob, {
+            backgroundColor: accent,
+            height: knobHeight,
+            left: `${percent}%`,
+            marginLeft: -Math.round(knobWidth / 2),
+            top: Math.round((metrics.pointerTarget - knobHeight) / 2),
+            width: knobWidth,
+          }]}
+        />
       </View>
-      <Pressable
-        accessibilityLabel={`Increase ${label.toLowerCase()} volume`}
-        disabled={value >= 1}
-        onPress={() => step(1)}
-        role="button"
-        style={({ pressed }) => [styles.stepButton, { height: metrics.pointerTarget, width: Math.round(24 * metrics.scale) }, value >= 1 && styles.disabled, pressed && styles.pressed]}
-      >
-        <Text style={[styles.stepText, { fontSize: metrics.secondaryText }]}>+</Text>
-      </Pressable>
       <Text style={[styles.value, { fontSize: metrics.secondaryText, width: Math.round(38 * metrics.scale) }]}>{percent}%</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  disabled: { opacity: 0.35 },
   fill: { bottom: 0, left: 0, position: 'absolute', right: 0, top: 0, transformOrigin: 'left center' },
+  hitArea: { flex: 1, justifyContent: 'center' },
+  knob: { borderColor: '#fff0c7', borderWidth: 1, position: 'absolute' },
   label: { color: '#bda77e', fontFamily: 'Silkscreen' },
-  pressed: { opacity: 0.78, transform: [{ translateY: 1 }] },
   row: { alignItems: 'center', flexDirection: 'row', gap: 4 },
-  stepButton: { alignItems: 'center', borderColor: '#665139', borderWidth: 1, justifyContent: 'center' },
-  stepText: { color: '#e1ca9f', fontFamily: 'Silkscreen' },
-  track: { backgroundColor: '#3b372d', borderColor: '#514838', borderWidth: 1, flex: 1, overflow: 'hidden' },
+  track: { backgroundColor: '#3b372d', borderColor: '#514838', borderWidth: 1, overflow: 'hidden' },
   value: { color: '#fff0c7', fontFamily: 'Silkscreen', textAlign: 'right' },
 });
