@@ -1,7 +1,8 @@
-import type { AtlasRectangle } from '../atlas';
+import { atlasRectangle, type AtlasRectangle } from '../atlas';
 import { mixHex } from '../atmosphere';
 import type { DistrictLighting } from '../district-lighting';
 import type { WorldFrameState } from '../world-frame';
+import { stableTupleHash } from '../../world/presentation/material-selection';
 
 const TILE_SIZE = 32;
 
@@ -13,11 +14,38 @@ export type BillboardDescriptor = Readonly<{
   width: number;
   height: number;
   tint: string;
+  /** Sprite rows to raise the quad above the contact point. Body quads stand on it, at 0. */
+  lift: number;
 }>;
+
+export const BLINK_PERIOD_MILLISECONDS = 4_600;
+const BLINK_CLOSED_MILLISECONDS = 290;
+/**
+ * Rows between the eye band's bottom (14) and the body cell's bottom (29).
+ *
+ * `bakeBillboardGeometry` stands every quad on `shadowWorldY`, so without this a three-row band
+ * would be a stamp on the character's shoes.
+ */
+const EYE_BAND_LIFT_ROWS = 29 - 14;
+
+/**
+ * Whether this character's eyes are shut on this frame.
+ *
+ * Deterministic by construction: a pure function of the frame's own timestamp and the character
+ * id. No `Math.random`, no wall clock, and no new field on `WorldFrameState`. The per-character
+ * hash offset keeps a crowd from blinking in unison.
+ */
+export function isBlinking(visualId: string, animationTimestampMilliseconds: number): boolean {
+  const offset = stableTupleHash([visualId]) % BLINK_PERIOD_MILLISECONDS;
+  return (animationTimestampMilliseconds + offset) % BLINK_PERIOD_MILLISECONDS < BLINK_CLOSED_MILLISECONDS;
+}
 
 /**
  * Characters stay upright four-direction billboards in both renderers. Only world geometry becomes
- * boxes; no character sprite is created or modified.
+ * boxes; no character sprite is turned into geometry.
+ *
+ * Character art itself is no longer frozen — `docs/specs/2026-08-17-character-walk-animation.md`
+ * gave every direction's second cell a stride pose and added a closed-eye band per character.
  *
  * The frame's `worldX`/`worldY` is the 2D quad's top-left after scale, lean, bob and impact
  * offsets. `shadowWorldX`/`shadowWorldY` is the contact point the frame already computed, which is
@@ -63,8 +91,8 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
     // Capped, like the furniture: an unlit sprite has no light to lift it back up, and a
     // protagonist who becomes a black silhouette after dusk is unusable.
     tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
+    lift: 0,
   }));
-
   // Vegetation joins the batch the characters already use, so standing it up costs no draw call.
   const vegetation = frame.groundDetails
     .filter((detail) => isStandingDecal(detail.sprite))
@@ -78,9 +106,43 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
       width: detail.source.width / TILE_SIZE,
       height: detail.source.height / TILE_SIZE,
       tint: tintForLighting(detail.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
+      lift: 0,
     }));
 
-  return [...characters, ...vegetation];
+  if (frame.reducedMotion) return [...characters, ...vegetation];
+
+  /**
+   * Blink overlays, baked after the character bodies into the same geometry and material, so they
+   * win under `LessEqual` depth and the draw-call count does not change. Vegetation sitting between
+   * them in the array is harmless: a band is coplanar only with its own body, which precedes it.
+   *
+   * Keyed off `character.sprite`, not `character.source`: `source` is an `AtlasRectangle` whose
+   * `sourceId` is the character id, so the frame suffix is only visible on `sprite`.
+   *
+   * Front only. The band is drawn from the front-facing eyes, rear has no eyes at all, and the
+   * lateral eyes are a different drawing. `.front-1` rather than any `-1` cell is what keeps it
+   * off those facings.
+   *
+   * Idle is not on the placement — `WorldCharacterPlacement` carries no `moving` or `pose`, and
+   * that decision never leaves `buildWorldFrameState`. So characters blink on even front-facing
+   * strides too, which is fine: people blink while walking.
+   */
+  const eyes = frame.characters.flatMap((character) => {
+    if (!character.sprite.endsWith('.front-1')) return [];
+    if (!isBlinking(character.visualId, frame.animationTimestampMilliseconds)) return [];
+    const band = atlasRectangle(`character.${character.visualId}.eyes`);
+    return [{
+      id: `${character.id}:eyes`,
+      source: band,
+      x: character.shadowWorldX / TILE_SIZE,
+      z: character.shadowWorldY / TILE_SIZE,
+      width: (band.width * character.scale) / TILE_SIZE,
+      height: (band.height * character.scale) / TILE_SIZE,
+      tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
+      lift: (EYE_BAND_LIFT_ROWS * character.scale) / TILE_SIZE,
+    }];
+  });
+  return [...characters, ...vegetation, ...eyes];
 }
 
 /**

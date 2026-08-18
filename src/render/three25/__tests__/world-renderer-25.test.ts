@@ -12,7 +12,7 @@ import { PROP_RECIPES } from '../recipes';
 import { buildScene } from '../scene-builder';
 import {
   bakeGroundStains, bakeBillboardGeometry, bakeLampPools, bakeSceneGeometry, cameraForYaw, frameCamera } from '../world-renderer-25';
-import { indoorFrame } from './fixtures';
+import { closedBlinkTimestamp, indoorFrame } from './fixtures';
 
 describe('2.5D camera placement', () => {
   test('sits at the configured elevation at yaw 0', () => {
@@ -199,7 +199,14 @@ describe('character billboards bake into one upright batch', () => {
   // The camera's right vector flattened onto the ground, and world up. Not the camera's up.
   const RIGHT = { x: 1, y: 0, z: 0 } as const;
   const UP = { x: 0, y: 1, z: 0 } as const;
-  const billboards = buildBillboards(indoorFrame());
+  // Pinned to a closed blink window. indoorFrame() faces `down`, so its sprite is `front-1`
+  // and it is eligible to blink; at timestamp 0 the exact vertex counts below would depend on a
+  // hash rather than on the bake.
+  const restingFrame = (): ReturnType<typeof indoorFrame> => ({
+    ...indoorFrame(),
+    animationTimestampMilliseconds: closedBlinkTimestamp('protagonist'),
+  });
+  const billboards = buildBillboards(restingFrame());
 
   test('emits four vertices and six indices per character', () => {
     const geometry = bakeBillboardGeometry(billboards, RIGHT, UP, 1024, 1024);
@@ -258,7 +265,7 @@ describe('character billboards bake into one upright batch', () => {
   });
 
   test('twenty characters still bake into one geometry', () => {
-    const frame = indoorFrame();
+    const frame = restingFrame();
     const many = {
       ...frame,
       // No ground details: this asserts the CHARACTER count, and vegetation shares the batch.

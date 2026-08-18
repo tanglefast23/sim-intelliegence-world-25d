@@ -9,8 +9,14 @@ import { ATLAS_INDEX } from '../../render/atlas';
 import { buildWorldMapV2Catalog } from '../../world/maps/catalog';
 import { ART_PRESENTATION_REVISION } from '../../world/presentation/recipes';
 
-if (ART_PRESENTATION_REVISION !== ATLAS_INDEX.artRevision) {
-  throw new Error('Art presentation recipes do not match the runtime atlas revision.');
+/**
+ * The recipe revision may lag the atlas revision, but never lead it. See the matching guard in
+ * `scripts/art/build-world-atlas.ts`: `ART_PRESENTATION_REVISION` is a material-selection seed,
+ * so moving it reshuffles ground art everywhere. An atlas change that touches only character
+ * cells leaves it alone.
+ */
+if (ART_PRESENTATION_REVISION > ATLAS_INDEX.artRevision) {
+  throw new Error('Art presentation recipes are newer than the runtime atlas revision.');
 }
 
 const LOCATION_NEIGHBORHOOD_BY_ID = new Map(

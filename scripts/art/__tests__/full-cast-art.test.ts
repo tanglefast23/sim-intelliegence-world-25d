@@ -1,6 +1,8 @@
 import {
+  EYE_BAND,
   PORTRAIT_CELL,
   WORLD_CELL,
+  composeEyeBand,
   composeFrontFrame,
   composePortrait,
   drawTokenCommands,
@@ -15,6 +17,7 @@ import {
 import { composeLateralFrame, getLateralIdentityCommandSets } from '../lateral-legs';
 import { parseHexColor } from '../png';
 import { deriveRearFrame } from '../rear-frame';
+import { protagonistReferenceFrames } from '../protagonist-reference';
 import { CHARACTER_LOOKS } from '../character-look-roster';
 import type { SecondaryFeature } from '../character-look-roster';
 import {
@@ -195,13 +198,75 @@ describe('full-cast shared-source character art', () => {
       expect([25, 26, 27].map((row) => paintedWidth(worldBody[row] as string)))
         .toEqual([14, 14, 12]);
 
-      for (const frameCommands of geometry.legs.frontFrames) {
-        const legs = commandFrame(frameCommands, WORLD_CELL.width, WORLD_CELL.height);
-        expect(paintedRuns(legs[28] as string)).toBe(1);
-        expect(paintedRuns(legs[29] as string)).toBe(1);
+      // Frame 0 is the idle pose and keeps one run on both rows. Frame 1 splits row 29 into
+      // two feet while row 28 stays a single run, so the contact shadow keeps one anchor and
+      // shadowWorldY does not move.
+      const [idleLegs, strideLegs] = geometry.legs.frontFrames.map(
+        (frameCommands) => commandFrame(frameCommands, WORLD_CELL.width, WORLD_CELL.height),
+      );
+      expect(paintedRuns(idleLegs![28] as string)).toBe(1);
+      expect(paintedRuns(idleLegs![29] as string)).toBe(1);
+      expect(paintedRuns(strideLegs![28] as string)).toBe(1);
+      expect(paintedRuns(strideLegs![29] as string)).toBe(2);
+      expect(geometry.legs.frontFrames[1]).not.toEqual(geometry.legs.frontFrames[0]);
+    }
+  });
+
+  test('the stride frame opens no hole the idle frame did not have', () => {
+    // A hole is a transparent cell with paint on both sides of it in the same row. The stride
+    // may move pixels, but it must not tear a gap in a face or a torso.
+    //
+    // This is the assertion that was missing when the lateral stride shifted the head by a
+    // pixel: seven characters gained interior holes and nothing failed, because the margin
+    // check only looks at columns 0 and 23 and the pair check only asks that the frames differ.
+    const interiorHoles = (frame: TokenFrame): number => {
+      let holes = 0;
+      for (const row of frame) {
+        for (let x = 1; x < WORLD_CELL.width - 1; x += 1) {
+          if (row[x] !== '.') continue;
+          const left = row.slice(0, x).replace(/\./gu, '');
+          const right = row.slice(x + 1).replace(/\./gu, '');
+          if (left.length > 0 && right.length > 0) holes += 1;
+        }
       }
-      expect(geometry.legs.frontFrames[1]).toEqual(geometry.legs.frontFrames[0]);
-      expect(geometry.legs.lateralFrames[1]).toEqual(geometry.legs.lateralFrames[0]);
+      return holes;
+    };
+    for (const source of sources) {
+      const pairs = [
+        [composeFrontFrame(source, 0), composeFrontFrame(source, 1)],
+        [composeLateralFrame(source, 'left', 0), composeLateralFrame(source, 'left', 1)],
+        [composeLateralFrame(source, 'right', 0), composeLateralFrame(source, 'right', 1)],
+      ] as const;
+      for (const [idle, stride] of pairs) {
+        // The stride's own foot gap is a deliberate hole on the contact row, so compare the
+        // rows above it.
+        const above = (frame: TokenFrame): TokenFrame => frame.slice(0, WORLD_CELL.height - 1) as TokenFrame;
+        expect(interiorHoles(above(stride))).toBeLessThanOrEqual(interiorHoles(above(idle)));
+      }
+    }
+  });
+
+  test('closes the eyes in the blink band while preserving every other pixel', () => {
+    for (const source of sources) {
+      const band = composeEyeBand(source);
+      const base = protagonistReferenceFrames(source.id)?.['front-1'] ?? composeFrontFrame(source, 0);
+      expect(band).toHaveLength(EYE_BAND.height);
+      let changed = 0;
+      for (let index = 0; index < band.length; index += 1) {
+        const before = base[EYE_BAND.top + index] as string;
+        const after = band[index] as string;
+        expect(after).toHaveLength(WORLD_CELL.width);
+        for (let x = 0; x < WORLD_CELL.width; x += 1) {
+          if (before[x] === after[x]) continue;
+          changed += 1;
+          // Only eye whites and their pupil tokens may move, and only inside the eye columns.
+          // This is what keeps star-glasses' accent at [10,14], window-glasses' frame, and the
+          // mouth pixel at [11,14] intact through a blink.
+          expect([7, 8, 9, 10, 13, 14, 15, 16]).toContain(x);
+          expect(['W', 'K', 'D']).toContain(before[x]);
+        }
+      }
+      expect(changed).toBeGreaterThan(0);
     }
   });
 
@@ -297,21 +362,46 @@ describe('full-cast shared-source character art', () => {
     (_id, source) => {
       const frontOne = composeFrontFrame(source, 0);
       const frontTwo = composeFrontFrame(source, 1);
-      expect(frontOne).toEqual(frontTwo);
-      for (const frame of [
+      expect(frontOne).not.toEqual(frontTwo);
+
+      // The stride swings an arm into [3,23] and [20,25], but ONLY where the cell is empty.
+      // Six looks already occupy one of those at idle: giant-gloves, single-bell-sleeve and
+      // towel-sleeve cover [3,23]; towel-sleeve, luggage-strap and guitar-case cover [20,25],
+      // and luggage-strap is the protagonist's own supporting feature. Costume pixels win.
+      for (const [x, y] of [[3, 23], [19, 25]] as const) {
+        const idleToken = frontOne[y]?.[x];
+        expect(frontTwo[y]?.[x]).toBe(idleToken === '.' ? 'L' : idleToken);
+      }
+      // resident-16 skips the row-24 hand stamp entirely, because its feature covers that row.
+      if (source.id !== 'resident-16') {
+        expect(frontTwo[24]?.[3]).toBe('L');
+        expect(frontTwo[24]?.[4]).toBe('S');
+        expect(frontTwo[24]?.[19]).toBe('S');
+        expect(frontTwo[24]?.[20]).toBe('L');
+      }
+      const idleFrames = [
         frontOne,
-        frontTwo,
         deriveRearFrame(frontOne, source),
-        deriveRearFrame(frontTwo, source),
         composeLateralFrame(source, 'left', 0),
-        composeLateralFrame(source, 'left', 1),
         composeLateralFrame(source, 'right', 0),
+      ];
+      const strideFrames = [
+        frontTwo,
+        deriveRearFrame(frontTwo, source),
+        composeLateralFrame(source, 'left', 1),
         composeLateralFrame(source, 'right', 1),
-      ]) {
+      ];
+      for (const frame of [...idleFrames, ...strideFrames]) {
         expect(painted(frame).size).toBeGreaterThan(40);
         expect([...frame[0] as string].every((token) => token === '.')).toBe(true);
-        expect(paintedRuns(frame[WORLD_CELL.height - 1] as string)).toBe(1);
         expect(frame.every((row) => row[0] === '.' && row[WORLD_CELL.width - 1] === '.')).toBe(true);
+      }
+      // Row 29 is the contact row: idle keeps one rounded run, the stride splits into two feet.
+      for (const frame of idleFrames) {
+        expect(paintedRuns(frame[WORLD_CELL.height - 1] as string)).toBe(1);
+      }
+      for (const frame of strideFrames) {
+        expect(paintedRuns(frame[WORLD_CELL.height - 1] as string)).toBe(2);
       }
       const portrait = composePortrait(source);
       expect(source.portraitCell).toEqual({ width: 24, height: 29 });

@@ -69,7 +69,8 @@ describe('deterministic SI World atlas generation', () => {
     expect(first.index.version).toBe(3);
     expect(first.index.artRevision).toBe(16);
     expect(first.index.image).toMatchObject({ colorType: 'rgba', gutter: 1 });
-    expect(Object.keys(first.index.sprites)).toHaveLength(616);
+    // 612 base + 35 blink eye bands (character walk) + 4 office landmarks = 651.
+    expect(Object.keys(first.index.sprites)).toHaveLength(651);
     expect(first.index.tiles).toHaveLength(283);
     expect(first.index.groundCells).toHaveLength(81);
     expect(first.index.transparentPartCells).toHaveLength(142);
@@ -77,7 +78,9 @@ describe('deterministic SI World atlas generation', () => {
     expect(createHash('sha256').update(first.png).digest('hex')).toBe(first.index.image.sha256);
     expect(first.index.publicSpriteIds).toEqual(Object.keys(first.index.sprites));
     expect(first.index.internalReviewSpriteIds).toEqual([]);
-    expect(first.report.forecast).toMatchObject({ rawRectangleArea: 761_198, width: 1024 });
+    // Union of both grants: +4 object-landmark slots (office) and +35 world-character-eyes
+    // (blink), over the 756_574 base. Computed from the merged manifest, not by hand.
+    expect(first.report.forecast).toMatchObject({ rawRectangleArea: 765_748, width: 1024 });
   });
 
   test('keeps all atlas cells inside the generated image', () => {
@@ -149,7 +152,7 @@ describe('deterministic SI World atlas generation', () => {
       expect(Object.keys(source.sourceLayers)).toEqual([
         'legs', 'torsoAndClothing', 'headAndFace', 'hair', 'accessory', 'heldItem',
       ]);
-      expect(composeFrontFrame(source, 0)).toEqual(composeFrontFrame(source, 1));
+      expect(composeFrontFrame(source, 0)).not.toEqual(composeFrontFrame(source, 1));
       const frontBitmap = tokenFrameToBitmap(composeFrontFrame(source, 0), source.palette);
       const portraitBitmap = tokenFrameToBitmap(composePortrait(source), source.palette);
       const colors = new Set(Array.from({ length: frontBitmap.width * frontBitmap.height }, (_unused, pixel) =>
@@ -180,8 +183,8 @@ describe('deterministic SI World atlas generation', () => {
       const rightTwo = composeLateralFrame(source, 'right', 1);
       expect(alphaMask(leftOne).split('\n').map((row) => [...row].reverse().join('')).join('\n'))
         .toBe(alphaMask(rightOne));
-      expect(leftOne).toEqual(leftTwo);
-      expect(rightOne).toEqual(rightTwo);
+      expect(leftOne).not.toEqual(leftTwo);
+      expect(rightOne).not.toEqual(rightTwo);
       expect(leftOne.slice(28).flatMap((row) => [...row]).filter((token) => token !== '.').length).toBeGreaterThan(5);
       expect(rightOne.slice(28).flatMap((row) => [...row]).filter((token) => token !== '.').length).toBeGreaterThan(5);
     }

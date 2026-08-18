@@ -19,11 +19,15 @@ describe('black-haired protagonist reference frames', () => {
     expect(frames['left-1']).not.toEqual(frames['right-1']);
   });
 
-  test('uses one stable supplied pose for both atlas cells in each direction', () => {
+  test('supplies a distinct stride pose for the second atlas cell in each direction', () => {
     for (const direction of ['front', 'rear', 'left', 'right'] as const) {
       const first = frames[`${direction}-1`];
       const second = frames[`${direction}-2`];
-      expect(second).toEqual(first);
+      expect(second).not.toEqual(first);
+      // The stride splits the contact row into two feet, exactly as the generated cast does.
+      const runs = (row: string): number => (row.match(/[^.]+/gu) ?? []).length;
+      expect(runs(first![29] as string)).toBe(1);
+      expect(runs(second![29] as string)).toBe(2);
     }
   });
 

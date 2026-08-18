@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import {
   WORLD_CELL,
   addOutwardContour,
+  composeEyeBand,
   composeFrontFrame,
   loadCharacterSources,
   loadMultiTileCompositions,
@@ -97,6 +98,7 @@ export type AtlasIndex = Readonly<{
     portrait: string;
     portraits: Readonly<Record<string, string>>;
     frames: Readonly<Record<string, string>>;
+    eyes: string;
     sourceLayers: readonly ['legs', 'torso-and-clothing', 'head-and-face', 'hair', 'accessory', 'held-item'];
   }>>>;
   tiles: readonly string[];
@@ -117,19 +119,20 @@ export type AtlasGenerationReport = AtlasBudgetReport & Readonly<{
 
 function worldEntries(source: CharacterSource): Entry[] {
   const front = composeFrontFrame(source, 0);
+  const frontStride = composeFrontFrame(source, 1);
   const generatedFrames: Readonly<Record<ProtagonistReferenceFrameId, TokenFrame>> = {
     'front-1': front,
-    'front-2': front,
+    'front-2': frontStride,
     'rear-1': deriveRearFrame(front, source),
-    'rear-2': deriveRearFrame(front, source),
+    'rear-2': deriveRearFrame(frontStride, source),
     'left-1': composeLateralFrame(source, 'left', 0),
-    'left-2': composeLateralFrame(source, 'left', 0),
+    'left-2': composeLateralFrame(source, 'left', 1),
     'right-1': composeLateralFrame(source, 'right', 0),
-    'right-2': composeLateralFrame(source, 'right', 0),
+    'right-2': composeLateralFrame(source, 'right', 1),
   };
   const authoredFrames = protagonistReferenceFrames(source.id);
   const tokenFrames = authoredFrames ?? generatedFrames;
-  return Object.entries(tokenFrames).map(([frame, tokens]) => ({
+  const frameEntries: Entry[] = Object.entries(tokenFrames).map(([frame, tokens]) => ({
     name: `character.${source.id}.${frame}`,
     sourceId: source.id,
     kind: 'world-character' as const,
@@ -145,6 +148,25 @@ function worldEntries(source: CharacterSource): Entry[] {
         true,
       ),
   }));
+  /**
+   * The blink overlay: rows 12-14 of the idle front cell with the eyes closed.
+   *
+   * No `addOutwardContour`. A contour on a three-row strip would draw an outline through the
+   * middle of the face; the band's transparent edges let the body cell's own contour show
+   * through instead. `cellClass` stays `null` like every other character cell, so these never
+   * land in `transparentPartCells`, which is a wall and tile list.
+   */
+  const eyeBand: Entry = {
+    name: `character.${source.id}.eyes`,
+    sourceId: source.id,
+    kind: 'world-character' as const,
+    category: 'world-character-eyes' as const,
+    visibility: 'public' as const,
+    cellClass: null,
+    wallAdjacencyMask: null,
+    bitmap: tokenFrameToBitmap(composeEyeBand(source), source.palette),
+  };
+  return [...frameEntries, eyeBand];
 }
 
 function renderTransitionMask(
@@ -285,8 +307,22 @@ export function buildAtlas(root = process.cwd()): {
   const manifest = loadArtManifest(root);
   const presentationRecipes = loadArtPresentationRecipeManifest(root);
   const presentationRuntimeRecipes = loadArtPresentationRuntimeRecipes(root);
-  if (presentationRecipes.artRevision !== manifest.artRevision) {
-    throw new Error('Art presentation recipes do not match the atlas art revision.');
+  /**
+   * The recipe revision may lag the atlas revision, but never lead it.
+   *
+   * These two numbers mean different things. The manifest's `artRevision` versions the atlas
+   * image. The recipes' `artRevision` becomes `ART_PRESENTATION_REVISION`, which is a SEED:
+   * `material-selection.ts` hashes it to choose a ground material per tile. Moving the recipe
+   * revision therefore reshuffles procedural ground art across every map — measured, not
+   * theoretical: bumping both together produced a 9-tile diagonal stamp run against the 4-tile
+   * limit in `sunward-art.test.ts`.
+   *
+   * So a change that touches only character cells bumps the atlas revision and leaves the recipe
+   * revision alone. Leading is still an error: recipes newer than the atlas mean the atlas was
+   * built from stale inputs.
+   */
+  if (presentationRecipes.artRevision > manifest.artRevision) {
+    throw new Error('Art presentation recipes are newer than the atlas art revision.');
   }
   const characters = loadCharacterSources(root);
   const groundCells = loadTileSources(root);
@@ -428,6 +464,7 @@ export function buildAtlas(root = process.cwd()): {
           `character.${character.id}.${direction}-${frame}`,
         ]),
       )),
+      eyes: `character.${character.id}.eyes`,
       sourceLayers: [
         'legs',
         'torso-and-clothing',

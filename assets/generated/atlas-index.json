@@ -4,10 +4,10 @@
   "toolVersion": "atlas-v9-authored-full-cast",
   "image": {
     "width": 1024,
-    "height": 595,
+    "height": 600,
     "colorType": "rgba",
     "gutter": 1,
-    "sha256": "6413b0afdafb4adac7fc7e0e7b07ceb2dfd10fb443904beef2959ecfde8ea9ab"
+    "sha256": "d56f2b9988363ca0d9b2141498ef6ad4d749e9ea7a56b3d7d18ffb14cda7a4bb"
   },
   "tileSize": 32,
   "worldCell": {
@@ -7412,6 +7412,426 @@
       "sourceId": "tomas-reed",
       "cellClass": null,
       "wallAdjacencyMask": null
+    },
+    "character.devon-price.eyes": {
+      "x": 989,
+      "y": 565,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "devon-price",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.elise-moreau.eyes": {
+      "x": 1,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "elise-moreau",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.generic-resident.eyes": {
+      "x": 27,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "generic-resident",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.linda-boyfriend.eyes": {
+      "x": 53,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "linda-boyfriend",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.linda.eyes": {
+      "x": 79,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "linda",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.mina-park.eyes": {
+      "x": 105,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "mina-park",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.priya-nair.eyes": {
+      "x": 131,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "priya-nair",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.protagonist.eyes": {
+      "x": 157,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "protagonist",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.rafael-cruz.eyes": {
+      "x": 183,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "rafael-cruz",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-01.eyes": {
+      "x": 209,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-02.eyes": {
+      "x": 235,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-02",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-03.eyes": {
+      "x": 261,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-03",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-04.eyes": {
+      "x": 287,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-04",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-05.eyes": {
+      "x": 313,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-05",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-06.eyes": {
+      "x": 339,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-06",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-07.eyes": {
+      "x": 365,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-07",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-08.eyes": {
+      "x": 391,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-08",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-09.eyes": {
+      "x": 417,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-09",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-10.eyes": {
+      "x": 443,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-10",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-11.eyes": {
+      "x": 469,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-11",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-12.eyes": {
+      "x": 495,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-12",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-13.eyes": {
+      "x": 521,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-13",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-14.eyes": {
+      "x": 547,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-14",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-15.eyes": {
+      "x": 573,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-15",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-16.eyes": {
+      "x": 599,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-16",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-17.eyes": {
+      "x": 625,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-17",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-18.eyes": {
+      "x": 651,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-18",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-19.eyes": {
+      "x": 677,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-19",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-20.eyes": {
+      "x": 703,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-20",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-21.eyes": {
+      "x": 729,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-21",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-22.eyes": {
+      "x": 755,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-22",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-23.eyes": {
+      "x": 781,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-23",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.resident-24.eyes": {
+      "x": 807,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "resident-24",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.sora-tan.eyes": {
+      "x": 833,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "sora-tan",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.tomas-reed.eyes": {
+      "x": 859,
+      "y": 596,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "tomas-reed",
+      "cellClass": null,
+      "wallAdjacencyMask": null
     }
   },
   "publicSpriteIds": [
@@ -8030,7 +8450,42 @@
     "portrait.sora-tan.upset",
     "portrait.tomas-reed",
     "portrait.tomas-reed.joy",
-    "portrait.tomas-reed.upset"
+    "portrait.tomas-reed.upset",
+    "character.devon-price.eyes",
+    "character.elise-moreau.eyes",
+    "character.generic-resident.eyes",
+    "character.linda-boyfriend.eyes",
+    "character.linda.eyes",
+    "character.mina-park.eyes",
+    "character.priya-nair.eyes",
+    "character.protagonist.eyes",
+    "character.rafael-cruz.eyes",
+    "character.resident-01.eyes",
+    "character.resident-02.eyes",
+    "character.resident-03.eyes",
+    "character.resident-04.eyes",
+    "character.resident-05.eyes",
+    "character.resident-06.eyes",
+    "character.resident-07.eyes",
+    "character.resident-08.eyes",
+    "character.resident-09.eyes",
+    "character.resident-10.eyes",
+    "character.resident-11.eyes",
+    "character.resident-12.eyes",
+    "character.resident-13.eyes",
+    "character.resident-14.eyes",
+    "character.resident-15.eyes",
+    "character.resident-16.eyes",
+    "character.resident-17.eyes",
+    "character.resident-18.eyes",
+    "character.resident-19.eyes",
+    "character.resident-20.eyes",
+    "character.resident-21.eyes",
+    "character.resident-22.eyes",
+    "character.resident-23.eyes",
+    "character.resident-24.eyes",
+    "character.sora-tan.eyes",
+    "character.tomas-reed.eyes"
   ],
   "internalReviewSpriteIds": [],
   "characters": {
@@ -8052,6 +8507,7 @@
         "right-1": "character.devon-price.right-1",
         "right-2": "character.devon-price.right-2"
       },
+      "eyes": "character.devon-price.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8079,6 +8535,7 @@
         "right-1": "character.elise-moreau.right-1",
         "right-2": "character.elise-moreau.right-2"
       },
+      "eyes": "character.elise-moreau.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8104,6 +8561,7 @@
         "right-1": "character.generic-resident.right-1",
         "right-2": "character.generic-resident.right-2"
       },
+      "eyes": "character.generic-resident.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8131,6 +8589,7 @@
         "right-1": "character.linda.right-1",
         "right-2": "character.linda.right-2"
       },
+      "eyes": "character.linda.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8156,6 +8615,7 @@
         "right-1": "character.linda-boyfriend.right-1",
         "right-2": "character.linda-boyfriend.right-2"
       },
+      "eyes": "character.linda-boyfriend.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8183,6 +8643,7 @@
         "right-1": "character.mina-park.right-1",
         "right-2": "character.mina-park.right-2"
       },
+      "eyes": "character.mina-park.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8210,6 +8671,7 @@
         "right-1": "character.priya-nair.right-1",
         "right-2": "character.priya-nair.right-2"
       },
+      "eyes": "character.priya-nair.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8237,6 +8699,7 @@
         "right-1": "character.protagonist.right-1",
         "right-2": "character.protagonist.right-2"
       },
+      "eyes": "character.protagonist.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8264,6 +8727,7 @@
         "right-1": "character.rafael-cruz.right-1",
         "right-2": "character.rafael-cruz.right-2"
       },
+      "eyes": "character.rafael-cruz.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8289,6 +8753,7 @@
         "right-1": "character.resident-01.right-1",
         "right-2": "character.resident-01.right-2"
       },
+      "eyes": "character.resident-01.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8314,6 +8779,7 @@
         "right-1": "character.resident-02.right-1",
         "right-2": "character.resident-02.right-2"
       },
+      "eyes": "character.resident-02.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8339,6 +8805,7 @@
         "right-1": "character.resident-03.right-1",
         "right-2": "character.resident-03.right-2"
       },
+      "eyes": "character.resident-03.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8364,6 +8831,7 @@
         "right-1": "character.resident-04.right-1",
         "right-2": "character.resident-04.right-2"
       },
+      "eyes": "character.resident-04.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8389,6 +8857,7 @@
         "right-1": "character.resident-05.right-1",
         "right-2": "character.resident-05.right-2"
       },
+      "eyes": "character.resident-05.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8414,6 +8883,7 @@
         "right-1": "character.resident-06.right-1",
         "right-2": "character.resident-06.right-2"
       },
+      "eyes": "character.resident-06.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8439,6 +8909,7 @@
         "right-1": "character.resident-07.right-1",
         "right-2": "character.resident-07.right-2"
       },
+      "eyes": "character.resident-07.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8464,6 +8935,7 @@
         "right-1": "character.resident-08.right-1",
         "right-2": "character.resident-08.right-2"
       },
+      "eyes": "character.resident-08.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8489,6 +8961,7 @@
         "right-1": "character.resident-09.right-1",
         "right-2": "character.resident-09.right-2"
       },
+      "eyes": "character.resident-09.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8514,6 +8987,7 @@
         "right-1": "character.resident-10.right-1",
         "right-2": "character.resident-10.right-2"
       },
+      "eyes": "character.resident-10.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8539,6 +9013,7 @@
         "right-1": "character.resident-11.right-1",
         "right-2": "character.resident-11.right-2"
       },
+      "eyes": "character.resident-11.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8564,6 +9039,7 @@
         "right-1": "character.resident-12.right-1",
         "right-2": "character.resident-12.right-2"
       },
+      "eyes": "character.resident-12.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8589,6 +9065,7 @@
         "right-1": "character.resident-13.right-1",
         "right-2": "character.resident-13.right-2"
       },
+      "eyes": "character.resident-13.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8614,6 +9091,7 @@
         "right-1": "character.resident-14.right-1",
         "right-2": "character.resident-14.right-2"
       },
+      "eyes": "character.resident-14.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8639,6 +9117,7 @@
         "right-1": "character.resident-15.right-1",
         "right-2": "character.resident-15.right-2"
       },
+      "eyes": "character.resident-15.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8664,6 +9143,7 @@
         "right-1": "character.resident-16.right-1",
         "right-2": "character.resident-16.right-2"
       },
+      "eyes": "character.resident-16.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8689,6 +9169,7 @@
         "right-1": "character.resident-17.right-1",
         "right-2": "character.resident-17.right-2"
       },
+      "eyes": "character.resident-17.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8714,6 +9195,7 @@
         "right-1": "character.resident-18.right-1",
         "right-2": "character.resident-18.right-2"
       },
+      "eyes": "character.resident-18.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8739,6 +9221,7 @@
         "right-1": "character.resident-19.right-1",
         "right-2": "character.resident-19.right-2"
       },
+      "eyes": "character.resident-19.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8764,6 +9247,7 @@
         "right-1": "character.resident-20.right-1",
         "right-2": "character.resident-20.right-2"
       },
+      "eyes": "character.resident-20.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8789,6 +9273,7 @@
         "right-1": "character.resident-21.right-1",
         "right-2": "character.resident-21.right-2"
       },
+      "eyes": "character.resident-21.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8814,6 +9299,7 @@
         "right-1": "character.resident-22.right-1",
         "right-2": "character.resident-22.right-2"
       },
+      "eyes": "character.resident-22.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8839,6 +9325,7 @@
         "right-1": "character.resident-23.right-1",
         "right-2": "character.resident-23.right-2"
       },
+      "eyes": "character.resident-23.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8864,6 +9351,7 @@
         "right-1": "character.resident-24.right-1",
         "right-2": "character.resident-24.right-2"
       },
+      "eyes": "character.resident-24.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8891,6 +9379,7 @@
         "right-1": "character.sora-tan.right-1",
         "right-2": "character.sora-tan.right-2"
       },
+      "eyes": "character.sora-tan.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",
@@ -8918,6 +9407,7 @@
         "right-1": "character.tomas-reed.right-1",
         "right-2": "character.tomas-reed.right-2"
       },
+      "eyes": "character.tomas-reed.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",

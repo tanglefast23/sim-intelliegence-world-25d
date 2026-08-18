@@ -23,6 +23,7 @@
     "roof": { "maximumCount": 32, "width": 32, "height": 32 },
     "object-landmark": { "maximumCount": 68, "width": 32, "height": 32 },
     "world-character": { "maximumCount": 280, "width": 24, "height": 30 },
+    "world-character-eyes": { "maximumCount": 35, "width": 24, "height": 3 },
     "portrait": { "maximumCount": 53, "width": 24, "height": 29 },
     "effect-reserve": { "maximumCount": 16, "width": 32, "height": 32 }
   }

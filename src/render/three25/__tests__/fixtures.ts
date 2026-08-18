@@ -5,6 +5,8 @@ import { createInitialState } from '../../../domain/state/initial-state';
 import { WorldStateSchema } from '../../../domain/state/schema';
 import type { MovementDirection } from '../../atlas';
 import { buildWorldFrameState, type WorldFrameState } from '../../world-frame';
+import { stableTupleHash } from '../../../world/presentation/material-selection';
+import { BLINK_PERIOD_MILLISECONDS } from '../billboards';
 
 export const FIXTURE_MAP = WORLD_MAP_CATALOG.northwest_residential;
 
@@ -16,6 +18,25 @@ export const FIXTURE_MAP = WORLD_MAP_CATALOG.northwest_residential;
  */
 export function indoorFrame(facing: MovementDirection = 'down'): WorldFrameState {
   return buildWorldFrameState(FIXTURE_MAP, createInitialState(), {}, facing, 0);
+}
+
+/**
+ * A timestamp at which no character is blinking.
+ *
+ * `indoorFrame()` faces `down`, so its sprite is `front-1` and it is eligible to blink. Whether
+ * it actually does at timestamp 0 depends on a hash, so any test asserting an exact billboard
+ * or vertex count must pin a closed timestamp rather than leave it to luck. 400 ms is past the
+ * 290 ms closed window.
+ */
+export function closedBlinkTimestamp(visualId: string): number {
+  const offset = stableTupleHash([visualId]) % BLINK_PERIOD_MILLISECONDS;
+  return ((BLINK_PERIOD_MILLISECONDS - offset) % BLINK_PERIOD_MILLISECONDS) + 400;
+}
+
+/** The timestamp at which this character's blink window has just opened. */
+export function openBlinkTimestamp(visualId: string): number {
+  const offset = stableTupleHash([visualId]) % BLINK_PERIOD_MILLISECONDS;
+  return (BLINK_PERIOD_MILLISECONDS - offset) % BLINK_PERIOD_MILLISECONDS;
 }
 
 /**

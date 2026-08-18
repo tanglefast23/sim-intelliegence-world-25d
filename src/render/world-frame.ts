@@ -873,7 +873,11 @@ export function buildWorldFrameState(
     poseProgress,
     poseDirection,
   }): WorldCharacterPlacement => {
-    const actorFrame = moving ? walkFrame : pose === 'idle' ? 0 : poseFrame;
+    // Reduced motion pins the idle pose. It already zeroes lean, bob and bounce below, but the
+    // frame index itself used to be safe to leave alone because both cells of a pair held the
+    // same pixels. They carry a real walk cycle now, so without this a reduced-motion player
+    // gets the stepping they asked not to see.
+    const actorFrame = reducedMotion ? 0 : moving ? walkFrame : pose === 'idle' ? 0 : poseFrame;
     const presentation = movementPresentation(visualId, actorDirection, actorFrame);
     const foot = visualFoot ?? { x: tile.x * TILE_SIZE + 16, y: tile.y * TILE_SIZE + 29 };
     const leanX = reducedMotion ? 0 : presentation.leanX;

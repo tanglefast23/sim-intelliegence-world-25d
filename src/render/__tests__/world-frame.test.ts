@@ -310,6 +310,22 @@ describe('authoritative world frame', () => {
     expect(frame.groundedOrder).toEqual([...frame.groundedOrder].sort(compareGroundedDepth));
   });
 
+  test('pins the idle pose for a moving actor under reduced motion', () => {
+    const walking = (reducedMotion: boolean) => buildWorldFrameState(
+      MAP,
+      createInitialState(),
+      ACTORS,
+      'right',
+      1,
+      { visualFoot: { x: 592, y: 606 }, walkFrame: 1, moving: true, reducedMotion, horizontalRunDistance: 16 },
+    ).characters.find(({ id }) => id === 'protagonist');
+    // Reduced motion already zeroed lean and bob. The frame index mattered only once the two
+    // cells of a pair stopped being the same pixels, which is exactly what the walk cycle did.
+    expect(walking(true)?.sprite).toMatch(/-1$/u);
+    expect(walking(false)?.sprite).toMatch(/-2$/u);
+    expect(walking(true)?.gaitBobPixels).toBe(0);
+  });
+
   test('sorts same-layer characters by tile row and stable ID before drawing', () => {
     const frame = buildWorldFrameState(MAP, createInitialState(), {
       linda: { tile: { x: 23, y: 30 }, visualId: 'linda' },

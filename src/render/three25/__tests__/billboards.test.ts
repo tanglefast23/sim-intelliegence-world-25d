@@ -1,14 +1,19 @@
 import {
+  BLINK_PERIOD_MILLISECONDS,
   UNLIT_NIGHT_STRENGTH,
   buildBillboards,
+  isBlinking,
   isStandingDecal,
   readableTint,
   tintForLighting,
 } from '../billboards';
-import { indoorFrame } from './fixtures';
+import { closedBlinkTimestamp, indoorFrame, openBlinkTimestamp } from './fixtures';
 
 describe('character billboards', () => {
-  const frame = indoorFrame();
+  // Pinned to a closed blink window. The fixture faces `down`, so its sprite is `front-1` and
+  // it is eligible to blink; leaving the timestamp at 0 would make every exact count below
+  // depend on a hash rather than on the code under test.
+  const frame = { ...indoorFrame(), animationTimestampMilliseconds: closedBlinkTimestamp('protagonist') };
 
   test('the fixture actually has a character to place', () => {
     expect(frame.characters.length).toBeGreaterThan(0);
@@ -202,5 +207,67 @@ describe('unlit surfaces stay readable', () => {
 
   test('survives pure black without dividing by zero', () => {
     expect(readableTint('#000000')).toBe('#000000');
+  });
+});
+
+describe('blink overlay', () => {
+  const visualId = 'protagonist';
+  const blinkFrame = (overrides: Partial<ReturnType<typeof indoorFrame>> = {}) => ({
+    ...indoorFrame(),
+    animationTimestampMilliseconds: openBlinkTimestamp(visualId),
+    ...overrides,
+  });
+  const hasBand = (candidate: ReturnType<typeof indoorFrame>): boolean =>
+    buildBillboards(candidate).some(({ id }) => id.endsWith(':eyes'));
+
+  test('adds an eye band for a front-facing character inside the blink window', () => {
+    expect(hasBand(blinkFrame())).toBe(true);
+  });
+
+  test('never adds an eye band on rear or lateral facings', () => {
+    for (const facing of ['up', 'left', 'right'] as const) {
+      expect(hasBand({
+        ...indoorFrame(facing),
+        animationTimestampMilliseconds: openBlinkTimestamp(visualId),
+      })).toBe(false);
+    }
+  });
+
+  test('never adds an eye band when reduced motion is on', () => {
+    expect(hasBand(blinkFrame({ reducedMotion: true }))).toBe(false);
+  });
+
+  test('closes for well under half the period, so it reads as a blink not a squint', () => {
+    const closed = Array.from({ length: BLINK_PERIOD_MILLISECONDS }, (_unused, ms) =>
+      isBlinking(visualId, ms)).filter(Boolean).length;
+    expect(closed).toBe(290);
+  });
+
+  test('does not blink every character at the same moment', () => {
+    const ids = ['protagonist', 'linda', 'mina-park', 'tomas-reed', 'sora-tan'];
+    expect(new Set(ids.map((id) => openBlinkTimestamp(id))).size).toBeGreaterThan(1);
+  });
+
+  test('stands the band above the contact point rather than on the shoes', () => {
+    const billboards = buildBillboards(blinkFrame());
+    const body = billboards.find(({ id }) => !id.endsWith(':eyes'))!;
+    const band = billboards.find(({ id }) => id.endsWith(':eyes'))!;
+    // 29 - 14 sprite rows, at the placement's own scale. CHARACTER_SCALE is 7/6, not 1.
+    const scale = indoorFrame().characters[0]!.scale;
+    expect(band.lift).toBeCloseTo((15 * scale) / 32, 6);
+    expect(body.lift).toBe(0);
+    expect(band.x).toBeCloseTo(body.x, 6);
+    expect(band.z).toBeCloseTo(body.z, 6);
+    // Baked after the body, so it wins under LessEqual depth in the same geometry.
+    expect(billboards.indexOf(band)).toBeGreaterThan(billboards.indexOf(body));
+  });
+
+  test('is a pure function of the frame timestamp', () => {
+    const at = (ms: number) => buildBillboards({
+      ...indoorFrame(),
+      animationTimestampMilliseconds: ms,
+    });
+    expect(at(4_000)).toEqual(at(4_000));
+    expect(isBlinking(visualId, 4_000)).toBe(isBlinking(visualId, 4_000));
   });
 });

@@ -37,6 +37,11 @@
       "maximumCount": 280,
       "rawRectangleArea": 232960
     },
+    "world-character-eyes": {
+      "actualCount": 35,
+      "maximumCount": 35,
+      "rawRectangleArea": 4550
+    },
     "portrait": {
       "actualCount": 53,
       "maximumCount": 53,
@@ -49,22 +54,22 @@
     }
   },
   "actual": {
-    "cellCount": 616,
-    "rawRectangleArea": 602826,
+    "cellCount": 651,
+    "rawRectangleArea": 607376,
     "width": 1024,
-    "height": 595,
-    "boundingRectangleArea": 609280,
-    "occupancy": 0.989407169117647
+    "height": 600,
+    "boundingRectangleArea": 614400,
+    "occupancy": 0.9885677083333333
   },
   "forecast": {
-    "cellCount": 753,
-    "rawRectangleArea": 761198,
-    "rawAreaRatio": 0.7259349822998047,
+    "cellCount": 788,
+    "rawRectangleArea": 765748,
+    "rawAreaRatio": 0.7302742004394531,
     "width": 1024,
-    "height": 763,
-    "boundingRectangleArea": 781312,
-    "packedAreaRatio": 0.7451171875,
-    "occupancy": 0.974256123034076
+    "height": 768,
+    "boundingRectangleArea": 786432,
+    "packedAreaRatio": 0.75,
+    "occupancy": 0.9736989339192709
   },
   "largestCells": [
     {
@@ -154,7 +159,7 @@
   ],
   "indexVersion": 3,
   "toolVersion": "atlas-v9-authored-full-cast",
-  "imageSha256": "6413b0afdafb4adac7fc7e0e7b07ceb2dfd10fb443904beef2959ecfde8ea9ab",
-  "publicSpriteCount": 616,
+  "imageSha256": "d56f2b9988363ca0d9b2141498ef6ad4d749e9ea7a56b3d7d18ffb14cda7a4bb",
+  "publicSpriteCount": 651,
   "internalReviewSpriteCount": 0
 }
