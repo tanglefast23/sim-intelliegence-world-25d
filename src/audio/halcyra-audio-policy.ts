@@ -4,7 +4,7 @@ import type { DoorMotionPhase } from '../world/pathfinding/movement';
 import { worldAtmosphere } from '../render/atmosphere';
 
 export type DistrictAudioId = 'sunward' | 'neon' | 'saffron' | 'greywake';
-export type MusicTrackId = `music_${DistrictAudioId}_${'day' | 'night'}`;
+export type MusicTrackId = `music_${DistrictAudioId}_${'day' | 'night'}` | 'music_office';
 export type AmbienceTrackId = `ambience_${DistrictAudioId}_loop`;
 export type FootstepSurface = 'sand' | 'stone' | 'asphalt' | 'wood' | 'indoor';
 export type RelationshipSound = 'relationship-positive' | 'relationship-negative';
@@ -15,7 +15,7 @@ const DISTRICT_BY_MAP: Readonly<Record<MapId, DistrictAudioId>> = {
   northeast_downtown: 'neon',
   southwest_commercial: 'saffron',
   southeast_docks: 'greywake',
-  // Reuse sunward rather than author a fifth ambience track; the office is a v1 interior.
+  // Reuse sunward ambience rather than author a fifth loop; the office has its own music track.
   west_office: 'sunward',
 };
 
@@ -39,6 +39,8 @@ export function districtAudioId(mapId: MapId): DistrictAudioId {
 }
 
 export function musicTrackId(mapId: MapId, absoluteMinute: number): MusicTrackId {
+  // The office interior keeps one track around the clock.
+  if (mapId === 'west_office') return 'music_office';
   const period = worldAtmosphere(absoluteMinute).period;
   const time = period === 'dusk' || period === 'night' ? 'night' : 'day';
   return `music_${districtAudioId(mapId)}_${time}`;

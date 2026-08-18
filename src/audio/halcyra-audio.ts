@@ -25,6 +25,7 @@ const MUSIC = {
   music_saffron_night: require('../../assets/source/audio/music_saffron_night.mp3') as number,
   music_greywake_day: require('../../assets/source/audio/music_greywake_day.mp3') as number,
   music_greywake_night: require('../../assets/source/audio/music_greywake_night.mp3') as number,
+  music_office: require('../../assets/source/audio/music_office.mp3') as number,
 } as const satisfies Readonly<Record<MusicTrackId | 'music_menu', number>>;
 
 const AMBIENCE = {

@@ -14,7 +14,7 @@ Supply the files below as original, commercially cleared audio.
 
 Place finished files in `assets/source/audio/` or attach them to the task.
 
-## Music — 9 files
+## Music — 10 files
 
 Keep each district track calm enough to sit behind reading and conversation.
 
@@ -29,6 +29,7 @@ Keep each district track calm enough to sit behind reading and conversation.
 | `music_saffron_night.wav` | **Stalls After Sundown** — slower market theme, lantern warmth, reflective rhythm | 90–150 sec |
 | `music_greywake_day.wav` | **Working Harbor** — steady industrial rhythm, muted metal color, forward motion | 90–150 sec |
 | `music_greywake_night.wav` | **Last Ferry** — noir docks atmosphere, distant pulse, lonely but not bleak | 90–150 sec |
+| `music_office.mp3` | Supplied office interior theme; one track day and night, loops while the player is in `west_office` | 155 sec |
 
 ## District ambience — 4 files
 
