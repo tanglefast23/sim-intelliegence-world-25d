@@ -35,7 +35,7 @@ function drawBoot(
     F.body(heelX, topY), F.body(toeX, topY),
     F.body(toeX + overhang, bottom), F.body(heelX, bottom),
   ]);
-  sketch.fill(shape, F.colors.hair, 0.94);
+  F.media.tone(sketch, shape, { style: 'black' });
   sketch.broken(shape, F.lwThin * 1.6);
   // The light band is what separates a near-black boot from a near-black cloak. It sits under the
   // boot when the sole faces us and at the ankle when it does not — a sole seen from directly
@@ -43,10 +43,10 @@ function drawBoot(
   const [bandTop, bandBottom] = lightBand === 'sole'
     ? [bottom - SOLE, bottom]
     : [topY, topY + SOLE];
-  sketch.fill(sketch.smooth([
+  F.media.skin(sketch, sketch.smooth([
     F.body(heelX, bandTop), F.body(toeX + overhang * 0.5, bandTop),
     F.body(toeX + overhang * 0.5, bandBottom), F.body(heelX, bandBottom),
-  ]), F.colors.ash, 0.92);
+  ]), F.colors.ash, { underdraw: false, alpha: 0.75 });
 }
 
 /**
@@ -63,7 +63,6 @@ function drawBoot(
  * pointed in `+x` for both facings, so a vampire walking left had his toe on backwards.
  */
 export function drawLegs(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
-  const { colors } = F;
 
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
@@ -85,8 +84,8 @@ export function drawLegs(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
     ]);
     const trailLeg = leg(trailX, trailLift, 0);
     const leadLeg = leg(leadX, 0, 6);
-    sketch.fill(trailLeg, colors.cloak, 0.86);
-    sketch.fill(leadLeg, colors.cloak, 0.92);
+    F.media.tone(sketch, trailLeg, { style: 'scribble', angle: 0.45 });
+    F.media.tone(sketch, leadLeg, { style: 'scribble', angle: 0.45 });
     sketch.broken(trailLeg, F.lwMain);
     sketch.broken(leadLeg, F.lwMain);
     // Trailing boot first so the leading one overlaps it, same as the legs above.
@@ -112,8 +111,8 @@ export function drawLegs(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
     F.body(1, HIP_Y), F.body(8, HIP_Y),
     F.body(10 + rightX, FLOOR_Y - rightLift), F.body(2 + rightX, FLOOR_Y - rightLift),
   ]);
-  sketch.fill(left, colors.cloak, 0.9);
-  sketch.fill(right, colors.cloak, 0.9);
+  F.media.tone(sketch, left, { style: 'scribble', angle: 0.45 });
+  F.media.tone(sketch, right, { style: 'scribble', angle: 0.45 });
   sketch.broken(left, F.lwMain);
   sketch.broken(right, F.lwMain);
   // Toes point outward on both facings. From behind that is anatomically the heel, but at this

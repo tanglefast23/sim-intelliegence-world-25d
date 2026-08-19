@@ -74,9 +74,10 @@ export function headRingPoints(
     let dx = HEAD_HALF_WIDTH * Math.cos(theta) * radius;
     const row = HEAD_CENTRE_ROW + HEAD_HALF_HEIGHT * Math.sin(theta) * radius;
     if (dir !== 0) {
-      // Near side swells, far side collapses. The face keeps its height either way.
+      // The reference's 3/4 turn: the near side swells by 10% and the far side collapses by
+      // 28%. The audit caught the swell at 2%.
       const forward = Math.cos(theta) * dir;
-      dx *= forward > 0 ? 1.02 : 0.72;
+      dx *= forward > 0 ? 1.1 : 0.72;
       dx += dir * 3;
     }
     points.push({ dx, row });

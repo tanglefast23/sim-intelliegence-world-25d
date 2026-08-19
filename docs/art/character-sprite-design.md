@@ -221,9 +221,9 @@ what has to be decided per character.
 
 | # | Section | What we have | Decide per character |
 |---|---|---|---|
-| 1 | the pencil | Ribbon strokes, three summed sines, grit, crumbs, `erase` bite. **Ends do not overshoot yet** — see audit 6.9 | Nothing. Shared by everyone. |
+| 1 | the pencil | Full port: ribbon strokes, three summed sines, grit, crumbs, `erase` bite, end overshoot | Nothing. Shared by everyone. |
 | 2 | the shape | `blobPts` ported. `wob` is the hand: eye ~0.4, scribbled mass 1 | Which masses are scribbled, which are drawn slowly |
-| 3 | the material | **Missing, and actively violated.** 46 flat `fill` calls, 35 at alpha ≥ 0.82 — the reference has no flat fill in any medium. This is the whole visual gap; see audit 6.9 | Nothing yet. The medium layer is the top build priority. |
+| 3 | the material | **Graphite built**: `tone`/`skin`/`edge`/`underdraw`, `DENSITY`, carried paper, chained scribble. Ink, watercolour, oil, charcoal, marker not yet | Which style each mass gets, and its stroke angle |
 | 4 | the head | `HEAD_SHAPES`: round, square, tall, drop, pear, lump, wide, bumpy, wonky | **Head shape.** Always ask. Vampire `tall`, Frankenstein `square`. |
 | 5 | the map | `layout.ts` publishes every anchor. `HEAD_SHARE` sets proportion. `FLOOR` is pinned | Head share, if it differs from 0.56 |
 | 6 | the parts | 9 parts: cloak, legs, arms, skull, ears, hair, eyes, nose, fangs | **Which parts this character needs**, and which are new files |
@@ -331,7 +331,31 @@ Two things break a profile, and both were wrong here:
 
 ---
 
-### 6.9 Audit, 2026-08-19: why ours still does not look like the reference
+### 6.9 Audit, 2026-08-19: why ours did not look like the reference
+
+**Status after the fix loop, same day: 1–4 and 6 are FIXED; 5 stays open.** The medium layer
+exists ([media.ts](../../src/render/pencil/media.ts)): `tone`/`skin`/`edge`/`underdraw`, the
+`DENSITY` table, and a carried paper under every mass. Stroke ends overshoot. The ¾ swell is 10%.
+Only the unison boil remains — it needs the per-part canvas split.
+
+**Calibration rules the loop earned, one render at a time:**
+
+- **Graphite is lighter than memory.** Ink at 62% over cream is MID-GREY. The first medium build
+  double-crosshatched at lw 1.6 and stacked back to near-black — the flat fill returning through
+  density. Thin lines, real gaps.
+- **The pencil is a ratio, not a constant.** The reference contour is ~0.75% of figure height.
+  `lwMain = SHEET_HEIGHT * 0.0075`. Holding it absolute made the character read as marker.
+- **Never one style everywhere.** Hair scribbles near-horizontal, the cloak hatches on its own
+  angle, the face carries only the light construction hatch. One angle everywhere merges the
+  parts into a single texture.
+- **A scribble is ONE line.** Chained spans (`chained: true`) join rows into a zigzag stroked as
+  a single wandering ribbon. Parallel segments read as ruled hatching.
+- **Eyes are big pupils with a glint.** The red stays as an iris around a dark pupil; small
+  red-ringed blobs read as sore eyes, not eyes.
+
+---
+
+#### The original audit, kept for the record
 
 Joe asked why our vampire reads so differently from the page and ordered a full audit of every
 rule we copied. Verdict: **the pencil is a faithful port; the drawing is not.** We ported how a

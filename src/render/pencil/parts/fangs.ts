@@ -20,10 +20,10 @@ export function drawFangs(sketch: Sketch, F: VampireLayout, pose: VampirePose): 
       F.head(dir * 12, 103), F.head(dir * 27, 104),
       F.head(dir * 26, 111), F.head(dir * 12, 109),
     ]);
-    sketch.fill(mouth, colors.hollow, 0.92);
+    F.media.skin(sketch, mouth, colors.hollow, { paper: false, underdraw: false, alpha: 0.85 });
     sketch.broken(mouth, F.lwThin * 1.4);
     const fang = [F.head(dir * 20, 109), F.head(dir * 23, 120), F.head(dir * 25, 108)];
-    sketch.fill(fang, colors.fang, 1);
+    F.media.skin(sketch, fang, colors.fang, { paper: false, underdraw: false, alpha: 1 });
     sketch.broken(fang, F.lwThin * 1.1);
     return;
   }
@@ -32,12 +32,12 @@ export function drawFangs(sketch: Sketch, F: VampireLayout, pose: VampirePose): 
     F.head(-11, 103), F.head(11, 103),
     F.head(9, 112), F.head(-9, 112),
   ]);
-  sketch.fill(mouth, colors.hollow, 0.92);
+  F.media.skin(sketch, mouth, colors.hollow, { paper: false, underdraw: false, alpha: 0.85 });
   sketch.broken(mouth, F.lwThin * 1.4);
   const left = [F.head(-8, 108), F.head(-5, 119), F.head(-2, 107)];
   const right = [F.head(2, 107), F.head(5, 119), F.head(8, 108)];
-  sketch.fill(left, colors.fang, 1);
-  sketch.fill(right, colors.fang, 1);
+  F.media.skin(sketch, left, colors.fang, { paper: false, underdraw: false, alpha: 1 });
+  F.media.skin(sketch, right, colors.fang, { paper: false, underdraw: false, alpha: 1 });
   sketch.broken(left, F.lwThin * 1.1);
   sketch.broken(right, F.lwThin * 1.1);
 }

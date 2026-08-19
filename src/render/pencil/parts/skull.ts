@@ -18,25 +18,13 @@ export function drawSkull(sketch: Sketch, F: VampireLayout, pose: VampirePose): 
   const profileDir = pose.facing === 'right' ? 1 : pose.facing === 'left' ? -1 : 0;
   const ring = toHeadPoints(headRingPoints(F.shape, { profileDir }), F.head);
   const skull = sketch.smooth(sketch.smooth(ring));
-  sketch.fill(skull, colors.pale, 0.97);
+  F.media.skin(sketch, skull, colors.pale, { alpha: 0.22 });
 
   if (profileDir !== 0) {
-    sketch.fill(
-      sketch.blobPts(F.head(profileDir * 8, 96).x, F.head(0, 96).y, s * 0.14, s * 0.12, 0, 0.75),
-      colors.ash,
-      0.4,
-    );
+    F.media.skin(sketch, sketch.blobPts(F.head(profileDir * 8, 96).x, F.head(0, 96).y, s * 0.14, s * 0.12, 0, 0.75), colors.ash, { paper: false, underdraw: false, alpha: 0.24 });
   } else if (pose.facing === 'front') {
-    sketch.fill(
-      sketch.blobPts(F.head(12, 94).x, F.head(0, 94).y, s * 0.18, s * 0.14, 0.1, 0.8),
-      colors.ash,
-      0.44,
-    );
-    sketch.fill(
-      sketch.blobPts(F.head(-12, 94).x, F.head(0, 94).y, s * 0.18, s * 0.14, -0.1, 0.8),
-      colors.ash,
-      0.44,
-    );
+    F.media.skin(sketch, sketch.blobPts(F.head(12, 94).x, F.head(0, 94).y, s * 0.18, s * 0.14, 0.1, 0.8), colors.ash, { paper: false, underdraw: false, alpha: 0.24 });
+    F.media.skin(sketch, sketch.blobPts(F.head(-12, 94).x, F.head(0, 94).y, s * 0.18, s * 0.14, -0.1, 0.8), colors.ash, { paper: false, underdraw: false, alpha: 0.24 });
   }
   sketch.broken(skull, F.lwMain);
 }

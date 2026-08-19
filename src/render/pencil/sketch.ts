@@ -25,6 +25,53 @@ export function hashSeed(...parts: readonly (string | number)[]): number {
   return h >>> 0;
 }
 
+/**
+ * Where parallel lines at `angle`, `spacing` apart, cross the polygon.
+ *
+ * This is what lets the medium hatch INSIDE a shape: rotate the ring into hatch space, walk
+ * scanlines at the spacing, pair the edge intersections, rotate the segments back. The medium
+ * turns each segment into a pencil stroke; nothing here draws.
+ */
+export function polygonSpans(
+  pts: readonly Point[],
+  angle: number,
+  spacing: number,
+  phase = 0.5,
+): readonly (readonly [Point, Point])[] {
+  if (pts.length < 3 || spacing <= 0) return [];
+  const cos = Math.cos(-angle);
+  const sin = Math.sin(-angle);
+  const rotated = pts.map((pt) => ({ x: pt.x * cos - pt.y * sin, y: pt.x * sin + pt.y * cos }));
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const pt of rotated) {
+    if (pt.y < minY) minY = pt.y;
+    if (pt.y > maxY) maxY = pt.y;
+  }
+  const unCos = Math.cos(angle);
+  const unSin = Math.sin(angle);
+  const back = (x: number, y: number): Point => ({ x: x * unCos - y * unSin, y: x * unSin + y * unCos });
+  const spans: (readonly [Point, Point])[] = [];
+  for (let y = minY + spacing * (0.2 + 0.8 * phase); y <= maxY; y += spacing) {
+    const crossings: number[] = [];
+    for (let i = 0; i < rotated.length; i += 1) {
+      const a = rotated[i]!;
+      const b = rotated[(i + 1) % rotated.length]!;
+      if ((a.y <= y && b.y > y) || (b.y <= y && a.y > y)) {
+        crossings.push(a.x + ((y - a.y) / (b.y - a.y)) * (b.x - a.x));
+      }
+    }
+    crossings.sort((left, right) => left - right);
+    for (let i = 0; i + 1 < crossings.length; i += 2) {
+      const x0 = crossings[i]!;
+      const x1 = crossings[i + 1]!;
+      if (x1 - x0 < 1) continue;
+      spans.push([back(x0, y), back(x1, y)]);
+    }
+  }
+  return spans;
+}
+
 export class Sketch {
   readonly width: number;
   readonly height: number;
@@ -120,8 +167,22 @@ export class Sketch {
 
   stroke(pts: readonly Point[], width: number, alpha = 0.62): void {
     if (pts.length < 2) return;
+    // The pencil's third habit: "the ends run past where they should stop." The audit found this
+    // one missing — without it every corner closes exactly and the contour reads careful, not
+    // sketched. The taper below turns each overrun into a fading tail.
+    const overshootPast = (from: Point, past: Point): Point | undefined => {
+      const dx = past.x - from.x;
+      const dy = past.y - from.y;
+      const length = Math.hypot(dx, dy);
+      if (length < 0.01) return undefined;
+      const amount = this.jr(0.7, 1.3) * Math.min(2.5, 0.6 + width);
+      return { x: past.x + (dx / length) * amount, y: past.y + (dy / length) * amount };
+    };
+    const start = overshootPast(pts[1]!, pts[0]!);
+    const end = overshootPast(pts[pts.length - 2]!, pts[pts.length - 1]!);
+    const sketchy = [...(start ? [start] : []), ...pts, ...(end ? [end] : [])];
     const step = Math.max(2.2, width * 0.9);
-    const spine = resample(pts, step);
+    const spine = resample(sketchy, step);
     if (spine.length < 2) return;
     const f1 = this.jr(1.5, 3.5);
     const f2 = this.jr(5, 9);

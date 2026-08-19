@@ -1,5 +1,6 @@
 import { buildVampireLayout, HEAD_SHARE, VAMPIRE_COLORS } from '../layout';
 import { drawVampireCharacter } from '../parts';
+import { drawArms } from '../parts/arms';
 import { VAMPIRE_FACINGS, type VampireFacing } from '../pose';
 import { hashSeed, Sketch } from '../sketch';
 import { PENCIL_HEIGHT, PENCIL_WIDTH } from '../vampire';
@@ -103,8 +104,11 @@ describe('pencil vampire walk and proportions', () => {
       const rightPlanted = footLowestRow(planted, cx + 1, cx + 12);
       const rightStepped = footLowestRow(stepped, cx + 1, cx + 12);
       // Gait 0 stands on the left foot, gait 1 on the right. Lower on screen is a larger row.
-      expect(leftPlanted).toBeGreaterThan(leftStepped + 4);
-      expect(rightStepped).toBeGreaterThan(rightPlanted + 4);
+      // The margin is 2, not the lift's full 10px: stroke ends now overshoot on purpose, so a
+      // lifted boot trails a faint tail below itself. The squat bug this guards against measured
+      // a gap of 0-1.
+      expect(leftPlanted).toBeGreaterThan(leftStepped + 2);
+      expect(rightStepped).toBeGreaterThan(rightPlanted + 2);
     }
   });
 
@@ -119,15 +123,15 @@ describe('pencil vampire walk and proportions', () => {
   });
 
   test('the rear view shows no hands and no face', () => {
-    const rear = render('rear', 0);
-    const front = render('front', 0);
-    // The hands and the face are the only large pale areas. From behind, the cape covers the arms
-    // and the hair covers the skull, so rear pale pixels must be a small nape, not either of those.
-    expect(countsNear(rear, VAMPIRE_COLORS.pale)).toBeLessThan(
-      countsNear(front, VAMPIRE_COLORS.pale) * 0.6,
-    );
-    // Red eyes never appear on the back of a head.
-    expect(countsNear(rear, VAMPIRE_COLORS.red, 12)).toBe(0);
+    // Measured directly since the medium refactor: paper gaps read as pale everywhere, so a
+    // pale-pixel ratio no longer distinguishes a face from a cape.
+    // The cape hangs closed over both arms — the arms part draws nothing from behind.
+    const armsOnly = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
+    armsOnly.boil(hashSeed('vampire-01', 'rear', 'idle', 0));
+    drawArms(armsOnly, buildVampireLayout(), { facing: 'rear', gait: 0, moving: false });
+    expect(armsOnly.data.every((byte) => byte === 0)).toBe(true);
+    // And no eye colour appears on the back of a head.
+    expect(countsNear(render('rear', 0), VAMPIRE_COLORS.red, 12)).toBe(0);
   });
 
   test('the head keeps its width in profile', () => {

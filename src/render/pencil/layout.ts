@@ -1,5 +1,6 @@
 import type { Point } from './sketch';
 import type { HeadShape } from './head-shape';
+import { GRAPHITE, type Medium } from './media';
 
 export type Rgb = readonly [number, number, number];
 
@@ -68,10 +69,10 @@ const PEN_UNIT = 42;
  * time anyone saw them. At 120x180 the downscale is 2.9x and the same wobble covers twice as many
  * display pixels. He is the same size in the world and twice as legible.
  *
- * **Line weights do not scale with it.** `lwMain` is 2.1px. Halving it to 1.05 would drop under
- * the `width >= 1.2` crumb gate in `sketch.ts` and silently delete the graphite shed. Holding them
- * absolute makes the pencil proportionally bolder on the smaller sheet, which is what a smaller
- * drawing wants anyway.
+ * **Line weights are a ratio of the figure, per the audit loop.** The reference's contour is
+ * about 0.75% of the figure's height. Holding ours absolute at 2.1px made the pencil twice as
+ * heavy as theirs and the whole character read as marker, not graphite. `lwMain` stays just over
+ * the 1.2 crumb gate so contours still shed.
  */
 export const SHEET_WIDTH = 120;
 export const SHEET_HEIGHT = 180;
@@ -123,6 +124,8 @@ export type VampireLayout = Readonly<{
   lwMain: number;
   lwThin: number;
   colors: typeof VAMPIRE_COLORS;
+  /** The medium answers tone/skin/edge. Parts never fill a mass themselves — audit 6.9. */
+  media: Medium;
 }>;
 
 export function buildVampireLayout(shape: HeadShape = 'tall'): VampireLayout {
@@ -162,9 +165,10 @@ export function buildVampireLayout(shape: HeadShape = 'tall'): VampireLayout {
       floorY: FLOOR * SHEET_SCALE,
       bootY: body(0, 284).y,
     },
-    lwMain: PEN_UNIT * 0.05,
-    lwThin: PEN_UNIT * 0.021,
+    lwMain: SHEET_HEIGHT * 0.0075,
+    lwThin: SHEET_HEIGHT * 0.0036,
     colors: VAMPIRE_COLORS,
+    media: GRAPHITE,
   };
 }
 
