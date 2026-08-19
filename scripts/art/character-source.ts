@@ -533,14 +533,29 @@ function worldLegCommands(look: CharacterLook): CharacterSource['sourceLayers'][
    *
    * The trailing foot loses a pixel and the leading foot gains one, which is the weight transfer.
    * Frame 1 leaves x10-11 empty on its own, so the unconditional `carveStrideGap` in
-   * `composeFrontFrame` lands on already-empty cells and stays a no-op here. Row 28 is untouched
-   * in both frames so `shadowWorldY` does not move.
+   * `composeFrontFrame` lands on already-empty cells and stays a no-op here.
+   *
+   * Row 28 is the boot trim, in the look's accent. Two feet that move are not enough on their own:
+   * the first version left row 28 as `D` (#494052) under a charcoal coat (#3f3b46), so the coat,
+   * the ankle band and the near-black feet were one dark mass and the stride was invisible at play
+   * zoom. The accent gives the boots an edge to read against. The `K` notch between them splits
+   * that edge into two boots and travels with the feet.
+   *
+   * Row 28 still spans x7-16 as ONE painted run in both frames — `paintedRuns` counts contiguous
+   * non-empty cells, and the notch is painted — so the contact shadow keeps a single anchor and
+   * `shadowWorldY` does not move.
    */
   if (TWO_FOOT_STRIDE_LOOKS.has(look.id)) {
     return {
       frontFrames: [
-        [rectCommand('D', 7, 28, 10, 1), rectCommand('K', 7, 29, 4, 1), rectCommand('K', 13, 29, 4, 1)],
-        [rectCommand('D', 7, 28, 10, 1), rectCommand('K', 7, 29, 3, 1), rectCommand('K', 12, 29, 5, 1)],
+        [
+          rectCommand('A', 7, 28, 4, 1), rectCommand('K', 11, 28, 2, 1), rectCommand('A', 13, 28, 4, 1),
+          rectCommand('K', 7, 29, 4, 1), rectCommand('K', 13, 29, 4, 1),
+        ],
+        [
+          rectCommand('A', 7, 28, 3, 1), rectCommand('K', 10, 28, 2, 1), rectCommand('A', 12, 28, 5, 1),
+          rectCommand('K', 7, 29, 3, 1), rectCommand('K', 12, 29, 5, 1),
+        ],
       ],
       lateralFrames: [[...roundedBase], [...roundedBase]],
     };

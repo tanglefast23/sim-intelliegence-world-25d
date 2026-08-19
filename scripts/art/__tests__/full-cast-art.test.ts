@@ -123,8 +123,18 @@ describe('full-cast shared-source character art', () => {
     // which is why its walk reads as no leg motion.
     expect(standing[29]).toBe('.......KKKK..KKKK.......');
     expect(striding[29]).toBe('.......KKK..KKKKK.......');
-    // Row 28 is the contact-shadow anchor and must not move between frames.
-    expect(standing[28]).toBe(striding[28]);
+    // Row 28 is the accent boot trim. Without it the coat, the ankle band and the feet were one
+    // dark mass and the moving feet could not be seen at play zoom.
+    expect(standing[28]).toBe('.......AAAAKKAAAA.......');
+    expect(striding[28]).toBe('.......AAAKKAAAAA.......');
+    expect(source.palette.A).toBe('#d7a62b');
+    // Still one painted run, so the contact shadow keeps a single anchor, and the run covers the
+    // same columns in both frames so the anchor does not move.
+    for (const frame of [standing, striding]) {
+      expect(paintedRuns(frame[28] as string)).toBe(1);
+      expect((frame[28] as string).indexOf('A')).toBe(7);
+      expect((frame[28] as string).lastIndexOf('A')).toBe(16);
+    }
   });
 
   test('keeps the half cape below the head box on every wearer', () => {
