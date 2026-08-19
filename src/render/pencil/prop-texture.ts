@@ -39,21 +39,19 @@ export function bakePropSketchTile(frame = 0): Uint8ClampedArray {
     { x: PROP_TILE_SIZE + over, y: PROP_TILE_SIZE + over },
     { x: -over, y: PROP_TILE_SIZE + over },
   ];
-  // pen 0.75 keeps every stroke under the crumb gate: crumbs and bites on a box face read
-  // as freckles, which Joe flagged twice.
-  GRAPHITE.tone(sketch, ring, { style: 'scribble', paper: false, pen: 0.75 });
+  /**
+   * Sparse chained scribble — "the opposite of dense", Joe's fourth calibration of 2026-08-19.
+   *
+   * Why the earlier tries missed: on the CHARACTER a stroke lands on cream paper and reads as a
+   * grey line with space around it, which is why the hair looks light. On an OBJECT the same
+   * stroke MULTIPLIES a mid colour and goes near-black, so the dense `black` tile crushed every
+   * prop. Hair-like on a multiply texture means few strokes, wide gaps: distinct squiggles over
+   * mostly-open colour. gap 2.4 spreads the rows; pen 0.75 stays under the crumb gate (crumbs
+   * read as freckles, rejected twice); the mean-normalise keeps the prop's average colour exactly
+   * as authored.
+   */
+  GRAPHITE.tone(sketch, ring, { style: 'scribble', paper: false, pen: 0.75, gap: 2.4 });
   const data = sketch.data;
-  // Compress the contrast toward paper BEFORE normalising. A stroke texel multiplies whatever
-  // colour it lands on, and at full strength (~0.6) it turns an already-dark trunk base black.
-  // At 0.5 strength a stroke costs at most ~20% of the colour underneath.
-  const STRENGTH = 0.5;
-  for (let offset = 0; offset < data.length; offset += 4) {
-    for (let channel = 0; channel < 3; channel += 1) {
-      const paperValue = channel === 0 ? 246 : channel === 1 ? 241 : 229;
-      const value = data[offset + channel] ?? 0;
-      data[offset + channel] = Math.round(paperValue + (value - paperValue) * STRENGTH);
-    }
-  }
   let sum = 0;
   let count = 0;
   for (let offset = 0; offset < data.length; offset += 4) {

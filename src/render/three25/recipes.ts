@@ -388,7 +388,9 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   },
   'tile.plant-palm': {
     boxes: [
-      { x: 0, y: 0.75, z: 0, width: 0.22, height: 1.5, depth: 0.22, tint: '#8a6a44' },
+      // Lifted from #8a6a44: under sRGB-to-linear, the 0.66 side shade and the canopy's own
+      // shadow, that brown read as black. Joe: "the trunk is supposed to be brown".
+      { x: 0, y: 0.75, z: 0, width: 0.22, height: 1.5, depth: 0.22, tint: '#b08a5e' },
       { x: 0, y: 1.65, z: 0, width: 1.1, height: 0.3, depth: 1.1, tint: FOLIAGE_GREEN },
     ],
   },

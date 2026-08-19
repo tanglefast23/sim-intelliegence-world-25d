@@ -32,6 +32,8 @@ export type ToneOptions = Readonly<{
    * and sheds nothing — what the prop tile needs, where crumbs read as freckles on box faces.
    */
   pen?: number;
+  /** Spacing multiplier. Above 1 the strokes spread out — a sparse, light-handed scribble. */
+  gap?: number;
   /**
    * Lay the character's own paper under the mass first. Defaults to true.
    *
@@ -152,6 +154,7 @@ function tone(s: Sketch, pts: readonly Point[], o: ToneOptions = {}): void {
       ...pass,
       angle: pass.angle + (o.angle ?? 0),
       lw: pass.lw * (o.pen ?? 1),
+      spacing: pass.spacing * (o.gap ?? 1),
     });
   }
 }
