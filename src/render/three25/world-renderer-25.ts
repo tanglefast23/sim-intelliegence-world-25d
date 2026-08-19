@@ -47,6 +47,7 @@ import {
   indoorOverheadKeyOrigin,
   nightKeyOrigin,
   propContactShadows,
+  skyglowMix,
   type ShadowPath,
 } from './lighting';
 import { SceneCache } from './mesh-cache';
@@ -1264,8 +1265,15 @@ export async function createWorldRenderer25(
      * 0.84.
      *
      * This is a FLOOR, not a flood, and it is the knob to move if a night capture measures wrong.
-     * Pooling below 1.45 means lower it; above 1.9 means add a panel or lift panel intensity, and
-     * NOT raise this. Raising a hemisphere to fix pooling is how the bazaar courtyard flooded.
+     * Pooling below 1.45 means lower it. Raising a hemisphere to fix pooling is how the bazaar
+     * courtyard flooded, so this never goes up to answer a high reading.
+     *
+     * There is no upper pooling ceiling here any more. The old rule said "above 1.9, add a panel or
+     * lift panel intensity", and the first office round obeyed it by authoring six troffers over
+     * the aisles — which moved the number and left the cause, a ten-tile reach that let every panel
+     * light the whole farm equally. The troffers are tight now and `cubicles-night` reads 2.056 by
+     * design: that is falloff between fixtures, which is the thing the ratio is a proxy for. Read
+     * it beside the dead fraction, and treat "add hardware to move a metric" as the smell it is.
      */
     const nightSkyFloor = next.mapId === 'west_office' ? 0.84 : 0.78;
     /**
@@ -1362,7 +1370,8 @@ export async function createWorldRenderer25(
     if (glowLuminance > 0.001) {
       nightSkyColor.multiplyScalar((daySkyColor.r + daySkyColor.g + daySkyColor.b) / glowLuminance);
     }
-    hemisphere.color.copy(daySkyColor).lerp(nightSkyColor, 0.45 * next.lighting.sun.lampMix);
+    // And none of it indoors: a room has no sky. See `skyglowMix`.
+    hemisphere.color.copy(daySkyColor).lerp(nightSkyColor, skyglowMix(next));
 
     for (const [id, light] of lamps) {
       if (wantedLights.has(id)) continue;

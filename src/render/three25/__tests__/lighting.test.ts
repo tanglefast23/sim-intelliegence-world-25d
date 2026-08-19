@@ -17,6 +17,7 @@ import {
   lampLights,
   propContactShadows,
   shadowPathForEnvironment,
+  skyglowMix,
 } from '../lighting';
 import { CHARACTER_CONTACT_OFFSET } from '../billboards';
 import { LAMP_GLOW_COLORS } from '../recipes';
@@ -416,16 +417,28 @@ describe('the office ceiling rig', () => {
     } as unknown as WorldFrameState;
   };
 
-  test('a troffer is a cooler, higher, weaker light than a lamp post', () => {
+  /**
+   * TIGHTER than a lamp post, not wider, and correspondingly stronger.
+   *
+   * The first office round had it the other way round — reach 10 at decay 1.2, intensity 7.5 —
+   * and that is what a flood looks like from the inside: every panel in the farm lit every tile
+   * of it, so no panel owned its own cell and six extra fixtures had to be authored over the
+   * walkways to fill holes the falloff should have covered. A ceiling grid needs each fixture to
+   * carry its cell, which means a shorter reach and a harder falloff than a bollard, and enough
+   * output to survive both.
+   */
+  test('a troffer is a cooler, higher, tighter light than a lamp post', () => {
     const [panel] = lampLights(withCeiling(1, true));
     expect(panel!.kind).toBe('ceiling');
     expect(panel!.y).toBeCloseTo(1.33, 5);
     expect(panel!.color).toBe('#d8e4f0');
+    // Shorter reach and steeper falloff than the post's 11 at decay 1.4.
     expect(panel!.distance).toBeLessThan(11);
-    expect(panel!.decay).toBeLessThan(1.4);
-    // Fourteen of these overlap. A post's intensity here would blow the room white.
-    expect(panel!.intensity).toBeLessThan(0.2 + 11);
-    expect(panel!.intensity).toBeGreaterThan(0.6);
+    expect(panel!.decay).toBeGreaterThan(1.4);
+    // And stronger than the post, because it is lighting that cell on its own.
+    expect(panel!.intensity).toBeGreaterThan(0.2 + 11);
+    // The floor pool stays wider than the post's 3.2 and softer than its 0.5: the fixture is a
+    // diffuser panel overhead, so what lands on the carpet is a broad even patch, not a hot disc.
     expect(panel!.poolRadius).toBeGreaterThan(3.2);
     expect(panel!.poolOpacity).toBeLessThan(0.5);
   });
@@ -433,7 +446,7 @@ describe('the office ceiling rig', () => {
   test('troffer flicker is a third of a lamp post s, so the office does not blink', () => {
     const swing = (step: number): number => lampLights(withCeiling(1, true))[0]!.intensity;
     const samples = [0, 7, 13, 29, 51].map(swing);
-    const base = 0.6 + 7.5;
+    const base = 0.6 + 14;
     for (const sample of samples) {
       expect(Math.abs(sample - base) / base).toBeLessThan(0.03);
     }
@@ -469,6 +482,26 @@ describe('the office ceiling rig', () => {
 
   test('outdoors the overhead key never fires, whatever is in frame', () => {
     expect(indoorOverheadKeyOrigin(withCeiling(1, false))).toBeUndefined();
+  });
+
+  /**
+   * A room has no sky, so it cannot have a skyglow. The office was taking one — and taking its
+   * colour from `frame.props`, which is the whole map, so an interior was tinted by fixtures in
+   * rooms it has no window onto.
+   */
+  describe('skyglow stops at the roof', () => {
+    test('an outdoor night sky takes the lamp tint', () => {
+      expect(skyglowMix(withCeiling(1, false))).toBeGreaterThan(0);
+    });
+
+    test('the same night indoors takes none of it', () => {
+      expect(skyglowMix(withCeiling(1, true))).toBe(0);
+    });
+
+    test('and it fades in with the lamps rather than snapping on at dusk', () => {
+      expect(skyglowMix(withCeiling(0, false))).toBe(0);
+      expect(skyglowMix(withCeiling(0.5, false))).toBeLessThan(skyglowMix(withCeiling(1, false)));
+    });
   });
 });
 

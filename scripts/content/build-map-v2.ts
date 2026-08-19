@@ -1366,16 +1366,15 @@ function westMap(): WorldMapV2 {
       { x: 58, y: 30, sprite: 'tile.fixture-planter' },
     ],
   });
-  // Aisle troffers, between the module rows rather than inside them.
+  // No aisle troffers. The farm is lit one panel per cubicle, and that is the whole rig.
   //
-  // Twelve panels one-per-cubicle light the desks and leave the walkways between them dark, which
-  // measures as pooling 2.04 against a 1.9 ceiling. The spec's own instruction for that reading is
-  // to add a panel rather than lift the hemisphere, and the aisles are exactly where the light is
-  // missing. Not solid, so they do not narrow the walkway they light.
-  const aisleCeiling = ceilingPanels('annex-ceiling-aisles', 'cubicle-floor', [
-    { x: 10, y: 12 }, { x: 16, y: 12 }, { x: 22, y: 12 },
-    { x: 10, y: 17 }, { x: 16, y: 17 }, { x: 22, y: 17 },
-  ]);
+  // Six extra panels were added between the module rows to pull pooling from 2.04 under a 1.9
+  // ceiling. That was fixing the METRIC. The reading was right — the walkways were dark — but the
+  // cause was the light, not the fixture count: every troffer reached ten tiles at decay 1.2, so
+  // no panel lit its own cell more than its neighbour's and the aisles could only be reached by
+  // adding hardware over them. A room does not get a light fitting because a number is high. The
+  // troffers are tight now (`lighting.ts`), which puts the falloff back between the panels the
+  // ceiling always had.
   const corridorFixtures = [
     objectFromTiles({
       id: 'annex-copier', kind: 'copier', areaId: 'cubicle-floor',
@@ -1736,7 +1735,7 @@ function westMap(): WorldMapV2 {
     ],
     objects: [
       ...modules.flatMap(({ objects }) => objects),
-      aisleCeiling, ...corridorFixtures, ...hallFixtures, ...managerFixtures,
+      ...corridorFixtures, ...hallFixtures, ...managerFixtures,
       ...coolerFixtures, ...kitchenFixtures, ...lobbyFixtures,
       lotFixtures,
     ],
@@ -1812,7 +1811,7 @@ function westMap(): WorldMapV2 {
     requiredDetailPartIds: [
       'cubicle-r0c0-desk-part-01',
       'cubicle-r0c1-north-part-01',
-      'annex-ceiling-aisles-part-01',
+      'cubicle-r1c1-ceiling-part-01',
     ],
     landmarkAreaIds: ['cubicle-floor'],
   };
