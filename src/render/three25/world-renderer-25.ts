@@ -215,8 +215,14 @@ function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>)
   if (!context) return undefined;
   context.drawImage(image as unknown as CanvasImageSource, 0, 0);
   const tile = bakePropSketchTile();
-  // Paper red is 246; dividing by it makes untouched paper the identity and every stroke a darken.
   const PAPER_RED = 246;
+  /**
+   * ADDITIVE, not multiplicative. A multiply scales with the pixel under it, so on the bright
+   * bins the grain cut up to ~70 values and read clearly, while on the dark brick walls the same
+   * grain cut ~3 and read as nothing — Joe: "walls look no different". An additive delta shifts
+   * a dark wall and a bright bin by the same visible amount.
+   */
+  const GRAIN_STRENGTH = 0.5;
   // Recipe'd props, plus walls and doors — back in at Joe's request on 2026-08-20, now that the
   // crayon tile is mean-normalised and cannot darken the brick the way the first wall grain did.
   // Roofs stay as authored until he says otherwise.
@@ -234,10 +240,10 @@ function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>)
         if ((cell.data[offset + 3] ?? 0) === 0) continue;
         // Sampled in atlas space so the grain runs continuously across neighbouring cells.
         const tileOffset = (((rect.y + y) % PROP_TILE_SIZE) * PROP_TILE_SIZE + ((rect.x + x) % PROP_TILE_SIZE)) * 4;
-        const factor = Math.min(1, (tile[tileOffset] ?? PAPER_RED) / PAPER_RED);
-        cell.data[offset] = Math.round((cell.data[offset] ?? 0) * factor);
-        cell.data[offset + 1] = Math.round((cell.data[offset + 1] ?? 0) * factor);
-        cell.data[offset + 2] = Math.round((cell.data[offset + 2] ?? 0) * factor);
+        const delta = ((tile[tileOffset] ?? PAPER_RED) - PAPER_RED) * GRAIN_STRENGTH;
+        cell.data[offset] = Math.max(0, Math.min(255, Math.round((cell.data[offset] ?? 0) + delta)));
+        cell.data[offset + 1] = Math.max(0, Math.min(255, Math.round((cell.data[offset + 1] ?? 0) + delta)));
+        cell.data[offset + 2] = Math.max(0, Math.min(255, Math.round((cell.data[offset + 2] ?? 0) + delta)));
       }
     }
     context.putImageData(cell, rect.x, rect.y);

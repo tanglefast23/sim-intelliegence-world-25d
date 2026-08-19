@@ -495,8 +495,9 @@ export function buildDecalBoxes(frame: WorldFrameState): readonly BoxDescriptor[
         // rescues a measured colour. This path pushed authored greens through readableTint, so
         // the same FOLIAGE_GREEN hex rendered brighter on a decal tree than on the palm one tile
         // over — Joe: "you hit some and missed some".
+        // Same rule as buildPropBoxes: authored tints are uniform, only measured colours vary.
         tint: shelteredTint(
-          scaleHex(box.tint ?? readableTint(detail.color), propVariation(detail.id)),
+          box.tint !== undefined ? box.tint : scaleHex(readableTint(detail.color), propVariation(detail.id)),
           detail.tile,
           frame,
         ),
@@ -604,8 +605,12 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
           // varying its brightness per instance would read as lamps of differing wattage.
           box.glow === true
             ? (box.tint ?? readableTint(PROP_FLAT_COLORS[prop.sprite] ?? prop.color))
-            : scaleHex(
-              box.tint ?? readableTint(PROP_FLAT_COLORS[prop.sprite] ?? prop.color),
+            // An AUTHORED tint is the author's colour and every instance renders it identically.
+            // propVariation exists to separate stacked crates whose colour is MEASURED off the
+            // sprite; applied to authored planter pots it made a row of identical bushes read as
+            // randomly darker and lighter — Joe: "some are darker than others".
+            : box.tint !== undefined ? box.tint : scaleHex(
+              readableTint(PROP_FLAT_COLORS[prop.sprite] ?? prop.color),
               propVariation(prop.id),
             ),
           prop.tile,
