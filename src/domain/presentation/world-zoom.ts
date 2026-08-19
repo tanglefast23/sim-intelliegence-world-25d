@@ -1,5 +1,14 @@
 export const MIN_WORLD_ZOOM = 1;
-export const MAX_WORLD_ZOOM = 3;
+/**
+ * 5, not 3. The tilted camera compresses the depth axis by `GROUND_Z_SCALE`, so a tile that was 3
+ * screen pixels tall per world pixel at the old ceiling is only 1.5 — the 2.5D view reads a full
+ * stop further out than the 2D view did at the same number. Raising the ceiling gives back the
+ * close-up the flat renderer had.
+ *
+ * `NearestFilter` and integer-free scaling both hold here: the atlas is point-sampled, so a higher
+ * zoom enlarges pixels rather than blurring them.
+ */
+export const MAX_WORLD_ZOOM = 5;
 export const WORLD_ZOOM_STEP = 0.1;
 
 const SAVED_WORLD_ZOOM_STEP = 0.05;
@@ -15,7 +24,7 @@ export function isWorldZoom(candidate: unknown): candidate is number {
 
 export function assertWorldZoom(candidate: number): number {
   if (!isWorldZoom(candidate)) {
-    throw new RangeError('World zoom must be from 100% to 300% in 5% increments.');
+    throw new RangeError('World zoom must be from 100% to 500% in 5% increments.');
   }
   return Math.round(candidate * 100) / 100;
 }

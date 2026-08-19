@@ -197,10 +197,10 @@ describe('camera director', () => {
       .toBe(false);
   });
 
-  test('quantiseWorldZoom keeps the 5% lattice and the 100-300% range', () => {
+  test('quantiseWorldZoom keeps the 5% lattice and the 100-500% range', () => {
     expect(quantiseWorldZoom(1.237)).toBe(1.25);
     expect(quantiseWorldZoom(0.2)).toBe(1);
-    expect(quantiseWorldZoom(9)).toBe(3);
+    expect(quantiseWorldZoom(9)).toBe(5);
     expect(isWorldZoom(quantiseWorldZoom(2.113))).toBe(true);
   });
 

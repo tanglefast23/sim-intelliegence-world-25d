@@ -7,7 +7,7 @@ export const UiScaleSchema = z.union([z.literal(1), z.literal(1.25), z.literal(1
 export const VolumeSchema = z.number().min(0).max(1)
   .transform((value) => Math.round(value * 20) / 20);
 export const WorldZoomSchema = z.number().refine(isWorldZoom, {
-  message: 'World zoom must be from 100% to 300% in 5% increments.',
+  message: 'World zoom must be from 100% to 500% in 5% increments.',
 });
 export const PresentationPreferencesSchema = z.object({
   schemaVersion: z.literal(1),

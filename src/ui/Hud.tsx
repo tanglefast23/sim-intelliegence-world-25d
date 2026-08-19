@@ -150,11 +150,6 @@ export function Hud({
             {UI_SCALES.map((scale) => (
               <Pressable accessibilityLabel={`Set ${Math.round(scale * 100)} percent interface scale`} key={scale} onPress={() => { onPressSound(); onUiScale(scale); }} role="button" style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, uiScale === scale && styles.settingsActive, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>{Math.round(scale * 100)}%</Text></Pressable>
             ))}
-            {/* DEV shares this row on purpose. clickZoomButton opens the drawer and never closes
-                it, and clickWorldTile fires a REAL OS mouse event at a screen point — so any extra
-                drawer row makes the HUD taller and swallows world clicks the smokes depend on.
-                Sharing a row keeps the drawer exactly as tall as before while dev mode is off. */}
-            <Pressable accessibilityLabel="Toggle dev mode" onPress={() => { onPressSound(); onDevMode(); }} role="button" style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, devMode && styles.settingsActive, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>DEV</Text></Pressable>
           </View>
           <VolumeSlider
             accent={accent}
@@ -174,6 +169,19 @@ export function Hud({
             onPressSound={onPressSound}
             value={sfxVolume}
           />
+          {/* Its own row, under SFX. The time presets stay hidden until DEV is ON, so the drawer is
+              only one row taller than before while dev mode is off. */}
+          <View nativeID="world-ui-dev" style={styles.settingRow}>
+            <Text style={[styles.settingLabel, { fontSize: metrics.secondaryText }]}>DEV</Text>
+            <Pressable
+              accessibilityLabel={`Turn dev mode ${devMode ? 'off' : 'on'}`}
+              onPress={() => { onPressSound(); onDevMode(); }}
+              role="button"
+              style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, devMode && styles.settingsActive, pressed && styles.buttonPressed]}
+            >
+              <Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>{devMode ? 'ON' : 'OFF'}</Text>
+            </Pressable>
+          </View>
           {devMode ? (
             <View nativeID="world-ui-dev-time" style={styles.devTimeRow}>
               <Text style={[styles.settingLabel, { fontSize: metrics.secondaryText }]}>TIME JUMP</Text>

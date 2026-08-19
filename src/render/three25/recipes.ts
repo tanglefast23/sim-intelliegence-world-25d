@@ -425,6 +425,41 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
  * over them, so they must not stand up. Rule of thumb: anything a character walks past stands up;
  * anything a character walks over stays flat.
  */
+
+/** Stone, measured off the pebble cell: the body, and the lit top faces. */
+const STONE = '#7a6a53';
+const STONE_LIGHT = '#9a8a6d';
+
+/**
+ * Ground decals that get VOLUME rather than a billboard.
+ *
+ * The standing/flat rule in `billboards.ts` has only two answers, and a pebble fits neither. Stood
+ * up it is a rock-shaped card facing the camera; left flat it is a painted smudge that a 45-degree
+ * camera reads as a stain rather than a stone. What a rock actually needs is a third answer: a low
+ * box that a character walks past the side of and the light can catch the top of.
+ *
+ * Keyed by decal sprite, and `scene-builder` drops any sprite listed here from the flat batch, so
+ * a decal is drawn once either way. Offsets follow the authored cell so the scatter keeps its
+ * composition — the stones sit where the pixel art put them, not on a grid.
+ *
+ * Deliberately small: nothing here exceeds 0.14 tiles tall. A pebble that reads as a boulder is a
+ * worse error than a pebble that reads as flat, because the player tries to walk around it.
+ *
+ * ponytail: authored by hand for the one sprite that needed it. If a third or fourth ground sprite
+ * wants volume, keep adding entries; only reach for a generator if the list passes ~6.
+ */
+export const DECAL_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze({
+  'tile.decal-sand-pebbles': {
+    boxes: [
+      { x: 0.16, y: 0.06, z: 0.31, width: 0.31, height: 0.12, depth: 0.17, tint: STONE },
+      { x: -0.22, y: 0.05, z: 0.28, width: 0.25, height: 0.10, depth: 0.16, tint: STONE_LIGHT },
+      { x: -0.09, y: 0.05, z: 0.13, width: 0.25, height: 0.09, depth: 0.13, tint: STONE },
+      { x: 0.25, y: 0.04, z: 0.09, width: 0.16, height: 0.08, depth: 0.10, tint: STONE_LIGHT },
+      { x: 0.28, y: 0.03, z: -0.03, width: 0.10, height: 0.06, depth: 0.08, tint: STONE },
+    ],
+  },
+});
+
 /**
  * The colour each lamp fixture GLOWS, read straight off its recipe.
  *
