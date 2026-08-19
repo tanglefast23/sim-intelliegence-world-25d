@@ -3,9 +3,20 @@ import { CHARACTER_CONTACT_OFFSET, tintForLighting, UNLIT_NIGHT_STRENGTH } from 
 import type { BillboardDescriptor } from '../three25/billboards';
 import type { WorldCharacterPlacement, WorldFrameState } from '../world-frame';
 import { poseFromSprite, vampireSheetIndex } from './pose';
-import { bakeVampireFrames, BOIL_FRAMES, PENCIL_HEIGHT, PENCIL_WIDTH, WORLD_CELL_HEIGHT, WORLD_CELL_WIDTH } from './vampire';
+import {
+  bakeVampireFrames,
+  BOIL_FRAMES,
+  PENCIL_CONTACT_ROW,
+  PENCIL_HEIGHT,
+  PENCIL_WIDTH,
+  WORLD_CELL_HEIGHT,
+  WORLD_CELL_WIDTH,
+} from './vampire';
 
 const TILE_SIZE = 32;
+
+/** World pixels of empty sheet below the boot soles. Sink the quad by this or he floats. */
+const CONTACT_SINK_WORLD_PIXELS = ((PENCIL_HEIGHT - PENCIL_CONTACT_ROW) / PENCIL_HEIGHT) * WORLD_CELL_HEIGHT;
 
 export const PENCIL_SOURCE: AtlasRectangle = {
   x: 0,
@@ -43,7 +54,7 @@ export function pencilBillboards(frame: WorldFrameState): readonly BillboardDesc
       width: (WORLD_CELL_WIDTH * character.scale) / TILE_SIZE,
       height: (WORLD_CELL_HEIGHT * character.scale) / TILE_SIZE,
       tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
-      lift: 0,
+      lift: -(CONTACT_SINK_WORLD_PIXELS * character.scale) / TILE_SIZE,
     }));
 }
 
