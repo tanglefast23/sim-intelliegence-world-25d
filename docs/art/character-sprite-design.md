@@ -13,10 +13,13 @@ Read this before you make any new character. It is the procedure and the proport
 Section 9 of [halcyra-art-bible.md](halcyra-art-bible.md) is the law. This document does not
 change it. This document tells you the numbers, the steps, and the traps.
 
-Two things are true and people keep getting them wrong:
+Three things are true and people keep getting them wrong:
 
 1. **The head is the biggest thing.** That is what makes the cast read as cute.
 2. **`head`, `build` and `eyes` on `CharacterLook` do nothing.** See [Traps](#traps).
+3. **The character the player sees is the pencil vampire, not an atlas sprite.** Sections 1–5 cover
+   the 24×30 atlas pipeline. If you are changing what is on screen right now, go to
+   [section 6](#6-the-pencil-vampire) first.
 
 ---
 
@@ -156,9 +159,66 @@ These do **not** apply. We are a pixel atlas, not a live canvas:
 - No medium abstraction. One palette, hard edges, no anti-aliasing, no gradients.
 - No procedural shape families. Head geometry is one fixed box.
 
-A live Kindergrimm-style renderer does exist at
-[src/render/pencil/](../../src/render/pencil/) — filled-ribbon strokes, `mulberry32`, boil frames.
-It is an experiment. **Production characters do not use it.** Do not mix the two paths.
+---
+
+## 6. The pencil vampire
+
+**This is the character the player sees.** Everything above governs the 24×30 atlas sprites. The
+pencil vampire in [src/render/pencil/](../../src/render/pencil/) is a separate, live Kindergrimm
+renderer — filled-ribbon strokes, `mulberry32`, three boil frames per pose. `pencilBillboards()`
+filters `visualId === 'vampire-01'` and draws it in place of that atlas sprite on the 2.5D path,
+which is the shipping path. Editing `vampire-01` in the roster changes nothing on screen.
+
+This document previously claimed production did not use the pencil path. That was wrong and cost a
+full session of work on the wrong character.
+
+### 6.1 Proportions live in one constant
+
+`HEAD_SHARE` in [layout.ts](../../src/render/pencil/layout.ts) is the head's share of the figure
+from crown to sole. It is **0.56**. Change that line alone to restyle him.
+
+Parts never write canvas coordinates. They author in head space or body space and call `F.head(dx,
+dy)` or `F.body(dx, dy)`. That is what makes the proportion one number instead of seven files. He
+was authored at 0.36 with the numbers scattered, which is exactly why nothing enforced the rule.
+
+**`FLOOR` and the boot line are fixed.** `0dcf18b` tuned the boots onto the character's contact
+point. Proportion changes move the crown and the shoulders, never the sole, or he floats above his
+own shadow.
+
+### 6.2 Gait: one phase, opposite states
+
+The two legs share **one** phase and sit in opposite states of it — one planted, one lifted. Never
+give them mirrored signs on the same axis. The original code did (`leftX = swing * .35`,
+`rightX = -swing * .35`), which splays both legs outward on one frame and overlaps them on the
+other. That is a squat, and on the rear frame the legs collapsed into a single line.
+
+The arms follow the same rule. A front view cannot show an arm travelling forward, so carry the
+arm swing on **y**: one hand rises as the other drops, against the lifting leg.
+
+### 6.3 Motion needs a value edge
+
+`colors.hair` is `[22, 20, 26]` and `colors.cloak` is `[24, 22, 30]`. A black boot on a black cloak
+has no edge, so a correctly animated foot is still an invisible one. Every boot carries a pale
+`ash` band. **Pixels being right is not the same as motion being legible** — render it and look.
+
+### 6.4 Per-facing rules
+
+| Facing | Rule |
+|---|---|
+| front | Legs must clear the cloak hem, or the step cannot be seen. |
+| rear | **No hands** — the cape hangs closed over both arms. **No sole** — you cannot see the underside of a shoe from behind; the pale band moves to the ankle cuff. **No face** — the hair must cover the skull to the jaw, or a pale chin-shaped wedge reads as a face on the back of his head. |
+| left / right | Both boots are drawn, not just the leading one. The toe points the way he walks — a hardcoded `+x` toe puts his foot on backwards when he walks left. |
+
+### 6.5 The profile is not the front view squashed
+
+Two things break a profile, and both were wrong here:
+
+- **The head must not narrow when he turns.** The side skull spanned `-18..+22` against a front
+  `-30..+30`, so he lost a third of his head width mid-walk and read as a thin man. Both facings
+  use the same envelope; only the weight shifts forward.
+- **The mouth pushes forward, off the eye.** In a cartoon profile the eye sits back toward the ear
+  and the mouth sits at the leading edge of the face. Eye and mouth in the same column reads as a
+  flattened front view. Here the eye is at `dir * 5` and the fangs at `dir * 17..25`.
 
 ---
 

@@ -52,8 +52,9 @@ describe('vampire pencil character', () => {
   test('layout F publishes the anchors parts read', () => {
     const F = buildVampireLayout();
     expect(F.cx).toBe(120);
-    expect(F.L.eyeX(-1)).toBe(-12);
-    expect(F.L.eyeX(1)).toBe(12);
+    // The eye offset scales with the head, so pin the relationship, not the authored number.
+    expect(F.L.eyeX(1)).toBeCloseTo(-F.L.eyeX(-1));
+    expect(F.L.eyeX(1)).toBeGreaterThan(12);
     expect(F.L.my).toBeGreaterThan(F.L.eyeY);
     expect(F.B.floorY).toBeGreaterThan(F.B.hipY);
     expect(F.lwMain).toBeGreaterThan(F.lwThin);

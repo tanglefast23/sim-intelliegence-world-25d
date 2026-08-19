@@ -1,29 +1,36 @@
 import type { Sketch } from '../sketch';
-import { pt, type VampireLayout } from '../layout';
+import type { VampireLayout } from '../layout';
 import { gaitSwing, type VampirePose } from '../pose';
 
 export function drawArms(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
-  const { cx, colors } = F;
+  const { colors } = F;
   const swing = gaitSwing(pose.gait);
 
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
-    const handX = cx + dir * 8 - swing * 0.7;
+    const hand = F.body(dir * 8 - swing * 0.7, 214);
     sketch.broken([
-      pt(cx + dir * 6, F.B.shoulderY),
-      pt(cx + dir * 4 - swing * 0.4, 178),
-      pt(handX, 214),
+      F.body(dir * 6, 140),
+      F.body(dir * 4 - swing * 0.4, 178),
+      hand,
     ], F.lwMain);
-    sketch.fill(sketch.blobPts(handX, 218, 7, 7, 0, 0.35), colors.pale, 0.94);
+    sketch.fill(sketch.blobPts(hand.x, hand.y + 4, 7, 7, 0, 0.35), colors.pale, 0.94);
     return;
   }
 
-  sketch.broken([
-    pt(cx - 14, F.B.shoulderY), pt(cx - 34, 178), pt(cx - 30 - swing * 0.45, 212),
-  ], F.lwMain);
-  sketch.broken([
-    pt(cx + 14, F.B.shoulderY), pt(cx + 34, 178), pt(cx + 30 + swing * 0.45, 212),
-  ], F.lwMain);
-  sketch.fill(sketch.blobPts(cx - 30 - swing * 0.45, 216, 8, 8, 0, 0.35), colors.pale, 0.94);
-  sketch.fill(sketch.blobPts(cx + 30 + swing * 0.45, 216, 8, 8, 0, 0.35), colors.pale, 0.94);
+  // From behind the cape hangs closed over both arms. Drawing the pale hands there put the
+  // front of the character on his back.
+  if (pose.facing === 'rear') return;
+
+  // Opposite phase, like the legs. The first version pushed both hands the same way along x, so
+  // the arms opened and closed together and read as a shrug rather than a swing. A front view
+  // cannot show an arm travelling forward, so the swing is carried on y: one hand rises as the
+  // other drops, against the leg that is lifting.
+  const sway = swing * 0.25;
+  const leftHand = F.body(-30 + sway, 214 - swing * 0.4);
+  const rightHand = F.body(30 + sway, 214 + swing * 0.4);
+  sketch.broken([F.body(-14, 140), F.body(-34, 178), leftHand], F.lwMain);
+  sketch.broken([F.body(14, 140), F.body(34, 178), rightHand], F.lwMain);
+  sketch.fill(sketch.blobPts(leftHand.x, leftHand.y + 4, 8, 8, 0, 0.35), colors.pale, 0.94);
+  sketch.fill(sketch.blobPts(rightHand.x, rightHand.y + 4, 8, 8, 0, 0.35), colors.pale, 0.94);
 }

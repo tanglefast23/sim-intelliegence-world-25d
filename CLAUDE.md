@@ -75,10 +75,18 @@ matching builder (`content:build`, `art:atlas`, `audio:build`, `proof:assets`).
 
 ## Architecture
 
-**Two renderers exist. Production ships the 2D one.**
+**Two renderers exist. Production ships the 2.5D one.**
 `rendererForEnvironment()` ([src/render/renderer-selection.ts](src/render/renderer-selection.ts))
-returns `'threejs-2d'` everywhere except a localhost or smoke `?testRenderer=2-5d`, and stays that
-way until the 2.5D acceptance gate passes. The 2D path is the rollback path and must stay green.
+returns `'threejs-2-5d'` everywhere, including localhost. The 2D path is the rollback path and must
+stay green; it is reachable only through the localhost `?testRenderer=2d` override and through
+`SI_WORLD_TEST_RENDERER` in smoke mode, and smoke defaults to 2D on purpose so evidence filenames
+keep matching what was rendered.
+
+This paragraph said the opposite until 2026-08-19 and cost a full session of work on the wrong
+character. **The player's on-screen body is the pencil vampire in `src/render/pencil/`, not the
+`vampire-01` atlas sprite.** `pencilBillboards()` filters `visualId === 'vampire-01'` and
+substitutes the drawn character on the 2.5D path, so atlas edits to `vampire-01` change nothing you
+can see in the running game. See [docs/art/character-sprite-design.md](docs/art/character-sprite-design.md).
 
 The 2D path ([src/render/three/world-renderer.ts](src/render/three/world-renderer.ts)) draws
 textured quads through an `OrthographicCamera` with `NearestFilter` on a generated sprite atlas,
