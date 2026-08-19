@@ -509,11 +509,42 @@ function portraitBodyCommands(look: CharacterLook): DrawCommand[] {
   ];
 }
 
-function worldLegCommands(): CharacterSource['sourceLayers']['legs'] {
+/**
+ * Looks whose front walk shows two separate feet in BOTH frames.
+ *
+ * The original pair is `roundedBase` (row 29 solid, x7-16) against `stride` (row 29 split). The
+ * solid frame reads as a plinth rather than as feet, so the walk alternates between "a bar" and
+ * "two feet" and the eye scores that as no leg motion at all. `twoFootStride` keeps two feet in
+ * both frames and moves the gap instead, so the change reads as a step.
+ *
+ * The rest of the cast still uses the original pair on purpose — those sheets are queued for a
+ * redraw. Add ids here as each one is redrawn, then delete this set and the branch once the list
+ * covers everyone.
+ */
+const TWO_FOOT_STRIDE_LOOKS: ReadonlySet<string> = new Set(['vampire-01']);
+
+function worldLegCommands(look: CharacterLook): CharacterSource['sourceLayers']['legs'] {
   const roundedBase = [
     rectCommand('D', 7, 28, 10, 1),
     rectCommand('K', 7, 29, 10, 1),
   ];
+  /**
+   * Two feet in both frames, with the gap stepping from x11-12 to x10-11.
+   *
+   * The trailing foot loses a pixel and the leading foot gains one, which is the weight transfer.
+   * Frame 1 leaves x10-11 empty on its own, so the unconditional `carveStrideGap` in
+   * `composeFrontFrame` lands on already-empty cells and stays a no-op here. Row 28 is untouched
+   * in both frames so `shadowWorldY` does not move.
+   */
+  if (TWO_FOOT_STRIDE_LOOKS.has(look.id)) {
+    return {
+      frontFrames: [
+        [rectCommand('D', 7, 28, 10, 1), rectCommand('K', 7, 29, 4, 1), rectCommand('K', 13, 29, 4, 1)],
+        [rectCommand('D', 7, 28, 10, 1), rectCommand('K', 7, 29, 3, 1), rectCommand('K', 12, 29, 5, 1)],
+      ],
+      lateralFrames: [[...roundedBase], [...roundedBase]],
+    };
+  }
   /**
    * The stride pose.
    *
@@ -720,7 +751,7 @@ export function getCharacterGeometryCommandSets(look: CharacterLook): Readonly<{
   return Object.freeze({
     worldBody: worldBodyCommands(look),
     portraitBody: portraitBodyCommands(look),
-    legs: worldLegCommands(),
+    legs: worldLegCommands(look),
   });
 }
 

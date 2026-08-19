@@ -1,13 +1,13 @@
 {
   "version": 3,
-  "artRevision": 19,
+  "artRevision": 20,
   "toolVersion": "atlas-v9-authored-full-cast",
   "image": {
     "width": 1024,
     "height": 631,
     "colorType": "rgba",
     "gutter": 1,
-    "sha256": "652a10dc689594036753291266eb57ef05abe5f425171920c1629a2307a7730a"
+    "sha256": "5dbb02a640744c05153d14dd6dffd6cbb3cd71a7ea71bf14bd7b3d027e3759e0"
   },
   "tileSize": 32,
   "worldCell": {
