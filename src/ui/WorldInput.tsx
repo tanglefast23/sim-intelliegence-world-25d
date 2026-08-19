@@ -2,6 +2,8 @@ import type { PropsWithChildren } from 'react';
 import { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 
+import { isPanArrowKey, keyboardPanDelta } from './world-pan';
+
 type ScreenPoint = Readonly<{ x: number; y: number }>;
 
 type WorldInputProps = PropsWithChildren<Readonly<{
@@ -34,6 +36,14 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
     let lastMiddlePoint: ScreenPoint | undefined;
     let pendingPan = { x: 0, y: 0 };
     let panFrame = 0;
+    // Space is the keyboard twin of the middle button. While it is held, moving the mouse pans
+    // whether or not a button is down, so plain motion and a left drag are the same gesture, and
+    // the arrow keys pan on their own clock.
+    let spaceHeld = false;
+    let lastPointerPoint: ScreenPoint | undefined;
+    const heldArrows = new Set<string>();
+    let keyboardPanFrame = 0;
+    let keyboardPanLast = 0;
     let pendingZoom: Readonly<{ direction: -1 | 1; anchor: ScreenPoint }> | undefined;
     let zoomFrame = 0;
 
@@ -55,12 +65,52 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
       pendingZoom = { direction, anchor };
       if (zoomFrame === 0) zoomFrame = requestAnimationFrame(flushZoom);
     };
+    const stopKeyboardPan = () => {
+      if (keyboardPanFrame !== 0) cancelAnimationFrame(keyboardPanFrame);
+      keyboardPanFrame = 0;
+      keyboardPanLast = 0;
+    };
+    const stepKeyboardPan = (timestamp: number) => {
+      keyboardPanFrame = 0;
+      if (handlersRef.current.disabled || heldArrows.size === 0) {
+        keyboardPanLast = 0;
+        return;
+      }
+      // The first frame has no previous timestamp to measure against, so it contributes nothing
+      // and only starts the clock. Every later frame integrates its own elapsed time.
+      if (keyboardPanLast !== 0) {
+        handlersRef.current.onPan(keyboardPanDelta(heldArrows, timestamp - keyboardPanLast));
+      }
+      keyboardPanLast = timestamp;
+      keyboardPanFrame = requestAnimationFrame(stepKeyboardPan);
+    };
+    const startKeyboardPan = () => {
+      if (keyboardPanFrame !== 0) return;
+      keyboardPanLast = 0;
+      keyboardPanFrame = requestAnimationFrame(stepKeyboardPan);
+    };
+    const releaseSpacePan = () => {
+      spaceHeld = false;
+      heldArrows.clear();
+      stopKeyboardPan();
+    };
+    const isTypingTarget = (target: EventTarget | null) =>
+      target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement ||
+      (target instanceof HTMLElement && target.isContentEditable);
     const isUiTarget = (target: EventTarget | null) =>
       target instanceof Element && Boolean(target.closest('[id^="world-ui-"]'));
     const handlePointerDown = (event: PointerEvent) => {
       if (handlersRef.current.disabled) return;
       if (isUiTarget(event.target)) return;
       const point = eventPoint(event, element);
+      lastPointerPoint = point;
+      if (spaceHeld && event.button === 0) {
+        // Space claims the left button, so a click cannot also send the player somewhere. Capture
+        // keeps the drag alive when the cursor leaves the surface, exactly like the middle button.
+        event.preventDefault();
+        element.setPointerCapture?.(event.pointerId);
+        return;
+      }
       if (event.button === 1) {
         // Deliberately NOT gated on `isPointInteractive`. That gate asks "is there map under the
         // cursor", which is the right question for a click on the world and the wrong one for a
@@ -77,13 +127,24 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
     };
     const handlePointerMove = (event: PointerEvent) => {
       if (handlersRef.current.disabled) return;
-      if (event.pointerId !== middlePointerId || !lastMiddlePoint) return;
       const point = eventPoint(event, element);
-      queuePan({ x: point.x - lastMiddlePoint.x, y: point.y - lastMiddlePoint.y });
-      lastMiddlePoint = point;
+      if (event.pointerId === middlePointerId && lastMiddlePoint) {
+        queuePan({ x: point.x - lastMiddlePoint.x, y: point.y - lastMiddlePoint.y });
+        lastMiddlePoint = point;
+        lastPointerPoint = point;
+        return;
+      }
+      // The middle button wins when both are down, so one motion never pans twice.
+      if (spaceHeld && middlePointerId === undefined && lastPointerPoint) {
+        queuePan({ x: point.x - lastPointerPoint.x, y: point.y - lastPointerPoint.y });
+      }
+      lastPointerPoint = point;
     };
     const releasePointer = (event: PointerEvent) => {
-      if (event.pointerId !== middlePointerId) return;
+      if (event.pointerId !== middlePointerId) {
+        if (spaceHeld) element.releasePointerCapture?.(event.pointerId);
+        return;
+      }
       element.releasePointerCapture?.(event.pointerId);
       middlePointerId = undefined;
       lastMiddlePoint = undefined;
@@ -101,8 +162,20 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
     const handleKey = (event: KeyboardEvent) => {
       if (handlersRef.current.disabled) return;
       const target = event.target;
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement ||
-        (target instanceof HTMLElement && target.isContentEditable)) return;
+      if (isTypingTarget(target)) return;
+      if (event.code === 'Space' && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        // Without this the page scrolls and the button under the cursor activates.
+        event.preventDefault();
+        spaceHeld = true;
+      }
+      if (isPanArrowKey(event.key)) {
+        // Arrows pan on their own; Space is not required. The UI guard is what keeps the volume
+        // sliders usable, since they are focusable Views that read the same arrow keys.
+        if (isUiTarget(target)) return;
+        event.preventDefault();
+        heldArrows.add(event.key);
+        startKeyboardPan();
+      }
       if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.toLowerCase() === 'f') {
         handlersRef.current.onCenter();
       }
@@ -112,6 +185,19 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
       }
       if (event.key === 'Escape') handlersRef.current.onCancel();
     };
+    // Not gated on `disabled`: a key that goes down while the world is live and comes up while a
+    // panel is open must still clear, or Space stays stuck down and every mouse move pans.
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.code === 'Space') {
+        releaseSpacePan();
+        return;
+      }
+      if (!isPanArrowKey(event.key)) return;
+      heldArrows.delete(event.key);
+      if (heldArrows.size === 0) stopKeyboardPan();
+    };
+    // Holding Space and switching window drops the keyup, so clear on the way out.
+    const handleBlur = () => releaseSpacePan();
     const preventMiddleClick = (event: MouseEvent) => {
       if (event.button === 1) event.preventDefault();
     };
@@ -133,9 +219,12 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
       element.addEventListener('si-world-active-pan-proof', handleActivePanProof);
     }
     window.addEventListener('keydown', handleKey);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
     return () => {
       if (panFrame !== 0) cancelAnimationFrame(panFrame);
       if (zoomFrame !== 0) cancelAnimationFrame(zoomFrame);
+      stopKeyboardPan();
       element.removeEventListener('pointerdown', handlePointerDown);
       element.removeEventListener('pointermove', handlePointerMove);
       element.removeEventListener('pointerup', releasePointer);
@@ -146,6 +235,8 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
         element.removeEventListener('si-world-active-pan-proof', handleActivePanProof);
       }
       window.removeEventListener('keydown', handleKey);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
     };
   }, []);
 

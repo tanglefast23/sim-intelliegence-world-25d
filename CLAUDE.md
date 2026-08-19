@@ -106,6 +106,13 @@ camera / geometry / colour / lighting / staging phases with their measured const
 loop, and a trap table where every entry cost a real capture round. Read its trap section before
 changing any 2.5D art, not after.
 
+**To add or change any character, follow
+[docs/art/character-sprite-design.md](docs/art/character-sprite-design.md).** It carries the head
+proportions that make the cast read as cute, the 24×30 row map, the numbered steps from roster row
+to `art:check`, and a trap table. Note that `head`, `build` and `eyes` on `CharacterLook` are
+declared but never read by the shipped baker. `docs/art/halcyra-art-bible.md` section 9 stays the
+rule source; the sprite design doc is the procedure.
+
 See [docs/specs/2026-08-16-threejs-2-5d-renderer.md](docs/specs/2026-08-16-threejs-2-5d-renderer.md).
 It supersedes the top-down renderer statements in `spec.md` (lines 66, 295) and amends the 2.5D and
 lighting non-goals in `docs/specs/2026-08-14-threejs-2d-renderer-port.md` section 4.

@@ -96,14 +96,47 @@ describe('full-cast shared-source character art', () => {
     expect(new Set(sources.map(({ signatureOddity }) => signatureOddity.id)).size).toBe(36);
   });
 
-  test('keeps vampire fangs between the eye boxes and below the blink band', () => {
+  test('draws vampire fangs as a readable object below the blink band', () => {
     const look = CHARACTER_LOOKS.find(({ id }) => id === 'vampire-01')!;
     const features = getCharacterIdentityCommandSets(look);
-    const fang = features.primaryWorld[0];
-    expect(fang).toMatchObject({ kind: 'pixels', token: 's', points: [[11, 15], [12, 15], [11, 16], [12, 16]] });
-    for (const [x, y] of [[11, 15], [12, 15], [11, 16], [12, 16]] as const) {
-      expect([7, 8, 9, 10, 13, 14, 15, 16]).not.toContain(x);
-      expect(y).toBeGreaterThan(14);
+    expect(features.primaryWorld).toEqual([
+      { kind: 'rect', token: 'K', x: 10, y: 15, width: 4, height: 1 },
+      { kind: 'pixels', token: 'W', points: [[10, 16], [13, 16]] },
+    ]);
+    // Every fang row sits below EYE_BAND, so a blink cannot rewrite it.
+    for (const y of [15, 16]) expect(y).toBeGreaterThanOrEqual(EYE_BAND.top + EYE_BAND.height);
+    // The fangs must contrast with the face they sit on. The first version painted the mouth
+    // colour onto the mouth, so the oddity was invisible and this assertion is the guard.
+    const source = sources.find(({ id }) => id === 'vampire-01')!;
+    const frame = composeFrontFrame(source, 0);
+    expect(frame[15]?.slice(10, 14)).toBe('KKKK');
+    expect(frame[16]?.[10]).toBe('W');
+    expect(frame[16]?.[13]).toBe('W');
+    expect(source.palette.W).not.toBe(source.palette.S);
+    expect(source.palette.K).not.toBe(source.palette.S);
+  });
+
+  test('walks the vampire on two separate feet in both frames', () => {
+    const source = sources.find(({ id }) => id === 'vampire-01')!;
+    const [standing, striding] = [composeFrontFrame(source, 0), composeFrontFrame(source, 1)];
+    // Two feet with a gap in BOTH frames. The rest of the cast still shows a solid bar on frame 0,
+    // which is why its walk reads as no leg motion.
+    expect(standing[29]).toBe('.......KKKK..KKKK.......');
+    expect(striding[29]).toBe('.......KKK..KKKKK.......');
+    // Row 28 is the contact-shadow anchor and must not move between frames.
+    expect(standing[28]).toBe(striding[28]);
+  });
+
+  test('keeps the half cape below the head box on every wearer', () => {
+    const wearers = CHARACTER_LOOKS.filter(({ secondary }) => secondary === 'half-cape');
+    expect(wearers.map(({ id }) => id).sort()).toEqual(['resident-17', 'vampire-01']);
+    for (const look of wearers) {
+      const source = sources.find(({ id }) => id === look.id)!;
+      const frame = composeFrontFrame(source, 0);
+      // The head box is rows 4-17. A 7px accent slab used to start at row 16 and cover the jaw.
+      for (const y of [16, 17]) {
+        expect(frame[y]?.slice(4, 11)).not.toContain('A');
+      }
     }
   });
 
@@ -216,7 +249,9 @@ describe('full-cast shared-source character art', () => {
         (frameCommands) => commandFrame(frameCommands, WORLD_CELL.width, WORLD_CELL.height),
       );
       expect(paintedRuns(idleLegs![28] as string)).toBe(1);
-      expect(paintedRuns(idleLegs![29] as string)).toBe(1);
+      // A redrawn look shows two feet on the idle frame too; the queued-for-redraw cast still
+      // shows one solid run, which is why its walk reads as no leg motion.
+      expect(paintedRuns(idleLegs![29] as string)).toBe(look.id === 'vampire-01' ? 2 : 1);
       expect(paintedRuns(strideLegs![28] as string)).toBe(1);
       expect(paintedRuns(strideLegs![29] as string)).toBe(2);
       expect(geometry.legs.frontFrames[1]).not.toEqual(geometry.legs.frontFrames[0]);
@@ -407,8 +442,14 @@ describe('full-cast shared-source character art', () => {
         expect([...frame[0] as string].every((token) => token === '.')).toBe(true);
         expect(frame.every((row) => row[0] === '.' && row[WORLD_CELL.width - 1] === '.')).toBe(true);
       }
-      // Row 29 is the contact row: idle keeps one rounded run, the stride splits into two feet.
-      for (const frame of idleFrames) {
+      // Row 29 is the contact row. A redrawn look shows two feet on the front and rear idle so the
+      // walk reads; the queued-for-redraw cast keeps one rounded run there. The lateral idle uses
+      // the shared rounded base either way and splits only on its own stride.
+      const idleFrontRuns = source.id === 'vampire-01' ? 2 : 1;
+      for (const frame of [frontOne, deriveRearFrame(frontOne, source)]) {
+        expect(paintedRuns(frame[WORLD_CELL.height - 1] as string)).toBe(idleFrontRuns);
+      }
+      for (const frame of [composeLateralFrame(source, 'left', 0), composeLateralFrame(source, 'right', 0)]) {
         expect(paintedRuns(frame[WORLD_CELL.height - 1] as string)).toBe(1);
       }
       for (const frame of strideFrames) {
