@@ -1,7 +1,7 @@
 import { hashSeed, Sketch } from './sketch';
 import { buildVampireLayout } from './layout';
 import { drawVampireCharacter } from './parts';
-import { VAMPIRE_FACINGS, type VampirePose } from './pose';
+import { VAMPIRE_FACINGS, VAMPIRE_STATES, type VampirePose } from './pose';
 
 export const PENCIL_WIDTH = 240;
 export const PENCIL_HEIGHT = 360;
@@ -21,20 +21,24 @@ export const WORLD_CELL_HEIGHT = 60;
  * dragging on the ground does.
  */
 export const PENCIL_CONTACT_ROW = 308;
-export const VAMPIRE_SHEET_FRAMES = VAMPIRE_FACINGS.length * 2 * BOIL_FRAMES;
+export const VAMPIRE_SHEET_FRAMES = VAMPIRE_FACINGS.length * VAMPIRE_STATES.length * BOIL_FRAMES;
 
-export function drawVampire(sketch: Sketch, pose: VampirePose = { facing: 'front', gait: 0 }): void {
+export function drawVampire(
+  sketch: Sketch,
+  pose: VampirePose = { facing: 'front', gait: 0, moving: false },
+): void {
   drawVampireCharacter(sketch, buildVampireLayout(), pose);
 }
 
 export function bakeVampireFrames(): readonly Uint8ClampedArray[] {
   const frames: Uint8ClampedArray[] = [];
+  // Facing, then state, then boil. `vampireSheetIndex` assumes exactly this order.
   for (const facing of VAMPIRE_FACINGS) {
-    for (const gait of [0, 1] as const) {
+    for (const state of VAMPIRE_STATES) {
       for (let boil = 0; boil < BOIL_FRAMES; boil += 1) {
         const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
-        sketch.boil(hashSeed('vampire-01', facing, gait, boil));
-        drawVampire(sketch, { facing, gait });
+        sketch.boil(hashSeed('vampire-01', facing, state.moving ? state.gait : 'idle', boil));
+        drawVampire(sketch, { facing, gait: state.gait, moving: state.moving });
         frames.push(sketch.data);
       }
     }

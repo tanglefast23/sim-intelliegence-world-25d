@@ -4,10 +4,10 @@ import { VAMPIRE_FACINGS, type VampireFacing } from '../pose';
 import { hashSeed, Sketch } from '../sketch';
 import { PENCIL_HEIGHT, PENCIL_WIDTH } from '../vampire';
 
-function render(facing: VampireFacing, gait: 0 | 1): Sketch {
+function render(facing: VampireFacing, gait: 0 | 1, moving = true): Sketch {
   const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
-  sketch.boil(hashSeed('vampire-01', facing, gait, 0));
-  drawVampireCharacter(sketch, buildVampireLayout(), { facing, gait });
+  sketch.boil(hashSeed('vampire-01', facing, moving ? gait : 'idle', 0));
+  drawVampireCharacter(sketch, buildVampireLayout(), { facing, gait, moving });
   return sketch;
 }
 
@@ -49,6 +49,30 @@ describe('pencil vampire walk and proportions', () => {
     const bottom = rows[rows.length - 1] as number;
     const headShare = (F.L.chinY - top) / (bottom - top);
     expect(headShare).toBeGreaterThan(0.45);
+  });
+
+  test('standing still puts both feet flat on the floor', () => {
+    // Idle used to reuse walk frame 0, which has a foot in the air, so he balanced on one leg
+    // every time he stopped.
+    const footLowest = (sketch: Sketch, fromX: number, toX: number): number => {
+      for (let y = sketch.height - 1; y >= 0; y -= 1) {
+        for (let x = fromX; x <= toX; x += 1) {
+          if ((sketch.data[(y * sketch.width + x) * 4 + 3] as number) > 8) return y;
+        }
+      }
+      return 0;
+    };
+    const cx = buildVampireLayout().cx;
+    for (const facing of ['front', 'rear'] as const) {
+      const idle = render(facing, 0, false);
+      // Within the pencil's own wobble. A lifted foot is 20 body units up, far outside this.
+      const gap = footLowest(idle, cx - 12, cx - 1) - footLowest(idle, cx + 1, cx + 12);
+      expect(Math.abs(gap)).toBeLessThanOrEqual(2);
+    }
+    // Idle is its own drawing, not walk frame 0.
+    for (const facing of VAMPIRE_FACINGS) {
+      expect(render(facing, 0, false).data).not.toEqual(render(facing, 0, true).data);
+    }
   });
 
   test('every facing changes between the two walk frames', () => {

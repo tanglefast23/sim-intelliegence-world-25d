@@ -62,28 +62,28 @@ describe('vampire pencil character', () => {
 
   test('the part registry is behind-first and complete', () => {
     expect(VAMPIRE_PART_IDS).toEqual([
-      'cloak', 'legs', 'arms', 'skull', 'ears', 'hair', 'eyes', 'fangs',
+      'cloak', 'legs', 'arms', 'skull', 'ears', 'hair', 'eyes', 'nose', 'fangs',
     ]);
-    expect(VAMPIRE_PARTS).toHaveLength(8);
+    expect(VAMPIRE_PARTS).toHaveLength(9);
   });
 
   test('sheet has every facing and gait, and they are not the same drawing', () => {
     const once = bakeVampireFrames();
     expect(once).toHaveLength(VAMPIRE_SHEET_FRAMES);
     expect(once[0]!.length).toBe(PENCIL_WIDTH * PENCIL_HEIGHT * 4);
-    const front = vampireSheetIndex({ facing: 'front', gait: 0 }, 0);
-    const rear = vampireSheetIndex({ facing: 'rear', gait: 0 }, 0);
-    const left = vampireSheetIndex({ facing: 'left', gait: 0 }, 0);
-    const right = vampireSheetIndex({ facing: 'right', gait: 0 }, 0);
-    const step = vampireSheetIndex({ facing: 'front', gait: 1 }, 0);
+    const front = vampireSheetIndex({ facing: 'front', gait: 0, moving: true }, 0);
+    const rear = vampireSheetIndex({ facing: 'rear', gait: 0, moving: true }, 0);
+    const left = vampireSheetIndex({ facing: 'left', gait: 0, moving: true }, 0);
+    const right = vampireSheetIndex({ facing: 'right', gait: 0, moving: true }, 0);
+    const step = vampireSheetIndex({ facing: 'front', gait: 1, moving: true }, 0);
     expect([...once[front]!]).not.toEqual([...once[rear]!]);
     expect([...once[left]!]).not.toEqual([...once[right]!]);
     expect([...once[front]!]).not.toEqual([...once[step]!]);
   });
 
   test('poseFromSprite reads the walk sprite', () => {
-    expect(poseFromSprite('character.vampire-01.rear-1')).toEqual({ facing: 'rear', gait: 0 });
-    expect(poseFromSprite('character.vampire-01.right-2')).toEqual({ facing: 'right', gait: 1 });
+    expect(poseFromSprite('character.vampire-01.rear-1')).toEqual({ facing: 'rear', gait: 0, moving: false });
+    expect(poseFromSprite('character.vampire-01.right-2', true)).toEqual({ facing: 'right', gait: 1, moving: true });
   });
 
   test('a part draw uses the same seed crumbs', () => {
@@ -112,7 +112,7 @@ describe('vampire pencil character', () => {
 
     const target = new Uint8ClampedArray(PENCIL_WIDTH * PENCIL_HEIGHT * 4);
     blitPencilFrame(target, player, 0);
-    const index = vampireSheetIndex({ facing: 'left', gait: 1 }, 0);
+    const index = vampireSheetIndex({ facing: 'left', gait: 1, moving: true }, 0);
     expect([...target]).toEqual([...vampirePencilFrames()[index]!]);
   });
 

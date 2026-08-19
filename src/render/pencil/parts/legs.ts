@@ -1,6 +1,6 @@
 import type { Sketch } from '../sketch';
 import type { VampireLayout } from '../layout';
-import { gaitSwing, type VampirePose } from '../pose';
+import type { VampirePose } from '../pose';
 
 /** All authored in body space, like the rest of the part. `F.body` maps them to the canvas. */
 const HIP_Y = 198;
@@ -8,6 +8,8 @@ const FLOOR_Y = 286;
 const BOOT_Y = 284;
 /** How far the swinging foot leaves the floor on the front and rear walk. */
 const STEP_LIFT = 20;
+/** The profile lift is smaller: the leg is seen edge-on, so it reads at less travel. */
+const SIDE_LIFT = 12;
 const BOOT_HEIGHT = 26;
 /** Thickness of the pale sole. */
 const SOLE = 7;
@@ -62,36 +64,45 @@ function drawBoot(
  */
 export function drawLegs(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
   const { colors } = F;
-  const swing = gaitSwing(pose.gait);
 
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
-    const front = swing * dir;
-    const back = -swing * dir;
-    const frontLeg = sketch.smooth([
+    /**
+     * Contact then passing, not a swap.
+     *
+     * The first version set `front = swing * dir` and `back = -swing * dir`, so the two feet were
+     * at `{-16, +16}` in BOTH frames and only traded which one was drawn on top. The silhouette
+     * never changed, which is why the profile walk looked frozen while the front walk did not.
+     * Frame 0 spreads the legs; frame 1 brings the trailing leg under the body and lifts it.
+     */
+    const spread = pose.gait === 0;
+    const leadX = pose.moving ? (spread ? 14 : 5) * dir : 5 * dir;
+    const trailX = pose.moving ? (spread ? -14 : -2) * dir : -5 * dir;
+    const trailLift = pose.moving && !spread ? SIDE_LIFT : 0;
+    const leg = (footX: number, lift: number, drop: number) => sketch.smooth([
       F.body(-3, HIP_Y), F.body(3, HIP_Y),
-      F.body(front + 4, FLOOR_Y + 6), F.body(front - 4, FLOOR_Y + 6),
+      F.body(footX + 4, FLOOR_Y + drop - lift), F.body(footX - 4, FLOOR_Y + drop - lift),
     ]);
-    const backLeg = sketch.smooth([
-      F.body(-3, HIP_Y), F.body(3, HIP_Y),
-      F.body(back + 4, FLOOR_Y), F.body(back - 4, FLOOR_Y),
-    ]);
-    sketch.fill(backLeg, colors.cloak, 0.86);
-    sketch.fill(frontLeg, colors.cloak, 0.92);
-    sketch.broken(backLeg, F.lwMain);
-    sketch.broken(frontLeg, F.lwMain);
+    const trailLeg = leg(trailX, trailLift, 0);
+    const leadLeg = leg(leadX, 0, 6);
+    sketch.fill(trailLeg, colors.cloak, 0.86);
+    sketch.fill(leadLeg, colors.cloak, 0.92);
+    sketch.broken(trailLeg, F.lwMain);
+    sketch.broken(leadLeg, F.lwMain);
     // Trailing boot first so the leading one overlaps it, same as the legs above.
-    drawBoot(sketch, F, back - dir * 7, back + dir * 9, BOOT_Y);
-    drawBoot(sketch, F, front - dir * 8, front + dir * 11, BOOT_Y + 3);
+    drawBoot(sketch, F, trailX - dir * 7, trailX + dir * 9, BOOT_Y - trailLift);
+    drawBoot(sketch, F, leadX - dir * 8, leadX + dir * 11, BOOT_Y + 3);
     return;
   }
 
+  // Standing still means standing still: both feet flat, square under the hips. Reusing walk
+  // frame 0 for idle left him balanced on one leg every time he stopped.
   const phase = pose.gait === 0 ? 1 : -1;
-  const leftLift = phase === 1 ? 0 : STEP_LIFT;
-  const rightLift = phase === 1 ? STEP_LIFT : 0;
+  const leftLift = !pose.moving ? 0 : phase === 1 ? 0 : STEP_LIFT;
+  const rightLift = !pose.moving ? 0 : phase === 1 ? STEP_LIFT : 0;
   // The planted foot pushes away from the midline; the lifted one tucks across it.
-  const leftX = phase === 1 ? -4 : 6;
-  const rightX = phase === 1 ? -6 : 4;
+  const leftX = !pose.moving ? 0 : phase === 1 ? -4 : 6;
+  const rightX = !pose.moving ? 0 : phase === 1 ? -6 : 4;
 
   const left = sketch.smooth([
     F.body(-8, HIP_Y), F.body(-1, HIP_Y),

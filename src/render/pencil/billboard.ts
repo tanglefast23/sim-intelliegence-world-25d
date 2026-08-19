@@ -63,7 +63,7 @@ export function blitPencilFrame(
   character: WorldCharacterPlacement,
   animationTimestampMilliseconds: number,
 ): void {
-  const pose = poseFromSprite(character.sprite);
+  const pose = poseFromSprite(character.sprite, character.moving);
   const index = vampireSheetIndex(pose, vampireBoilIndex(animationTimestampMilliseconds));
   const src = vampirePencilFrames()[index] ?? vampirePencilFrames()[0]!;
   target.set(src);

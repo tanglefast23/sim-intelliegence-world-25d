@@ -29,7 +29,7 @@
         "vfxMode": "procedural"
       },
       "expected": {
-        "frameHash": "9f3f0745",
+        "frameHash": "71067caf",
         "mapHash": "ab126923",
         "presentationHash": "68688355",
         "atlasHash": "5dbb02a640744c05153d14dd6dffd6cbb3cd71a7ea71bf14bd7b3d027e3759e0",
@@ -59,7 +59,7 @@
         "vfxMode": "circle"
       },
       "expected": {
-        "frameHash": "dc89ac59",
+        "frameHash": "1f383209",
         "mapHash": "ab126923",
         "presentationHash": "68688355",
         "atlasHash": "5dbb02a640744c05153d14dd6dffd6cbb3cd71a7ea71bf14bd7b3d027e3759e0",

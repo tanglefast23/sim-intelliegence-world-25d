@@ -8,6 +8,7 @@ import { drawSkull } from './skull';
 import { drawEars } from './ears';
 import { drawHair } from './hair';
 import { drawEyes } from './eyes';
+import { drawNose } from './nose';
 import { drawFangs } from './fangs';
 
 export type VampirePartId =
@@ -18,6 +19,7 @@ export type VampirePartId =
   | 'ears'
   | 'hair'
   | 'eyes'
+  | 'nose'
   | 'fangs';
 
 export type VampirePart = Readonly<{
@@ -34,12 +36,13 @@ export const VAMPIRE_PARTS: readonly VampirePart[] = [
   { id: 'ears', draw: drawEars },
   { id: 'hair', draw: drawHair },
   { id: 'eyes', draw: drawEyes },
+  { id: 'nose', draw: drawNose },
   { id: 'fangs', draw: drawFangs },
 ];
 
 export const VAMPIRE_PART_IDS = VAMPIRE_PARTS.map((part) => part.id);
 
-export const IDLE_POSE: VampirePose = { facing: 'front', gait: 0 };
+export const IDLE_POSE: VampirePose = { facing: 'front', gait: 0, moving: false };
 
 export function drawVampireCharacter(
   sketch: Sketch,

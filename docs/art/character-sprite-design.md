@@ -209,7 +209,82 @@ has no edge, so a correctly animated foot is still an invisible one. Every boot 
 | rear | **No hands** — the cape hangs closed over both arms. **No sole** — you cannot see the underside of a shoe from behind; the pale band moves to the ankle cuff. **No face** — the hair must cover the skull to the jaw, or a pale chin-shaped wedge reads as a face on the back of his head. |
 | left / right | Both boots are drawn, not just the leading one. The toe points the way he walks — a hardcoded `+x` toe puts his foot on backwards when he walks left. |
 
-### 6.5 The profile is not the front view squashed
+### 6.5 Drawing a NEW character: ask, do not guess
+
+**Run the `grill-with-docs` skill before drawing any new character.** Come back with questions, and
+give a recommendation with each one so Joe can say "yes" rather than design it himself.
+
+Ask at least these:
+
+| Question | Options | How to suggest |
+|---|---|---|
+| Head shape | the nine in `HEAD_SHAPES` | Name one and say why. Frankenstein → `square`. A witch → `drop`. |
+| Expressions | which faces this character can pull | Never assume. The vampire has none yet. |
+| Signature part | what makes them theirs | One exaggerated feature, one supporting. Art bible §9.3 applies here too. |
+| Species | human, or loaded dice toward something else | Only ask once the `gen()` layer exists. |
+
+**Head shape is one word.** [head-shape.ts](../../src/render/pencil/head-shape.ts) carries
+`round, square, tall, drop, pear, lump, wide, bumpy, wonky`. `buildVampireLayout('square')` is the
+whole change. The ring is smoothed twice and slid `HEAD_ROUND` (0.92) of the way onto the target —
+never 1, or the silhouette stops looking drawn.
+
+**Expressions do not exist yet.** The reference draws spare faces lazily — only the resting one
+costs a canvas at build time — and swaps them while a blink hides the change. We have no `states`,
+no blink, and no expression table. When Joe asks for a character, ask which expressions it needs
+and build only those.
+
+### 6.6 Poses do not scale the way we build them
+
+Today every state is a **fully baked canvas**. `bakeVampireFrames()` draws
+`facings (4) × states (3) × boil (3) = 36` frames at 240×360×4 bytes — **12.4 MB** for idle and
+two walk frames.
+
+The plan is many more poses: sitting, attack, sleep, run for the vampire, and at least idle, walk
+and sitting for everyone else. On the current architecture:
+
+| States | Frames | Memory |
+|---|---|---|
+| idle + walk (now) | 36 | 12.4 MB |
+| + sitting | 48 | 16.6 MB |
+| + sitting, attack, sleep, run | 84 | 29 MB |
+
+Per character. That is the wrong curve, and it gets worse with a second character.
+
+**The reference does not redraw.** Its step 10 says the drawings never change — a pose writes bone
+*offsets* through a small ctx API (`root`, `head`, `body`, `bone`, `each`, `state`), every write is
+scaled by a blend weight, so a transition is two poses summing and nothing snaps. Walk and run
+share one gait phase, so changing tempo never teleports a foot.
+
+We have no bones. Parts draw straight to canvas coordinates, so a pose can only be a whole new
+bake. **Before adding sitting and attack, move the parts onto a bone the animator can offset.**
+Adding four poses to the current design costs 29 MB and four more full drawings per facing; adding
+them to a bone rig costs four small offset tables.
+
+### 6.7 Provisional — not locked in
+
+> **These rules are being worked out on screen and are NOT settled.** They stay in this box until
+> Joe says he likes how the vampire looks. Do not treat them as law, and do not copy them to
+> another character yet.
+
+- **Idle is its own drawing, not walk frame 0.** Frame 0 has a foot in the air, so reusing it
+  leaves the character balanced on one leg whenever he stops. `VAMPIRE_STATES` bakes idle, walk 1
+  and walk 2 per facing. Idle means both feet flat and square, no arm swing, no cloak sway.
+- **`moving` must be plumbed, not inferred.** `gaitBobPixels` is 0 while standing *and* at stride
+  phase 0, so it cannot tell you whether a character is walking. `WorldCharacterPlacement.moving`
+  carries the real flag.
+- **A profile walk needs contact and passing, not a swap.** Putting the feet at `{-16, +16}` and
+  only trading which is drawn in front leaves the silhouette identical in both frames — the walk
+  looks frozen. One frame spreads the legs; the other brings the trailing leg under the body and
+  lifts it.
+- **A fang needs a mouth behind it.** Bare white triangles on skin read as loose teeth from the
+  front and as a long hanging nose in profile. Draw the dark mouth first; the fangs hang from its
+  lower edge.
+- **He needs a nose, and it must not be outlined.** A `broken` ring closes the shape and detaches
+  it: front-on the pair read as spectacles, in profile it floats off the edge as a ball. Fill it
+  and carry the form with a shadow underneath so it merges into the skull.
+- **Face rows:** eyes 85, nose 95, mouth 103. The nose at 90 overlapped the eye blobs.
+
+### 6.6 The profile is not the front view squashed
 
 Two things break a profile, and both were wrong here:
 

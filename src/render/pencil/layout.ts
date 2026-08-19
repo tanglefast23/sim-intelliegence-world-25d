@@ -1,4 +1,5 @@
 import type { Point } from './sketch';
+import type { HeadShape } from './head-shape';
 
 export type Rgb = readonly [number, number, number];
 
@@ -68,6 +69,8 @@ const BODY_SCALE_Y = (FLOOR - SHOULDER_Y) / (BODY_DESIGN_FLOOR - BODY_DESIGN_SHO
  */
 export type VampireLayout = Readonly<{
   cx: number;
+  /** The skull's shape family. The vampire is `tall`; a Frankenstein would be `square`. */
+  shape: HeadShape;
   s: number;
   w: number;
   /** Head scale. Multiply an authored radius or offset by this to keep it on the face. */
@@ -98,7 +101,7 @@ export type VampireLayout = Readonly<{
   colors: typeof VAMPIRE_COLORS;
 }>;
 
-export function buildVampireLayout(): VampireLayout {
+export function buildVampireLayout(shape: HeadShape = 'tall'): VampireLayout {
   const cx = 120;
   const head = (dx: number, dy: number): Point => ({
     x: cx + dx * HEAD_SCALE,
@@ -110,6 +113,7 @@ export function buildVampireLayout(): VampireLayout {
   });
   return {
     cx,
+    shape,
     s: PEN_UNIT * HEAD_SCALE,
     w: 30 * HEAD_SCALE,
     hs: HEAD_SCALE,

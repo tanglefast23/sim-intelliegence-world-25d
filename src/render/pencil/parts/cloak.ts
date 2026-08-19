@@ -4,7 +4,7 @@ import { gaitSwing, type VampirePose } from '../pose';
 
 export function drawCloak(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
   const { colors } = F;
-  const sway = gaitSwing(pose.gait) * 0.35;
+  const sway = pose.moving ? gaitSwing(pose.gait) * 0.35 : 0;
 
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;

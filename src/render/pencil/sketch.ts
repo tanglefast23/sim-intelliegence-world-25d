@@ -74,6 +74,36 @@ export class Sketch {
     this.data[i + 3] = Math.round(outA * 255);
   }
 
+  /**
+   * Takes alpha back out of a pixel.
+   *
+   * Kindergrimm bites the edge of a thick stroke with a paper-coloured square, because his canvas
+   * really is cream paper. Ours is a transparent sprite composited over the world, so painting
+   * paper colour would leave beige specks on the vampire. The bite has to remove coverage instead.
+   */
+  erase(x: number, y: number, strength: number): void {
+    const px = Math.round(x);
+    const py = Math.round(y);
+    if (px < 0 || py < 0 || px >= this.width || py >= this.height || strength <= 0) return;
+    const i = (py * this.width + px) * 4 + 3;
+    this.data[i] = Math.round((this.data[i] ?? 0) * (1 - Math.min(1, strength)));
+  }
+
+  /**
+   * Pushes an authored ring off its exact positions before it is smoothed.
+   *
+   * `blobPts` carries `wob` for generated rings, but an authored outline like the hair has no way
+   * to say how carelessly it was drawn. Kindergrimm's rule is that wobble is a statement about the
+   * hand: an eye is drawn slowly, a scribbled mass is not.
+   */
+  jitterRing(pts: readonly Point[], amount: number): Point[] {
+    if (amount <= 0) return [...pts];
+    return pts.map((point) => ({
+      x: point.x + this.jr(-amount, amount),
+      y: point.y + this.jr(-amount, amount),
+    }));
+  }
+
   blobPts(cx: number, cy: number, rx: number, ry: number, rot: number, wob: number): Point[] {
     const pts: Point[] = [];
     for (let i = 0; i < 16; i += 1) {
@@ -101,6 +131,7 @@ export class Sketch {
     const p3 = this.jr(0, Math.PI * 2);
     const p4 = this.jr(0, Math.PI * 2);
     const amp = width * 0.22;
+    const bites: { x: number; y: number; strength: number }[] = [];
     const left: Point[] = [];
     const right: Point[] = [];
     for (let i = 0; i < spine.length; i += 1) {
@@ -133,12 +164,19 @@ export class Sketch {
           const ink = this.jr(0.2, 0.55);
           this.put(px + nx * spread, py + ny * spread, INK[0], INK[1], INK[2], ink * alpha);
           if (this.j() < 0.45) {
-            this.put(px + nx * spread * 0.7, py + ny * spread * 0.7, PAPER[0], PAPER[1], PAPER[2], 0);
+            // Collected, not applied here. The ribbon is filled after this loop, so a bite taken
+            // now would simply be painted over. This is why the original line was a no-op.
+            bites.push({
+              x: px + nx * spread * 0.7,
+              y: py + ny * spread * 0.7,
+              strength: this.jr(0.55, 1),
+            });
           }
         }
       }
     }
     this.fillPoly([...left, ...right.reverse()], INK[0], INK[1], INK[2], alpha);
+    for (const bite of bites) this.erase(bite.x, bite.y, bite.strength);
   }
 
   sline(pts: readonly Point[], width: number, alpha = 0.45): void {

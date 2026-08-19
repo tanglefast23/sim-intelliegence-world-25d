@@ -137,6 +137,14 @@ export type WorldCharacterPlacement = WorldAtlasPlacement & Readonly<{
    * what was drawn, not a recomputation that can drift away from it.
    */
   gaitBobPixels: number;
+  /**
+   * Whether this character is walking right now.
+   *
+   * `gaitBobPixels` cannot stand in for this: it is also 0 at stride phase 0, so a walking
+   * character reads as still. The pencil vampire needs the real flag to pick its idle stance,
+   * where both feet are on the floor.
+   */
+  moving: boolean;
 }>;
 
 export type WorldGroundedEntry = Readonly<{
@@ -929,6 +937,7 @@ export function buildWorldFrameState(
       shadowWorldY: foot.y,
       angleDegrees,
       gaitBobPixels: reducedMotion ? 0 : gaitBob,
+      moving,
     };
   }).sort((left, right) => left.shadowWorldY - right.shadowWorldY || left.id.localeCompare(right.id, 'en'));
   const hiddenRoofGroupId = roofGroupAtV2(map, playerTile);
