@@ -29,12 +29,12 @@
         "vfxMode": "procedural"
       },
       "expected": {
-        "frameHash": "71067caf",
+        "frameHash": "f12e31ff",
         "mapHash": "ab126923",
-        "presentationHash": "68688355",
+        "presentationHash": "5b02c289",
         "atlasHash": "5dbb02a640744c05153d14dd6dffd6cbb3cd71a7ea71bf14bd7b3d027e3759e0",
-        "drawCounts": { "floor": 666, "prop": 39, "shadow": 2, "character": 2, "effect": 3, "wall": 56, "roof": 0, "total": 768 },
-        "counts": { "floors": 494, "groundDetails": 172, "props": 34, "doors": 5, "characters": 2, "effects": 3, "fallbackEffects": 0, "walls": 56, "roofs": 0, "propShadows": 19, "characterShadows": 2, "thresholds": 5, "journalMarkers": 1, "shelterCells": 1 },
+        "drawCounts": { "floor": 665, "prop": 39, "shadow": 2, "character": 2, "effect": 3, "wall": 56, "roof": 0, "total": 767 },
+        "counts": { "floors": 494, "groundDetails": 171, "props": 34, "doors": 5, "characters": 2, "effects": 3, "fallbackEffects": 0, "walls": 56, "roofs": 0, "propShadows": 19, "characterShadows": 2, "thresholds": 5, "journalMarkers": 1, "shelterCells": 1 },
         "firstIds": { "floor": "floor-11-14", "detail": "transition-24-14", "prop": "shoreglass-spa-fixtures-part-05", "door": "bathroom-hall-door", "character": "protagonist", "effect": "patio-leaves", "wall": "shoreglass-spa-east-5", "journal": "journal_linda_boyfriend" },
         "hiddenRoofGroupId": "protagonist-villa-roof",
         "fallbackEmitterIds": []
@@ -59,9 +59,9 @@
         "vfxMode": "circle"
       },
       "expected": {
-        "frameHash": "1f383209",
+        "frameHash": "dec7df6d",
         "mapHash": "ab126923",
-        "presentationHash": "68688355",
+        "presentationHash": "5b02c289",
         "atlasHash": "5dbb02a640744c05153d14dd6dffd6cbb3cd71a7ea71bf14bd7b3d027e3759e0",
         "drawCounts": { "floor": 858, "prop": 56, "shadow": 1, "character": 1, "effect": 4, "wall": 60, "roof": 187, "total": 1167 },
         "counts": { "floors": 858, "groundDetails": 0, "props": 51, "doors": 5, "characters": 1, "effects": 0, "fallbackEffects": 4, "walls": 60, "roofs": 187, "propShadows": 23, "characterShadows": 1, "thresholds": 5, "journalMarkers": 0, "shelterCells": 0 },

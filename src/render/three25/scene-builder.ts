@@ -4,6 +4,7 @@ import { hiddenWallTiles, tileKey } from './occlusion';
 import { mixHex } from '../atmosphere';
 import { isStandingDecal, readableTint } from './billboards';
 import {
+  DECAL_RECIPES,
   PROP_CORES,
   PROP_FLAT_COLORS,
   WALL_HEIGHT_TILES,
@@ -453,10 +454,52 @@ function floorQuad(
 
 export function buildFloorQuads(frame: WorldFrameState): readonly QuadDescriptor[] {
   const lights = emitterTiles(frame);
-  // Vegetation details are drawn STANDING by `buildBillboards`. Leaving them here as well would
-  // draw every tree twice: once upright and once as its own shadow lying on the grass.
-  return [...frame.floors, ...frame.groundDetails.filter((detail) => !isStandingDecal(detail.sprite))]
+  // Vegetation details are drawn STANDING by `buildBillboards`, and the ones in `DECAL_RECIPES`
+  // are drawn as BOXES by `buildDecalBoxes`. Leaving either here as well would draw them twice:
+  // a tree upright and again as its own shadow on the grass, a pebble as a stone and a stain.
+  return [...frame.floors, ...frame.groundDetails.filter(
+    (detail) => !isStandingDecal(detail.sprite) && DECAL_RECIPES[detail.sprite] === undefined,
+  )]
     .map((placement) => floorQuad(placement, frame, lights));
+}
+
+/**
+ * Low boxes for the ground decals that are objects rather than marks — see `DECAL_RECIPES`.
+ *
+ * Mirrors `buildPropBoxes` minus the parts a decal cannot use. There is no `consumes` pass because
+ * a decal never spans tiles, and no `texturedCore` pass because every box here is far smaller than
+ * the window that lookup needs; both would be dead code the reader has to rule out.
+ *
+ * `shelteredTint` at the FLOOR strength, not the prop strength. A pebble is ground, so it must
+ * fall away with the ground it sits on when the player is inside a room; at the prop's half
+ * strength the stones on the lawn stayed bright while the lawn went dark under them.
+ */
+export function buildDecalBoxes(frame: WorldFrameState): readonly BoxDescriptor[] {
+  const boxes: BoxDescriptor[] = [];
+  for (const detail of frame.groundDetails) {
+    const recipe = DECAL_RECIPES[detail.sprite];
+    if (recipe === undefined) continue;
+    recipe.boxes.forEach((box, index) => {
+      boxes.push({
+        id: `${detail.id}#${index}`,
+        sprite: detail.sprite,
+        source: detail.source,
+        flatShade: true,
+        x: detail.tile.x + 0.5 + box.x,
+        y: box.y,
+        z: detail.tile.y + 0.5 + box.z,
+        width: box.width,
+        height: box.height,
+        depth: box.depth,
+        tint: shelteredTint(
+          scaleHex(readableTint(box.tint ?? detail.color), propVariation(detail.id)),
+          detail.tile,
+          frame,
+        ),
+      });
+    });
+  }
+  return boxes;
 }
 
 /**
@@ -666,6 +709,7 @@ export function buildScene(frame: WorldFrameState): SceneDescriptor {
     boxes: [
       ...buildWallBoxes(frame),
       ...buildPropBoxes(frame),
+      ...buildDecalBoxes(frame),
       ...buildDoorBoxes(frame),
       ...buildRoofBoxes(frame),
     ],
