@@ -47,7 +47,7 @@ export type WashOptions = Readonly<{
 }>;
 
 export type Medium = Readonly<{
-  id: 'graphite';
+  id: 'graphite' | 'charcoal';
   /** Does pencil construction still read underneath a wash? True for graphite. */
   underdraw: boolean;
   tone: (s: Sketch, pts: readonly Point[], o?: ToneOptions) => void;
@@ -161,3 +161,44 @@ function edge(s: Sketch, pts: readonly Point[], w: number): void {
 }
 
 export const GRAPHITE: Medium = { id: 'graphite', underdraw: true, tone, skin, edge };
+
+/**
+ * Charcoal: the reference's "charcoal smears". Wide soft strokes instead of the pencil's thin
+ * lines, plus dust. Built for world props — Joe asked whether the bins, signs and box-trees
+ * could stop looking smooth and join the drawn style.
+ */
+const CHARCOAL_PASSES: Readonly<Record<Exclude<ToneStyle, 'stipple'>, readonly HatchPass[]>> = {
+  black: [
+    { angle: 0.2, spacing: 3.4, lw: 3.6, alpha: 0.4, chained: true },
+    { angle: 1.75, spacing: 4.2, lw: 2.8, alpha: 0.3 },
+  ],
+  hatch: [{ angle: -0.95, spacing: 4.2, lw: 3.0, alpha: 0.32 }],
+  scribble: [{ angle: 0.18, spacing: 3.8, lw: 3.2, alpha: 0.34, chained: true }],
+  light: [{ angle: -0.95, spacing: 6.0, lw: 2.6, alpha: 0.22 }],
+};
+
+function charcoalTone(s: Sketch, pts: readonly Point[], o: ToneOptions = {}): void {
+  if (o.paper !== false) paper(s, pts);
+  const style = o.style ?? 'scribble';
+  if (style === 'stipple') {
+    stipple(s, pts);
+    return;
+  }
+  for (const pass of CHARCOAL_PASSES[style]) {
+    hatchPass(s, pts, o.angle === undefined ? pass : { ...pass, angle: pass.angle + o.angle });
+  }
+  // The smear leaves dust around itself.
+  stipple(s, pts);
+}
+
+function charcoalSkin(s: Sketch, pts: readonly Point[], col: Rgb, o: WashOptions = {}): void {
+  if (o.paper !== false) paper(s, pts);
+  if (o.underdraw !== false) {
+    for (const pass of CHARCOAL_PASSES.light) hatchPass(s, pts, pass);
+  }
+  s.fill(pts, col, o.alpha ?? 0.38);
+}
+
+export const CHARCOAL: Medium = {
+  id: 'charcoal', underdraw: true, tone: charcoalTone, skin: charcoalSkin, edge,
+};

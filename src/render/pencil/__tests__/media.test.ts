@@ -1,4 +1,4 @@
-import { DENSITY, GRAPHITE } from '../media';
+import { CHARCOAL, DENSITY, GRAPHITE } from '../media';
 import { polygonSpans, Sketch, type Point } from '../sketch';
 
 const RECT: readonly Point[] = [
@@ -82,6 +82,29 @@ describe('the graphite medium', () => {
     expect(wash.mean).toBeGreaterThan(182);
     // And the underdraw pencil shows through: the interior is textured, not flat.
     expect(wash.spread).toBeGreaterThan(30);
+  });
+
+  test('charcoal smears wider and dustier than graphite, same contract', () => {
+    expect(CHARCOAL.underdraw).toBe(true);
+    const smeared = new Sketch(100, 100);
+    smeared.boil(7);
+    CHARCOAL.tone(smeared, RECT, { style: 'scribble' });
+    // Textured mass, not a fill — and the wide smear TOUCHES more of the interior than the
+    // pencil's thin lines, even though each touch is lighter. "dark" is the wrong measure for a
+    // soft medium; inked coverage is the right one.
+    const inked = (sketch: Sketch): number => {
+      let count = 0;
+      for (let y = 26; y < 74; y += 1) {
+        for (let x = 26; x < 74; x += 1) {
+          const offset = (y * sketch.width + x) * 4;
+          if ((sketch.data[offset + 3] as number) < 40) continue;
+          if ((sketch.data[offset] as number) < 210) count += 1;
+        }
+      }
+      return count;
+    };
+    expect(sample(smeared).spread).toBeGreaterThan(60);
+    expect(inked(smeared)).toBeGreaterThan(inked(toned('scribble')));
   });
 
   test('polygonSpans stays inside the polygon', () => {
