@@ -221,9 +221,9 @@ what has to be decided per character.
 
 | # | Section | What we have | Decide per character |
 |---|---|---|---|
-| 1 | the pencil | Full port: ribbon strokes, three summed sines, grit, crumbs, `erase` bite | Nothing. Shared by everyone. |
+| 1 | the pencil | Ribbon strokes, three summed sines, grit, crumbs, `erase` bite. **Ends do not overshoot yet** — see audit 6.9 | Nothing. Shared by everyone. |
 | 2 | the shape | `blobPts` ported. `wob` is the hand: eye ~0.4, scribbled mass 1 | Which masses are scribbled, which are drawn slowly |
-| 3 | the material | **Missing.** No `tone`/`skin`/`edge`, no `DENSITY`, no `underdraw` — 47 direct `fill` calls | Nothing yet. Build the medium layer first if the character is not graphite. |
+| 3 | the material | **Missing, and actively violated.** 46 flat `fill` calls, 35 at alpha ≥ 0.82 — the reference has no flat fill in any medium. This is the whole visual gap; see audit 6.9 | Nothing yet. The medium layer is the top build priority. |
 | 4 | the head | `HEAD_SHAPES`: round, square, tall, drop, pear, lump, wide, bumpy, wonky | **Head shape.** Always ask. Vampire `tall`, Frankenstein `square`. |
 | 5 | the map | `layout.ts` publishes every anchor. `HEAD_SHARE` sets proportion. `FLOOR` is pinned | Head share, if it differs from 0.56 |
 | 6 | the parts | 9 parts: cloak, legs, arms, skull, ears, hair, eyes, nose, fangs | **Which parts this character needs**, and which are new files |
@@ -318,7 +318,7 @@ them to a bone rig costs four small offset tables.
   and carry the form with a shadow underneath so it merges into the skull.
 - **Face rows:** eyes 85, nose 95, mouth 103. The nose at 90 overlapped the eye blobs.
 
-### 6.6 The profile is not the front view squashed
+### 6.8 The profile is not the front view squashed
 
 Two things break a profile, and both were wrong here:
 
@@ -328,6 +328,67 @@ Two things break a profile, and both were wrong here:
 - **The mouth pushes forward, off the eye.** In a cartoon profile the eye sits back toward the ear
   and the mouth sits at the leading edge of the face. Eye and mouth in the same column reads as a
   flattened front view. Here the eye is at `dir * 5` and the fangs at `dir * 17..25`.
+
+---
+
+### 6.9 Audit, 2026-08-19: why ours still does not look like the reference
+
+Joe asked why our vampire reads so differently from the page and ordered a full audit of every
+rule we copied. Verdict: **the pencil is a faithful port; the drawing is not.** We ported how a
+LINE is made and then filled every mass with a flat polygon, which the reference never does
+anywhere. The gap is the fills, not the strokes.
+
+**Misapplication 1 — flat fills. This is the whole visual gap.** The reference has no flat fill in
+any medium. A graphite mass is *hatched or scribbled* — strokes laid side by side with paper
+showing in the gaps. Even `black · 1`, the densest swatch on the page, is scribble with gaps.
+Watercolour stacks translucent layers; oil lays opaque *daubs*; every medium builds mass out of
+strokes. We call `sketch.fill()` 46 times, 35 of them at alpha ≥ 0.82. Our masses are vector
+shapes with pencil edges. Theirs are pencil all the way through. The fix is the medium layer's
+`tone(pts, { style })` with the `DENSITY` table (`black 1, hatch .72, scribble .62, stipple .5,
+light .34`), implemented as strokes.
+
+**Misapplication 2 — the palette bakes in what the medium should own.** The page: a part gets one
+opinion, *how dark*, "not how to make it dark — that stays the medium's business." Our
+`VAMPIRE_COLORS` are near-black hexes (`cloak [24,22,30]`, `hair [22,20,26]`) applied at 0.9+
+alpha, so every part decides exactly how its darkness is made. The reference works in graphite
+grey (INK at partial alpha) plus light colour washes over it. A dark cloak should be
+`tone(..., { style: 'black' })` — dense scribble, gaps showing — not an opaque hex.
+
+**Misapplication 3 — no paper.** The reference composites on cream. Its skin is a pale wash with
+hatching over paper; its gaps read as paper. Our sprite is transparent over the game world, so
+textured fills would show grass through his chest and graphite contours land on dark floors
+instead of cream. When the medium layer is built, **the character must carry his own paper**: fill
+the union silhouette with `PAPER` first, then tone and wash over it. Without this, hatched fills
+will read as holes.
+
+**Misapplication 4 — stroke ends do not overshoot.** The page names three habits of the pencil:
+"the spine wanders, the width breathes, the ends run past where they should stop." We ported the
+first two. Our spine stops exactly where authored, so corners never get the crossed-tick,
+sketched look. Extend the spine a few px past each end before ribboning; the existing taper turns
+the overrun into a fading tail.
+
+**Misapplication 5 — the boil is in unison.** Section 8's own warning: give each part its own
+clock (`fps .85–1.6`, offset) "or the whole character would boil in unison and read as a video."
+We bake whole-character frames and flip everything on one 1.15fps clock. The root cause is
+architectural: the reference draws **each part on its own canvas** hung on a `THREE.Group` bone;
+we draw all parts into one sheet. That one divergence underlies the unison boil, the pose
+blocker (6.6), and the missing lazy faces.
+
+**Misapplication 6 — the ¾ swell is undersized.** The page: a ¾ turn "swells the near side by 10%
+and collapses the far side by 28%." Ours: near ×1.02, far ×0.72. The collapse matches; the swell
+is 2% where it should be 10% ([head-shape.ts:79](../../src/render/pencil/head-shape.ts:79)).
+
+**Faithful, verified line by line:** the stroke maths (resample `max(2.2, w·.9)`, sines f1 1.5–3.5
+/ f2 5–9 / f3 11–17 with .55/.3/.15, grit ±.35, breathing `.38·sin(t·7.3)+.14·sin(t·19)`, rail
+jitter `.88–1.14`, 62% ink), crumbs (gate `w ≥ 1.2`, 1–4 per sample, ±1.05 spread, 45% bite —
+ours erases instead of painting paper, a justified adaptation for a transparent sprite),
+`sline`/`stroke`/`broken` with every contour going through `broken` (30 calls, raw `stroke` 0),
+`blobPts` maths with `rot` made required, the double-Chaikin skull, the anchor map, the pinned
+floor, and deterministic reseeding per boil frame.
+
+**Known open risk:** hatching on a 120×180 sheet is 1–2px lines under a 2.9× downscale. It may
+mush to grey at play zoom. Grey mush *is* roughly what pencil looks like at distance, but judge it
+with a real capture at game scale, not from the sheet.
 
 ---
 
