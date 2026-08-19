@@ -338,6 +338,13 @@ exists ([media.ts](../../src/render/pencil/media.ts)): `tone`/`skin`/`edge`/`und
 `DENSITY` table, and a carried paper under every mass. Stroke ends overshoot. The ¾ swell is 10%.
 Only the unison boil remains — it needs the per-part canvas split.
 
+**THE STYLE TARGET IS JOE'S DARK CALIBRATION, chosen in-game 2026-08-19.** The loop below first
+calibrated to the reference's light graphite, and Joe rejected it on the deployed game: the world
+is bright and busy, and NearestFilter minification eats thin light lines at play zoom, so the
+character washed out. The technique rules below stand; the VALUES in `media.ts` run deliberately
+darker and bolder (`lwMain` 2.1px, black nearly closed). Match a new character to the vampire on
+screen, not to the reference's swatches. Do not re-lighten without a new in-game decision.
+
 **Calibration rules the loop earned, one render at a time:**
 
 - **Graphite is lighter than memory.** Ink at 62% over cream is MID-GREY. The first medium build

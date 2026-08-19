@@ -46,14 +46,13 @@ describe('the graphite medium', () => {
     expect(GRAPHITE.underdraw).toBe(true);
   });
 
-  test('a mass is never flat: even black keeps paper in the gaps', () => {
-    // This is the audit's misapplication 1. A flat fill has zero paper-coloured interior pixels;
-    // the reference's densest swatch still shows the page through the scribble.
+  test('a mass is drawn, not filled: even near-solid black is textured strokes', () => {
+    // The audit's misapplication 1 was flat fills. Joe's 2026-08-19 calibration deliberately
+    // lets black close most of its gaps — the light reference-faithful version washed out at
+    // play zoom — so the non-flat guarantee is the tonal spread the strokes leave behind, not a
+    // count of paper gaps. A flat fill has a spread near zero.
     const black = sample(toned('black'));
-    expect(black.dark).toBeGreaterThan(500);
-    // Light pixels inside the mass are the paper showing through the scribble. A flat fill has
-    // zero of these and a spread near zero.
-    expect(black.light).toBeGreaterThan(60);
+    expect(black.dark).toBeGreaterThan(900);
     expect(black.spread).toBeGreaterThan(80);
   });
 

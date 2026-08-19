@@ -23,8 +23,7 @@ export function drawHair(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
       F.head(-dir * 22, 58),
       F.head(-dir * 26, 40),
     ], HAIR_SCRIBBLE * F.k));
-    F.media.tone(sketch, hair, { style: 'scribble', angle: -0.06 });
-    F.media.tone(sketch, hair, { style: 'scribble', angle: 0.1, paper: false });
+    F.media.tone(sketch, hair, { style: 'black' });
     sketch.broken(hair, F.lwMain);
     return;
   }
@@ -40,8 +39,7 @@ export function drawHair(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
       F.head(-32, 74),
       F.head(-24, 38),
     ], HAIR_SCRIBBLE * F.k));
-    F.media.tone(sketch, hair, { style: 'scribble', angle: -0.06 });
-    F.media.tone(sketch, hair, { style: 'scribble', angle: 0.1, paper: false });
+    F.media.tone(sketch, hair, { style: 'black' });
     sketch.broken(hair, F.lwMain);
     return;
   }
@@ -58,8 +56,7 @@ export function drawHair(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
     F.head(-28, 52),
     F.head(-18, 36),
   ], HAIR_SCRIBBLE * F.k));
-  F.media.tone(sketch, hair, { style: 'scribble', angle: -0.06 });
-  F.media.tone(sketch, hair, { style: 'scribble', angle: 0.1, paper: false });
+  F.media.tone(sketch, hair, { style: 'black' });
   // The hairEdge highlight blob is gone: its job was interior texture, which the scribbled tone
   // now supplies natively.
   sketch.broken(hair, F.lwMain);

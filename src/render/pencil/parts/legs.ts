@@ -84,8 +84,8 @@ export function drawLegs(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
     ]);
     const trailLeg = leg(trailX, trailLift, 0);
     const leadLeg = leg(leadX, 0, 6);
-    F.media.tone(sketch, trailLeg, { style: 'scribble', angle: 0.45 });
-    F.media.tone(sketch, leadLeg, { style: 'scribble', angle: 0.45 });
+    F.media.tone(sketch, trailLeg, { style: 'black', angle: 0.45 });
+    F.media.tone(sketch, leadLeg, { style: 'black', angle: 0.45 });
     sketch.broken(trailLeg, F.lwMain);
     sketch.broken(leadLeg, F.lwMain);
     // Trailing boot first so the leading one overlaps it, same as the legs above.
@@ -111,8 +111,8 @@ export function drawLegs(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
     F.body(1, HIP_Y), F.body(8, HIP_Y),
     F.body(10 + rightX, FLOOR_Y - rightLift), F.body(2 + rightX, FLOOR_Y - rightLift),
   ]);
-  F.media.tone(sketch, left, { style: 'scribble', angle: 0.45 });
-  F.media.tone(sketch, right, { style: 'scribble', angle: 0.45 });
+  F.media.tone(sketch, left, { style: 'black', angle: 0.45 });
+  F.media.tone(sketch, right, { style: 'black', angle: 0.45 });
   sketch.broken(left, F.lwMain);
   sketch.broken(right, F.lwMain);
   // Toes point outward on both facings. From behind that is anatomically the heel, but at this

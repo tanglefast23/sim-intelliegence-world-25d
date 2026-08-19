@@ -66,17 +66,19 @@ type HatchPass = Readonly<{ angle: number; spacing: number; lw: number; alpha: n
  * graphite on their own.
  */
 const TONE_PASSES: Readonly<Record<Exclude<ToneStyle, 'stipple'>, readonly HatchPass[]>> = {
-  // Calibrated against the reference's swatches, which are far LIGHTER than they look in
-  // memory: ink at 62% over cream is mid-grey, and even black keeps flecks of page. The first
-  // version double-crosshatched at lw 1.6 and stacked to near-solid black — the flat fill
-  // sneaking back in through density. Thin lines, real gaps.
+  // JOE'S CALIBRATION, locked 2026-08-19. This deliberately runs DARKER than the reference's
+  // swatches. A reference-faithful light pencil was built and rendered (audit 6.9's loops 1-4)
+  // and Joe rejected it in-game: the world is bright and busy, and NearestFilter minification
+  // eats thin light lines at play zoom, so the character washed out. Black nearly closes its
+  // gaps on purpose — it reads near-solid in the world and still hand-drawn up close. Do not
+  // re-lighten these for reference fidelity without a new in-game decision.
   black: [
-    { angle: 0.14, spacing: 2.0, lw: 1.05, alpha: 0.62, chained: true },
-    { angle: 1.88, spacing: 2.8, lw: 0.85, alpha: 0.45 },
+    { angle: 0.14, spacing: 2.0, lw: 1.6, alpha: 0.62, chained: true },
+    { angle: 1.88, spacing: 2.4, lw: 1.3, alpha: 0.5 },
   ],
-  hatch: [{ angle: -1.05, spacing: 2.6, lw: 0.8, alpha: 0.5 }],
-  scribble: [{ angle: 0.12, spacing: 2.4, lw: 0.9, alpha: 0.55, chained: true }],
-  light: [{ angle: -1.05, spacing: 3.6, lw: 0.6, alpha: 0.26 }],
+  hatch: [{ angle: -1.05, spacing: 2.8, lw: 1.1, alpha: 0.55 }],
+  scribble: [{ angle: 0.12, spacing: 2.6, lw: 1.2, alpha: 0.55, chained: true }],
+  light: [{ angle: -1.05, spacing: 5.2, lw: 0.9, alpha: 0.32 }],
 };
 
 function paper(s: Sketch, pts: readonly Point[]): void {

@@ -69,10 +69,9 @@ const PEN_UNIT = 42;
  * time anyone saw them. At 120x180 the downscale is 2.9x and the same wobble covers twice as many
  * display pixels. He is the same size in the world and twice as legible.
  *
- * **Line weights are a ratio of the figure, per the audit loop.** The reference's contour is
- * about 0.75% of the figure's height. Holding ours absolute at 2.1px made the pencil twice as
- * heavy as theirs and the whole character read as marker, not graphite. `lwMain` stays just over
- * the 1.2 crumb gate so contours still shed.
+ * **Line weights are Joe's calibration, not the reference's ratio.** The reference contour is
+ * ~0.75% of figure height and we tried it (audit 6.9 loops): the silhouette washed out at play
+ * zoom under NearestFilter minification. Bold 2.1px contours are what survive the game.
  */
 export const SHEET_WIDTH = 120;
 export const SHEET_HEIGHT = 180;
@@ -165,8 +164,8 @@ export function buildVampireLayout(shape: HeadShape = 'tall'): VampireLayout {
       floorY: FLOOR * SHEET_SCALE,
       bootY: body(0, 284).y,
     },
-    lwMain: SHEET_HEIGHT * 0.0075,
-    lwThin: SHEET_HEIGHT * 0.0036,
+    lwMain: PEN_UNIT * 0.05,
+    lwThin: PEN_UNIT * 0.021,
     colors: VAMPIRE_COLORS,
     media: GRAPHITE,
   };

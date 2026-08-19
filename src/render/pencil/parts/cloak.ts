@@ -31,8 +31,8 @@ export function drawCloak(sketch: Sketch, F: VampireLayout, pose: VampirePose): 
     const chest = sketch.smooth([
       F.body(-8, 132), F.body(8, 132), F.body(9, 198), F.body(-9, 198),
     ]);
-    F.media.tone(sketch, chest, { style: 'light' });
-    F.media.skin(sketch, chest, colors.cloakLift, { paper: false, underdraw: false, alpha: 0.35 });
+    F.media.tone(sketch, chest, { style: 'hatch' });
+    F.media.skin(sketch, chest, colors.cloakLift, { paper: false, underdraw: false, alpha: 0.45 });
     sketch.broken(chest, F.lwMain);
     return;
   }
@@ -73,7 +73,7 @@ export function drawCloak(sketch: Sketch, F: VampireLayout, pose: VampirePose): 
   const chest = sketch.smooth([
     F.body(-12, 132), F.body(12, 132), F.body(14, 198), F.body(-14, 198),
   ]);
-  F.media.tone(sketch, chest, { style: 'light' });
-  F.media.skin(sketch, chest, colors.cloakLift, { paper: false, underdraw: false, alpha: 0.35 });
+  F.media.tone(sketch, chest, { style: 'hatch' });
+  F.media.skin(sketch, chest, colors.cloakLift, { paper: false, underdraw: false, alpha: 0.45 });
   sketch.broken(chest, F.lwMain);
 }
