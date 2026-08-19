@@ -568,7 +568,9 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
         id: `${prop.id}#${index}`,
         sprite: prop.sprite,
         source: coreRectangle ?? prop.source,
-        gain: core === undefined ? undefined : coreGain(core.luminance),
+        // A recipe's own gain wins: it is the author saying this box reads too dark, which a
+        // measured core luminance cannot know.
+        gain: box.gain ?? (core === undefined ? undefined : coreGain(core.luminance)),
         // Furniture reads as flat-shaded volumes UNLESS the box is big enough to carry the
         // sprite's own grain, in which case the opaque core is mapped across it instead.
         flatShade: core === undefined,

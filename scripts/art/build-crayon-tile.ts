@@ -33,13 +33,13 @@ const QUARTER = 96;
 /** Paper white, matching PAPER in sketch.ts — the identity value for a multiply. */
 const PAPER_WHITE = 246;
 /**
- * How much of the source's contrast to keep.
+ * What the DARKEST wax texel does to a prop's colour, as a fraction of paper.
  *
- * Not 1: the raw image swings darker than a game prop can absorb, and at full strength the dark
- * tooth multiplied an already-dark trunk to black. The mean-normalise below protects the AVERAGE
- * colour, but not the extremes, so this caps how dark any single texel can pull.
+ * 0.62 means the deepest grain renders a prop at 62% of its authored colour. Stated as a number
+ * because this is the value that crushed the bushes to black twice when it was implicit: the mean
+ * being right protects the average, never the extremes.
  */
-const STRENGTH = 0.85;
+const DARKEST = Math.round(246 * 0.62);
 
 function main(root = process.cwd()): void {
   const sourcePath = resolve(root, SOURCE);
@@ -50,32 +50,40 @@ function main(root = process.cwd()): void {
   }
   const image = decodePng(readFileSync(sourcePath));
 
-  // Box-filter down to the quarter tile. Averaging beats sampling: the scan is high frequency, and
-  // point sampling it would alias into the static the generated attempts already failed with.
+  /**
+   * CROP at native resolution. Do not downsample.
+   *
+   * The first version box-filtered 1344x690 down to the tile, averaging ~14x7 source pixels per
+   * texel — which destroys precisely the fine wax grain this whole exercise is for. Measured, it
+   * left a 24x24 face window with a spread of 34/255, invisible on a mid-green. A native crop
+   * keeps every grain the artist's texture has.
+   */
+  const originX = Math.max(0, Math.floor((image.width - QUARTER) / 2));
+  const originY = Math.max(0, Math.floor((image.height - QUARTER) / 2));
   const quarter = new Float64Array(QUARTER * QUARTER);
-  const scaleX = image.width / QUARTER;
-  const scaleY = image.height / QUARTER;
   for (let ty = 0; ty < QUARTER; ty += 1) {
     for (let tx = 0; tx < QUARTER; tx += 1) {
-      let sum = 0;
-      let count = 0;
-      const x0 = Math.floor(tx * scaleX);
-      const x1 = Math.max(x0 + 1, Math.floor((tx + 1) * scaleX));
-      const y0 = Math.floor(ty * scaleY);
-      const y1 = Math.max(y0 + 1, Math.floor((ty + 1) * scaleY));
-      for (let y = y0; y < Math.min(y1, image.height); y += 1) {
-        for (let x = x0; x < Math.min(x1, image.width); x += 1) {
-          const offset = (y * image.width + x) * 4;
-          // Rec. 709 luma. The source is green, so a plain channel average would read its hue as
-          // brightness and bias the whole texture.
-          sum += 0.2126 * (image.data[offset] ?? 0)
-            + 0.7152 * (image.data[offset + 1] ?? 0)
-            + 0.0722 * (image.data[offset + 2] ?? 0);
-          count += 1;
-        }
-      }
-      quarter[ty * QUARTER + tx] = count === 0 ? PAPER_WHITE : sum / count;
+      const sx = Math.min(image.width - 1, originX + tx);
+      const sy = Math.min(image.height - 1, originY + ty);
+      const offset = (sy * image.width + sx) * 4;
+      // Rec. 709 luma. The source is green, so a plain channel average would read its hue as
+      // brightness and bias the whole texture.
+      quarter[ty * QUARTER + tx] = 0.2126 * (image.data[offset] ?? 0)
+        + 0.7152 * (image.data[offset + 1] ?? 0)
+        + 0.0722 * (image.data[offset + 2] ?? 0);
     }
+  }
+  // Stretch the crop's own range to full black-to-white before the contrast cap below. A crayon
+  // scan occupies a narrow band of luminance; without this, capping starts from almost no range.
+  let cropMin = 255;
+  let cropMax = 0;
+  for (const value of quarter) {
+    if (value < cropMin) cropMin = value;
+    if (value > cropMax) cropMax = value;
+  }
+  const span = Math.max(1, cropMax - cropMin);
+  for (let i = 0; i < quarter.length; i += 1) {
+    quarter[i] = ((quarter[i] ?? cropMin) - cropMin) / span * 255;
   }
 
   // Mirror into a seamless tile: [q | flipX] over [flipY | flipXY].
@@ -89,21 +97,30 @@ function main(root = process.cwd()): void {
     }
   }
 
-  // Compress contrast, then force the mean to paper so the multiply is colour-neutral.
+  /**
+   * Map to the multiply range: mean lands exactly on paper, darkest on DARKEST, brightest on 255.
+   *
+   * Piecewise on purpose. The earlier version scaled by a single gain and clamped at 255, so the
+   * bright half clipped and dragged the mean down to 225 — an 8% darkening of every prop, which
+   * is precisely the colour shift this tile must not cause. Mapping each half to its own target
+   * cannot clip, so the mean is exact and the darkest texel's effect is a stated number.
+   */
   let mean = 0;
   for (const value of tile) mean += value;
   mean /= tile.length;
-  const bytes: number[] = [];
-  let compressedSum = 0;
-  const compressed = new Float64Array(tile.length);
-  for (let i = 0; i < tile.length; i += 1) {
-    const value = mean + ((tile[i] ?? mean) - mean) * STRENGTH;
-    compressed[i] = value;
-    compressedSum += value;
+  let low = 255;
+  let high = 0;
+  for (const value of tile) {
+    if (value < low) low = value;
+    if (value > high) high = value;
   }
-  const gain = PAPER_WHITE / Math.max(1, compressedSum / compressed.length);
-  for (let i = 0; i < compressed.length; i += 1) {
-    bytes.push(Math.max(0, Math.min(255, Math.round((compressed[i] ?? 0) * gain))));
+  const bytes: number[] = [];
+  for (let i = 0; i < tile.length; i += 1) {
+    const value = tile[i] ?? mean;
+    const mapped = value < mean
+      ? PAPER_WHITE - ((mean - value) / Math.max(1, mean - low)) * (PAPER_WHITE - DARKEST)
+      : PAPER_WHITE + ((value - mean) / Math.max(1, high - mean)) * (255 - PAPER_WHITE);
+    bytes.push(Math.max(0, Math.min(255, Math.round(mapped))));
   }
 
   const rows: string[] = [];

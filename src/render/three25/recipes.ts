@@ -13,6 +13,16 @@ export type BoxRecipe = Readonly<{
   height: number;
   depth: number;
   tint?: string;
+  /**
+   * Albedo multiplier, allowed above 1.
+   *
+   * A hex tint maxes out at `#ffffff`, so it can never brighten a box that reads too dark — and a
+   * box showing only VERTICAL faces reads far darker than one showing its top, because a
+   * hemisphere light gives a horizontal normal the horizon blend and an upward normal the full
+   * sky. A tall thin post is the worst case: the palm trunk was authored brown and rendered
+   * black, and raising its hex twice barely moved it because the hex was never the limit.
+   */
+  gain?: number;
   /** Draw unlit, keeping `tint` exactly. Only for boxes that ARE the light — see `BoxDescriptor`. */
   glow?: boolean;
 }>;
@@ -388,9 +398,10 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   },
   'tile.plant-palm': {
     boxes: [
-      // Lifted from #8a6a44: under sRGB-to-linear, the 0.66 side shade and the canopy's own
-      // shadow, that brown read as black. Joe: "the trunk is supposed to be brown".
-      { x: 0, y: 0.75, z: 0, width: 0.22, height: 1.5, depth: 0.22, tint: '#b08a5e' },
+      // A tall thin post shows only vertical faces, which take the least light in the scene.
+      // Two hex lifts (#8a6a44 -> #b08a5e) barely moved it because the hex was never the limit;
+      // `gain` is, and it is the only lever that can push past #ffffff.
+      { x: 0, y: 0.75, z: 0, width: 0.22, height: 1.5, depth: 0.22, tint: '#b08a5e', gain: 2.1 },
       { x: 0, y: 1.65, z: 0, width: 1.1, height: 0.3, depth: 1.1, tint: FOLIAGE_GREEN },
     ],
   },
