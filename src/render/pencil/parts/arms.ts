@@ -3,7 +3,7 @@ import type { VampireLayout } from '../layout';
 import { gaitSwing, type VampirePose } from '../pose';
 
 export function drawArms(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
-  const { colors } = F;
+  const { colors, k } = F;
   const swing = pose.moving ? gaitSwing(pose.gait) : 0;
 
   if (pose.facing === 'left' || pose.facing === 'right') {
@@ -14,7 +14,7 @@ export function drawArms(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
       F.body(dir * 4 - swing * 0.4, 178),
       hand,
     ], F.lwMain);
-    sketch.fill(sketch.blobPts(hand.x, hand.y + 4, 7, 7, 0, 0.55), colors.pale, 0.94);
+    sketch.fill(sketch.blobPts(hand.x, hand.y + 4 * k, 7 * k, 7 * k, 0, 0.55), colors.pale, 0.94);
     return;
   }
 
@@ -31,6 +31,6 @@ export function drawArms(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
   const rightHand = F.body(30 + sway, 214 + swing * 0.4);
   sketch.broken([F.body(-14, 140), F.body(-34, 178), leftHand], F.lwMain);
   sketch.broken([F.body(14, 140), F.body(34, 178), rightHand], F.lwMain);
-  sketch.fill(sketch.blobPts(leftHand.x, leftHand.y + 4, 8, 8, 0, 0.55), colors.pale, 0.94);
-  sketch.fill(sketch.blobPts(rightHand.x, rightHand.y + 4, 8, 8, 0, 0.55), colors.pale, 0.94);
+  sketch.fill(sketch.blobPts(leftHand.x, leftHand.y + 4 * k, 8 * k, 8 * k, 0, 0.55), colors.pale, 0.94);
+  sketch.fill(sketch.blobPts(rightHand.x, rightHand.y + 4 * k, 8 * k, 8 * k, 0, 0.55), colors.pale, 0.94);
 }

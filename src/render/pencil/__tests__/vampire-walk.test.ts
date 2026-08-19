@@ -111,8 +111,10 @@ describe('pencil vampire walk and proportions', () => {
   test('the boots carry a light band so the step is visible against the cloak', () => {
     // hair and cloak differ by two units per channel. Without the ash band a moving boot is
     // correct and invisible at the same time.
+    // Proportional to the sheet, so shrinking the drawing does not quietly fail this.
+    const floor = Math.round((PENCIL_WIDTH * PENCIL_HEIGHT) / 1400);
     for (const facing of VAMPIRE_FACINGS) {
-      expect(countsNear(render(facing, 0), VAMPIRE_COLORS.ash)).toBeGreaterThan(40);
+      expect(countsNear(render(facing, 0), VAMPIRE_COLORS.ash)).toBeGreaterThan(floor);
     }
   });
 

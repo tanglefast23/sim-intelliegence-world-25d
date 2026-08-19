@@ -56,6 +56,28 @@ const BODY_DESIGN_FLOOR = 286;
 /** Authored line weights. Deliberately not scaled: a bigger head still holds the same pencil. */
 const PEN_UNIT = 42;
 
+/**
+ * The drawing sheet.
+ *
+ * Everything above is authored against a 240x360 sheet. `SHEET_SCALE` maps that basis onto the
+ * real one, so the authored numbers stay readable while the sheet shrinks.
+ *
+ * **Why shrink it.** The billboard is `WORLD_CELL_WIDTH x WORLD_CELL_HEIGHT` (42x60) and that is
+ * NOT changing — it sets his size against the world. At 240x360 the sheet was downscaled 5.7x to
+ * reach the screen, so the crumbs, the grit and the per-frame boil were mostly sub-pixel by the
+ * time anyone saw them. At 120x180 the downscale is 2.9x and the same wobble covers twice as many
+ * display pixels. He is the same size in the world and twice as legible.
+ *
+ * **Line weights do not scale with it.** `lwMain` is 2.1px. Halving it to 1.05 would drop under
+ * the `width >= 1.2` crumb gate in `sketch.ts` and silently delete the graphite shed. Holding them
+ * absolute makes the pencil proportionally bolder on the smaller sheet, which is what a smaller
+ * drawing wants anyway.
+ */
+export const SHEET_WIDTH = 120;
+export const SHEET_HEIGHT = 180;
+const AUTHORED_SHEET_HEIGHT = 360;
+const SHEET_SCALE = SHEET_HEIGHT / AUTHORED_SHEET_HEIGHT;
+
 const HEAD_SCALE = HEAD_SHARE * (BOOT_BOTTOM - FIGURE_TOP) / (HEAD_DESIGN_CHIN - HEAD_DESIGN_TOP);
 const CHIN_Y = FIGURE_TOP + HEAD_SHARE * (BOOT_BOTTOM - FIGURE_TOP);
 /** The neck. The shoulders start just under the chin, whatever the head share is. */
@@ -75,6 +97,8 @@ export type VampireLayout = Readonly<{
   w: number;
   /** Head scale. Multiply an authored radius or offset by this to keep it on the face. */
   hs: number;
+  /** Sheet scale. Multiply a raw canvas number authored against the 240x360 basis by this. */
+  k: number;
   /** Authored head space to canvas. `dx` is an offset from `cx`, `dy` an authored row. */
   head: (dx: number, dy: number) => Point;
   /** Authored body space to canvas. Same shape as `head`. */
@@ -102,38 +126,40 @@ export type VampireLayout = Readonly<{
 }>;
 
 export function buildVampireLayout(shape: HeadShape = 'tall'): VampireLayout {
-  const cx = 120;
+  const cx = SHEET_WIDTH / 2;
+  // Both mappers work in the authored 240x360 basis and land on the real sheet in one multiply.
   const head = (dx: number, dy: number): Point => ({
-    x: cx + dx * HEAD_SCALE,
-    y: FIGURE_TOP + (dy - HEAD_DESIGN_TOP) * HEAD_SCALE,
+    x: cx + dx * HEAD_SCALE * SHEET_SCALE,
+    y: (FIGURE_TOP + (dy - HEAD_DESIGN_TOP) * HEAD_SCALE) * SHEET_SCALE,
   });
   const body = (dx: number, dy: number): Point => ({
-    x: cx + dx * BODY_WIDTH_SCALE,
-    y: SHOULDER_Y + (dy - BODY_DESIGN_SHOULDER) * BODY_SCALE_Y,
+    x: cx + dx * BODY_WIDTH_SCALE * SHEET_SCALE,
+    y: (SHOULDER_Y + (dy - BODY_DESIGN_SHOULDER) * BODY_SCALE_Y) * SHEET_SCALE,
   });
   return {
     cx,
     shape,
-    s: PEN_UNIT * HEAD_SCALE,
-    w: 30 * HEAD_SCALE,
-    hs: HEAD_SCALE,
+    k: SHEET_SCALE,
+    s: PEN_UNIT * HEAD_SCALE * SHEET_SCALE,
+    w: 30 * HEAD_SCALE * SHEET_SCALE,
+    hs: HEAD_SCALE * SHEET_SCALE,
     head,
     body,
     L: {
       skullY: head(0, 82).y,
       hairY: head(0, 28).y,
       earY: head(0, 66).y,
-      eyeX: (side) => side * 12 * HEAD_SCALE,
+      eyeX: (side) => side * 12 * HEAD_SCALE * SHEET_SCALE,
       eyeY: head(0, 85).y,
       noseY: head(0, 86).y,
       my: head(0, 104).y,
-      chinY: CHIN_Y,
+      chinY: CHIN_Y * SHEET_SCALE,
     },
     B: {
-      shoulderY: SHOULDER_Y,
-      hipX: 8 * BODY_WIDTH_SCALE,
+      shoulderY: SHOULDER_Y * SHEET_SCALE,
+      hipX: 8 * BODY_WIDTH_SCALE * SHEET_SCALE,
       hipY: body(0, 198).y,
-      floorY: FLOOR,
+      floorY: FLOOR * SHEET_SCALE,
       bootY: body(0, 284).y,
     },
     lwMain: PEN_UNIT * 0.05,

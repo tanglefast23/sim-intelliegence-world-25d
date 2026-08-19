@@ -1,10 +1,10 @@
 import { hashSeed, Sketch } from './sketch';
-import { buildVampireLayout } from './layout';
+import { buildVampireLayout, SHEET_HEIGHT, SHEET_WIDTH } from './layout';
 import { drawVampireCharacter } from './parts';
-import { VAMPIRE_FACINGS, VAMPIRE_STATES, type VampirePose } from './pose';
+import { VAMPIRE_FACINGS, VAMPIRE_SHEET_LENGTH, type VampirePose } from './pose';
 
-export const PENCIL_WIDTH = 240;
-export const PENCIL_HEIGHT = 360;
+export const PENCIL_WIDTH = SHEET_WIDTH;
+export const PENCIL_HEIGHT = SHEET_HEIGHT;
 export const BOIL_FRAMES = 3;
 export const WORLD_CELL_WIDTH = 42;
 export const WORLD_CELL_HEIGHT = 60;
@@ -20,8 +20,8 @@ export const WORLD_CELL_HEIGHT = 60;
  * The cloak hem is drawn below this row on purpose; it sinks into the floor, which is what a hem
  * dragging on the ground does.
  */
-export const PENCIL_CONTACT_ROW = 308;
-export const VAMPIRE_SHEET_FRAMES = VAMPIRE_FACINGS.length * VAMPIRE_STATES.length * BOIL_FRAMES;
+export const PENCIL_CONTACT_ROW = Math.round(308 * (SHEET_HEIGHT / 360));
+export const VAMPIRE_SHEET_FRAMES = VAMPIRE_SHEET_LENGTH;
 
 export function drawVampire(
   sketch: Sketch,
@@ -32,13 +32,20 @@ export function drawVampire(
 
 export function bakeVampireFrames(): readonly Uint8ClampedArray[] {
   const frames: Uint8ClampedArray[] = [];
-  // Facing, then state, then boil. `vampireSheetIndex` assumes exactly this order.
+  // The single front idle first, then facing-major walk frames. `vampireSheetIndex` assumes
+  // exactly this order.
+  for (let boil = 0; boil < BOIL_FRAMES; boil += 1) {
+    const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
+    sketch.boil(hashSeed('vampire-01', 'front', 'idle', boil));
+    drawVampire(sketch, { facing: 'front', gait: 0, moving: false });
+    frames.push(sketch.data);
+  }
   for (const facing of VAMPIRE_FACINGS) {
-    for (const state of VAMPIRE_STATES) {
+    for (const gait of [0, 1] as const) {
       for (let boil = 0; boil < BOIL_FRAMES; boil += 1) {
         const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
-        sketch.boil(hashSeed('vampire-01', facing, state.moving ? state.gait : 'idle', boil));
-        drawVampire(sketch, { facing, gait: state.gait, moving: state.moving });
+        sketch.boil(hashSeed('vampire-01', facing, gait, boil));
+        drawVampire(sketch, { facing, gait, moving: true });
         frames.push(sketch.data);
       }
     }

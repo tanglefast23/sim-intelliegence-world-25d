@@ -22,7 +22,7 @@ export function drawHair(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
       F.head(0, 72),
       F.head(-dir * 22, 58),
       F.head(-dir * 26, 40),
-    ], HAIR_SCRIBBLE));
+    ], HAIR_SCRIBBLE * F.k));
     sketch.fill(hair, colors.hair, 0.96);
     sketch.broken(hair, F.lwMain);
     return;
@@ -38,7 +38,7 @@ export function drawHair(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
       F.head(-24, 106),
       F.head(-32, 74),
       F.head(-24, 38),
-    ], HAIR_SCRIBBLE));
+    ], HAIR_SCRIBBLE * F.k));
     sketch.fill(hair, colors.hair, 0.96);
     sketch.broken(hair, F.lwMain);
     return;
@@ -55,7 +55,7 @@ export function drawHair(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
     F.head(-22, 64),
     F.head(-28, 52),
     F.head(-18, 36),
-  ], HAIR_SCRIBBLE));
+  ], HAIR_SCRIBBLE * F.k));
   sketch.fill(hair, colors.hair, 0.96);
   sketch.fill(
     sketch.blobPts(F.head(-12, 48).x, F.head(0, 48).y, s * 0.16, s * 0.12, 0.2, 1),

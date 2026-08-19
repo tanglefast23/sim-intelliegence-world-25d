@@ -209,7 +209,39 @@ has no edge, so a correctly animated foot is still an invisible one. Every boot 
 | rear | **No hands** — the cape hangs closed over both arms. **No sole** — you cannot see the underside of a shoe from behind; the pale band moves to the ankle cuff. **No face** — the hair must cover the skull to the jaw, or a pale chin-shaped wedge reads as a face on the back of his head. |
 | left / right | Both boots are drawn, not just the leading one. The toe points the way he walks — a hardcoded `+x` toe puts his foot on backwards when he walks left. |
 
-### 6.5 Drawing a NEW character: ask, do not guess
+### 6.5 The character workflow
+
+**Every new character starts with `/grill-with-docs`.** Joe must type it — it cannot be invoked
+for him. Its job is to settle the eleven decisions below before a line is drawn. Do not start
+drawing and do not guess; come back with the table filled in.
+
+The eleven rows are the eleven sections of
+[how a creature is drawn](https://kindergrimm.vercel.app/how.html). Each row says what we have, and
+what has to be decided per character.
+
+| # | Section | What we have | Decide per character |
+|---|---|---|---|
+| 1 | the pencil | Full port: ribbon strokes, three summed sines, grit, crumbs, `erase` bite | Nothing. Shared by everyone. |
+| 2 | the shape | `blobPts` ported. `wob` is the hand: eye ~0.4, scribbled mass 1 | Which masses are scribbled, which are drawn slowly |
+| 3 | the material | **Missing.** No `tone`/`skin`/`edge`, no `DENSITY`, no `underdraw` — 47 direct `fill` calls | Nothing yet. Build the medium layer first if the character is not graphite. |
+| 4 | the head | `HEAD_SHAPES`: round, square, tall, drop, pear, lump, wide, bumpy, wonky | **Head shape.** Always ask. Vampire `tall`, Frankenstein `square`. |
+| 5 | the map | `layout.ts` publishes every anchor. `HEAD_SHARE` sets proportion. `FLOOR` is pinned | Head share, if it differs from 0.56 |
+| 6 | the parts | 9 parts: cloak, legs, arms, skull, ears, hair, eyes, nose, fangs | **Which parts this character needs**, and which are new files |
+| 7 | the species | **Missing.** No `gen()`, so there is nothing to load the dice on | Human or not. Only actionable once `gen()` exists. |
+| 8 | the boil | 3 frames per state at 1.15fps. **We boil in unison**, which the reference warns reads as video | Nothing yet. Per-part clocks are a shared fix. |
+| 9 | the face | **Missing.** No expression states, no blink, no lazy state drawing | **Which expressions.** Never assume. The vampire has none. |
+| 10 | the pose | Idle (front only) and walk (all four facings). Baked canvases, no bones | **Which poses beyond idle and walk.** See 6.6 — they are blocked on a bone rig. |
+| 11 | the seed | **Missing.** Nothing is saved. Characters are hardcoded TypeScript, no recipe JSON | Nothing yet. |
+
+Five of the eleven are missing entirely. Say so when the grill reaches them, rather than inventing
+an answer.
+
+**Locked pose scope.** Every character gets an **idle, front-facing only** — a character who stops
+turns to face the camera, so the other three idles would never be seen. Every character gets
+**walking in all four facings**. Nothing else is drawn up front; sitting, attack and sleep are
+designed one at a time.
+
+### 6.5.1 Ask, do not guess
 
 **Run the `grill-with-docs` skill before drawing any new character.** Come back with questions, and
 give a recommendation with each one so Joe can say "yes" rather than design it himself.
@@ -233,7 +265,7 @@ costs a canvas at build time — and swaps them while a blink hides the change. 
 no blink, and no expression table. When Joe asks for a character, ask which expressions it needs
 and build only those.
 
-### 6.6 Poses do not scale the way we build them
+### 6.6 Poses do not scale the way we build them (LOCKED)
 
 Today every state is a **fully baked canvas**. `bakeVampireFrames()` draws
 `facings (4) × states (3) × boil (3) = 36` frames at 240×360×4 bytes — **12.4 MB** for idle and
@@ -256,7 +288,9 @@ scaled by a blend weight, so a transition is two poses summing and nothing snaps
 share one gait phase, so changing tempo never teleports a foot.
 
 We have no bones. Parts draw straight to canvas coordinates, so a pose can only be a whole new
-bake. **Before adding sitting and attack, move the parts onto a bone the animator can offset.**
+bake. **LOCKED 2026-08-19: before adding sitting and attack, move the parts onto a bone the animator
+can offset.** Idle is front-facing only; walking covers all four facings; nothing else is drawn up
+front. With the 120x180 sheet that is 27 frames and 2.2 MB, against 36 frames and 12.4 MB before.
 Adding four poses to the current design costs 29 MB and four more full drawings per facing; adding
 them to a bone rig costs four small offset tables.
 

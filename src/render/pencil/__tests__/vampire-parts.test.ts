@@ -2,7 +2,7 @@ import { movementPresentation } from '../../atlas';
 import { createInitialState } from '../../../domain/state/initial-state';
 import { WORLD_MAP_CATALOG } from '../../../application/runtime/map-catalog';
 import { buildWorldFrameState } from '../../world-frame';
-import { buildVampireLayout } from '../layout';
+import { buildVampireLayout, SHEET_WIDTH } from '../layout';
 import { drawVampireCharacter, VAMPIRE_PART_IDS, VAMPIRE_PARTS } from '../parts';
 import {
   bakeVampireFrames,
@@ -51,10 +51,12 @@ describe('vampire pencil character', () => {
 
   test('layout F publishes the anchors parts read', () => {
     const F = buildVampireLayout();
-    expect(F.cx).toBe(120);
-    // The eye offset scales with the head, so pin the relationship, not the authored number.
+    expect(F.cx).toBe(SHEET_WIDTH / 2);
+    // The eye offset scales with the head AND the sheet, so pin the relationship rather than any
+    // authored number. It sits inside the skull's half width and outside the midline.
     expect(F.L.eyeX(1)).toBeCloseTo(-F.L.eyeX(-1));
-    expect(F.L.eyeX(1)).toBeGreaterThan(12);
+    expect(F.L.eyeX(1)).toBeGreaterThan(0);
+    expect(F.L.eyeX(1)).toBeLessThan(F.w);
     expect(F.L.my).toBeGreaterThan(F.L.eyeY);
     expect(F.B.floorY).toBeGreaterThan(F.B.hipY);
     expect(F.lwMain).toBeGreaterThan(F.lwThin);
