@@ -206,7 +206,7 @@ export function frameCamera(
   return { x: targetX, z: targetZ };
 }
 
-function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>, frame: number): HTMLCanvasElement | undefined {
+function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>): HTMLCanvasElement | undefined {
   if (typeof document === 'undefined') return undefined;
   const canvas = document.createElement('canvas');
   canvas.width = image.width;
@@ -214,7 +214,7 @@ function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>,
   const context = canvas.getContext('2d');
   if (!context) return undefined;
   context.drawImage(image as unknown as CanvasImageSource, 0, 0);
-  const tile = bakePropSketchTile(frame);
+  const tile = bakePropSketchTile();
   // Paper red is 246; dividing by it makes untouched paper the identity and every stroke a darken.
   const PAPER_RED = 246;
   // Recipe'd props only. Walls, doors and roofs wore the grain for part of 2026-08-19 and Joe
@@ -977,7 +977,7 @@ export async function createWorldRenderer25(
    * pulled it the same day: everything shimmering was too distracting. The boil belongs to
    * characters only; the world is drawn, then it holds.
    */
-  const grained = grainBoxSpriteCells(texture.image as { width: number; height: number }, 0);
+  const grained = grainBoxSpriteCells(texture.image as { width: number; height: number });
   if (grained) {
     // three's Texture.image typing narrows to HTMLImageElement after TextureLoader, but a canvas
     // is a first-class texture source at runtime.
@@ -1122,7 +1122,7 @@ export async function createWorldRenderer25(
    * shaded blob. `FACE_SHADE` in the baked colours rides on top of the light.
    */
   // The greyscale charcoal tile: paper multiplies to the authored colour, strokes darken it.
-  const sketchTile = new DataTexture(bakePropSketchTile(0), PROP_TILE_SIZE, PROP_TILE_SIZE);
+  const sketchTile = new DataTexture(bakePropSketchTile(), PROP_TILE_SIZE, PROP_TILE_SIZE);
   sketchTile.magFilter = NearestFilter;
   sketchTile.minFilter = NearestFilter;
   sketchTile.colorSpace = SRGBColorSpace;

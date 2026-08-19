@@ -1,0 +1,129 @@
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+import { decodePng } from './png';
+
+/**
+ * Turns a crayon texture image into the tiling greyscale tile the props multiply.
+ *
+ * Joe supplied an AI-generated crayon texture on 2026-08-19, after four attempts at synthesising
+ * the mark from strokes missed: they read as ruled lines or as static. An image carries the wax's
+ * actual grain, which is what stroke synthesis kept failing to produce.
+ *
+ * What ships is not the image. It is stripped to luminance, box-filtered 1344x690 down to 48x48,
+ * contrast-halved and mirrored — a derived grain field, not a picture.
+ *
+ * **Why greyscale.** The source is green, but props are green, brown, teal and cream. Stripping
+ * to luminance and multiplying means ONE texture serves every colour: bright wax passes the
+ * prop's own colour through, dark tooth darkens it. A colour texture would fight the tint.
+ *
+ * **Why normalised.** A multiply can only darken. The tile's mean is forced to paper white so a
+ * prop's AVERAGE colour comes out exactly as authored — texture without a colour shift. This is
+ * the bug that crushed the bushes to black twice before.
+ *
+ * **Why mirrored.** A photograph does not tile; its edges would show as a grid across the world.
+ * Mirroring makes every edge match its neighbour by construction.
+ *
+ * Run: npm run art:crayon
+ */
+const SOURCE = 'assets/source/art/crayon.png';
+const OUTPUT = 'src/render/pencil/generated-crayon-tile.ts';
+/** Quarter of the final tile: the output mirrors to 2x this on both axes. */
+const QUARTER = 96;
+/** Paper white, matching PAPER in sketch.ts — the identity value for a multiply. */
+const PAPER_WHITE = 246;
+/**
+ * How much of the source's contrast to keep.
+ *
+ * Not 1: the raw image swings darker than a game prop can absorb, and at full strength the dark
+ * tooth multiplied an already-dark trunk to black. The mean-normalise below protects the AVERAGE
+ * colour, but not the extremes, so this caps how dark any single texel can pull.
+ */
+const STRENGTH = 0.85;
+
+function main(root = process.cwd()): void {
+  const sourcePath = resolve(root, SOURCE);
+  if (!existsSync(sourcePath)) {
+    throw new Error(
+      `Missing ${SOURCE}. Save the crayon texture there as a PNG, then run npm run art:crayon.`,
+    );
+  }
+  const image = decodePng(readFileSync(sourcePath));
+
+  // Box-filter down to the quarter tile. Averaging beats sampling: the scan is high frequency, and
+  // point sampling it would alias into the static the generated attempts already failed with.
+  const quarter = new Float64Array(QUARTER * QUARTER);
+  const scaleX = image.width / QUARTER;
+  const scaleY = image.height / QUARTER;
+  for (let ty = 0; ty < QUARTER; ty += 1) {
+    for (let tx = 0; tx < QUARTER; tx += 1) {
+      let sum = 0;
+      let count = 0;
+      const x0 = Math.floor(tx * scaleX);
+      const x1 = Math.max(x0 + 1, Math.floor((tx + 1) * scaleX));
+      const y0 = Math.floor(ty * scaleY);
+      const y1 = Math.max(y0 + 1, Math.floor((ty + 1) * scaleY));
+      for (let y = y0; y < Math.min(y1, image.height); y += 1) {
+        for (let x = x0; x < Math.min(x1, image.width); x += 1) {
+          const offset = (y * image.width + x) * 4;
+          // Rec. 709 luma. The source is green, so a plain channel average would read its hue as
+          // brightness and bias the whole texture.
+          sum += 0.2126 * (image.data[offset] ?? 0)
+            + 0.7152 * (image.data[offset + 1] ?? 0)
+            + 0.0722 * (image.data[offset + 2] ?? 0);
+          count += 1;
+        }
+      }
+      quarter[ty * QUARTER + tx] = count === 0 ? PAPER_WHITE : sum / count;
+    }
+  }
+
+  // Mirror into a seamless tile: [q | flipX] over [flipY | flipXY].
+  const size = QUARTER * 2;
+  const tile = new Float64Array(size * size);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const sx = x < QUARTER ? x : size - 1 - x;
+      const sy = y < QUARTER ? y : size - 1 - y;
+      tile[y * size + x] = quarter[sy * QUARTER + sx] ?? PAPER_WHITE;
+    }
+  }
+
+  // Compress contrast, then force the mean to paper so the multiply is colour-neutral.
+  let mean = 0;
+  for (const value of tile) mean += value;
+  mean /= tile.length;
+  const bytes: number[] = [];
+  let compressedSum = 0;
+  const compressed = new Float64Array(tile.length);
+  for (let i = 0; i < tile.length; i += 1) {
+    const value = mean + ((tile[i] ?? mean) - mean) * STRENGTH;
+    compressed[i] = value;
+    compressedSum += value;
+  }
+  const gain = PAPER_WHITE / Math.max(1, compressedSum / compressed.length);
+  for (let i = 0; i < compressed.length; i += 1) {
+    bytes.push(Math.max(0, Math.min(255, Math.round((compressed[i] ?? 0) * gain))));
+  }
+
+  const rows: string[] = [];
+  for (let i = 0; i < bytes.length; i += 32) {
+    rows.push(`  ${bytes.slice(i, i + 32).join(',')},`);
+  }
+  const output = `/**
+ * Generated by scripts/art/build-crayon-tile.ts. Do not hand-edit.
+ *
+ * A photographed crayon texture, reduced to a seamless greyscale tile with a paper-white mean so
+ * multiplying it over a prop colour adds grain without shifting the colour.
+ */
+export const CRAYON_TILE_SIZE = ${size};
+
+export const CRAYON_TILE: readonly number[] = [
+${rows.join('\n')}
+];
+`;
+  writeFileSync(resolve(root, OUTPUT), output, { encoding: 'utf8', flush: true });
+  process.stdout.write(`Crayon tile: ${OUTPUT} (${size}x${size})\n`);
+}
+
+main();

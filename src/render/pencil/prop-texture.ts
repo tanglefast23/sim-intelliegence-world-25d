@@ -1,5 +1,4 @@
-import { GRAPHITE } from './media';
-import { hashSeed, Sketch, type Point } from './sketch';
+import { CRAYON_TILE, CRAYON_TILE_SIZE } from './generated-crayon-tile';
 
 /**
  * The drawn skin for the 2.5D prop boxes.
@@ -13,7 +12,7 @@ import { hashSeed, Sketch, type Point } from './sketch';
  * Greyscale-on-paper is what makes one tile serve every prop. A coloured tile would fight the
  * vertex tint; a multiplied tile IS the tint's texture.
  */
-export const PROP_TILE_SIZE = 64;
+export const PROP_TILE_SIZE = CRAYON_TILE_SIZE;
 
 /**
  * One frame, deliberately. A three-frame boiling world shipped on 2026-08-19 and Joe pulled it
@@ -26,43 +25,26 @@ export const PROP_TILE_SIZE = 64;
  * and the brown trunk bases to black. After normalising, the grain is pure contrast: strokes
  * darken, the paper between them lifts, and a prop's average colour is exactly what was authored.
  */
-export function bakePropSketchTile(frame = 0): Uint8ClampedArray {
-  const sketch = new Sketch(PROP_TILE_SIZE, PROP_TILE_SIZE);
-  sketch.boil(hashSeed('prop-sketch-tile', frame));
-  sketch.fillPaper();
-  // The ring overshoots the tile so strokes run through the edges instead of framing them —
-  // a visible margin would draw a border on every box face.
-  const over = 6;
-  const ring: readonly Point[] = [
-    { x: -over, y: -over },
-    { x: PROP_TILE_SIZE + over, y: -over },
-    { x: PROP_TILE_SIZE + over, y: PROP_TILE_SIZE + over },
-    { x: -over, y: PROP_TILE_SIZE + over },
-  ];
+export function bakePropSketchTile(): Uint8ClampedArray {
   /**
-   * Sparse chained scribble — "the opposite of dense", Joe's fourth calibration of 2026-08-19.
+   * The crayon grain, straight from the generated tile.
    *
-   * Why the earlier tries missed: on the CHARACTER a stroke lands on cream paper and reads as a
-   * grey line with space around it, which is why the hair looks light. On an OBJECT the same
-   * stroke MULTIPLIES a mid colour and goes near-black, so the dense `black` tile crushed every
-   * prop. Hair-like on a multiply texture means few strokes, wide gaps: distinct squiggles over
-   * mostly-open colour. gap 2.4 spreads the rows; pen 0.75 stays under the crumb gate (crumbs
-   * read as freckles, rejected twice); the mean-normalise keeps the prop's average colour exactly
-   * as authored.
+   * Four attempts at SYNTHESISING crayon from strokes came first and all failed: `light` read as
+   * ruled lines, `black` crushed every prop, sparse `scribble` read as thin pencil, and a
+   * per-pixel dropout read as television static. Wax grain is not a set of strokes, and drawing
+   * it as strokes is what kept missing. The image supplies the grain directly.
+   *
+   * Already greyscale, seamless and mean-normalised by the builder, so this is a straight copy
+   * into RGBA: R=G=B=grain, and the multiply in the renderer adds texture without shifting a
+   * prop's colour.
    */
-  GRAPHITE.tone(sketch, ring, { style: 'scribble', paper: false, pen: 0.75, gap: 2.4 });
-  const data = sketch.data;
-  let sum = 0;
-  let count = 0;
-  for (let offset = 0; offset < data.length; offset += 4) {
-    sum += data[offset] ?? 0;
-    count += 1;
-  }
-  const gain = count === 0 ? 1 : (246 * count) / Math.max(1, sum);
-  for (let offset = 0; offset < data.length; offset += 4) {
-    data[offset] = Math.min(255, Math.round((data[offset] ?? 0) * gain));
-    data[offset + 1] = Math.min(255, Math.round((data[offset + 1] ?? 0) * gain));
-    data[offset + 2] = Math.min(255, Math.round((data[offset + 2] ?? 0) * gain));
+  const data = new Uint8ClampedArray(CRAYON_TILE_SIZE * CRAYON_TILE_SIZE * 4);
+  for (let i = 0; i < CRAYON_TILE.length; i += 1) {
+    const value = CRAYON_TILE[i] ?? 246;
+    data[i * 4] = value;
+    data[i * 4 + 1] = value;
+    data[i * 4 + 2] = value;
+    data[i * 4 + 3] = 255;
   }
   return data;
 }
