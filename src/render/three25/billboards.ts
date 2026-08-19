@@ -80,16 +80,18 @@ export function isBlinking(visualId: string, animationTimestampMilliseconds: num
  * is what the residential district looked like: thirty trees, twenty-five palms, seventeen saplings
  * and sixteen shrubs, all flat on the grass.
  *
- * They become upright billboards rather than boxes, for the same reason characters do: the sprite
- * IS the art, and a tree extruded into a box would be a green cube. Standing the authored pixels up
- * keeps every one of them.
+ * They became upright billboards rather than boxes, for the same reason characters do: the sprite
+ * IS the art, and a tree extruded into a box is a green cube.
+ *
+ * **The set is now empty.** Joe compared the standing cards against the box planter and palm in
+ * game on 2026-08-20 and chose the boxes for all four: a flat card beside a solid box reads as the
+ * odd one out, and consistency beat pixel fidelity. The vegetation lives in `DECAL_RECIPES`.
+ *
+ * The mechanism stays for the next sprite that wants it — a decal listed here stands up, a decal
+ * in `DECAL_RECIPES` becomes boxes, and `scene-builder` drops both from the flat batch so nothing
+ * draws twice.
  */
-const STANDING_DECAL_SPRITES: ReadonlySet<string> = new Set([
-  'tile.decal-canopy-tree',
-  'tile.decal-young-palm',
-  'tile.decal-sapling',
-  'tile.decal-flowering-shrub',
-]);
+const STANDING_DECAL_SPRITES: ReadonlySet<string> = new Set<string>([]);
 
 /** Whether this ground detail should stand up instead of lying on the floor. */
 export function isStandingDecal(sprite: string): boolean {

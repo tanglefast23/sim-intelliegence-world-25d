@@ -491,11 +491,18 @@ export function buildDecalBoxes(frame: WorldFrameState): readonly BoxDescriptor[
         width: box.width,
         height: box.height,
         depth: box.depth,
+        // Same rule as buildPropBoxes: an AUTHORED tint is used as-is, and readableTint only
+        // rescues a measured colour. This path pushed authored greens through readableTint, so
+        // the same FOLIAGE_GREEN hex rendered brighter on a decal tree than on the palm one tile
+        // over — Joe: "you hit some and missed some".
         tint: shelteredTint(
-          scaleHex(readableTint(box.tint ?? detail.color), propVariation(detail.id)),
+          scaleHex(box.tint ?? readableTint(detail.color), propVariation(detail.id)),
           detail.tile,
           frame,
         ),
+        // And the recipe's gain must ride along, or the decal trunks lose the vertical-face lift
+        // the prop trunks get.
+        gain: box.gain,
       });
     });
   }

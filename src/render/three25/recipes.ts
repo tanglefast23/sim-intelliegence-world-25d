@@ -43,6 +43,15 @@ const PALE_WOOD_SHADE = '#a37c4e';
 /** Planter pot and foliage. Two materials on one sprite, so one measured colour cannot serve both. */
 const TERRACOTTA = '#b5673a';
 const FOLIAGE_GREEN = '#5f9e52';
+/** Shared by every trunk, with the gain a vertical-faced post needs to read brown. */
+const TRUNK_BROWN = '#b08a5e';
+const TRUNK_GAIN = 2.1;
+/**
+ * One lift for every leaf mass. FOLIAGE_GREEN loses most of its punch to the sRGB-to-linear
+ * conversion, and vegetation is the one family that appears in both the prop table and the decal
+ * table — a single shared gain is what keeps a decal tree and the box palm the same green.
+ */
+const CANOPY_GAIN = 1.45;
 const FOLIAGE_FLOWERING = '#6fae5c';
 
 /** The pale band on a market awning, so a two-tile canopy is fabric rather than one red slab. */
@@ -155,8 +164,10 @@ const bench = (width: number): readonly BoxRecipe[] => [
 const planter = (foliageWidth: number, foliage = FOLIAGE_GREEN): readonly BoxRecipe[] => [
   // The pot and the foliage are two materials, so they carry two tints. The sprite's single
   // measured paint is a dark green that turned the whole planter into one black lump.
-  { x: 0, y: 0.16, z: 0, width: 0.55, height: 0.32, depth: 0.55, tint: TERRACOTTA },
-  { x: 0, y: 0.55, z: 0, width: foliageWidth, height: 0.5, depth: foliageWidth, tint: foliage },
+  // The pot shows only vertical faces — the same least-light case as the trunks, so it takes
+  // the same gain or terracotta renders near-black. Joe flagged this base three times.
+  { x: 0, y: 0.16, z: 0, width: 0.55, height: 0.32, depth: 0.55, tint: TERRACOTTA, gain: TRUNK_GAIN },
+  { x: 0, y: 0.55, z: 0, width: foliageWidth, height: 0.5, depth: foliageWidth, tint: foliage, gain: CANOPY_GAIN },
 ];
 
 // --- One-tile shapes for the run-forming groups ------------------------------------------
@@ -401,8 +412,8 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
       // A tall thin post shows only vertical faces, which take the least light in the scene.
       // Two hex lifts (#8a6a44 -> #b08a5e) barely moved it because the hex was never the limit;
       // `gain` is, and it is the only lever that can push past #ffffff.
-      { x: 0, y: 0.75, z: 0, width: 0.22, height: 1.5, depth: 0.22, tint: '#b08a5e', gain: 2.1 },
-      { x: 0, y: 1.65, z: 0, width: 1.1, height: 0.3, depth: 1.1, tint: FOLIAGE_GREEN },
+      { x: 0, y: 0.75, z: 0, width: 0.22, height: 1.5, depth: 0.22, tint: TRUNK_BROWN, gain: TRUNK_GAIN },
+      { x: 0, y: 1.65, z: 0, width: 1.1, height: 0.3, depth: 1.1, tint: FOLIAGE_GREEN, gain: CANOPY_GAIN },
     ],
   },
 
@@ -462,6 +473,42 @@ const STONE_LIGHT = '#9a8a6d';
  * wants volume, keep adding entries; only reach for a generator if the list passes ~6.
  */
 export const DECAL_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze({
+  /**
+   * Vegetation as boxes, at Joe's request (2026-08-20).
+   *
+   * These four were upright BILLBOARDS — the authored pixels stood up on a plane. That kept every
+   * pixel of the art, and the comment on `STANDING_DECAL_SPRITES` argued a box would be "a green
+   * cube". Joe compared them against the box planter and palm in game and chose the boxes: a flat
+   * card beside a solid box reads as the odd one out, and consistency beat pixel fidelity.
+   *
+   * Trunks carry `gain` for the reason the palm's does: a thin post shows only vertical faces,
+   * which take the least light in the scene, so a brown hex alone renders black.
+   */
+  'tile.decal-canopy-tree': {
+    boxes: [
+      { x: 0, y: 0.85, z: 0, width: 0.26, height: 1.7, depth: 0.26, tint: TRUNK_BROWN, gain: TRUNK_GAIN },
+      { x: 0, y: 1.9, z: 0, width: 1.35, height: 0.42, depth: 1.35, tint: FOLIAGE_GREEN, gain: CANOPY_GAIN },
+    ],
+  },
+  'tile.decal-young-palm': {
+    boxes: [
+      { x: 0, y: 0.58, z: 0, width: 0.2, height: 1.15, depth: 0.2, tint: TRUNK_BROWN, gain: TRUNK_GAIN },
+      { x: 0, y: 1.28, z: 0, width: 1.0, height: 0.26, depth: 1.0, tint: FOLIAGE_GREEN, gain: CANOPY_GAIN },
+    ],
+  },
+  'tile.decal-sapling': {
+    boxes: [
+      { x: 0, y: 0.4, z: 0, width: 0.16, height: 0.8, depth: 0.16, tint: TRUNK_BROWN, gain: TRUNK_GAIN },
+      { x: 0, y: 0.93, z: 0, width: 0.7, height: 0.26, depth: 0.7, tint: FOLIAGE_GREEN, gain: CANOPY_GAIN },
+    ],
+  },
+  /** No trunk: a shrub is a mound, with the flowering tint as a cap so the blossom still reads. */
+  'tile.decal-flowering-shrub': {
+    boxes: [
+      { x: 0, y: 0.21, z: 0, width: 0.85, height: 0.42, depth: 0.85, tint: FOLIAGE_GREEN, gain: CANOPY_GAIN },
+      { x: 0, y: 0.48, z: 0, width: 0.62, height: 0.12, depth: 0.62, tint: FOLIAGE_FLOWERING, gain: CANOPY_GAIN },
+    ],
+  },
   'tile.decal-sand-pebbles': {
     boxes: [
       { x: 0.16, y: 0.06, z: 0.31, width: 0.31, height: 0.12, depth: 0.17, tint: STONE },

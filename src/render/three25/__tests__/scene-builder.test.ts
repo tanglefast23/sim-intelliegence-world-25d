@@ -334,7 +334,11 @@ describe('face texturing', () => {
   test('small furniture is flat-shaded, big furniture is textured, walls and roofs never flat', () => {
     const props = buildPropBoxes(frame);
     for (const box of props) {
-      expect(box.flatShade).toBe(box.width < 0.45 || box.depth < 0.45 || box.gain === undefined);
+      // A textured box always carries its core's gain. The reverse stopped holding on 2026-08-20:
+      // a recipe can now author a gain onto a FLAT box (the palm trunk's vertical-face lift), so
+      // gain no longer implies textured.
+      if (box.flatShade !== true) expect(box.gain).toBeDefined();
+      if (box.width < 0.45 || box.depth < 0.45) expect(box.flatShade).toBe(true);
     }
     for (const box of buildWallBoxes(frame)) expect(box.flatShade).toBeUndefined();
     for (const box of buildRoofBoxes(outdoorFrame())) expect(box.flatShade).toBeUndefined();

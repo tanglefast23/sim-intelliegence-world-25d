@@ -82,6 +82,9 @@ const SOLID_ENVIRONMENT_SPRITES = new Set([
   'tile.decal-young-palm',
   'tile.decal-canopy-tree',
   'tile.decal-neon-planter',
+  // The one vegetation decal that was missing. Joe walked through a shrub the day it became a
+  // solid-looking box (2026-08-20); the trees beside it already blocked.
+  'tile.decal-flowering-shrub',
 ]);
 
 /** Litter that only makes sense under something that sheds it. */

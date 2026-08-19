@@ -217,9 +217,14 @@ function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>)
   const tile = bakePropSketchTile();
   // Paper red is 246; dividing by it makes untouched paper the identity and every stroke a darken.
   const PAPER_RED = 246;
-  // Recipe'd props only. Walls, doors and roofs wore the grain for part of 2026-08-19 and Joe
-  // reverted them the same day — the brick art reads better as authored. Objects keep it.
-  for (const sprite of Object.keys(PROP_RECIPES)) {
+  // Recipe'd props, plus walls and doors — back in at Joe's request on 2026-08-20, now that the
+  // crayon tile is mean-normalised and cannot darken the brick the way the first wall grain did.
+  // Roofs stay as authored until he says otherwise.
+  const grainSprites = new Set<string>(Object.keys(PROP_RECIPES));
+  for (const [id, rect] of Object.entries(ATLAS_INDEX.sprites)) {
+    if (rect.category === 'wall-door') grainSprites.add(id);
+  }
+  for (const sprite of grainSprites) {
     const rect = ATLAS_INDEX.sprites[sprite];
     if (!rect) continue;
     const cell = context.getImageData(rect.x, rect.y, rect.width, rect.height);

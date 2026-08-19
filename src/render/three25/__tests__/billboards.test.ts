@@ -1,3 +1,4 @@
+import { DECAL_RECIPES } from '../recipes';
 import {
   BLINK_PERIOD_MILLISECONDS,
   CHARACTER_CONTACT_OFFSET,
@@ -79,14 +80,20 @@ describe('character billboards', () => {
    * A tree authored as a ground decal reads fine from directly overhead and lies down like a felled
    * log under a corner camera. Vegetation stands up; sand ripples and leaf litter do not.
    */
-  test('vegetation stands up and ground marks stay flat', () => {
-    expect(isStandingDecal('tile.decal-canopy-tree')).toBe(true);
-    expect(isStandingDecal('tile.decal-young-palm')).toBe(true);
-    expect(isStandingDecal('tile.decal-sapling')).toBe(true);
-    expect(isStandingDecal('tile.decal-flowering-shrub')).toBe(true);
+  test('vegetation is boxes now, and ground marks stay flat', () => {
+    // Joe moved all four standing decals into DECAL_RECIPES on 2026-08-20: beside the box planter
+    // and palm, a flat card read as the odd one out. Each must be exactly one of the two, or the
+    // scene draws it twice / not at all.
+    for (const sprite of [
+      'tile.decal-canopy-tree', 'tile.decal-young-palm', 'tile.decal-sapling',
+      'tile.decal-flowering-shrub',
+    ]) {
+      expect(isStandingDecal(sprite)).toBe(false);
+      expect(DECAL_RECIPES[sprite]).toBeDefined();
+    }
     expect(isStandingDecal('tile.decal-sand-ripple')).toBe(false);
     expect(isStandingDecal('tile.decal-leaf-litter')).toBe(false);
-    expect(isStandingDecal('tile.decal-sand-pebbles')).toBe(false);
+    expect(DECAL_RECIPES['tile.decal-sand-ripple']).toBeUndefined();
   });
 });
 

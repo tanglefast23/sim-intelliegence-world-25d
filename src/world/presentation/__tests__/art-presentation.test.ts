@@ -66,6 +66,9 @@ describe('immutable art presentation index', () => {
     expect(compiled.presentation.decals.filter(({ solid }) => solid).every(({ sprite }) => [
       'tile.decal-sand-shells', 'tile.decal-sapling', 'tile.decal-young-palm',
       'tile.decal-canopy-tree', 'tile.decal-neon-planter',
+      // Solid since 2026-08-20: it renders as a box the size of the saplings beside it, and Joe
+      // walked straight through one.
+      'tile.decal-flowering-shrub',
     ].includes(sprite))).toBe(true);
     expect(compiled.presentation.transitions.every(({ solid, interactive }) => !solid && !interactive)).toBe(true);
     expect(compiled.presentation.transitions.every(({ ownerMaterialId, sprite }) => (
