@@ -345,6 +345,11 @@ character washed out. The technique rules below stand; the VALUES in `media.ts` 
 darker and bolder (`lwMain` 2.1px, black nearly closed). Match a new character to the vampire on
 screen, not to the reference's swatches. Do not re-lighten without a new in-game decision.
 
+**The boil belongs to characters only.** A three-frame boiling world (walls, bins, roofs)
+shipped on 2026-08-19 and Joe pulled it the same day: everything shimmering was too distracting.
+World surfaces are drawn — charcoal scribble grain, chained strokes — and then they hold still.
+Only characters redraw.
+
 **Calibration rules the loop earned, one render at a time:**
 
 - **Graphite is lighter than memory.** Ink at 62% over cream is MID-GREY. The first medium build

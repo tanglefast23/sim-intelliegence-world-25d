@@ -16,23 +16,10 @@ import { hashSeed, Sketch, type Point } from './sketch';
 export const PROP_TILE_SIZE = 64;
 
 /**
- * Three tiles, not one, for the same reason the vampire bakes three frames: a single static
- * grain reads as printed lines, and swapping redrawn grain is the whole illusion of a living
- * drawing. Joe's words for the gap this closes: the character looked like crayon static while
- * the props looked like straight ruled lines. The straight lines were the old `light` hatch —
- * scribble is what the vampire's own masses wear.
+ * One frame, deliberately. A three-frame boiling world shipped on 2026-08-19 and Joe pulled it
+ * the same day — everything shimmering was too distracting. The boil belongs to characters
+ * only. The scribble stroke stays: that is what separates the grain from ruled hatching.
  */
-export const PROP_TILE_FRAMES = 3;
-
-/**
- * The world's boil clock. DELIBERATELY not `vampireBoilIndex` (1.15fps): the reference warns
- * that everything flipping on one clock reads as a video, so the world redraws on its own beat.
- */
-export function propBoilIndex(animationTimestampMilliseconds: number): number {
-  const fps = 0.9;
-  return Math.floor(animationTimestampMilliseconds / 1000 * fps) % PROP_TILE_FRAMES;
-}
-
 export function bakePropSketchTile(frame = 0): Uint8ClampedArray {
   const sketch = new Sketch(PROP_TILE_SIZE, PROP_TILE_SIZE);
   sketch.boil(hashSeed('prop-sketch-tile', frame));
