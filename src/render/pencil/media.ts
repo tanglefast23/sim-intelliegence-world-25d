@@ -28,6 +28,11 @@ export type ToneOptions = Readonly<{
    */
   angle?: number;
   /**
+   * Line-width multiplier. Below ~0.85 the scribble drops under the crumb gate in `stroke()`
+   * and sheds nothing — what the prop tile needs, where crumbs read as freckles on box faces.
+   */
+  pen?: number;
+  /**
    * Lay the character's own paper under the mass first. Defaults to true.
    *
    * The reference composites on cream, so its hatch gaps read as paper. Our sprite is transparent
@@ -143,7 +148,11 @@ function tone(s: Sketch, pts: readonly Point[], o: ToneOptions = {}): void {
     return;
   }
   for (const pass of TONE_PASSES[style]) {
-    hatchPass(s, pts, o.angle === undefined ? pass : { ...pass, angle: pass.angle + o.angle });
+    hatchPass(s, pts, {
+      ...pass,
+      angle: pass.angle + (o.angle ?? 0),
+      lw: pass.lw * (o.pen ?? 1),
+    });
   }
 }
 
