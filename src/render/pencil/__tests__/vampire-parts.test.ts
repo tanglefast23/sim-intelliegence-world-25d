@@ -4,7 +4,15 @@ import { WORLD_MAP_CATALOG } from '../../../application/runtime/map-catalog';
 import { buildWorldFrameState } from '../../world-frame';
 import { buildVampireLayout } from '../layout';
 import { drawVampireCharacter, VAMPIRE_PART_IDS, VAMPIRE_PARTS } from '../parts';
-import { bakeVampireFrames, BOIL_FRAMES, PENCIL_HEIGHT, PENCIL_WIDTH, VAMPIRE_SHEET_FRAMES } from '../vampire';
+import {
+  bakeVampireFrames,
+  BOIL_FRAMES,
+  PENCIL_CONTACT_ROW,
+  PENCIL_HEIGHT,
+  PENCIL_WIDTH,
+  VAMPIRE_SHEET_FRAMES,
+  WORLD_CELL_HEIGHT,
+} from '../vampire';
 import { poseFromSprite, vampireSheetIndex } from '../pose';
 import { hashSeed, Sketch } from '../sketch';
 import { blitPencilFrame, pencilBillboards, vampireBoilIndex, vampirePencilFrames } from '../billboard';
@@ -105,5 +113,18 @@ describe('vampire pencil character', () => {
     blitPencilFrame(target, player, 0);
     const index = vampireSheetIndex({ facing: 'left', gait: 1 }, 0);
     expect([...target]).toEqual([...vampirePencilFrames()[index]!]);
+  });
+
+  test('the quad sinks so the boot soles stand on the contact point, not the empty sheet bottom', () => {
+    const frame = buildWorldFrameState(MAP, createInitialState(), {}, 'down', 0);
+    const [pencil] = pencilBillboards({ ...frame, animationTimestampMilliseconds: 0 });
+    const player = frame.characters.find(({ id }) => id === 'protagonist')!;
+
+    // Sheet row of the quad's bottom edge once the lift is applied. The soles live at
+    // PENCIL_CONTACT_ROW, so the quad has to reach exactly that far past the ground.
+    const rowsBelowGround = (-pencil!.lift / pencil!.height) * PENCIL_HEIGHT;
+    expect(pencil!.lift).toBeLessThan(0);
+    expect(rowsBelowGround).toBeCloseTo(PENCIL_HEIGHT - PENCIL_CONTACT_ROW, 6);
+    expect(pencil!.lift).toBeCloseTo(-(52 / 360) * WORLD_CELL_HEIGHT * player.scale / 32, 6);
   });
 });

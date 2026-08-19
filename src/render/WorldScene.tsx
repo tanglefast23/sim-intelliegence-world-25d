@@ -383,6 +383,7 @@ export function WorldScene({
   const [explicitWorldZoom, setExplicitWorldZoom] = useState(initialPresentationPreferences.worldZoom !== null);
   const [uiScale, setUiScale] = useState<UiScale>(() => initialPresentationPreferences.uiScale ?? automaticUiScale(surface));
   const [explicitUiScale, setExplicitUiScale] = useState(initialPresentationPreferences.uiScale !== null);
+  const [hudCollapsed, setHudCollapsed] = useState(initialPresentationPreferences.hudCollapsed);
   const volumes = useAudioVolumes();
   const [selected, setSelected] = useState<string>(initialConversationFixtureId ?? 'protagonist');
   const [reactionId, setReactionId] = useState<string>();
@@ -677,11 +678,12 @@ export function WorldScene({
         uiScale: explicitUiScale ? uiScale : null,
         musicVolume: volumes.music,
         sfxVolume: volumes.sfx,
+        hudCollapsed,
         camera: { mapId, x: Math.round(camera.x), y: Math.round(camera.y) },
       });
     }, 160);
     return () => clearTimeout(timer);
-  }, [camera, explicitUiScale, explicitWorldZoom, mapId, onPresentationPreferencesChange, uiScale, volumes]);
+  }, [camera, explicitUiScale, explicitWorldZoom, hudCollapsed, mapId, onPresentationPreferencesChange, uiScale, volumes]);
 
   const triggerVocalCue = useCallback((cue: VocalCueId) => {
     playVocalCue(cue);
@@ -1935,10 +1937,12 @@ export function WorldScene({
           accent={lighting.accent}
           areaName={currentAreaName}
           availableWidth={surface.width}
+          collapsed={hudCollapsed}
           devMode={devMode}
           hidden={questOfferOpen}
           jumpDisabled={transitioning || runtime.worldState.clock.pauseTokens.length > 0}
           mapName={map.source.displayName}
+          onCollapsed={() => setHudCollapsed((value) => !value)}
           onDevMode={() => setDevMode((open) => !open)}
           onJournal={toggleQuests}
           onJumpForwardHour={jumpForwardHour}

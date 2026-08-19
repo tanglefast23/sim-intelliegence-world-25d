@@ -15,6 +15,9 @@ export const PresentationPreferencesSchema = z.object({
   uiScale: UiScaleSchema.nullable(),
   musicVolume: VolumeSchema.default(1),
   sfxVolume: VolumeSchema.default(1),
+  // Defaulted, not versioned: a preferences file written before the HUD chevron existed still
+  // parses, and reads back as an expanded HUD.
+  hudCollapsed: z.boolean().default(false),
   camera: z.object({
     mapId: z.enum(MAP_IDS),
     x: z.number().int().min(-10_000).max(10_000),
@@ -31,6 +34,7 @@ export const RendererPresentationPatchSchema = PresentationPreferencesSchema.pic
   uiScale: true,
   musicVolume: true,
   sfxVolume: true,
+  hudCollapsed: true,
   camera: true,
 }).strict();
 
@@ -43,6 +47,7 @@ export const DEFAULT_PRESENTATION_PREFERENCES: PresentationPreferences = Object.
   uiScale: null,
   musicVolume: 1,
   sfxVolume: 1,
+  hudCollapsed: false,
   camera: null,
   windowSize: null,
 });

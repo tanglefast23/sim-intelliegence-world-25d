@@ -849,7 +849,35 @@ function sendKey(window: BrowserWindow, keyCode: 'Enter' | 'F' | 'Q' | 'Escape')
 }
 
 
+/**
+ * Closes the display settings drawer if it is open, and reports whether it did.
+ *
+ * `clickZoomButton` opens the drawer and leaves it open, because reopening it per zoom step would
+ * cost a second of smoke time each. That was harmless only while the drawer's height was frozen:
+ * `clickWorldTile` sends a REAL OS mouse event at a screen point, so an open drawer that reaches
+ * further down the window swallows the click, the player never walks, and the smoke fails as a
+ * movement timeout with no hint that the HUD was the cause.
+ *
+ * Closing here rather than pinning the drawer's height is what keeps HUD layout a UI decision.
+ * `clickZoomButton` already reopens the drawer whenever `#world-ui-zoom-value` is missing, so
+ * closing it costs one reopen and never strands a later zoom step.
+ */
+async function closeDisplaySettings(window: BrowserWindow): Promise<boolean> {
+  return window.webContents.executeJavaScript(`(() => {
+    if (!(document.querySelector('#world-ui-display-settings') instanceof HTMLElement)) return false;
+    const toggle = document.querySelector('[aria-label="Open display settings"]');
+    if (!(toggle instanceof HTMLElement)) throw new Error('Display settings button is missing.');
+    toggle.click();
+    return true;
+  })()`, true);
+}
+
 async function clickWorldTile(window: BrowserWindow, tile: Readonly<{ x: number; y: number }>): Promise<void> {
+  // Before `surfaceBounds`, not after: closing the drawer relaws out the HUD, and the bounds this
+  // click is computed from have to be the ones on screen when the click lands.
+  if (await closeDisplaySettings(window)) {
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 180));
+  }
   const bounds = await surfaceBounds(window);
   const camera = parseCameraLabel(await cameraLabel(window));
   const x = bounds.x + (tile.x * 32 + 16 - camera.x) * camera.zoom;
