@@ -614,7 +614,22 @@ function oddityCommands(look: CharacterLook): DrawCommand[] {
       pixelsCommand('a', [[3, 19], [4, 18], [6, 20], [5, 22], [17, 20], [18, 18], [20, 19], [19, 22]]),
     ];
     // Between the eye boxes (not in EYE_COLUMNS 7-10 / 13-16) and below the blink band.
-    case 'fang-mouth': return [pixelsCommand('s', [[11, 15], [12, 15], [11, 16], [12, 16]])];
+    /**
+     * A dark thin mouth with a white fang hanging from each corner.
+     *
+     * The first version painted `s` at [11,15] [12,15] [11,16] [12,16]. Three of those four
+     * pixels were already `s` from the rest face (`s` at [12,15] and the `rect s 10,16,4,1`
+     * mouth run), so the oddity added one pixel in the colour it sat on and no fang was
+     * visible at any zoom. Art bible section 9.3 needs a readable object, not a tint.
+     *
+     * Row 15 and row 16 both sit below `EYE_BAND` (rows 12-14), so the blink overlay cannot
+     * touch either. That is why the fangs can use columns 10 and 13 even though those columns
+     * are in `EYE_COLUMNS` — the band is bounded by row, not by column.
+     */
+    case 'fang-mouth': return [
+      rectCommand('K', 10, 15, 4, 1),
+      pixelsCommand('W', [[10, 16], [13, 16]]),
+    ];
     default: throw new Error(`Unknown character oddity ${look.oddity}.`);
   }
 }
@@ -645,7 +660,10 @@ function secondaryWorldCommands(look: CharacterLook): DrawCommand[] {
     case 'side-fastened-jacket': return [pixelsCommand('A', [[15, 17], [15, 19], [15, 21], [15, 23]]), rectCommand('c', 6, 17, 3, 8)];
     case 'tiny-waist-belt': return [rectCommand('D', 8, 22, 8, 1), pixelsCommand('A', [[11, 22], [12, 22]])];
     case 'charm-bracelet': return [rectCommand('A', 18, 21, 3, 1), pixelsCommand('a', [[18, 23], [20, 24], [21, 22]])];
-    case 'half-cape': return [rectCommand('A', 4, 16, 7, 10), rectCommand('a', 5, 18, 2, 7), pixelsCommand('A', [[11, 17], [12, 18]])];
+    // The slab starts at row 18, the top of the torso. It used to start at row 16, which is
+    // inside the head box (rows 4-17), so a 7px wide accent rectangle covered the left jaw and
+    // chin on both wearers. The two clasp pixels stay at the collar.
+    case 'half-cape': return [rectCommand('A', 4, 18, 7, 8), rectCommand('a', 5, 18, 2, 7), pixelsCommand('A', [[11, 17], [12, 18]])];
     case 'suspenders': return [rectCommand('A', 8, 17, 2, 8), rectCommand('A', 14, 17, 2, 8), rectCommand('a', 9, 23, 6, 1)];
     case 'pearl-necklace': return [pixelsCommand('W', [[8, 16], [9, 17], [10, 18], [11, 18], [12, 18], [13, 18], [14, 17], [15, 16]]), pixelsCommand('A', [[11, 19], [12, 19]])];
     case 'star-cuff': return [pixelsCommand('A', [[18, 19], [19, 20], [21, 20], [20, 21], [21, 22], [19, 22], [18, 23], [18, 21], [17, 20]])];
