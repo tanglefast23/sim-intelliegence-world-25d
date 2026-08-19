@@ -84,6 +84,70 @@ const SOLID_ENVIRONMENT_SPRITES = new Set([
   'tile.decal-neon-planter',
 ]);
 
+/** Litter that only makes sense under something that sheds it. */
+const SHED_LITTER_SPRITES: ReadonlySet<string> = new Set(['tile.decal-leaf-litter']);
+
+/** What sheds it. Any of these within `LITTER_SHEDDER_RADIUS` tiles justifies the litter. */
+const LITTER_SHEDDER_SPRITES: ReadonlySet<string> = new Set([
+  'tile.decal-canopy-tree',
+  'tile.decal-sapling',
+  'tile.decal-young-palm',
+]);
+
+/**
+ * How far leaf litter may fall from the nearest tree, in tiles.
+ *
+ * 1 — the tree's own tile and the eight around it. Measured on Sunward Villas, which carries 83
+ * trees against 41 litter tiles: at radius 2 only four tiles fail the test, so the rule buys
+ * nothing, and at radius 3 it can never fail at all. 1 is the first radius that actually ties a
+ * leaf to a tree rather than to the lawn in general.
+ */
+const LITTER_SHEDDER_RADIUS = 1;
+
+/** Whether a ground sprite is lawn, as opposed to paving, boardwalk or road. */
+function isLawnSprite(sprite: string | undefined): boolean {
+  // `warm-sand` is the lawn despite its name: the cell is green, and its `-b`/`-c`/`-d` variants
+  // are the same grass at different noise phases.
+  return sprite !== undefined && sprite.startsWith('tile.warm-sand');
+}
+
+/**
+ * Drops leaf litter that has no tree near it, or that sits on the lawn's edge.
+ *
+ * Two rules, one symptom. The scatter picks a sprite from the family by roll, so litter lands
+ * anywhere the family lands — for `sand-traces` that is the whole lawn, the strip bordering the
+ * paving included. A decal is then drawn with up to 7 pixels of x offset, about a fifth of a tile,
+ * so litter rolled onto an edge tile visibly spills onto the pavement beside it. Leaves on bare
+ * cement read as a rendering fault rather than as ground cover, and no radius alone fixes that:
+ * a tree can stand one tile from a path, so its litter is both near a tree AND on the edge.
+ *
+ * A post-pass, not a check inside the loop, because the trees the first rule tests for are decided
+ * by that same loop: a tile is rolled before its neighbours exist, so the answer is only knowable
+ * once the scatter is complete. Mutates in place — the caller freezes afterwards.
+ *
+ * ponytail: O(litter x shedders) per map, a few thousand comparisons, and it runs at content-build
+ * time rather than per frame. A grid index would be faster and is not worth the code.
+ */
+function pruneOrphanLitter(
+  decals: { tile: { x: number; y: number }; sprite: string }[],
+  groundSpriteAt: (tile: Readonly<{ x: number; y: number }>) => string | undefined,
+): void {
+  const shedders = decals.filter((decal) => LITTER_SHEDDER_SPRITES.has(decal.sprite));
+  const neighbourOffsets = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
+  for (let index = decals.length - 1; index >= 0; index -= 1) {
+    const decal = decals[index]!;
+    if (!SHED_LITTER_SPRITES.has(decal.sprite)) continue;
+    const nearTree = shedders.some((shedder) => (
+      Math.abs(shedder.tile.x - decal.tile.x) <= LITTER_SHEDDER_RADIUS &&
+      Math.abs(shedder.tile.y - decal.tile.y) <= LITTER_SHEDDER_RADIUS
+    ));
+    const onLawnEdge = neighbourOffsets.some((offset) => !isLawnSprite(
+      groundSpriteAt({ x: decal.tile.x + offset.x, y: decal.tile.y + offset.y }),
+    ));
+    if (!nearTree || onLawnEdge) decals.splice(index, 1);
+  }
+}
+
 export function compileArtPresentation(input: ArtPresentationCompileInput): ArtPresentationIndex {
   const materialIds = input.groundSprites.map((sprite) => {
     const recipe = MATERIAL_RECIPE_BY_SPRITE[sprite];
@@ -233,6 +297,8 @@ export function compileArtPresentation(input: ArtPresentationCompileInput): ArtP
       interactive: false,
     }));
   }
+  const groundSpriteByTile = new Map(ground.map((cell) => [tileKey(cell.tile), cell.sprite]));
+  pruneOrphanLitter(decals, (tile) => groundSpriteByTile.get(tileKey(tile)));
   const roofs = Object.freeze([...input.map.roofGroups]
     .sort((left, right) => left.id < right.id ? -1 : left.id > right.id ? 1 : 0)
     .flatMap((roof) => {

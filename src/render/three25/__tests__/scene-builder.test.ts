@@ -1,9 +1,10 @@
 import { ATLAS_INDEX, atlasRectangle } from '../../atlas';
 import { isStandingDecal } from '../billboards';
 import { hiddenWallTiles } from '../occlusion';
-import { WALL_HEIGHT_TILES, isResolved, recipeFor } from '../recipes';
+import { DECAL_RECIPES, WALL_HEIGHT_TILES, isResolved, recipeFor } from '../recipes';
 import {
   shelteredTint,
+  buildDecalBoxes,
   buildDoorBoxes,
   buildFloorQuads,
   buildPropBoxes,
@@ -22,7 +23,10 @@ describe('floor quads', () => {
    * grass beneath itself.
    */
   test('emits one quad per floor and per flat ground detail', () => {
-    const flatDetails = frame.groundDetails.filter((detail) => !isStandingDecal(detail.sprite));
+    // Flat means neither standing (trees) nor boxed (pebbles): both are drawn by another builder.
+    const flatDetails = frame.groundDetails.filter(
+      (detail) => !isStandingDecal(detail.sprite) && DECAL_RECIPES[detail.sprite] === undefined,
+    );
     expect(buildFloorQuads(frame)).toHaveLength(frame.floors.length + flatDetails.length);
     expect(flatDetails.length).toBeLessThan(frame.groundDetails.length);
   });
@@ -254,6 +258,7 @@ describe('prop, door and roof boxes', () => {
     expect(scene.boxes.length).toBe(
       buildWallBoxes(frame).length
       + buildPropBoxes(frame).length
+      + buildDecalBoxes(frame).length
       + buildDoorBoxes(frame).length
       + buildRoofBoxes(frame).length,
     );

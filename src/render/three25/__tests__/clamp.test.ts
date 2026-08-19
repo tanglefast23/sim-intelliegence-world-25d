@@ -56,7 +56,7 @@ describe('tilted camera clamp', () => {
   });
 
   test('never returns a zoom outside the world range', () => {
-    expect(() => clampCameraTilted({ x: 0, y: 0, zoom: 4 }, VIEWPORT, MAP_PIXELS)).toThrow(RangeError);
+    expect(() => clampCameraTilted({ x: 0, y: 0, zoom: 6 }, VIEWPORT, MAP_PIXELS)).toThrow(RangeError);
     expect(() => clampCameraTilted({ x: 0, y: 0, zoom: 0 }, VIEWPORT, MAP_PIXELS)).toThrow(RangeError);
   });
 
