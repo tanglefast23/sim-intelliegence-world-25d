@@ -36,6 +36,7 @@ export const CHARACTER_IDS = [
   'resident-24',
   'sora-tan',
   'tomas-reed',
+  'vampire-01',
 ] as const;
 export type CharacterId = typeof CHARACTER_IDS[number];
 export const MOVEMENT_DIRECTIONS = ['up', 'down', 'left', 'right'] as const;
@@ -43,7 +44,7 @@ export type MovementDirection = typeof MOVEMENT_DIRECTIONS[number];
 export const ZOOM_LEVELS = [1, 2, 3] as const;
 export type ZoomLevel = typeof ZOOM_LEVELS[number];
 export const WALK_FRAME_MILLISECONDS = 145;
-export const ART_REVISION = 17;
+export const ART_REVISION = 18;
 
 export type AtlasRectangle = Readonly<{
   x: number;

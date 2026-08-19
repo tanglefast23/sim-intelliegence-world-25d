@@ -12,7 +12,7 @@ import { PROP_RECIPES } from '../recipes';
 import { buildScene } from '../scene-builder';
 import {
   bakeGroundStains, bakeBillboardGeometry, bakeLampPools, bakeSceneGeometry, cameraForYaw, frameCamera } from '../world-renderer-25';
-import { closedBlinkTimestamp, indoorFrame } from './fixtures';
+import { closedBlinkTimestamp, indoorFrame, pixelIndoorFrame } from './fixtures';
 
 describe('2.5D camera placement', () => {
   test('sits at the configured elevation at yaw 0', () => {
@@ -202,8 +202,8 @@ describe('character billboards bake into one upright batch', () => {
   // Pinned to a closed blink window. indoorFrame() faces `down`, so its sprite is `front-1`
   // and it is eligible to blink; at timestamp 0 the exact vertex counts below would depend on a
   // hash rather than on the bake.
-  const restingFrame = (): ReturnType<typeof indoorFrame> => ({
-    ...indoorFrame(),
+  const restingFrame = (): ReturnType<typeof pixelIndoorFrame> => ({
+    ...pixelIndoorFrame(),
     animationTimestampMilliseconds: closedBlinkTimestamp('protagonist'),
   });
   const billboards = buildBillboards(restingFrame());

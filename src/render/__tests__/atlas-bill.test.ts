@@ -18,7 +18,7 @@ describe('runtime atlas bill and movement contract', () => {
     const renderedNames = buildAtlasProofScene(0).sprites.map(({ sprite }) => sprite);
     expect(new Set(renderedNames)).toEqual(new Set(Object.keys(ATLAS_INDEX.sprites)));
     expect(ATLAS_INDEX.version).toBe(3);
-    expect(ATLAS_INDEX.artRevision).toBe(17);
+    expect(ATLAS_INDEX.artRevision).toBe(18);
     expect(ATLAS_INDEX.publicSpriteIds).toEqual(Object.keys(ATLAS_INDEX.sprites));
     expect(ATLAS_INDEX.internalReviewSpriteIds).toEqual([]);
     expect(ATLAS_INDEX.tiles).toHaveLength(284);
@@ -64,6 +64,9 @@ describe('runtime atlas bill and movement contract', () => {
     });
     expect(movementPresentation('linda', 'right', 1)).toMatchObject({
       sprite: 'character.linda.right-2', leanX: 1, bounceY: -1, shadowX: 1,
+    });
+    expect(movementPresentation('vampire-01', 'right', 1)).toMatchObject({
+      sprite: 'character.vampire-01.right-2', leanX: 1, bounceY: -1, shadowX: 1,
     });
     expect(WALK_FRAME_MILLISECONDS).toBeGreaterThanOrEqual(130);
     expect(WALK_FRAME_MILLISECONDS).toBeLessThanOrEqual(160);

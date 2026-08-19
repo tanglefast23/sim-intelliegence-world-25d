@@ -3,7 +3,7 @@
 import { WORLD_MAP_CATALOG } from '../../../application/runtime/map-catalog';
 import { createInitialState } from '../../../domain/state/initial-state';
 import { WorldStateSchema } from '../../../domain/state/schema';
-import type { MovementDirection } from '../../atlas';
+import { atlasRectangle, type MovementDirection } from '../../atlas';
 import { buildWorldFrameState, type WorldFrameState } from '../../world-frame';
 import { stableTupleHash } from '../../../world/presentation/material-selection';
 import { BLINK_PERIOD_MILLISECONDS } from '../billboards';
@@ -18,6 +18,24 @@ export const FIXTURE_MAP = WORLD_MAP_CATALOG.northwest_residential;
  */
 export function indoorFrame(facing: MovementDirection = 'down'): WorldFrameState {
   return buildWorldFrameState(FIXTURE_MAP, createInitialState(), {}, facing, 0);
+}
+
+/** Pixel-atlas player, for billboard tests that do not want the pencil vampire. */
+export function pixelIndoorFrame(facing: MovementDirection = 'down'): WorldFrameState {
+  const frame = indoorFrame(facing);
+  return {
+    ...frame,
+    characters: frame.characters.map((character) => {
+      if (character.visualId !== 'vampire-01') return character;
+      const sprite = character.sprite.replaceAll('vampire-01', 'protagonist');
+      return {
+        ...character,
+        visualId: 'protagonist',
+        sprite,
+        source: atlasRectangle(sprite),
+      };
+    }),
+  };
 }
 
 /**

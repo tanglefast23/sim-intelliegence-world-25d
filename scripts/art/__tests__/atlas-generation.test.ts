@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import revisionPixelHashes from '../../../assets/source/art/revision-17-pixel-hashes.json';
+import revisionPixelHashes from '../../../assets/source/art/revision-18-pixel-hashes.json';
 import { buildAtlas, validateAtlasArtifacts, writeAtlas } from '../build-world-atlas';
 import {
   composeFrontFrame,
@@ -67,10 +67,10 @@ describe('deterministic SI World atlas generation', () => {
     expect(first.report).toEqual(second.report);
     expect(first.png[25]).toBe(6);
     expect(first.index.version).toBe(3);
-    expect(first.index.artRevision).toBe(17);
+    expect(first.index.artRevision).toBe(18);
     expect(first.index.image).toMatchObject({ colorType: 'rgba', gutter: 1 });
-    // 612 base + 35 blink eye bands (character walk) + 4 office landmarks + 1 kitchen kettle = 652.
-    expect(Object.keys(first.index.sprites)).toHaveLength(652);
+    // Previous 652 + 8 walk + 1 blink band + 3 named portraits = 664.
+    expect(Object.keys(first.index.sprites)).toHaveLength(664);
     expect(first.index.tiles).toHaveLength(284);
     expect(first.index.groundCells).toHaveLength(81);
     expect(first.index.transparentPartCells).toHaveLength(143);
@@ -78,9 +78,9 @@ describe('deterministic SI World atlas generation', () => {
     expect(createHash('sha256').update(first.png).digest('hex')).toBe(first.index.image.sha256);
     expect(first.index.publicSpriteIds).toEqual(Object.keys(first.index.sprites));
     expect(first.index.internalReviewSpriteIds).toEqual([]);
-    // Union of both grants: +4 object-landmark slots (office) and +35 world-character-eyes
-    // (blink), over the 756_574 base. Computed from the merged manifest, not by hand.
-    expect(first.report.forecast).toMatchObject({ rawRectangleArea: 765_748, width: 1024 });
+    // Union of both grants: +4 object-landmark slots (office) and +36 world-character-eyes
+    // (blink), over the previous 756_574 base. Computed from the merged manifest, not by hand.
+    expect(first.report.forecast).toMatchObject({ rawRectangleArea: 774_952, width: 1024 });
   });
 
   test('keeps all atlas cells inside the generated image', () => {
@@ -142,9 +142,9 @@ describe('deterministic SI World atlas generation', () => {
     expect(after).toEqual(before);
   });
 
-  test('builds thirty-five distinct identities from the shared source layers', () => {
+  test('builds thirty-six distinct identities from the shared source layers', () => {
     const sources = loadCharacterSources();
-    expect(sources).toHaveLength(35);
+    expect(sources).toHaveLength(36);
     expect(sources.map(({ id }) => id).sort()).toEqual([...CHARACTER_IDS].sort());
     const silhouettes = new Set(sources.map((source) => alphaMask(composeFrontFrame(source, 0))));
     expect(silhouettes.size).toBeGreaterThanOrEqual(7);
@@ -200,7 +200,7 @@ describe('deterministic SI World atlas generation', () => {
     expect(aggregatePublicCellHash(bitmap, index.sprites, index.publicSpriteIds)).toBe(
       revisionPixelHashes.allPublicCellsAggregateSha256,
     );
-    expect(revisionPixelHashes.artRevision).toBe(17);
+    expect(revisionPixelHashes.artRevision).toBe(18);
     for (const tile of tiles) {
       const name = `tile.${tile.id}`;
       const expectedHash = revisionPixelHashes.cells[name as keyof typeof revisionPixelHashes.cells];

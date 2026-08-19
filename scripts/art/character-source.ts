@@ -613,6 +613,8 @@ function oddityCommands(look: CharacterLook): DrawCommand[] {
       rectCommand('A', 2, 18, 6, 5), rectCommand('A', 16, 18, 6, 5),
       pixelsCommand('a', [[3, 19], [4, 18], [6, 20], [5, 22], [17, 20], [18, 18], [20, 19], [19, 22]]),
     ];
+    // Between the eye boxes (not in EYE_COLUMNS 7-10 / 13-16) and below the blink band.
+    case 'fang-mouth': return [pixelsCommand('s', [[11, 15], [12, 15], [11, 16], [12, 16]])];
     default: throw new Error(`Unknown character oddity ${look.oddity}.`);
   }
 }

@@ -139,6 +139,14 @@ export const CHARACTER_LOOKS = [
     supportingFeature: 'A long narrow clerk body carries a rigid permit pouch.', outfitPattern: 0, expressions: NAMED_EXPRESSIONS,
   },
   {
+    // porcelain+silver+charcoal+gold, not resident-07's porcelain+ink+charcoal+red
+    id: 'vampire-01', displayName: 'Vampire', kind: 'named', skin: 'porcelain', hairColor: 'silver', clothing: 'charcoal', accent: 'gold',
+    head: 'long', build: 'slim', hair: 'swept', eyes: 'beady', oddity: 'fang-mouth', oddityLayer: 'accessory',
+    secondary: 'half-cape', secondaryLayer: 'accessory',
+    signatureOddity: 'Two tiny fangs sit at the corners of a thin mouth.',
+    supportingFeature: 'A half cape falls from one shoulder.', outfitPattern: 4, expressions: NAMED_EXPRESSIONS,
+  },
+  {
     id: 'linda-boyfriend', displayName: "Linda's Boyfriend", kind: 'ambient', skin: 'sand', hairColor: 'auburn', clothing: 'sage', accent: 'pink',
     head: 'long', build: 'slim', hair: 'pompadour', oddity: 'tiny-pompadour', oddityLayer: 'hair',
     secondary: 'bow-tie', secondaryLayer: 'accessory',

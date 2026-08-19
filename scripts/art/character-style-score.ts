@@ -162,7 +162,7 @@ function browPass(frame: TokenFrame, source: CharacterSource): boolean {
 function mouthPass(frame: TokenFrame, look: CharacterLook): boolean {
   const mouth = tokensIn(frame, [16], [10, 11, 12, 13]);
   const visibleLip = tokenCount(mouth, new Set(['s', 'K']));
-  return visibleLip >= 2 || ['curl-moustache', 'spiral-moustache'].includes(look.oddity);
+  return visibleLip >= 2 || ['curl-moustache', 'spiral-moustache', 'fang-mouth'].includes(look.oddity);
 }
 
 function handPass(frame: TokenFrame, direction: Direction, look: CharacterLook, characterId: string): boolean {

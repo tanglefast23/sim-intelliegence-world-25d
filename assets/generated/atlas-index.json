@@ -1,13 +1,13 @@
 {
   "version": 3,
-  "artRevision": 17,
+  "artRevision": 18,
   "toolVersion": "atlas-v9-authored-full-cast",
   "image": {
     "width": 1024,
-    "height": 600,
+    "height": 631,
     "colorType": "rgba",
     "gutter": 1,
-    "sha256": "0ebcc2f4fbaf2b9475acfde0327c003cbc381cc49882b8e39f63ff021cfdf9fe"
+    "sha256": "797f8d7f9d1fd4e660662707ce85448658f2d95c84e1a9907858560e0ec1ec76"
   },
   "tileSize": 32,
   "worldCell": {
@@ -6789,8 +6789,104 @@
       "cellClass": null,
       "wallAdjacencyMask": null
     },
-    "portrait.devon-price": {
+    "character.vampire-01.front-1": {
       "x": 651,
+      "y": 533,
+      "width": 24,
+      "height": 30,
+      "kind": "world-character",
+      "category": "world-character",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.vampire-01.front-2": {
+      "x": 677,
+      "y": 533,
+      "width": 24,
+      "height": 30,
+      "kind": "world-character",
+      "category": "world-character",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.vampire-01.left-1": {
+      "x": 703,
+      "y": 533,
+      "width": 24,
+      "height": 30,
+      "kind": "world-character",
+      "category": "world-character",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.vampire-01.left-2": {
+      "x": 729,
+      "y": 533,
+      "width": 24,
+      "height": 30,
+      "kind": "world-character",
+      "category": "world-character",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.vampire-01.rear-1": {
+      "x": 755,
+      "y": 533,
+      "width": 24,
+      "height": 30,
+      "kind": "world-character",
+      "category": "world-character",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.vampire-01.rear-2": {
+      "x": 781,
+      "y": 533,
+      "width": 24,
+      "height": 30,
+      "kind": "world-character",
+      "category": "world-character",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.vampire-01.right-1": {
+      "x": 807,
+      "y": 533,
+      "width": 24,
+      "height": 30,
+      "kind": "world-character",
+      "category": "world-character",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.vampire-01.right-2": {
+      "x": 833,
+      "y": 533,
+      "width": 24,
+      "height": 30,
+      "kind": "world-character",
+      "category": "world-character",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "portrait.devon-price": {
+      "x": 859,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6802,7 +6898,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.devon-price.joy": {
-      "x": 677,
+      "x": 885,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6814,7 +6910,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.devon-price.upset": {
-      "x": 703,
+      "x": 911,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6826,7 +6922,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.elise-moreau": {
-      "x": 729,
+      "x": 937,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6838,7 +6934,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.elise-moreau.joy": {
-      "x": 755,
+      "x": 963,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6850,7 +6946,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.elise-moreau.upset": {
-      "x": 781,
+      "x": 989,
       "y": 533,
       "width": 24,
       "height": 29,
@@ -6862,8 +6958,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.generic-resident": {
-      "x": 807,
-      "y": 533,
+      "x": 1,
+      "y": 565,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -6874,8 +6970,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.linda": {
-      "x": 833,
-      "y": 533,
+      "x": 27,
+      "y": 565,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -6886,8 +6982,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.linda-boyfriend": {
-      "x": 859,
-      "y": 533,
+      "x": 53,
+      "y": 565,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -6898,8 +6994,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.linda.joy": {
-      "x": 885,
-      "y": 533,
+      "x": 79,
+      "y": 565,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -6910,8 +7006,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.linda.upset": {
-      "x": 911,
-      "y": 533,
+      "x": 105,
+      "y": 565,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -6922,8 +7018,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.mina-park": {
-      "x": 937,
-      "y": 533,
+      "x": 131,
+      "y": 565,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -6934,8 +7030,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.mina-park.joy": {
-      "x": 963,
-      "y": 533,
+      "x": 157,
+      "y": 565,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -6946,8 +7042,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.mina-park.upset": {
-      "x": 989,
-      "y": 533,
+      "x": 183,
+      "y": 565,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -6958,7 +7054,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.priya-nair": {
-      "x": 1,
+      "x": 209,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -6970,7 +7066,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.priya-nair.joy": {
-      "x": 27,
+      "x": 235,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -6982,7 +7078,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.priya-nair.upset": {
-      "x": 53,
+      "x": 261,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -6994,7 +7090,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.protagonist": {
-      "x": 79,
+      "x": 287,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7006,7 +7102,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.protagonist.joy": {
-      "x": 105,
+      "x": 313,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7018,7 +7114,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.protagonist.upset": {
-      "x": 131,
+      "x": 339,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7030,7 +7126,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.rafael-cruz": {
-      "x": 157,
+      "x": 365,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7042,7 +7138,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.rafael-cruz.joy": {
-      "x": 183,
+      "x": 391,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7054,7 +7150,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.rafael-cruz.upset": {
-      "x": 209,
+      "x": 417,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7066,7 +7162,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-01": {
-      "x": 235,
+      "x": 443,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7078,7 +7174,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-02": {
-      "x": 261,
+      "x": 469,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7090,7 +7186,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-03": {
-      "x": 287,
+      "x": 495,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7102,7 +7198,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-04": {
-      "x": 313,
+      "x": 521,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7114,7 +7210,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-05": {
-      "x": 339,
+      "x": 547,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7126,7 +7222,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-06": {
-      "x": 365,
+      "x": 573,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7138,7 +7234,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-07": {
-      "x": 391,
+      "x": 599,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7150,7 +7246,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-08": {
-      "x": 417,
+      "x": 625,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7162,7 +7258,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-09": {
-      "x": 443,
+      "x": 651,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7174,7 +7270,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-10": {
-      "x": 469,
+      "x": 677,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7186,7 +7282,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-11": {
-      "x": 495,
+      "x": 703,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7198,7 +7294,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-12": {
-      "x": 521,
+      "x": 729,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7210,7 +7306,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-13": {
-      "x": 547,
+      "x": 755,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7222,7 +7318,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-14": {
-      "x": 573,
+      "x": 781,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7234,7 +7330,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-15": {
-      "x": 599,
+      "x": 807,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7246,7 +7342,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-16": {
-      "x": 625,
+      "x": 833,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7258,7 +7354,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-17": {
-      "x": 651,
+      "x": 859,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7270,7 +7366,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-18": {
-      "x": 677,
+      "x": 885,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7282,7 +7378,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-19": {
-      "x": 703,
+      "x": 911,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7294,7 +7390,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-20": {
-      "x": 729,
+      "x": 937,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7306,7 +7402,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-21": {
-      "x": 755,
+      "x": 963,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7318,7 +7414,7 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-22": {
-      "x": 781,
+      "x": 989,
       "y": 565,
       "width": 24,
       "height": 29,
@@ -7330,8 +7426,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-23": {
-      "x": 807,
-      "y": 565,
+      "x": 1,
+      "y": 596,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -7342,8 +7438,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.resident-24": {
-      "x": 833,
-      "y": 565,
+      "x": 27,
+      "y": 596,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -7354,8 +7450,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.sora-tan": {
-      "x": 859,
-      "y": 565,
+      "x": 53,
+      "y": 596,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -7366,8 +7462,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.sora-tan.joy": {
-      "x": 885,
-      "y": 565,
+      "x": 79,
+      "y": 596,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -7378,8 +7474,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.sora-tan.upset": {
-      "x": 911,
-      "y": 565,
+      "x": 105,
+      "y": 596,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -7390,8 +7486,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.tomas-reed": {
-      "x": 937,
-      "y": 565,
+      "x": 131,
+      "y": 596,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -7402,8 +7498,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.tomas-reed.joy": {
-      "x": 963,
-      "y": 565,
+      "x": 157,
+      "y": 596,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -7414,8 +7510,8 @@
       "wallAdjacencyMask": null
     },
     "portrait.tomas-reed.upset": {
-      "x": 989,
-      "y": 565,
+      "x": 183,
+      "y": 596,
       "width": 24,
       "height": 29,
       "kind": "portrait",
@@ -7425,8 +7521,44 @@
       "cellClass": null,
       "wallAdjacencyMask": null
     },
+    "portrait.vampire-01": {
+      "x": 209,
+      "y": 596,
+      "width": 24,
+      "height": 29,
+      "kind": "portrait",
+      "category": "portrait",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "portrait.vampire-01.joy": {
+      "x": 235,
+      "y": 596,
+      "width": 24,
+      "height": 29,
+      "kind": "portrait",
+      "category": "portrait",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "portrait.vampire-01.upset": {
+      "x": 261,
+      "y": 596,
+      "width": 24,
+      "height": 29,
+      "kind": "portrait",
+      "category": "portrait",
+      "visibility": "public",
+      "sourceId": "vampire-01",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
     "character.devon-price.eyes": {
-      "x": 1,
+      "x": 287,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7438,7 +7570,7 @@
       "wallAdjacencyMask": null
     },
     "character.elise-moreau.eyes": {
-      "x": 27,
+      "x": 313,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7450,7 +7582,7 @@
       "wallAdjacencyMask": null
     },
     "character.generic-resident.eyes": {
-      "x": 53,
+      "x": 339,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7462,7 +7594,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda-boyfriend.eyes": {
-      "x": 79,
+      "x": 365,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7474,7 +7606,7 @@
       "wallAdjacencyMask": null
     },
     "character.linda.eyes": {
-      "x": 105,
+      "x": 391,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7486,7 +7618,7 @@
       "wallAdjacencyMask": null
     },
     "character.mina-park.eyes": {
-      "x": 131,
+      "x": 417,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7498,7 +7630,7 @@
       "wallAdjacencyMask": null
     },
     "character.priya-nair.eyes": {
-      "x": 157,
+      "x": 443,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7510,7 +7642,7 @@
       "wallAdjacencyMask": null
     },
     "character.protagonist.eyes": {
-      "x": 183,
+      "x": 469,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7522,7 +7654,7 @@
       "wallAdjacencyMask": null
     },
     "character.rafael-cruz.eyes": {
-      "x": 209,
+      "x": 495,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7534,7 +7666,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-01.eyes": {
-      "x": 235,
+      "x": 521,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7546,7 +7678,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-02.eyes": {
-      "x": 261,
+      "x": 547,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7558,7 +7690,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-03.eyes": {
-      "x": 287,
+      "x": 573,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7570,7 +7702,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-04.eyes": {
-      "x": 313,
+      "x": 599,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7582,7 +7714,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-05.eyes": {
-      "x": 339,
+      "x": 625,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7594,7 +7726,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-06.eyes": {
-      "x": 365,
+      "x": 651,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7606,7 +7738,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-07.eyes": {
-      "x": 391,
+      "x": 677,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7618,7 +7750,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-08.eyes": {
-      "x": 417,
+      "x": 703,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7630,7 +7762,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-09.eyes": {
-      "x": 443,
+      "x": 729,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7642,7 +7774,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-10.eyes": {
-      "x": 469,
+      "x": 755,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7654,7 +7786,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-11.eyes": {
-      "x": 495,
+      "x": 781,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7666,7 +7798,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-12.eyes": {
-      "x": 521,
+      "x": 807,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7678,7 +7810,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-13.eyes": {
-      "x": 547,
+      "x": 833,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7690,7 +7822,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-14.eyes": {
-      "x": 573,
+      "x": 859,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7702,7 +7834,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-15.eyes": {
-      "x": 599,
+      "x": 885,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7714,7 +7846,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-16.eyes": {
-      "x": 625,
+      "x": 911,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7726,7 +7858,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-17.eyes": {
-      "x": 651,
+      "x": 937,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7738,7 +7870,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-18.eyes": {
-      "x": 677,
+      "x": 963,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7750,7 +7882,7 @@
       "wallAdjacencyMask": null
     },
     "character.resident-19.eyes": {
-      "x": 703,
+      "x": 989,
       "y": 596,
       "width": 24,
       "height": 3,
@@ -7762,8 +7894,8 @@
       "wallAdjacencyMask": null
     },
     "character.resident-20.eyes": {
-      "x": 729,
-      "y": 596,
+      "x": 1,
+      "y": 627,
       "width": 24,
       "height": 3,
       "kind": "world-character",
@@ -7774,8 +7906,8 @@
       "wallAdjacencyMask": null
     },
     "character.resident-21.eyes": {
-      "x": 755,
-      "y": 596,
+      "x": 27,
+      "y": 627,
       "width": 24,
       "height": 3,
       "kind": "world-character",
@@ -7786,8 +7918,8 @@
       "wallAdjacencyMask": null
     },
     "character.resident-22.eyes": {
-      "x": 781,
-      "y": 596,
+      "x": 53,
+      "y": 627,
       "width": 24,
       "height": 3,
       "kind": "world-character",
@@ -7798,8 +7930,8 @@
       "wallAdjacencyMask": null
     },
     "character.resident-23.eyes": {
-      "x": 807,
-      "y": 596,
+      "x": 79,
+      "y": 627,
       "width": 24,
       "height": 3,
       "kind": "world-character",
@@ -7810,8 +7942,8 @@
       "wallAdjacencyMask": null
     },
     "character.resident-24.eyes": {
-      "x": 833,
-      "y": 596,
+      "x": 105,
+      "y": 627,
       "width": 24,
       "height": 3,
       "kind": "world-character",
@@ -7822,8 +7954,8 @@
       "wallAdjacencyMask": null
     },
     "character.sora-tan.eyes": {
-      "x": 859,
-      "y": 596,
+      "x": 131,
+      "y": 627,
       "width": 24,
       "height": 3,
       "kind": "world-character",
@@ -7834,14 +7966,26 @@
       "wallAdjacencyMask": null
     },
     "character.tomas-reed.eyes": {
-      "x": 885,
-      "y": 596,
+      "x": 157,
+      "y": 627,
       "width": 24,
       "height": 3,
       "kind": "world-character",
       "category": "world-character-eyes",
       "visibility": "public",
       "sourceId": "tomas-reed",
+      "cellClass": null,
+      "wallAdjacencyMask": null
+    },
+    "character.vampire-01.eyes": {
+      "x": 183,
+      "y": 627,
+      "width": 24,
+      "height": 3,
+      "kind": "world-character",
+      "category": "world-character-eyes",
+      "visibility": "public",
+      "sourceId": "vampire-01",
       "cellClass": null,
       "wallAdjacencyMask": null
     }
@@ -8411,6 +8555,14 @@
     "character.tomas-reed.rear-2",
     "character.tomas-reed.right-1",
     "character.tomas-reed.right-2",
+    "character.vampire-01.front-1",
+    "character.vampire-01.front-2",
+    "character.vampire-01.left-1",
+    "character.vampire-01.left-2",
+    "character.vampire-01.rear-1",
+    "character.vampire-01.rear-2",
+    "character.vampire-01.right-1",
+    "character.vampire-01.right-2",
     "portrait.devon-price",
     "portrait.devon-price.joy",
     "portrait.devon-price.upset",
@@ -8464,6 +8616,9 @@
     "portrait.tomas-reed",
     "portrait.tomas-reed.joy",
     "portrait.tomas-reed.upset",
+    "portrait.vampire-01",
+    "portrait.vampire-01.joy",
+    "portrait.vampire-01.upset",
     "character.devon-price.eyes",
     "character.elise-moreau.eyes",
     "character.generic-resident.eyes",
@@ -8498,7 +8653,8 @@
     "character.resident-23.eyes",
     "character.resident-24.eyes",
     "character.sora-tan.eyes",
-    "character.tomas-reed.eyes"
+    "character.tomas-reed.eyes",
+    "character.vampire-01.eyes"
   ],
   "internalReviewSpriteIds": [],
   "characters": {
@@ -9421,6 +9577,34 @@
         "right-2": "character.tomas-reed.right-2"
       },
       "eyes": "character.tomas-reed.eyes",
+      "sourceLayers": [
+        "legs",
+        "torso-and-clothing",
+        "head-and-face",
+        "hair",
+        "accessory",
+        "held-item"
+      ]
+    },
+    "vampire-01": {
+      "displayName": "Vampire",
+      "portrait": "portrait.vampire-01",
+      "portraits": {
+        "rest": "portrait.vampire-01",
+        "joy": "portrait.vampire-01.joy",
+        "upset": "portrait.vampire-01.upset"
+      },
+      "frames": {
+        "front-1": "character.vampire-01.front-1",
+        "front-2": "character.vampire-01.front-2",
+        "rear-1": "character.vampire-01.rear-1",
+        "rear-2": "character.vampire-01.rear-2",
+        "left-1": "character.vampire-01.left-1",
+        "left-2": "character.vampire-01.left-2",
+        "right-1": "character.vampire-01.right-1",
+        "right-2": "character.vampire-01.right-2"
+      },
+      "eyes": "character.vampire-01.eyes",
       "sourceLayers": [
         "legs",
         "torso-and-clothing",

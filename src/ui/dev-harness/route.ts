@@ -37,7 +37,14 @@ export function resolveDevHarnessRoute(
   entries: readonly DevHarnessRoutableEntry[],
   route: DevHarnessRoute,
 ): DevHarnessResolution {
-  if (route.entryId === undefined) return { kind: 'menu' };
+  if (route.entryId === undefined) {
+    const only = entries[0];
+    const firstCase = only?.cases[0];
+    if (entries.length === 1 && only && firstCase) {
+      return { kind: 'entry', entryId: only.id, caseId: firstCase.id };
+    }
+    return { kind: 'menu' };
+  }
   const entry = entries.find((candidate) => candidate.id === route.entryId);
   const firstCase = entry?.cases[0];
   if (!entry || !firstCase) return { kind: 'menu' };

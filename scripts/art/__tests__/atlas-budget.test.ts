@@ -18,9 +18,9 @@ describe('atlas category and forecast budget', () => {
     const manifest = loadArtManifest();
     const report = createAtlasBudgetReport([], manifest);
     expect(report.forecast).toMatchObject({
-      // Union of both branches' grants: 749 base + 4 office landmarks + 35 blink eye bands.
-      cellCount: 788,
-      rawRectangleArea: 765_748,
+      // Union of both branches' grants: 749 base + 4 office landmarks + 36 blink eye bands.
+      cellCount: 800,
+      rawRectangleArea: 774_952,
       width: 1024,
     });
     expect(report.forecast.height).toBeLessThanOrEqual(1024);
@@ -31,15 +31,14 @@ describe('atlas category and forecast budget', () => {
   test('the eye-band category fits inside the atlas forecast', () => {
     const manifest = loadArtManifest();
     const report = createAtlasBudgetReport([], manifest);
-    // 35 cells of 24x3 with a 1px gutter each side: 35 * 26 * 5 = 4550.
+    // 36 cells of 24x3 with a 1px gutter each side: 36 * 26 * 5 = 4680.
     expect(manifest.categories['world-character-eyes']).toEqual({
-      maximumCount: 35,
+      maximumCount: 36,
       width: 24,
       height: 3,
     });
-    // The base is everything except the eye bands: 756_574 original + 4_624 office landmarks.
-    // The assertion's point survives the merge: the blink category costs exactly 4_550.
-    expect(report.forecast.rawRectangleArea - 761_198).toBe(4_550);
+    // The assertion's point survives the merge: the blink category costs exactly 4_680.
+    expect(report.forecast.rawRectangleArea - 770_272).toBe(4_680);
     expect(report.forecast.rawAreaRatio).toBeLessThan(0.75);
     expect(report.forecast.packedAreaRatio).toBeLessThan(0.8);
   });
@@ -49,7 +48,7 @@ describe('atlas category and forecast budget', () => {
     const cells: BudgetCell[] = [{ id: 'tile.warm-sand', category: 'ground-base', width: 32, height: 32 }];
     const report = createAtlasBudgetReport(cells, manifest);
     expect(report.categories['ground-base']).toMatchObject({ actualCount: 1, maximumCount: 96 });
-    expect(report.forecast.rawRectangleArea).toBe(765_748);
+    expect(report.forecast.rawRectangleArea).toBe(774_952);
   });
 
   test('stops a category overrun with the required reduction action', () => {
