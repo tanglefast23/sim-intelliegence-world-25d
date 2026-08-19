@@ -15,9 +15,27 @@ import { hashSeed, Sketch, type Point } from './sketch';
  */
 export const PROP_TILE_SIZE = 64;
 
-export function bakePropSketchTile(): Uint8ClampedArray {
+/**
+ * Three tiles, not one, for the same reason the vampire bakes three frames: a single static
+ * grain reads as printed lines, and swapping redrawn grain is the whole illusion of a living
+ * drawing. Joe's words for the gap this closes: the character looked like crayon static while
+ * the props looked like straight ruled lines. The straight lines were the old `light` hatch —
+ * scribble is what the vampire's own masses wear.
+ */
+export const PROP_TILE_FRAMES = 3;
+
+/**
+ * The world's boil clock. DELIBERATELY not `vampireBoilIndex` (1.15fps): the reference warns
+ * that everything flipping on one clock reads as a video, so the world redraws on its own beat.
+ */
+export function propBoilIndex(animationTimestampMilliseconds: number): number {
+  const fps = 0.9;
+  return Math.floor(animationTimestampMilliseconds / 1000 * fps) % PROP_TILE_FRAMES;
+}
+
+export function bakePropSketchTile(frame = 0): Uint8ClampedArray {
   const sketch = new Sketch(PROP_TILE_SIZE, PROP_TILE_SIZE);
-  sketch.boil(hashSeed('prop-sketch-tile', 1));
+  sketch.boil(hashSeed('prop-sketch-tile', frame));
   sketch.fillPaper();
   // The ring overshoots the tile so strokes run through the edges instead of framing them —
   // a visible margin would draw a border on every box face.
@@ -28,6 +46,6 @@ export function bakePropSketchTile(): Uint8ClampedArray {
     { x: PROP_TILE_SIZE + over, y: PROP_TILE_SIZE + over },
     { x: -over, y: PROP_TILE_SIZE + over },
   ];
-  CHARCOAL.tone(sketch, ring, { style: 'light', paper: false });
+  CHARCOAL.tone(sketch, ring, { style: 'scribble', paper: false });
   return sketch.data;
 }

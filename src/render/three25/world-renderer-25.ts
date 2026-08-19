@@ -39,7 +39,7 @@ import {
   pencilBillboards,
 } from '../pencil/billboard';
 import { PENCIL_HEIGHT, PENCIL_WIDTH } from '../pencil/vampire';
-import { bakePropSketchTile, PROP_TILE_SIZE } from '../pencil/prop-texture';
+import { bakePropSketchTile, PROP_TILE_FRAMES, PROP_TILE_SIZE, propBoilIndex } from '../pencil/prop-texture';
 import { vfxGlowPools, vfxQuads, type VfxQuad } from './vfx-25';
 import {
   DEFAULT_SHADOW_PATH,
@@ -206,7 +206,7 @@ export function frameCamera(
   return { x: targetX, z: targetZ };
 }
 
-function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>): HTMLCanvasElement | undefined {
+function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>, frame: number): HTMLCanvasElement | undefined {
   if (typeof document === 'undefined') return undefined;
   const canvas = document.createElement('canvas');
   canvas.width = image.width;
@@ -214,10 +214,17 @@ function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>)
   const context = canvas.getContext('2d');
   if (!context) return undefined;
   context.drawImage(image as unknown as CanvasImageSource, 0, 0);
-  const tile = bakePropSketchTile();
+  const tile = bakePropSketchTile(frame);
   // Paper red is 246; dividing by it makes untouched paper the identity and every stroke a darken.
   const PAPER_RED = 246;
-  for (const sprite of Object.keys(PROP_RECIPES)) {
+  // Recipe'd props, plus every wall, door and roof cell: in this renderer those categories draw
+  // ONLY as box faces (billboards carry characters and standing decals), so their cells can wear
+  // the grain without touching any sprite Joe approved as-is, like the round trees.
+  const grainSprites = new Set<string>(Object.keys(PROP_RECIPES));
+  for (const [id, rect] of Object.entries(ATLAS_INDEX.sprites)) {
+    if (rect.category === 'wall-door' || rect.category === 'roof') grainSprites.add(id);
+  }
+  for (const sprite of grainSprites) {
     const rect = ATLAS_INDEX.sprites[sprite];
     if (!rect) continue;
     const cell = context.getImageData(rect.x, rect.y, rect.width, rect.height);
@@ -240,13 +247,6 @@ function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>)
 
 async function loadAtlasTexture(atlasUrl: string): Promise<Texture> {
   const texture = await new TextureLoader().loadAsync(atlasUrl);
-  const grained = grainBoxSpriteCells(texture.image as { width: number; height: number });
-  if (grained) {
-    // three's Texture.image typing narrows to HTMLImageElement after TextureLoader, but a canvas
-    // is a first-class texture source at runtime.
-    (texture as unknown as { image: HTMLCanvasElement }).image = grained;
-    texture.needsUpdate = true;
-  }
   texture.colorSpace = SRGBColorSpace;
   texture.magFilter = NearestFilter;
   texture.minFilter = NearestFilter;
@@ -977,6 +977,26 @@ export async function createWorldRenderer25(
   const texture = await loadAtlasTexture(atlasUrl);
   const atlasWidth = (texture.image as { width: number }).width;
   const atlasHeight = (texture.image as { height: number }).height;
+  /**
+   * The world's boil: three grained copies of the atlas, swapped on `propBoilIndex`. One static
+   * grain read as printed lines next to the boiling vampire — Joe: "the character looks like
+   * crayon static while the bins look like straight lines". Cells that take no grain are byte
+   * identical across the three, so floors, characters and the sprite trees hold perfectly still.
+   */
+  const atlasFrames: Texture[] = [];
+  for (let frame = 0; frame < PROP_TILE_FRAMES; frame += 1) {
+    const grained = grainBoxSpriteCells(texture.image as { width: number; height: number }, frame);
+    if (!grained) {
+      atlasFrames.push(texture);
+      continue;
+    }
+    const variant = texture.clone();
+    // three's Texture.image typing narrows to HTMLImageElement after TextureLoader, but a canvas
+    // is a first-class texture source at runtime.
+    (variant as unknown as { image: HTMLCanvasElement }).image = grained;
+    variant.needsUpdate = true;
+    atlasFrames.push(variant);
+  }
 
   const scene = new Scene();
   // No fog. It looks like the obvious way to swallow an open map into the void, and it is a trap
@@ -1088,7 +1108,7 @@ export async function createWorldRenderer25(
    * working without any depth sorting, which is what lets `sortObjects` stay off.
    */
   const material = new MeshStandardMaterial({
-    map: texture,
+    map: atlasFrames[0] ?? texture,
     flatShading: true,
     roughness: 0.88,
     metalness: 0,
@@ -1114,12 +1134,17 @@ export async function createWorldRenderer25(
    * `flatShading` keeps each face one value, so a box still reads as a box rather than a smoothly
    * shaded blob. `FACE_SHADE` in the baked colours rides on top of the light.
    */
-  // The greyscale charcoal tile: paper multiplies to the authored colour, strokes darken it.
-  const sketchTile = new DataTexture(bakePropSketchTile(), PROP_TILE_SIZE, PROP_TILE_SIZE);
-  sketchTile.magFilter = NearestFilter;
-  sketchTile.minFilter = NearestFilter;
-  sketchTile.colorSpace = SRGBColorSpace;
-  sketchTile.needsUpdate = true;
+  // The greyscale charcoal tiles: paper multiplies to the authored colour, strokes darken it.
+  // Three of them, one per boil frame.
+  const sketchTiles = Array.from({ length: PROP_TILE_FRAMES }, (_, frame) => {
+    const tile = new DataTexture(bakePropSketchTile(frame), PROP_TILE_SIZE, PROP_TILE_SIZE);
+    tile.magFilter = NearestFilter;
+    tile.minFilter = NearestFilter;
+    tile.colorSpace = SRGBColorSpace;
+    tile.needsUpdate = true;
+    return tile;
+  });
+  const sketchTile = sketchTiles[0]!;
   const flatMaterial = new MeshStandardMaterial({
     map: sketchTile,
     vertexColors: true,
@@ -1145,7 +1170,7 @@ export async function createWorldRenderer25(
    * must always be able to see. Day and night reach them through the descriptor tint instead.
    */
   const billboardMaterial = new MeshBasicMaterial({
-    map: texture,
+    map: atlasFrames[0] ?? texture,
     vertexColors: true,
     alphaTest: 0.5,
     transparent: false,
@@ -1158,6 +1183,7 @@ export async function createWorldRenderer25(
   const glowBoxMesh = new Mesh(new BufferGeometry(), glowMaterial);
   // Characters are their own batch because they move every frame while the world does not.
   const billboardMesh = new Mesh(new BufferGeometry(), billboardMaterial);
+  let currentWorldBoil = 0;
   const pencilCanvas = typeof document === 'undefined' ? undefined : document.createElement('canvas');
   if (pencilCanvas) {
     pencilCanvas.width = PENCIL_WIDTH;
@@ -1613,6 +1639,14 @@ export async function createWorldRenderer25(
       PENCIL_WIDTH,
       PENCIL_HEIGHT,
     );
+    const worldBoil = propBoilIndex(next.animationTimestampMilliseconds);
+    if (worldBoil !== currentWorldBoil) {
+      currentWorldBoil = worldBoil;
+      material.map = atlasFrames[worldBoil] ?? texture;
+      billboardMaterial.map = atlasFrames[worldBoil] ?? texture;
+      flatMaterial.map = sketchTiles[worldBoil] ?? sketchTile;
+      glowMaterial.map = sketchTiles[worldBoil] ?? sketchTile;
+    }
     pencilMesh.visible = pencils.length > 0 && pencilPixels !== undefined && pencilContext !== undefined;
     if (pencilMesh.visible && pencilPixels && pencilContext && pencilTexture) {
       const vampire = next.characters.find((character) => character.visualId === 'vampire-01');
@@ -1696,7 +1730,8 @@ export async function createWorldRenderer25(
       boxMesh.geometry.dispose();
       flatBoxMesh.geometry.dispose();
       glowBoxMesh.geometry.dispose();
-      sketchTile.dispose();
+      for (const tile of sketchTiles) tile.dispose();
+      for (const variant of atlasFrames) { if (variant !== texture) variant.dispose(); }
       flatMaterial.dispose();
       glowMaterial.dispose();
       billboardMesh.geometry.dispose();
