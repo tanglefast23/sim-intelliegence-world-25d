@@ -72,7 +72,7 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
     };
     const stepKeyboardPan = (timestamp: number) => {
       keyboardPanFrame = 0;
-      if (handlersRef.current.disabled || !spaceHeld || heldArrows.size === 0) {
+      if (handlersRef.current.disabled || heldArrows.size === 0) {
         keyboardPanLast = 0;
         return;
       }
@@ -167,17 +167,14 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
         // Without this the page scrolls and the button under the cursor activates.
         event.preventDefault();
         spaceHeld = true;
-        // Arrows first, then Space, is the same gesture and starts panning here.
-        if (heldArrows.size > 0) startKeyboardPan();
       }
       if (isPanArrowKey(event.key)) {
-        // Tracked whichever key came first, but only claimed from the page while Space is down, so
-        // an arrow still reaches a focused control when the player is not panning.
+        // Arrows pan on their own; Space is not required. The UI guard is what keeps the volume
+        // sliders usable, since they are focusable Views that read the same arrow keys.
+        if (isUiTarget(target)) return;
+        event.preventDefault();
         heldArrows.add(event.key);
-        if (spaceHeld) {
-          event.preventDefault();
-          startKeyboardPan();
-        }
+        startKeyboardPan();
       }
       if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.toLowerCase() === 'f') {
         handlersRef.current.onCenter();
