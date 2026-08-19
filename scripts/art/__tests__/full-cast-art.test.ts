@@ -89,11 +89,22 @@ describe('full-cast shared-source character art', () => {
   const sources = loadCharacterSources();
   const namedSources = sources.filter(({ kind }) => kind === 'named');
 
-  test('keeps one authoritative source for all thirty-five production people', () => {
+  test('keeps one authoritative source for all thirty-six production people', () => {
     expect(sources.map(({ id }) => id)).toEqual(CHARACTER_LOOKS.map(({ id }) => id).sort());
-    expect(sources).toHaveLength(35);
-    expect(namedSources).toHaveLength(9);
-    expect(new Set(sources.map(({ signatureOddity }) => signatureOddity.id)).size).toBe(35);
+    expect(sources).toHaveLength(36);
+    expect(namedSources).toHaveLength(10);
+    expect(new Set(sources.map(({ signatureOddity }) => signatureOddity.id)).size).toBe(36);
+  });
+
+  test('keeps vampire fangs between the eye boxes and below the blink band', () => {
+    const look = CHARACTER_LOOKS.find(({ id }) => id === 'vampire-01')!;
+    const features = getCharacterIdentityCommandSets(look);
+    const fang = features.primaryWorld[0];
+    expect(fang).toMatchObject({ kind: 'pixels', token: 's', points: [[11, 15], [12, 15], [11, 16], [12, 16]] });
+    for (const [x, y] of [[11, 15], [12, 15], [11, 16], [12, 16]] as const) {
+      expect([7, 8, 9, 10, 13, 14, 15, 16]).not.toContain(x);
+      expect(y).toBeGreaterThan(14);
+    }
   });
 
   test('keeps the accepted protagonist eyes and Linda dress in production art', () => {
@@ -179,7 +190,7 @@ describe('full-cast shared-source character art', () => {
     }
   });
 
-  test('locks the rounded shoulder, arm, and weighted-base grammar for all thirty-five people', () => {
+  test('locks the rounded shoulder, arm, and weighted-base grammar for all thirty-six people', () => {
     for (const look of CHARACTER_LOOKS) {
       const geometry = getCharacterGeometryCommandSets(look);
       const portrait = commandFrame(geometry.portraitBody, PORTRAIT_CELL.width, PORTRAIT_CELL.height);

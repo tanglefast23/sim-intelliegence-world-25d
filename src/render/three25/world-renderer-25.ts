@@ -4,9 +4,11 @@ import {
   BasicShadowMap,
   BufferAttribute,
   BufferGeometry,
+  CanvasTexture,
   ClampToEdgeWrapping,
   Color,
   DirectionalLight,
+  DoubleSide,
   HemisphereLight,
   Mesh,
   MeshBasicMaterial,
@@ -31,6 +33,11 @@ import { ACES_EXPOSURE } from '../three/world-renderer';
 import type { ViewportSize } from '../camera';
 import type { WorldFrameState } from '../world-frame';
 import { buildBillboards, type BillboardDescriptor } from './billboards';
+import {
+  blitPencilFrame,
+  pencilBillboards,
+} from '../pencil/billboard';
+import { PENCIL_HEIGHT, PENCIL_WIDTH } from '../pencil/vampire';
 import { vfxGlowPools, vfxQuads, type VfxQuad } from './vfx-25';
 import {
   DEFAULT_SHADOW_PATH,
@@ -1001,7 +1008,22 @@ export async function createWorldRenderer25(
    */
   // `vertexColors` is what lets the baked colour attribute reach the pixels; without it every blob
   // ignores the frame's shadow tint and draws white.
-  const blobMaterial = new MeshBasicMaterial({ transparent: true, depthWrite: false, vertexColors: true });
+  //
+  // `DoubleSide` is not decoration. Every shape `bakeGroundStains` emits — the radial stain fans,
+  // the VFX mark quads and the selection ring's annulus — is wound so its face normal points at
+  // -Y, while the camera looks DOWN at the ground plane. Under the default `FrontSide` the whole
+  // batch is back-face culled, which is why the 2.5D path drew no blob shadows, no contact stains
+  // and no selection ring at all: eight draw calls went out and this one painted nothing. The
+  // floors escape it only because they reuse the box's already-correct +Y face winding.
+  //
+  // Culling is the wrong lever here anyway. These are unlit, alpha-blended ground decals a few
+  // hundred triangles wide, so there is no shading to get wrong and nothing to save.
+  const blobMaterial = new MeshBasicMaterial({
+    transparent: true,
+    depthWrite: false,
+    vertexColors: true,
+    side: DoubleSide,
+  });
   const blobMesh = new Mesh(new BufferGeometry(), blobMaterial);
   blobMesh.frustumCulled = false;
   blobMesh.renderOrder = 1;
@@ -1090,6 +1112,30 @@ export async function createWorldRenderer25(
   const glowBoxMesh = new Mesh(new BufferGeometry(), glowMaterial);
   // Characters are their own batch because they move every frame while the world does not.
   const billboardMesh = new Mesh(new BufferGeometry(), billboardMaterial);
+  const pencilCanvas = typeof document === 'undefined' ? undefined : document.createElement('canvas');
+  if (pencilCanvas) {
+    pencilCanvas.width = PENCIL_WIDTH;
+    pencilCanvas.height = PENCIL_HEIGHT;
+  }
+  const pencilContext = pencilCanvas?.getContext('2d') ?? undefined;
+  const pencilPixels = pencilContext?.createImageData(PENCIL_WIDTH, PENCIL_HEIGHT);
+  const pencilTexture = pencilCanvas
+    ? new CanvasTexture(pencilCanvas)
+    : undefined;
+  if (pencilTexture) {
+    pencilTexture.magFilter = NearestFilter;
+    pencilTexture.minFilter = NearestFilter;
+    pencilTexture.colorSpace = SRGBColorSpace;
+  }
+  const pencilMaterial = new MeshBasicMaterial({
+    map: pencilTexture ?? null,
+    vertexColors: true,
+    alphaTest: 0.08,
+    transparent: true,
+  });
+  const pencilMesh = new Mesh(new BufferGeometry(), pencilMaterial);
+  pencilMesh.frustumCulled = false;
+  pencilMesh.visible = false;
   // The baked geometry is already in world space, so three's own bounding sphere would sit at the
   // origin and cull the whole batch.
   floorMesh.frustumCulled = false;
@@ -1108,7 +1154,7 @@ export async function createWorldRenderer25(
   // A lamp head casting a shadow of itself onto its own post is the one shadow nobody wants.
   glowBoxMesh.castShadow = false;
   floorMesh.receiveShadow = shadowPath === 'lit';
-  scene.add(floorMesh, boxMesh, flatBoxMesh, glowBoxMesh, billboardMesh);
+  scene.add(floorMesh, boxMesh, flatBoxMesh, glowBoxMesh, billboardMesh, pencilMesh);
 
   // Hoisted: extractBasis writes into these every frame, and allocating three vectors per frame
   // for a value that never escapes is pure garbage.
@@ -1504,6 +1550,24 @@ export async function createWorldRenderer25(
       atlasWidth,
       atlasHeight,
     );
+    const pencils = pencilBillboards(next);
+    pencilMesh.geometry.dispose();
+    pencilMesh.geometry = bakeBillboardGeometry(
+      pencils,
+      billboardRight,
+      BILLBOARD_UP,
+      PENCIL_WIDTH,
+      PENCIL_HEIGHT,
+    );
+    pencilMesh.visible = pencils.length > 0 && pencilPixels !== undefined && pencilContext !== undefined;
+    if (pencilMesh.visible && pencilPixels && pencilContext && pencilTexture) {
+      const vampire = next.characters.find((character) => character.visualId === 'vampire-01');
+      if (vampire) {
+        blitPencilFrame(pencilPixels.data, vampire, next.animationTimestampMilliseconds);
+        pencilContext.putImageData(pencilPixels, 0, 0);
+        pencilTexture.needsUpdate = true;
+      }
+    }
   };
 
   const onLost = (event: Event): void => { event.preventDefault(); onContextStateChange('lost'); };
@@ -1582,6 +1646,9 @@ export async function createWorldRenderer25(
       glowMaterial.dispose();
       billboardMesh.geometry.dispose();
       billboardMaterial.dispose();
+      pencilMesh.geometry.dispose();
+      pencilMaterial.dispose();
+      pencilTexture?.dispose();
       poolMesh.geometry.dispose();
       poolMaterial.dispose();
       blobMesh.geometry.dispose();

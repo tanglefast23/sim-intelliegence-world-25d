@@ -36,6 +36,7 @@ registerAppSchemePrivileges(protocol);
 const smokeMode = process.env.SI_WORLD_SMOKE === '1';
 const devHarnessMode = process.env.SI_WORLD_DEV_HARNESS === '1';
 const devHarnessRoot = process.env.SI_WORLD_DEV_HARNESS_ROOT;
+const unpackagedAppRoot = process.env.SI_WORLD_APP_ROOT;
 const modelSmokeMode = process.env.SI_WORLD_MODEL_SMOKE === '1';
 const smokeExpectsModel = process.env.SI_WORLD_SMOKE_EXPECT_MODEL === '1';
 const webgl2ProbeMode = process.env.SI_WORLD_WEBGL2_PROBE === '1';
@@ -82,6 +83,9 @@ if (smokeMode && devHarnessMode) {
 }
 if (devHarnessRoot && (!devHarnessMode || !isAbsolute(devHarnessRoot))) {
   throw new Error('SI_WORLD_DEV_HARNESS_ROOT requires dev harness mode and an absolute path.');
+}
+if (unpackagedAppRoot && (devHarnessMode || !isAbsolute(unpackagedAppRoot))) {
+  throw new Error('SI_WORLD_APP_ROOT requires an absolute path and cannot run with the harness.');
 }
 const processStartedAt = performance.now();
 let smokeFinished = false;
@@ -2707,7 +2711,7 @@ async function emitSmokeResult(report: RendererReadyReport, window: BrowserWindo
 }
 
 async function createMainWindow(): Promise<void> {
-  const applicationRoot = devHarnessRoot ?? app.getAppPath();
+  const applicationRoot = devHarnessRoot ?? unpackagedAppRoot ?? app.getAppPath();
   const distributionRoot = join(applicationRoot, 'dist');
   const preloadPath = join(applicationRoot, 'build/electron/preload/index.js');
 

@@ -8,13 +8,13 @@ import {
   readableTint,
   tintForLighting,
 } from '../billboards';
-import { closedBlinkTimestamp, indoorFrame, openBlinkTimestamp } from './fixtures';
+import { closedBlinkTimestamp, indoorFrame, openBlinkTimestamp, pixelIndoorFrame } from './fixtures';
 
 describe('character billboards', () => {
   // Pinned to a closed blink window. The fixture faces `down`, so its sprite is `front-1` and
   // it is eligible to blink; leaving the timestamp at 0 would make every exact count below
   // depend on a hash rather than on the code under test.
-  const frame = { ...indoorFrame(), animationTimestampMilliseconds: closedBlinkTimestamp('protagonist') };
+  const frame = { ...pixelIndoorFrame(), animationTimestampMilliseconds: closedBlinkTimestamp('protagonist') };
 
   test('the fixture actually has a character to place', () => {
     expect(frame.characters.length).toBeGreaterThan(0);
@@ -91,14 +91,14 @@ describe('character billboards', () => {
 });
 
 describe('billboard tint', () => {
-  const frame = indoorFrame();
+  const frame = pixelIndoorFrame();
 
   /**
    * At yaw 0 the camera shares the world axis the frame already picked the atlas cell against, so
    * facing selection needs no 2.5D branch at all. This asserts that rather than writing code.
    */
   test('facing needs no 2.5D branch at yaw 0', () => {
-    const rear = indoorFrame('up');
+    const rear = pixelIndoorFrame('up');
     expect(buildBillboards(rear)[0]!.source).not.toEqual(buildBillboards(frame)[0]!.source);
   });
 
@@ -217,12 +217,12 @@ describe('unlit surfaces stay readable', () => {
 
 describe('blink overlay', () => {
   const visualId = 'protagonist';
-  const blinkFrame = (overrides: Partial<ReturnType<typeof indoorFrame>> = {}) => ({
-    ...indoorFrame(),
+  const blinkFrame = (overrides: Partial<ReturnType<typeof pixelIndoorFrame>> = {}) => ({
+    ...pixelIndoorFrame(),
     animationTimestampMilliseconds: openBlinkTimestamp(visualId),
     ...overrides,
   });
-  const hasBand = (candidate: ReturnType<typeof indoorFrame>): boolean =>
+  const hasBand = (candidate: ReturnType<typeof pixelIndoorFrame>): boolean =>
     buildBillboards(candidate).some(({ id }) => id.endsWith(':eyes'));
 
   test('adds an eye band for a front-facing character inside the blink window', () => {
@@ -232,7 +232,7 @@ describe('blink overlay', () => {
   test('never adds an eye band on rear or lateral facings', () => {
     for (const facing of ['up', 'left', 'right'] as const) {
       expect(hasBand({
-        ...indoorFrame(facing),
+        ...pixelIndoorFrame(facing),
         animationTimestampMilliseconds: openBlinkTimestamp(visualId),
       })).toBe(false);
     }
@@ -258,7 +258,7 @@ describe('blink overlay', () => {
     const body = billboards.find(({ id }) => !id.endsWith(':eyes'))!;
     const band = billboards.find(({ id }) => id.endsWith(':eyes'))!;
     // 29 - 14 sprite rows, at the placement's own scale. CHARACTER_SCALE is 7/6, not 1.
-    const scale = indoorFrame().characters[0]!.scale;
+    const scale = pixelIndoorFrame().characters[0]!.scale;
     expect(band.lift).toBeCloseTo((15 * scale) / 32, 6);
     expect(body.lift).toBe(0);
     expect(band.x).toBeCloseTo(body.x, 6);
@@ -269,7 +269,7 @@ describe('blink overlay', () => {
 
   test('is a pure function of the frame timestamp', () => {
     const at = (ms: number) => buildBillboards({
-      ...indoorFrame(),
+      ...pixelIndoorFrame(),
       animationTimestampMilliseconds: ms,
     });
     expect(at(4_000)).toEqual(at(4_000));

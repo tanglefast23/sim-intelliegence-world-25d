@@ -25,6 +25,10 @@ describe('dev harness routes', () => {
     });
     expect(resolveDevHarnessRoute(ENTRIES, { entryId: 'world', caseId: 'missing' })).toEqual({ kind: 'menu' });
     expect(resolveDevHarnessRoute(ENTRIES, { entryId: 'empty' })).toEqual({ kind: 'menu' });
+    expect(resolveDevHarnessRoute(ENTRIES, {})).toEqual({ kind: 'menu' });
+    expect(resolveDevHarnessRoute([{ id: 'conversations', group: 'People', cases: [{ id: 'vampire-01' }] }], {})).toEqual({
+      kind: 'entry', entryId: 'conversations', caseId: 'vampire-01',
+    });
   });
 
   test('keeps group and registry order', () => {

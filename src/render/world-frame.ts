@@ -820,7 +820,7 @@ export function buildWorldFrameState(
   }>[] = [
     {
       id: 'protagonist',
-      visualId: 'protagonist',
+      visualId: 'vampire-01',
       tile: playerTile,
       direction,
       visualFoot: playerPresentation?.visualFoot,

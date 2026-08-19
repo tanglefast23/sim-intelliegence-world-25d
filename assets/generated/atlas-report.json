@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "artRevision": 17,
+  "artRevision": 18,
   "categories": {
     "ground-base": {
       "actualCount": 81,
@@ -33,19 +33,19 @@
       "rawRectangleArea": 77452
     },
     "world-character": {
-      "actualCount": 280,
-      "maximumCount": 280,
-      "rawRectangleArea": 232960
+      "actualCount": 288,
+      "maximumCount": 288,
+      "rawRectangleArea": 239616
     },
     "world-character-eyes": {
-      "actualCount": 35,
-      "maximumCount": 35,
-      "rawRectangleArea": 4550
+      "actualCount": 36,
+      "maximumCount": 36,
+      "rawRectangleArea": 4680
     },
     "portrait": {
-      "actualCount": 53,
-      "maximumCount": 53,
-      "rawRectangleArea": 42718
+      "actualCount": 56,
+      "maximumCount": 56,
+      "rawRectangleArea": 45136
     },
     "effect-reserve": {
       "actualCount": 0,
@@ -54,22 +54,22 @@
     }
   },
   "actual": {
-    "cellCount": 652,
-    "rawRectangleArea": 608532,
+    "cellCount": 664,
+    "rawRectangleArea": 617736,
     "width": 1024,
-    "height": 600,
-    "boundingRectangleArea": 614400,
-    "occupancy": 0.99044921875
+    "height": 631,
+    "boundingRectangleArea": 646144,
+    "occupancy": 0.9560345681458003
   },
   "forecast": {
-    "cellCount": 788,
-    "rawRectangleArea": 765748,
-    "rawAreaRatio": 0.7302742004394531,
+    "cellCount": 800,
+    "rawRectangleArea": 774952,
+    "rawAreaRatio": 0.7390518188476562,
     "width": 1024,
     "height": 768,
     "boundingRectangleArea": 786432,
     "packedAreaRatio": 0.75,
-    "occupancy": 0.9736989339192709
+    "occupancy": 0.9854024251302084
   },
   "largestCells": [
     {
@@ -159,7 +159,7 @@
   ],
   "indexVersion": 3,
   "toolVersion": "atlas-v9-authored-full-cast",
-  "imageSha256": "0ebcc2f4fbaf2b9475acfde0327c003cbc381cc49882b8e39f63ff021cfdf9fe",
-  "publicSpriteCount": 652,
+  "imageSha256": "797f8d7f9d1fd4e660662707ce85448658f2d95c84e1a9907858560e0ec1ec76",
+  "publicSpriteCount": 664,
   "internalReviewSpriteCount": 0
 }

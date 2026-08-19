@@ -355,6 +355,7 @@ describe('authoritative world frame', () => {
     });
     const player = frame.characters.find(({ id }) => id === 'protagonist')!;
     const linda = frame.characters.find(({ id }) => id === 'linda')!;
+    expect(player.visualId).toBe('vampire-01');
     expect(player.sprite).toContain('.rear-1');
     expect(linda.sprite).toContain('.left-2');
     expect(player.worldY).not.toBe(Math.round(player.worldY));

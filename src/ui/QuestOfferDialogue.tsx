@@ -7,7 +7,7 @@ import type { UiScale } from '../render/responsive-layout';
 import { UI_LAYER } from './ui-layers';
 import { uiMetrics } from './ui-metrics';
 
-const portraits: Record<CharacterId, number> = {
+const portraits: Partial<Record<CharacterId, number>> = {
   'devon-price': require('../../assets/source/dialogue-portraits/devon-price.png') as number,
   'elise-moreau': require('../../assets/source/dialogue-portraits/elise-moreau.png') as number,
   'generic-resident': require('../../assets/source/dialogue-portraits/generic-resident.png') as number,
@@ -100,7 +100,7 @@ export function QuestOfferDialogue({
             nativeID={`conversation-portrait-${speakerId}`}
             onLoad={() => setSpeakerPortraitLoaded(true)}
             resizeMode="contain"
-            source={portraits[speakerId]}
+            source={portraits[speakerId] ?? portraits['generic-resident']}
             style={{ height: portraitHeight, width: portraitWidth }}
           />
           {speakerPortraitLoaded ? <View nativeID={`conversation-portrait-${speakerId}-ready`} style={styles.portraitReady} /> : null}

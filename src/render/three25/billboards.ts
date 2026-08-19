@@ -97,7 +97,9 @@ export function isStandingDecal(sprite: string): boolean {
 }
 
 export function buildBillboards(frame: WorldFrameState): readonly BillboardDescriptor[] {
-  const characters = frame.characters.map((character) => ({
+  const characters = frame.characters
+    .filter((character) => character.visualId !== 'vampire-01')
+    .map((character) => ({
     id: character.id,
     source: character.source,
     x: (character.shadowWorldX + CHARACTER_CONTACT_OFFSET) / TILE_SIZE,
@@ -144,6 +146,7 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
    * strides too, which is fine: people blink while walking.
    */
   const eyes = frame.characters.flatMap((character) => {
+    if (character.visualId === 'vampire-01') return [];
     if (!character.sprite.endsWith('.front-1')) return [];
     if (!isBlinking(character.visualId, frame.animationTimestampMilliseconds)) return [];
     const band = atlasRectangle(`character.${character.visualId}.eyes`);
