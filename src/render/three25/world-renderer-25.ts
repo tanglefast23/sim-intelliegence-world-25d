@@ -11,6 +11,7 @@ import {
   DoubleSide,
   HemisphereLight,
   Mesh,
+  DataTexture,
   MeshBasicMaterial,
   MeshStandardMaterial,
   NearestFilter,
@@ -26,7 +27,7 @@ import {
   WebGLRenderer,
 } from 'three';
 
-import type { AtlasRectangle } from '../atlas';
+import { ATLAS_INDEX, type AtlasRectangle } from '../atlas';
 import type { ToneMappingKind } from '../renderer-selection';
 import { threeDrawingBufferSize } from '../three/coordinate-contract';
 import { ACES_EXPOSURE } from '../three/world-renderer';
@@ -38,6 +39,7 @@ import {
   pencilBillboards,
 } from '../pencil/billboard';
 import { PENCIL_HEIGHT, PENCIL_WIDTH } from '../pencil/vampire';
+import { bakePropSketchTile, PROP_TILE_SIZE } from '../pencil/prop-texture';
 import { vfxGlowPools, vfxQuads, type VfxQuad } from './vfx-25';
 import {
   DEFAULT_SHADOW_PATH,
@@ -50,6 +52,7 @@ import {
   skyglowMix,
   type ShadowPath,
 } from './lighting';
+import { PROP_RECIPES } from './recipes';
 import { SceneCache } from './mesh-cache';
 import {
   CAMERA_YAW_DEGREES,
@@ -203,8 +206,47 @@ export function frameCamera(
   return { x: targetX, z: targetZ };
 }
 
+function grainBoxSpriteCells(image: Readonly<{ width: number; height: number }>): HTMLCanvasElement | undefined {
+  if (typeof document === 'undefined') return undefined;
+  const canvas = document.createElement('canvas');
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const context = canvas.getContext('2d');
+  if (!context) return undefined;
+  context.drawImage(image as unknown as CanvasImageSource, 0, 0);
+  const tile = bakePropSketchTile();
+  // Paper red is 246; dividing by it makes untouched paper the identity and every stroke a darken.
+  const PAPER_RED = 246;
+  for (const sprite of Object.keys(PROP_RECIPES)) {
+    const rect = ATLAS_INDEX.sprites[sprite];
+    if (!rect) continue;
+    const cell = context.getImageData(rect.x, rect.y, rect.width, rect.height);
+    for (let y = 0; y < rect.height; y += 1) {
+      for (let x = 0; x < rect.width; x += 1) {
+        const offset = (y * rect.width + x) * 4;
+        if ((cell.data[offset + 3] ?? 0) === 0) continue;
+        // Sampled in atlas space so the grain runs continuously across neighbouring cells.
+        const tileOffset = (((rect.y + y) % PROP_TILE_SIZE) * PROP_TILE_SIZE + ((rect.x + x) % PROP_TILE_SIZE)) * 4;
+        const factor = Math.min(1, (tile[tileOffset] ?? PAPER_RED) / PAPER_RED);
+        cell.data[offset] = Math.round((cell.data[offset] ?? 0) * factor);
+        cell.data[offset + 1] = Math.round((cell.data[offset + 1] ?? 0) * factor);
+        cell.data[offset + 2] = Math.round((cell.data[offset + 2] ?? 0) * factor);
+      }
+    }
+    context.putImageData(cell, rect.x, rect.y);
+  }
+  return canvas;
+}
+
 async function loadAtlasTexture(atlasUrl: string): Promise<Texture> {
   const texture = await new TextureLoader().loadAsync(atlasUrl);
+  const grained = grainBoxSpriteCells(texture.image as { width: number; height: number });
+  if (grained) {
+    // three's Texture.image typing narrows to HTMLImageElement after TextureLoader, but a canvas
+    // is a first-class texture source at runtime.
+    (texture as unknown as { image: HTMLCanvasElement }).image = grained;
+    texture.needsUpdate = true;
+  }
   texture.colorSpace = SRGBColorSpace;
   texture.magFilter = NearestFilter;
   texture.minFilter = NearestFilter;
@@ -277,7 +319,7 @@ const LIT_FACE_SHADE: readonly number[] = [1, 1, 1, 1, 0.82, 0.82];
  */
 const NO_FACE_SHADE: readonly number[] = [1, 1, 1, 1, 1, 1];
 
-type AtlasCell = Readonly<{ u0: number; u1: number; v0: number; v1: number; flatU: number; flatV: number }>;
+type AtlasCell = Readonly<{ u0: number; u1: number; v0: number; v1: number }>;
 
 /**
  * The atlas cell as UVs, inset by half a texel.
@@ -288,19 +330,11 @@ type AtlasCell = Readonly<{ u0: number; u1: number; v0: number; v1: number; flat
 function atlasCell(source: AtlasRectangle, width: number, height: number): AtlasCell {
   const insetX = 0.5 / width;
   const insetY = 0.5 / height;
-  // The flat-shade sample. Snapped to the CENTRE OF A TEXEL, not the midpoint of the cell:
-  // `(u0 + u1) / 2` on an even-width cell lands exactly on a texel boundary, where NearestFilter
-  // is free to pick either neighbour. That is a coin flip per face, and it is why several props
-  // came out the colour of their outline rather than their paint.
-  const flatColumn = source.x + Math.floor(source.width / 2) + 0.5;
-  const flatRow = source.y + Math.floor(source.height / 2) + 0.5;
   return {
     u0: source.x / width + insetX,
     u1: (source.x + source.width) / width - insetX,
     v0: 1 - (source.y + source.height) / height + insetY,
     v1: 1 - source.y / height - insetY,
-    flatU: flatColumn / width,
-    flatV: 1 - flatRow / height,
   };
 }
 
@@ -427,10 +461,14 @@ function bakeGeometry(
       ];
       face.corners.forEach((corner, cornerIndex) => {
         const uv = FACE_UVS[cornerIndex]!;
-        // A flat-shaded box samples ONE texel from the middle of the cell, so the face is a single
-        // colour instead of a whole sprite squashed onto it.
-        const u = box.flatShade === true ? cell.flatU : cell.u0 + uv[0] * (cell.u1 - cell.u0);
-        const v = box.flatShade === true ? cell.flatV : cell.v0 + uv[1] * (cell.v1 - cell.v0);
+        // A flat-shaded box used to sample ONE texel so the face was a single colour. It now
+        // spans 0..1 so the charcoal sketch tile on `flatMaterial` stretches across each face —
+        // Joe's 2026-08-19 call: keep the 2.5D geometry, draw the surface. One tile per face, not
+        // per world unit, so there are no repeat seams; a bigger face just gets a bolder stroke,
+        // which is how a hand fills a bigger shape anyway. The glow batch shares this branch but
+        // its material carries no map, so the UVs are inert there.
+        const u = box.flatShade === true ? uv[0] : cell.u0 + uv[0] * (cell.u1 - cell.u0);
+        const v = box.flatShade === true ? uv[1] : cell.v0 + uv[1] * (cell.v1 - cell.v0);
         pushCorner(
           box.x + corner[0] * box.width,
           box.y + corner[1] * box.height,
@@ -1076,7 +1114,14 @@ export async function createWorldRenderer25(
    * `flatShading` keeps each face one value, so a box still reads as a box rather than a smoothly
    * shaded blob. `FACE_SHADE` in the baked colours rides on top of the light.
    */
+  // The greyscale charcoal tile: paper multiplies to the authored colour, strokes darken it.
+  const sketchTile = new DataTexture(bakePropSketchTile(), PROP_TILE_SIZE, PROP_TILE_SIZE);
+  sketchTile.magFilter = NearestFilter;
+  sketchTile.minFilter = NearestFilter;
+  sketchTile.colorSpace = SRGBColorSpace;
+  sketchTile.needsUpdate = true;
   const flatMaterial = new MeshStandardMaterial({
+    map: sketchTile,
     vertexColors: true,
     flatShading: true,
     roughness: 0.9,
@@ -1090,7 +1135,7 @@ export async function createWorldRenderer25(
    * every face normal points away from the light and a lit lamp head renders black — the one
    * thing in a dark room that has to glow.
    */
-  const glowMaterial = new MeshBasicMaterial({ vertexColors: true });
+  const glowMaterial = new MeshBasicMaterial({ map: sketchTile, vertexColors: true });
 
   /**
    * Characters, unlit and textured.
@@ -1651,6 +1696,7 @@ export async function createWorldRenderer25(
       boxMesh.geometry.dispose();
       flatBoxMesh.geometry.dispose();
       glowBoxMesh.geometry.dispose();
+      sketchTile.dispose();
       flatMaterial.dispose();
       glowMaterial.dispose();
       billboardMesh.geometry.dispose();

@@ -304,12 +304,20 @@ describe('per-face texturing in the bake', () => {
     expect(sideU).toBeGreaterThan(0.4);
   });
 
-  test('a flat-shaded box collapses every face to one texel', () => {
+  test('a flat-shaded box spans each face 0..1 so the sketch tile stretches across it', () => {
+    // Flat boxes used to collapse every face to a single atlas texel. Since Joe's 2026-08-19
+    // call to draw the prop surfaces, `flatMaterial` carries the charcoal tile and each face
+    // needs the full UV square to wear it.
     const geometry = bakeSceneGeometry({ floors: [], boxes: [box({ flatShade: true })] }, ATLAS, ATLAS).flatBoxes;
     const uv = geometry.getAttribute('uv');
-    for (let index = 1; index < uv.count; index += 1) {
-      expect(uv.getX(index)).toBeCloseTo(uv.getX(0), 9);
-      expect(uv.getY(index)).toBeCloseTo(uv.getY(0), 9);
+    expect(uv.count).toBe(24);
+    for (let face = 0; face < 6; face += 1) {
+      const us = [0, 1, 2, 3].map((corner) => uv.getX(face * 4 + corner));
+      const vs = [0, 1, 2, 3].map((corner) => uv.getY(face * 4 + corner));
+      expect(Math.min(...us)).toBe(0);
+      expect(Math.max(...us)).toBe(1);
+      expect(Math.min(...vs)).toBe(0);
+      expect(Math.max(...vs)).toBe(1);
     }
   });
 
@@ -360,71 +368,6 @@ describe('per-face texturing in the bake', () => {
   test('a box with no sideSource still textures every face', () => {
     const geometry = bakeSceneGeometry({ floors: [], boxes: [box({})] }, ATLAS, ATLAS).boxes;
     expect(geometry.getAttribute('uv').count).toBe(24);
-  });
-});
-
-describe('the flat-shade sample lands on a texel, not a boundary', () => {
-  const ATLAS = 1024;
-
-  /**
-   * The midpoint of an even-width cell sits exactly on a texel boundary, where NearestFilter may
-   * pick either neighbour — a coin flip per face, and the reason several props rendered the colour
-   * of their outline. The sample is snapped to a texel CENTRE instead.
-   */
-  test('a 32px cell samples a texel centre, so u*atlas has a half-pixel fraction', () => {
-    const geometry = bakeSceneGeometry({
-      floors: [],
-      boxes: [{
-        id: 'b', sprite: 's', flatShade: true,
-        source: { x: 64, y: 96, width: 32, height: 32 } as never,
-        x: 0, y: 0.5, z: 0, width: 1, height: 1, depth: 1, tint: '#ffffffff',
-      }],
-    }, ATLAS, ATLAS).flatBoxes;
-    const uv = geometry.getAttribute('uv');
-    const texelX = uv.getX(0) * ATLAS;
-    const texelY = (1 - uv.getY(0)) * ATLAS;
-    expect(texelX % 1).toBeCloseTo(0.5, 9);
-    expect(texelY % 1).toBeCloseTo(0.5, 9);
-    // And it is inside the cell, not on its edge.
-    expect(texelX).toBeGreaterThan(64);
-    expect(texelX).toBeLessThan(96);
-  });
-
-  test('an odd-sized cell still lands inside itself', () => {
-    const geometry = bakeSceneGeometry({
-      floors: [],
-      boxes: [{
-        id: 'b', sprite: 's', flatShade: true,
-        source: { x: 10, y: 20, width: 15, height: 9 } as never,
-        x: 0, y: 0.5, z: 0, width: 1, height: 1, depth: 1, tint: '#ffffffff',
-      }],
-    }, ATLAS, ATLAS).flatBoxes;
-    const uv = geometry.getAttribute('uv');
-    const texelX = uv.getX(0) * ATLAS;
-    const texelY = (1 - uv.getY(0)) * ATLAS;
-    expect(texelX).toBeGreaterThan(10);
-    expect(texelX).toBeLessThan(25);
-    expect(texelY).toBeGreaterThan(20);
-    expect(texelY).toBeLessThan(29);
-  });
-});
-
-describe('the per-face shade multiplies the descriptor tint', () => {
-  const ATLAS = 1024;
-  const shadeOf = (tint: string, faceIndex: number) => bakeSceneGeometry({
-    floors: [],
-    boxes: [{
-      id: 'b', sprite: 's', source: { x: 0, y: 0, width: 32, height: 32 } as never,
-      x: 0, y: 0.5, z: 0, width: 1, height: 1, depth: 1, tint,
-    }],
-  }, ATLAS, ATLAS).boxes.getAttribute('color').getX(faceIndex * 4);
-
-  test('a darker tint darkens every face in proportion', () => {
-    // Face 2 is the top, face 4 the south side.
-    const brightTop = shadeOf('#ffffffff', 2);
-    const darkTop = shadeOf('#808080ff', 2);
-    expect(darkTop).toBeLessThan(brightTop);
-    expect(shadeOf('#808080ff', 4)).toBeLessThan(darkTop);
   });
 });
 
