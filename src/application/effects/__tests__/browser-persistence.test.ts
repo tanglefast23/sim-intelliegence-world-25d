@@ -75,10 +75,11 @@ describe('browser persistence', () => {
       .resolves.toEqual(DEFAULT_PRESENTATION_PREFERENCES);
 
     const saved = await browserPersistence.savePresentationPreferences({
-      worldZoom: 1.5, uiScale: 1.25, musicVolume: 0.5, sfxVolume: 0.25, camera: null,
+      worldZoom: 1.5, uiScale: 1.25, musicVolume: 0.5, sfxVolume: 0.25, hudCollapsed: true, camera: null,
     });
     expect(saved.worldZoom).toBe(1.5);
     expect(saved.musicVolume).toBe(0.5);
+    expect(saved.hudCollapsed).toBe(true);
     await expect(browserPersistence.loadPresentationPreferences()).resolves.toEqual(saved);
   });
 

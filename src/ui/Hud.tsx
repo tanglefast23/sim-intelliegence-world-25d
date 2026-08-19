@@ -31,6 +31,8 @@ type HudProps = Readonly<{
   accent: string;
   availableWidth: number;
   hidden: boolean;
+  collapsed: boolean;
+  onCollapsed: () => void;
   uiScale: UiScale;
   onSpeed: (speed: 0 | 1 | 2) => void;
   onJournal: () => void;
@@ -54,7 +56,7 @@ type HudProps = Readonly<{
 }>;
 
 export function Hud({
-  state, mapName, areaName, zoom, saveStatus, accent, availableWidth, hidden, uiScale, onSpeed,
+  state, mapName, areaName, zoom, saveStatus, accent, availableWidth, hidden, collapsed, onCollapsed, uiScale, onSpeed,
   onJournal, onSocial, onSave, saveDisabled, onZoom, zoomOutDisabled, zoomInDisabled, onUiScale,
   musicVolume, sfxVolume, onMusicVolume, onSfxVolume, onPressSound,
   devMode, onDevMode, onJumpToMinute, onJumpForwardHour, jumpDisabled,
@@ -105,7 +107,18 @@ export function Hud({
             ))}
           </View>
         </View>
+        <Pressable
+          accessibilityLabel={collapsed ? 'Expand interface' : 'Collapse interface'}
+          nativeID="world-ui-collapse"
+          onPress={() => { onPressSound(); onCollapsed(); }}
+          role="button"
+          style={({ pressed }) => [styles.collapseButton, { height: metrics.pointerTarget, width: metrics.pointerTarget }, pressed && styles.buttonPressed]}
+        >
+          <Text style={[styles.collapseText, { fontSize: metrics.panelText }]}>{collapsed ? '▾' : '▴'}</Text>
+        </Pressable>
       </View>
+      {collapsed ? null : (
+      <>
         <View style={[styles.meters, { gap: metrics.gap }]}>
           <View style={styles.meter}>
             <View style={styles.meterHeader}>
@@ -198,6 +211,8 @@ export function Hud({
           ) : null}
         </View>
       ) : null}
+      </>
+      )}
     </View>
   );
 }
@@ -209,6 +224,8 @@ const styles = StyleSheet.create({
   area: { color: '#fff0c7', fontFamily: 'Georgia', fontWeight: '700', marginTop: 1 },
   buttonPressed: { opacity: 0.78, transform: [{ translateY: 1 }] },
   clock: { color: '#f1c65b', fontFamily: 'Silkscreen' },
+  collapseButton: { alignItems: 'center', alignSelf: 'flex-start', borderColor: '#665139', borderWidth: 1, justifyContent: 'center', marginLeft: 8 },
+  collapseText: { color: '#e1ca9f', fontFamily: 'Silkscreen' },
   // Seven buttons clip inside the 540px HUD, so this row wraps. The shared settingRow must not:
   // VIEW and UI SCALE rely on staying one line.
   devTimeRow: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 4 },

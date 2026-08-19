@@ -27,6 +27,21 @@ describe('main-owned presentation preferences', () => {
     await expect(repository.saveRendererPatch({ worldZoom: 1.53 })).rejects.toThrow('5% increments');
   });
 
+  test('keeps a collapsed HUD across a restart and defaults older files to expanded', async () => {
+    const userData = await mkdtemp(join(tmpdir(), 'si-world-presentation-hud-'));
+    const path = presentationPreferencesPathForUserData(userData);
+    await new PresentationPreferencesRepository(path).saveRendererPatch({
+      worldZoom: null, uiScale: null, camera: null, hudCollapsed: true,
+    });
+    // A second repository reads from disk, which is what the next launch does.
+    expect((await new PresentationPreferencesRepository(path).load()).hudCollapsed).toBe(true);
+
+    const legacy = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>;
+    delete legacy.hudCollapsed;
+    await writeFile(path, JSON.stringify(legacy), 'utf8');
+    expect((await new PresentationPreferencesRepository(path).load()).hudCollapsed).toBe(false);
+  });
+
   test('ignores invalid persisted data without overwriting it', async () => {
     const userData = await mkdtemp(join(tmpdir(), 'si-world-presentation-corrupt-'));
     const path = presentationPreferencesPathForUserData(userData);
