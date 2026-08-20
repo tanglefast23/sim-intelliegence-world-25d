@@ -154,14 +154,14 @@ Each shipped material family needs:
 
 - One stable character source is authoritative for the portrait and all world cells.
 - The source owns the stable look ID, skin, face, eyes, brows, mouth, hair, body build, clothing, accessory, held item, and portrait-expression hooks.
-- Generate the portrait and the eight walking cells from this shared source. Do not draw a portrait and a world character as separate designs.
+- For atlas-path characters, generate the portrait and eight walking cells from this shared source. Do not draw a portrait and world character as separate identities.
 - A portrait can contain more detail. It cannot change the head shape, hair mass, skin ramp, key facial feature, body build, main clothing shape, or signature accessory.
 - A rear or lateral cell can omit a hidden detail. It must preserve the same readable person.
 - A recolor, status tint, outfit state, or expression changes only that state. It does not create a new face.
 
 ### 9.2 Halcyra character style
 
-- Permanent creation rule: every new or changed character portrait and in-game character must use the HFM `24x29` portrait and `24x30` world geometry in this section. Do not invent a separate square portrait skeleton or rectangular world body.
+- Atlas-path creation rule: every new or changed atlas portrait and world character uses the HFM `24x29` portrait and `24x30` world geometry in this section. Characters routed through `src/render/pencil/` use `character-sprite-authoring.md` and `character-sprite-design2.0.md` instead.
 - Use original expressive oddball chibi pixel art. HFM supplies the shared-source method and pixel discipline, not production pixels or character designs.
 - Use HFM's cut-corner face box, fixed eye and mouth rows, stepped portrait shoulders, visible arm and hand columns, two narrow separated legs, shaped feet, and `face -> feature -> body -> outline` assembly order.
 - Use one logical pixel as the drawing unit. Use hard edges. Do not use gradients, smoothing, or anti-aliasing.
@@ -188,9 +188,9 @@ Every person must have a special, unique, and slightly goofy look. This is a pro
 - Ambient residents use a stable look ID derived from their stable person ID and an authored component pool. Resolve collisions so two people in the active population do not receive the same complete look.
 - `generic-resident` identifies the single prototype resident and can remain the unknown-ID development fallback. Reusing it for other production residents does not pass this rule.
 
-### 9.4 Fixed geometry and motion
+### 9.4 Atlas geometry and motion
 
-- Keep the current `24x30` world cell and eight walking cells.
+- For atlas-path characters, keep the current `24x30` world cell and eight walking cells.
 - Keep the HFM `24x29` portrait cell.
 - Use the same head, eye, mouth, hair, and feature coordinates in portrait and world sources. Do not scale a separate portrait drawing.
 - Keep the top, left, and right source margins open for the generated contour. World feet can use the bottom row, as in HFM.
@@ -200,7 +200,7 @@ Every person must have a special, unique, and slightly goofy look. This is a pro
 - Lateral movement keeps the current front-body method until a native-zoom test proves it unclear.
 - If lateral identity is unclear, add one mirrored three-quarter head and hair view before a full side body.
 
-### 9.5 Portrait expressions
+### 9.5 Atlas portrait expressions
 
 - Each new or rebuilt named identity has `rest`, `joy`, and `upset` portrait expressions from the same source.
 - Expressions can change eyes, brows, and mouth. They cannot change the person's geometry or signature oddity.
