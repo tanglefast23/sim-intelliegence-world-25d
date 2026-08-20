@@ -104,6 +104,11 @@ export function deriveRearFrame(front: readonly string[], source: CharacterSourc
     return tokens.join('');
   });
   const withSole = withRearSole(rear);
-  applyConnectedHairLighting(withSole, [...withSole], hairBottom);
-  return withSole;
+  // A real left/right asymmetry flips on the rear view. Most legacy looks are intentionally
+  // front-projected, so keep the correction scoped to the approved anatomical collar.
+  const oriented = look.oddity === 'asymmetric-high-collar'
+    ? withSole.map((row) => [...row].reverse().join(''))
+    : withSole;
+  applyConnectedHairLighting(oriented, [...oriented], hairBottom);
+  return oriented;
 }

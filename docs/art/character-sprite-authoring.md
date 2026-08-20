@@ -39,12 +39,14 @@ and stop. Do not shrink a cat into a vampire-shaped human or start a new rig.
 |---|---|
 | Shipping 2.5D `vampire-01` body | Pencil reference |
 | Other current world characters | Atlas reference |
-| Current portraits | Atlas reference |
+| Current portraits | Atlas reference; use the same approved brief as any pencil body |
 | New pencil `visualId` | Complete brief, then stop at Gate A |
 | Pencil portrait | Complete brief, then stop; no path exists |
 
 For `vampire-01`, atlas entries still serve rollback and portraits. Atlas edits do not change his
-visible 2.5D pencil body.
+visible 2.5D pencil body. The current body and portrait are separate code sources, which is OPEN
+identity debt. Any identity-changing request across both surfaces uses one approved brief and a
+side-by-side parity review; do not update either surface as an independent redesign.
 
 ## 3. Current pencil support
 
@@ -59,8 +61,8 @@ visible 2.5D pencil body.
 | Front idle and four-facing two-state walk | Extra poses, expressions, or pencil portraits |
 | Three whole-character boil frames | Per-part boil or blink-swapped faces |
 
-Reduced-motion mode does not freeze pencil boil today. Treat this as an accessibility bug, not a
-creative choice and not permission to build the future rig.
+Reduced-motion mode now pins the pencil character to the front idle pose and boil frame 0. Keep
+that behavior in every character change; it does not require the future rig.
 
 ## 4. Creative gates
 
@@ -86,17 +88,21 @@ Ask every missing item:
 2. **Identity:** Name or ID, story role, and why this character looks this way?
 3. **Subject:** Human, human-shaped creature, original superhero, monster, cat, animal, or hybrid?
 4. **Base:** Biped, seated, quadruped, winged, serpentine, limbless, or custom?
-5. **Envelope:** Compact, chibi, tall, broad, long, top-heavy, bottom-heavy, or asymmetric?
-6. **Posture and locomotion:** How does it stand, contact the ground, and move?
+5. **Generation mode:** One authored named character now, or a future generated population?
+6. **Envelope:** Compact, chibi, tall, broad, long, top-heavy, bottom-heavy, or asymmetric?
+7. **Posture and locomotion:** How does it stand, contact the ground, and move?
 
 Keep three ideas separate: creature identity, anatomical base, and generation mode. A named animal
 can be authored without generated species data, but pencil character two still requires Gate A.
 
-### Round B — matching subject branch
+### Round B — matching subject branches
 
-**Human or human-shaped:** Which build, hair mass, clothing silhouette, and role object identify
-them before facial detail? If there is an unusual body, aid, or prosthesis, how does it remain one
-part of the whole person rather than the entire identity?
+Ask every matching branch. Branches compose: a human superhero uses both the human and superhero
+questions; a disabled monster uses the relevant human-dignity and monster questions.
+
+**Human or human-shaped:** Which build, hair mass, clothing silhouette, role object, aid, or
+prosthesis identifies them before facial detail? If there is an unusual body, aid, or prosthesis,
+how does it remain one part of the whole person rather than the entire identity?
 
 **Original superhero:** What original power, duty, or theme should the silhouette show? Which shape
 carries it without copying a known suit, logo, badge, or hero? Does a cape, item, aura, or locomotion
@@ -124,10 +130,12 @@ features belong in the skull, and which need separate parts?
    remains dominant, and the floor stays pinned.
 5. **Surface:** Skin, fur, feathers, scales, shell, slime, cloth, armour, stone, smoke, metal,
    spectral material, or another covering? Where does it change?
-6. **Colour and value:** What palette and value hierarchy must read at play zoom?
-7. **Medium intent:** Graphite now, or another desired medium recorded as unsupported intent?
-8. **Resting face:** Eyes, brows, nose or muzzle, mouth, ears, and resting emotion?
-9. **Expressions:** Which additional faces have a named gameplay use?
+6. **Skin or surface tone:** What human skin tone, fur value, scale value, or material value should
+   appear? Record it separately from graphite density.
+7. **Colour and value:** What palette and value hierarchy must read at play zoom?
+8. **Medium intent:** Graphite now, or another desired medium recorded as unsupported intent?
+9. **Resting face:** Eyes, brows, nose or muzzle, mouth, ears, and resting emotion?
+10. **Expressions:** Which additional faces have a named gameplay use?
 
 After approval, the agent proposes density and stroke direction per mass. Joe does not need to
 invent hatch angles.
@@ -145,9 +153,11 @@ invent hatch angles.
 ```text
 Character ID, name, role, and story reason:
 Deliverable, target surfaces, and verified route:
-Subject, creature identity, anatomical base, posture, and locomotion:
+Plain-language identity sentence:
+Subject, creature identity, anatomical base, generation mode, posture, and locomotion:
 Stature, body envelope, head shape, and head share:
-Surface, markings, colour/value hierarchy, and medium intent:
+Hair, clothing, aids, prostheses, and role objects where applicable:
+Surface, skin/surface tone, markings, colour/value hierarchy, and medium intent:
 Primary oddity and supporting feature:
 Resting face and requested gameplay expressions:
 Parts and layer order:
@@ -169,10 +179,10 @@ Finish the brief, then stop when any applies:
 |---|---|
 | Existing pencil vampire within current scope | Smallest owning-part or shared-primitive change |
 | Second pencil identity | Gate A, only with explicit authorization |
-| Extra poses, bones, or independent boil | Gate B |
-| Expressions or blink transitions | Gate C |
-| Animal base, species generation, crowds, rerolls, or editor | Gate D after Gate A |
-| Custom skull or selectable non-graphite character medium | Separate approved architecture work |
+| New authored body base, extra poses, bones, or independent boil | Gate A, then Gate B |
+| Expressions or blink transitions | Gate B, then Gate C |
+| Generated species, crowds, rerolls, locks, or editor | Gate D after Gates A and B |
+| Custom skull, muzzle, beak, or selectable non-graphite medium | Separate approved architecture work |
 | Atlas character or portrait | Atlas reference and `npm run art:check` |
 
 Also stop when the output path is unresolved or code cannot prove a claimed capability. A stop
@@ -195,10 +205,12 @@ npx jest --runInBand --runTestsByPath \
 npm run typecheck
 ```
 
-Add one focused test for changed behavior. Then use a hidden 2.5D capture at native play zoom.
-Review silhouette, facings, front idle, both walks, ground contact, motion edges, paper coverage, and
-all three boil frames. The world stays still. Do not claim accessibility completion while
-reduced-motion boil remains unfixed.
+Add one focused test for changed behavior. Run `npm run smoke:25d:lit` and
+`npm run smoke:25d:fallback` for safe hidden in-world evidence. Those smokes do not select every
+character facing, gait, or boil frame. If the task changes those states, add or use a deterministic
+character-state capture before claiming visual coverage. Review silhouette, facings, front idle,
+both walks, ground contact, motion edges, paper coverage, and all three boil frames. The world stays
+still. Verify that reduced motion selects front idle and boil frame 0.
 
 ## References
 

@@ -24,6 +24,9 @@ export function drawEyes(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
     F.media.skin(sketch, sketch.blobPts(ex, y + 0.6 * hs, 2.3 * hs * scale, 2.6 * hs * scale, 0, 0.1), colors.hair, {
       paper: false, underdraw: false, alpha: 0.95,
     });
+    F.media.skin(sketch, sketch.blobPts(ex, y + 6.2 * hs, 6 * hs * scale, 1.8 * hs, 0.08, 0.45), colors.ash, {
+      paper: false, underdraw: false, alpha: 0.34,
+    });
     // A 2px glint; one pixel vanished at play zoom.
     sketch.put(ex - 1.2 * hs, y - 0.9 * hs, colors.white[0], colors.white[1], colors.white[2], 0.95);
     sketch.put(ex - 1.2 * hs + 1, y - 0.9 * hs, colors.white[0], colors.white[1], colors.white[2], 0.85);

@@ -24,7 +24,7 @@ export type BodyBuild = typeof BODY_BUILDS[number];
 export const HAIR_STYLES = [
   'bald', 'swept', 'side-cloud', 'stacked-bun', 'crop', 'bob', 'flat-top', 'high-bun',
   'low-part', 'question', 'quiff', 'pompadour', 'twin-buns', 'long', 'mohawk', 'braids',
-  'bowl', 'spikes', 'side-fan', 'ponytail',
+  'bowl', 'spikes', 'side-fan', 'ponytail', 'widow-peak',
 ] as const;
 export type HairStyle = typeof HAIR_STYLES[number];
 
@@ -38,7 +38,7 @@ export const SECONDARY_FEATURES = [
   'bow-tie', 'rain-cape', 'big-black-boots', 'bright-cuff', 'guitar-case', 'short-jacket',
   'double-braids', 'flared-coat', 'opposite-ponytail', 'split-tunic', 'round-vest-button',
   'side-fastened-jacket', 'tiny-waist-belt', 'charm-bracelet', 'half-cape', 'suspenders',
-  'pearl-necklace', 'star-cuff', 'large-necklace', 'thin-ponytail',
+  'pearl-necklace', 'star-cuff', 'large-necklace', 'thin-ponytail', 'visible-fangs',
 ] as const;
 export type SecondaryFeature = typeof SECONDARY_FEATURES[number];
 
@@ -139,12 +139,11 @@ export const CHARACTER_LOOKS = [
     supportingFeature: 'A long narrow clerk body carries a rigid permit pouch.', outfitPattern: 0, expressions: NAMED_EXPRESSIONS,
   },
   {
-    // porcelain+silver+charcoal+gold, not resident-07's porcelain+ink+charcoal+red
-    id: 'vampire-01', displayName: 'Vampire', kind: 'named', skin: 'porcelain', hairColor: 'silver', clothing: 'charcoal', accent: 'gold',
-    head: 'long', build: 'slim', hair: 'swept', eyes: 'beady', oddity: 'fang-mouth', oddityLayer: 'accessory',
-    secondary: 'half-cape', secondaryLayer: 'accessory',
-    signatureOddity: 'Two tiny fangs sit at the corners of a thin mouth.',
-    supportingFeature: 'A half cape falls from one shoulder.', outfitPattern: 4, expressions: NAMED_EXPRESSIONS,
+    id: 'vampire-01', displayName: 'Vampire', kind: 'named', skin: 'porcelain', hairColor: 'ink', clothing: 'charcoal', accent: 'red',
+    head: 'long', build: 'tiny', hair: 'widow-peak', eyes: 'angled-small', oddity: 'asymmetric-high-collar', oddityLayer: 'accessory',
+    secondary: 'visible-fangs', secondaryLayer: 'accessory',
+    signatureOddity: 'An oversized slouchy cardigan rises into one high collar beside the face.',
+    supportingFeature: 'Two visible fangs reveal the guarded introvert as a vampire.', outfitPattern: 4, expressions: NAMED_EXPRESSIONS,
   },
   {
     id: 'linda-boyfriend', displayName: "Linda's Boyfriend", kind: 'ambient', skin: 'sand', hairColor: 'auburn', clothing: 'sage', accent: 'pink',

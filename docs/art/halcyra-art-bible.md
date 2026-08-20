@@ -152,8 +152,8 @@ Each shipped material family needs:
 
 ### 9.1 One source for one person
 
-- One stable character source is authoritative for the portrait and all world cells.
-- The source owns the stable look ID, skin, face, eyes, brows, mouth, hair, body build, clothing, accessory, held item, and portrait-expression hooks.
+- One approved character brief is authoritative for the person's identity across portraits and world views. Current code can use separate render sources, but they must remain synchronized to that brief.
+- The approved identity record owns the stable look ID, skin or surface, face, hair, body build, clothing, accessory, held item, and expression intent.
 - For atlas-path characters, generate the portrait and eight walking cells from this shared source. Do not draw a portrait and world character as separate identities.
 - A portrait can contain more detail. It cannot change the head shape, hair mass, skin ramp, key facial feature, body build, main clothing shape, or signature accessory.
 - A rear or lateral cell can omit a hidden detail. It must preserve the same readable person.
@@ -162,21 +162,21 @@ Each shipped material family needs:
 ### 9.2 Halcyra character style
 
 - Atlas-path creation rule: every new or changed atlas portrait and world character uses the HFM `24x29` portrait and `24x30` world geometry in this section. Characters routed through `src/render/pencil/` use `character-sprite-authoring.md` and `character-sprite-design2.0.md` instead.
-- Use original expressive oddball chibi pixel art. HFM supplies the shared-source method and pixel discipline, not production pixels or character designs.
-- Use HFM's cut-corner face box, fixed eye and mouth rows, stepped portrait shoulders, visible arm and hand columns, two narrow separated legs, shaped feet, and `face -> feature -> body -> outline` assembly order.
-- Use one logical pixel as the drawing unit. Use hard edges. Do not use gradients, smoothing, or anti-aliasing.
-- Light the character from the upper left.
+- Use original expressive oddball chibi character art. HFM supplies the atlas shared-source method and pixel discipline; Kindergrimm supplies the pencil construction method. Neither supplies production character designs.
+- Atlas only: use HFM's cut-corner face box, fixed eye and mouth rows, stepped portrait shoulders, visible arm and hand columns, two narrow separated legs, shaped feet, and `face -> feature -> body -> outline` assembly order.
+- Atlas only: use one logical pixel as the drawing unit. Use hard edges. Do not use gradients, smoothing, or anti-aliasing.
+- Atlas only: light the character from the upper left.
 - Use a large, readable head and face. The face must remain readable at native `1x`.
 - Design the silhouette before the face detail. One major silhouette feature must identify the person before color is considered.
 - Use a controlled dark outer contour. Keep skin, hair, clothing, and accessory values separate where they touch.
-- Use the shared Halcyra palette families. Add a color only when it improves identity at `1x`.
+- Atlas only: use the shared Halcyra palette families. Add a color only when it improves identity at `1x`.
 - Keep all identities fictional and original. Do not copy a real person, full costume, badge, or exact character silhouette.
 
 ### 9.3 Mandatory two-feature identity
 
 Every person must have a special, unique, and slightly goofy look. This is a production rule, not an optional polish pass.
 
-- Give each person one primary `signature oddity` and one secondary distinctive feature. Both features must be real authored pixels, not text metadata.
+- Give each person one primary `signature oddity` and one secondary distinctive feature. Both features must change an authored shape or add a readable object. Atlas uses pixels; pencil uses authored strokes and parts. Text metadata alone does not count.
 - The oddity can use the face, hair, facial hair, clothing, accessory, posture, body shape, or the size of one body part.
 - Halcyra has no football-uniform limit. Use odd coats, uneven sleeves, huge collars, tiny hats, oversized bags, strange shoes, long noses, broad jaws, narrow shoulders, large hands, or other story-compatible choices.
 - Exaggerate one main feature and one supporting feature. The supporting feature can be a hat, jewelry, scarf, dress, cape, unusual sleeve, large black boots, case, bag, tool, or body proportion. Do not make every part noisy.
@@ -208,13 +208,12 @@ Every person must have a special, unique, and slightly goofy look. This is a pro
 
 ### 9.6 Character review gate
 
-- Review the full cast at native `1x` before the enlarged `3x` board.
-- Review silhouettes without color.
-- Review each person in all eight world cells and all portrait expressions.
-- Compare the portrait and front world cell side by side.
+- Review silhouettes without color and review the character at its native play scale.
 - Reject a person who reads as a palette swap, ordinary haircut plus ordinary clothes, or a softened version of another person.
-- Reject a person if either coded feature disappears from the native `1x` review.
-- Reject a portrait that looks good alone but does not match the world cell.
+- Reject a person if either authored feature disappears at native play scale.
+- Atlas only: review the full cast at native `1x` before the enlarged `3x` board, inspect all eight world cells and portrait expressions, and compare the portrait with the front world cell.
+- Pencil only: follow `character-sprite-authoring.md` for required facings, states, hidden 2.5D captures, and current capture limitations.
+- Reject a portrait that looks good alone but does not match the world character.
 
 ## 10. District identity
 

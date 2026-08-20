@@ -206,6 +206,11 @@ function lateralHairCommands(look: CharacterLook): DrawCommand[] {
       [[9, 4], [12, 5], [15, 5], [18, 7], [19, 10], [18, 13]],
       [[11, 7], [16, 7], [20, 12], [18, 14]],
     );
+    case 'widow-peak': return textured(
+      [rect('H', 8, 3, 10, 4), pixels('H', [[7, 4], [6, 5], [8, 7], [17, 6], [18, 8]])],
+      [[9, 3], [11, 4], [14, 4], [16, 5], [8, 6]],
+      [[11, 7], [14, 7], [17, 8]],
+    );
   }
 }
 
@@ -223,6 +228,9 @@ function customProfileOddity(look: CharacterLook): DrawCommand[] | undefined {
     case 'window-glasses': return [
       rect('K', 6, 12, 6, 1), rect('K', 6, 15, 6, 1),
       rect('K', 6, 13, 1, 2), rect('K', 11, 13, 1, 2),
+    ];
+    case 'asymmetric-high-collar': return [
+      rect('C', 16, 12, 4, 10), rect('c', 13, 17, 3, 5), pixels('A', [[15, 17]]),
     ];
     case 'curl-moustache': return [pixels('H', [[6, 16], [7, 15], [8, 16], [9, 17], [10, 16], [11, 15]])];
     case 'square-ear-defenders': return [rect('A', 16, 8, 4, 8), rect('K', 17, 9, 2, 6), rect('A', 12, 6, 6, 2)];
@@ -263,6 +271,7 @@ function customProfileOddity(look: CharacterLook): DrawCommand[] | undefined {
 function customProfileSecondary(look: CharacterLook): DrawCommand[] | undefined {
   switch (look.secondary) {
     case 'opposite-ponytail': return [rect('H', 4, 6, 3, 7), pixels('h', [[5, 7], [5, 8], [5, 10]]), pixels('K', [[6, 11], [6, 12]])];
+    case 'visible-fangs': return [rect('K', 8, 15, 3, 1), pixels('W', [[9, 16]])];
     default: return undefined;
   }
 }

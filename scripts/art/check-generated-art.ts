@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import pixelBaseline from '../../assets/source/art/revision-20-pixel-hashes.json';
+import pixelBaseline from '../../assets/source/art/revision-21-pixel-hashes.json';
 import { buildAtlas, type AtlasIndex } from './build-world-atlas';
 import { decodePng } from './png';
 
@@ -12,12 +12,13 @@ const REQUIRED_GENERATED_ARTIFACTS = [
   'assets/generated/atlas-report.json',
   'src/world/presentation/generated-recipes.json',
   'assets/generated/world-atlas.png',
+  'assets/source/dialogue-portraits/protagonist.png',
   'assets/source/art/manifest.json',
   'assets/source/art/material-recipes.json',
   'assets/source/art/roof-recipes.json',
   'assets/source/art/decal-recipes.json',
   'assets/source/art/transition-recipes.json',
-  'assets/source/art/revision-20-pixel-hashes.json',
+  'assets/source/art/revision-21-pixel-hashes.json',
 ] as const;
 
 type AtlasRect = Readonly<{ x: number; y: number; width: number; height: number }>;
@@ -108,6 +109,7 @@ function main(root = process.cwd()): void {
     'assets/generated/world-atlas.png',
     'assets/generated/atlas-index.json',
     'assets/generated/atlas-report.json',
+    'assets/source/dialogue-portraits/protagonist.png',
     'src/world/presentation/generated-recipes.json',
   ];
   execFileSync('git', ['ls-files', '--error-unmatch', ...generatedPaths], {

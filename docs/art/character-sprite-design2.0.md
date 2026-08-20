@@ -74,8 +74,11 @@ fix the stale side, and update the test that protects the decision.
 
 These rules apply to both pencil and atlas characters:
 
-- One stable source defines one person in every view.
+- One approved character brief defines one person across every view.
 - The portrait and world figure must show the same head, hair mass, body, face, and signature item.
+- Current `vampire-01` code violates the ideal one-source architecture: its pencil body and atlas
+  portrait are separate sources. Keep them synchronized from one brief and review them side by side;
+  do not describe this debt as solved.
 - Each person gets one primary signature oddity and one supporting feature.
 - Both features change shape or add a readable object.
 - The primary oddity survives front, rear, left, and right.
@@ -207,8 +210,8 @@ Current correctness gaps that the older document hides:
 - The published `F.L.noseY` is stale and unused. Do not replace working row 95 with row 86 merely
   to satisfy the anchor abstraction.
 - Pencil parts use the medium for masses and washes, but bypass `media.edge()` for contours.
-- Reduced-motion mode does not freeze the pencil boil. It can also preserve a walking pencil pose
-  while atlas stepping is pinned. These accessibility fixes do not depend on the future bone rig.
+- Reduced-motion mode now pins the pencil character to front idle and boil frame 0. Keep that
+  regression test independent of the future bone rig.
 
 ### 5.1 The current frame budget
 
@@ -598,12 +601,13 @@ Required result:
 
 Do not add species generation, an editor, or extra media in this gate.
 
-### Gate B — before extra poses or independent boil
+### Gate B — before a new anatomical base, extra poses, or independent boil
 
 Split parts into their own canvases and attach them to bones.
 
 Required result:
 
+- authored body bases publish their own contact, locomotion, and facing rules;
 - every visible part has a stable bone, pivot, size, layer, and depth;
 - each part owns three deterministic boil textures per active state;
 - per-part clocks use stable speed and phase offsets;
@@ -611,11 +615,13 @@ Required result:
 - idle and walk are bone offsets rather than full redraws; and
 - current contact points, facings, and world scale do not move.
 
-This gate unlocks sitting, attack, sleep, run, and proper non-unison boil.
+After Gate A, this gate can unlock authored sit, quad, winged, serpentine, or custom bases. It also
+unlocks sitting, attack, sleep, run, and proper non-unison boil. It does not create generated
+species data.
 
 ### Gate C — when gameplay needs visible emotion
 
-Add lazy face states, blink timing, and expression body offsets.
+Requires Gate B. Add lazy face states, blink timing, and expression body offsets.
 
 Required result:
 
@@ -627,7 +633,8 @@ Required result:
 
 ### Gate D — when generated populations need it
 
-Add species casting, per-part reroll, locks, crowd scoring, and editor support.
+Requires Gates A and B. Add species casting, per-part reroll, locks, crowd scoring, and editor
+support.
 
 Do not build this for authored named characters alone.
 
@@ -658,13 +665,17 @@ Add focused checks for:
 - full part registry order;
 - all four facings and both gait states;
 - explicit idle routing;
-- reduced-motion boil freeze;
+- reduced-motion boil and walk freeze;
 - foot contact and profile width;
 - rear face and hand exclusions;
 - unique depth ranks after the bone split; and
 - recipe round-trip after recipes ship.
 
 ### 12.2 Visual checks
+
+The existing hidden 2.5D smokes prove an in-world shipped frame, but they cannot select every
+character facing, gait, or boil frame. A task that changes those states needs a deterministic
+character-state capture before claiming complete visual evidence.
 
 Review in this order:
 
@@ -752,7 +763,7 @@ Joe's darker calibration for play-zoom survival.
 
 ## 14. Definition of done
 
-A shipping pencil character is done when:
+A shipping pencil character is done when the following checks pass.
 
 - [ ] one recipe or stable authored source defines the person;
 - [ ] one signature oddity and one supporting feature read without colour;

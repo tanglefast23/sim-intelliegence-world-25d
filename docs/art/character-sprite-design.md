@@ -280,18 +280,16 @@ Per character. That is the wrong curve, and it gets worse with a second characte
 scaled by a blend weight, so a transition is two poses summing and nothing snaps. Walk and run
 share one gait phase, so changing tempo never teleports a foot.
 
-We have no bones. Parts draw straight to canvas coordinates, so a pose can only be a whole new
-bake. **LOCKED 2026-08-19: before adding sitting and attack, move the parts onto a bone the animator
-can offset.** Idle is front-facing only; walking covers all four facings; nothing else is drawn up
-front. With the 120x180 sheet that is 27 frames and 2.2 MB, against 36 frames and 12.4 MB before.
-Adding four poses to the current design costs 29 MB and four more full drawings per facing; adding
-them to a bone rig costs four small offset tables.
+The pilot had no bones, so every added state required another full canvas per facing and boil frame.
+At the current `120×180` size, four additional four-facing poses would add about `3.96 MiB`, bringing
+raw frame data to about `6.18 MiB` before texture overhead. The target bone rig stores pose offsets
+instead of full redrawn sheets.
 
-### 6.7 Provisional — not locked in
+### 6.7 Historical provisional notes — superseded
 
-> **These rules are being worked out on screen and are NOT settled.** They stay in this box until
-> Joe says he likes how the vampire looks. Do not treat them as law, and do not copy them to
-> another character yet.
+> These notes record the on-screen fix loop. Current code and
+> [character-sprite-design2.0.md](character-sprite-design2.0.md) now settle the idle, gait, profile,
+> face, and pose rules. Do not treat this old status label as current.
 
 - **Idle is its own drawing, not walk frame 0.** Frame 0 has a foot in the air, so reusing it
   leaves the character balanced on one leg whenever he stops. `VAMPIRE_STATES` bakes idle, walk 1

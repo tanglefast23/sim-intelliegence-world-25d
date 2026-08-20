@@ -2,10 +2,10 @@ import { ATLAS_DRAW_CALL_CEILING, DRAW_CALL_CEILING } from '../ceilings';
 
 describe('2.5D draw-call ceilings', () => {
   test('are tighter than the provisional numbers once measured', () => {
-    // The plan's provisional guesses were 40 and 16. The measured maxima are 6 and 3.
+    // The plan's provisional guesses were 40 and 16. The current measured maxima are 12 and 3.
     expect(DRAW_CALL_CEILING).toBeLessThanOrEqual(40);
     expect(ATLAS_DRAW_CALL_CEILING).toBeLessThanOrEqual(16);
-    expect(DRAW_CALL_CEILING).toBeLessThan(14);
+    expect(DRAW_CALL_CEILING).toBeLessThanOrEqual(14);
     expect(ATLAS_DRAW_CALL_CEILING).toBeLessThan(8);
   });
 

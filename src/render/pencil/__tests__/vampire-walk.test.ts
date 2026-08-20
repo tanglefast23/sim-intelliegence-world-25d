@@ -1,6 +1,10 @@
 import { buildVampireLayout, HEAD_SHARE, VAMPIRE_COLORS } from '../layout';
 import { drawVampireCharacter } from '../parts';
 import { drawArms } from '../parts/arms';
+import { drawCloak } from '../parts/cloak';
+import { drawEyes } from '../parts/eyes';
+import { drawFangs } from '../parts/fangs';
+import { drawHair } from '../parts/hair';
 import { VAMPIRE_FACINGS, type VampireFacing } from '../pose';
 import { hashSeed, Sketch } from '../sketch';
 import { PENCIL_HEIGHT, PENCIL_WIDTH } from '../vampire';
@@ -39,7 +43,83 @@ function countsNear(sketch: Sketch, rgb: readonly [number, number, number], tole
   return hits;
 }
 
+function hasInkNear(sketch: Sketch, x: number, y: number, radius = 2): boolean {
+  for (let py = Math.round(y) - radius; py <= Math.round(y) + radius; py += 1) {
+    for (let px = Math.round(x) - radius; px <= Math.round(x) + radius; px += 1) {
+      if ((sketch.data[(py * sketch.width + px) * 4 + 3] as number) > 8) return true;
+    }
+  }
+  return false;
+}
+
+function paintedBounds(sketch: Sketch): Readonly<{ minX: number; maxX: number; minY: number; maxY: number }> {
+  let minX = sketch.width;
+  let maxX = 0;
+  let minY = sketch.height;
+  let maxY = 0;
+  for (let y = 0; y < sketch.height; y += 1) {
+    for (let x = 0; x < sketch.width; x += 1) {
+      if ((sketch.data[(y * sketch.width + x) * 4 + 3] as number) <= 8) continue;
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+  }
+  return { minX, maxX, minY, maxY };
+}
+
+function topPaintedRow(sketch: Sketch, fromX: number, toX: number): number {
+  for (let y = 0; y < sketch.height; y += 1) {
+    for (let x = fromX; x <= toX; x += 1) {
+      if ((sketch.data[(y * sketch.width + x) * 4 + 3] as number) > 8) return y;
+    }
+  }
+  return sketch.height;
+}
+
 describe('pencil vampire walk and proportions', () => {
+  test('the approved hair has a deep widow peak and pointed temples', () => {
+    const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
+    const F = buildVampireLayout();
+    sketch.boil(hashSeed('vampire-01', 'front', 'hair-review', 0));
+    drawHair(sketch, F, { facing: 'front', gait: 0, moving: false });
+    for (const point of [F.head(0, 76), F.head(-34, 50), F.head(34, 50)]) {
+      expect(hasInkNear(sketch, point.x, point.y)).toBe(true);
+    }
+  });
+
+  test('the cardigan is compact and carries one high collar', () => {
+    const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
+    const F = buildVampireLayout();
+    sketch.boil(hashSeed('vampire-01', 'front', 'cardigan-review', 0));
+    drawCloak(sketch, F, { facing: 'front', gait: 0, moving: false });
+    const bounds = paintedBounds(sketch);
+    expect(bounds.maxX - bounds.minX).toBeLessThanOrEqual(52);
+    const leftTop = topPaintedRow(sketch, 0, Math.floor(F.cx) - 1);
+    const rightTop = topPaintedRow(sketch, Math.ceil(F.cx) + 1, sketch.width - 1);
+    // Anatomical left appears on screen-right when the character faces the camera.
+    expect(rightTop).toBeLessThan(leftTop - 4);
+    expect(countsNear(sketch, [108, 106, 112], 20)).toBeGreaterThan(12);
+  });
+
+  test('the guarded face carries cool under-eye shadows', () => {
+    const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
+    const F = buildVampireLayout();
+    sketch.boil(hashSeed('vampire-01', 'front', 'eye-review', 0));
+    drawEyes(sketch, F, { facing: 'front', gait: 0, moving: false });
+    expect(countsNear(sketch, VAMPIRE_COLORS.ash, 20)).toBeGreaterThan(4);
+  });
+
+  test('the resting fang mouth stays quiet and compact', () => {
+    const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
+    const F = buildVampireLayout();
+    sketch.boil(hashSeed('vampire-01', 'front', 'mouth-review', 0));
+    drawFangs(sketch, F, { facing: 'front', gait: 0, moving: false });
+    const bounds = paintedBounds(sketch);
+    expect(bounds.maxX - bounds.minX + 1).toBeLessThanOrEqual(16);
+    expect(bounds.maxY - bounds.minY + 1).toBeLessThanOrEqual(11);
+  });
   test('the head is the largest mass, per the design doc', () => {
     // Kindergrimm's rule. He was authored at 0.36 and read as a thin man in a big coat.
     expect(HEAD_SHARE).toBeGreaterThanOrEqual(0.5);

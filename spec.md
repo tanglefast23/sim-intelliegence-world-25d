@@ -79,7 +79,7 @@ The following decisions are currently locked:
 - Walkable building interiors exist on the same neighborhood map as their exteriors. Entering a building hides or fades its roof so the interior becomes visible; leaving restores the roof.
 - Doors, interior floors, walls, furniture, characters, and pathfinding remain part of the normal neighborhood scene. Ordinary buildings do not load separate interior maps.
 - Character art follows Hero Football Manager's heroic-chibi pixel style and reusable identity-generation approach, adapted with SI World clothing and world-movement poses.
-- Ordinary walking uses a two-facing billboard system: rear-facing art when moving upward, and front-facing art when moving downward or sideways.
+- Ordinary atlas walking uses a four-direction selection system: rear art upward, front art downward, and generated left/right cells for horizontal movement.
 - Each ordinary character has eight final walking atlas cells: two front, two rear, two left, and two right.
 - Artists do not hand-draw all eight cells. They draw two front walking frames and two lateral leg shapes. The asset generator derives the rear frames using HFM's existing method and combines the lateral legs with the front-facing head and torso to generate the left and right frames.
 - Character source art is organized into legs, torso/clothing, head/face, hair, accessory, and optional held-item layers. The asset generator combines those layers into flat atlas cells before gameplay; the runtime renders the completed cells rather than rebuilding each character from layers every frame.
@@ -292,7 +292,7 @@ Prototype desktop qualification uses non-distribution test signing: macOS artifa
 
 ### 4.0.1 World presentation
 
-The world is an orthographic tile map divided into four `64×48`-tile neighborhoods. The shipping renderer draws it top-down 2D; the 2.5D renderer in `docs/specs/2026-08-16-threejs-2-5d-renderer.md` draws the same grid under a tilted orthographic camera. The neighborhoods form a connected `2×2` grid:
+The world is an orthographic tile map divided into four `64×48`-tile neighborhoods. The shipping renderer is the 2.5D path in `docs/specs/2026-08-16-threejs-2-5d-renderer.md`, which draws the same grid under a tilted orthographic camera. The top-down 2D renderer remains the rollback and smoke-comparison path. The neighborhoods form a connected `2×2` grid:
 
 ```text
 Residential and relaxation ↔ Downtown entertainment

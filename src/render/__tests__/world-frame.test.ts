@@ -92,7 +92,7 @@ function frameSummary(frame: WorldFrameState) {
       journalMarkers: frame.journalMarkers.length,
       shelterCells: frame.shelterCells.length,
     },
-    firstIds: {
+    firstIds: Object.fromEntries(Object.entries({
       floor: frame.floors[0]?.id,
       detail: frame.groundDetails[0]?.id,
       prop: frame.props[0]?.id,
@@ -103,9 +103,9 @@ function frameSummary(frame: WorldFrameState) {
       wall: frame.walls[0]?.id,
       roof: frame.roofs[0]?.id,
       journal: frame.journalMarkers[0]?.journalEntryId,
-    },
-    hiddenRoofGroupId: frame.hiddenRoofGroupId,
-    visibleRoofGroupIds: frame.visibleRoofGroupIds.length > 0 ? frame.visibleRoofGroupIds : undefined,
+    }).filter(([, value]) => value !== undefined)),
+    ...(frame.hiddenRoofGroupId === undefined ? {} : { hiddenRoofGroupId: frame.hiddenRoofGroupId }),
+    ...(frame.visibleRoofGroupIds.length === 0 ? {} : { visibleRoofGroupIds: frame.visibleRoofGroupIds }),
     fallbackEmitterIds: frame.fallbackEmitterIds,
   };
 }

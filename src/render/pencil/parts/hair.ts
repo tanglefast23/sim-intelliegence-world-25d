@@ -11,17 +11,17 @@ import type { VampirePose } from '../pose';
 const HAIR_SCRIBBLE = 5;
 
 export function drawHair(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
-
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
     const hair = sketch.smooth(sketch.jitterRing([
-      F.head(-dir * 10, 28),
-      F.head(dir * 14, 34),
-      F.head(dir * 28, 56),
-      F.head(dir * 12, 68),
-      F.head(0, 72),
-      F.head(-dir * 22, 58),
-      F.head(-dir * 26, 40),
+      F.head(-dir * 8, 24),
+      F.head(dir * 18, 30),
+      F.head(dir * 30, 46),
+      F.head(dir * 18, 58),
+      F.head(dir * 8, 66),
+      F.head(-dir * 20, 62),
+      F.head(-dir * 36, 48),
+      F.head(-dir * 28, 34),
     ], HAIR_SCRIBBLE * F.k));
     F.media.tone(sketch, hair, { style: 'black' });
     sketch.broken(hair, F.lwMain);
@@ -30,34 +30,36 @@ export function drawHair(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
 
   if (pose.facing === 'rear') {
     const hair = sketch.smooth(sketch.jitterRing([
-      F.head(0, 26),
-      F.head(24, 38),
-      F.head(32, 74),
-      F.head(24, 106),
-      F.head(0, 118),
-      F.head(-24, 106),
-      F.head(-32, 74),
-      F.head(-24, 38),
+      F.head(0, 24),
+      F.head(26, 32),
+      F.head(34, 64),
+      F.head(26, 100),
+      F.head(0, 116),
+      F.head(-26, 100),
+      F.head(-34, 64),
+      F.head(-26, 32),
     ], HAIR_SCRIBBLE * F.k));
     F.media.tone(sketch, hair, { style: 'black' });
     sketch.broken(hair, F.lwMain);
     return;
   }
 
+  // A slicked-back black mass with two temple points and one deep widow peak. The reference image
+  // supplied the hair grammar only; no silver streaks or copied costume details carry over.
   const hair = sketch.smooth(sketch.jitterRing([
-    F.head(0, 28),
-    F.head(18, 36),
-    F.head(28, 52),
-    F.head(22, 64),
-    F.head(8, 56),
-    F.head(0, 70),
-    F.head(-8, 56),
-    F.head(-22, 64),
-    F.head(-28, 52),
-    F.head(-18, 36),
+    F.head(0, 24),
+    F.head(22, 30),
+    F.head(36, 48),
+    F.head(28, 58),
+    F.head(14, 64),
+    F.head(6, 62),
+    F.head(0, 82),
+    F.head(-6, 62),
+    F.head(-14, 64),
+    F.head(-28, 58),
+    F.head(-36, 48),
+    F.head(-22, 30),
   ], HAIR_SCRIBBLE * F.k));
-  F.media.tone(sketch, hair, { style: 'black' });
-  // The hairEdge highlight blob is gone: its job was interior texture, which the scribbled tone
-  // now supplies natively.
+  F.media.tone(sketch, hair, { style: 'black', angle: -0.12 });
   sketch.broken(hair, F.lwMain);
 }

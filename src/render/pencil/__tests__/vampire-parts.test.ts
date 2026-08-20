@@ -118,6 +118,17 @@ describe('vampire pencil character', () => {
     expect([...target]).toEqual([...vampirePencilFrames()[index]!]);
   });
 
+  test('reduced motion pins the pencil vampire to the idle boil frame', () => {
+    const frame = buildWorldFrameState(MAP, createInitialState(), {}, 'right', 1, {
+      visualFoot: { x: 592, y: 606 }, walkFrame: 1, moving: true, reducedMotion: true, horizontalRunDistance: 16,
+    });
+    const player = frame.characters.find(({ id }) => id === 'protagonist')!;
+    const target = new Uint8ClampedArray(PENCIL_WIDTH * PENCIL_HEIGHT * 4);
+    blitPencilFrame(target, player, 2000, true);
+    expect([...target]).toEqual([...vampirePencilFrames()[0]!]);
+    expect(vampireBoilIndex(2000, true)).toBe(0);
+  });
+
   test('the quad sinks so the boot soles stand on the contact point, not the empty sheet bottom', () => {
     const frame = buildWorldFrameState(MAP, createInitialState(), {}, 'down', 0);
     const [pencil] = pencilBillboards({ ...frame, animationTimestampMilliseconds: 0 });

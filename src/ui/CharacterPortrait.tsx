@@ -5,9 +5,14 @@ import { AtlasSprite } from './AtlasSprite';
 
 const PORTRAIT_SCALE = 2;
 
-function portraitCharacterId(npcId: string): CharacterId {
+export function portraitIdentityId(npcId: string): CharacterId {
   const candidate = npcId.replaceAll('_', '-') as CharacterId;
   return CHARACTER_IDS.includes(candidate) ? candidate : 'generic-resident';
+}
+
+export function portraitCharacterId(npcId: string): CharacterId {
+  const identityId = portraitIdentityId(npcId);
+  return identityId === 'protagonist' ? 'vampire-01' : identityId;
 }
 
 export function CharacterPortrait({
@@ -22,6 +27,7 @@ export function CharacterPortrait({
   scale?: 2 | 3 | 6 | 9 | 20;
 }>) {
   const characterId = portraitCharacterId(npcId);
+  const identityId = portraitIdentityId(npcId);
   const portraitId = ATLAS_INDEX.characters[characterId].portraits[expression]
     ?? ATLAS_INDEX.characters[characterId].portrait;
   const source = atlasRectangle(portraitId);
@@ -41,18 +47,18 @@ export function CharacterPortrait({
   return (
     <View
       accessibilityLabel={`Portrait of ${displayName}`}
-      nativeID={`conversation-portrait-${characterId}`}
+      nativeID={`conversation-portrait-${identityId}`}
       style={[styles.frame, scale === 3 && styles.largeFrame, scale === 6 && styles.cinematicFrame, scale === 9 && styles.cutsceneFrame, scale === 20 && styles.dialogueFrame]}
     >
       <AtlasSprite
         height={source.height}
-        key={characterId}
+        key={`${identityId}:${characterId}`}
         scale={scale}
         width={source.width}
         x={source.x}
         y={source.y}
       />
-      {cropProven ? <View nativeID={`conversation-portrait-${characterId}-ready`} style={styles.ready} /> : null}
+      {cropProven ? <View nativeID={`conversation-portrait-${identityId}-ready`} style={styles.ready} /> : null}
     </View>
   );
 }

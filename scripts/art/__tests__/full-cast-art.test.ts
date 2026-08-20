@@ -96,10 +96,22 @@ describe('full-cast shared-source character art', () => {
     expect(new Set(sources.map(({ signatureOddity }) => signatureOddity.id)).size).toBe(36);
   });
 
-  test('draws vampire fangs as a readable object below the blink band', () => {
+  test('draws the approved vampire collar and fangs as separate readable features', () => {
     const look = CHARACTER_LOOKS.find(({ id }) => id === 'vampire-01')!;
     const features = getCharacterIdentityCommandSets(look);
+    expect(look).toMatchObject({
+      skin: 'porcelain', hairColor: 'ink', clothing: 'charcoal', accent: 'red',
+      head: 'long', build: 'tiny', hair: 'widow-peak', eyes: 'angled-small',
+      oddity: 'asymmetric-high-collar', secondary: 'visible-fangs',
+    });
     expect(features.primaryWorld).toEqual([
+      { kind: 'rect', token: 'c', x: 3, y: 16, width: 4, height: 6 },
+      { kind: 'rect', token: 'C', x: 17, y: 12, width: 4, height: 10 },
+      { kind: 'pixels', token: 'A', points: [[7, 18], [16, 17]] },
+      { kind: 'rect', token: 'D', x: 8, y: 18, width: 8, height: 8 },
+      { kind: 'pixels', token: 'S', points: [[3, 11], [2, 12], [3, 13], [20, 11], [21, 12], [20, 13]] },
+    ]);
+    expect(features.secondaryWorld).toEqual([
       { kind: 'rect', token: 'K', x: 10, y: 15, width: 4, height: 1 },
       { kind: 'pixels', token: 'W', points: [[10, 16], [13, 16]] },
     ]);
@@ -114,6 +126,18 @@ describe('full-cast shared-source character art', () => {
     expect(frame[16]?.[13]).toBe('W');
     expect(source.palette.W).not.toBe(source.palette.S);
     expect(source.palette.K).not.toBe(source.palette.S);
+    const portrait = composePortrait(source, 'rest');
+    expect(portrait[13]?.[8]).toBe('A');
+    expect(portrait[13]?.[14]).toBe('A');
+    const joy = composePortrait(source, 'joy');
+    expect(joy[12]?.[8]).toBe('A');
+    expect(joy[12]?.[15]).toBe('A');
+    const upset = composePortrait(source, 'upset');
+    expect(upset[11]?.[8]).toBe('A');
+    expect(upset[11]?.[15]).toBe('A');
+    const rear = deriveRearFrame(frame, source);
+    expect(rear[12]?.[3]).toBe('C');
+    expect(rear[12]?.[17]).not.toBe('C');
   });
 
   test('walks the vampire on two separate feet in both frames', () => {
@@ -129,7 +153,7 @@ describe('full-cast shared-source character art', () => {
 
   test('keeps the half cape below the head box on every wearer', () => {
     const wearers = CHARACTER_LOOKS.filter(({ secondary }) => secondary === 'half-cape');
-    expect(wearers.map(({ id }) => id).sort()).toEqual(['resident-17', 'vampire-01']);
+    expect(wearers.map(({ id }) => id).sort()).toEqual(['resident-17']);
     for (const look of wearers) {
       const source = sources.find(({ id }) => id === look.id)!;
       const frame = composeFrontFrame(source, 0);
@@ -194,6 +218,7 @@ describe('full-cast shared-source character art', () => {
       'star-cuff': 'cuff',
       'large-necklace': 'necklace',
       'thin-ponytail': 'ponytail',
+      'visible-fangs': 'fangs',
     };
     for (const source of sources) {
       const look = CHARACTER_LOOKS.find(({ id }) => id === source.id);

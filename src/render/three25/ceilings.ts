@@ -21,8 +21,14 @@
  * the atlas holds no white texel and a colour drawn through the mapped material always carries a
  * sprite with it. That is a sixth batch plus its shadow pass, measured at 8 on the lit path. The
  * bar for the next raise is the same - name the batch and why it cannot join an existing one.
+ *
+ * Raised from 10 to 14 after box vegetation and visible crayon-grain surfaces reached a stable
+ * measured maximum of 12 total / 3 atlas calls at yaw 0 and 35, on both villa captures. The two
+ * calls are the current material/pass structure, not descriptor growth. Real hidden captures held
+ * median 8.3ms and p95 9.2ms, so 14 restores two calls of measured headroom without weakening the
+ * 60 FPS frame budget.
  */
-export const DRAW_CALL_CEILING = 10;
+export const DRAW_CALL_CEILING = 14;
 
 /** The atlas-textured batches alone: floors, boxes and billboards. Measured at 3. */
 export const ATLAS_DRAW_CALL_CEILING = 5;

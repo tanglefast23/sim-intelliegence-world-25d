@@ -83,10 +83,10 @@ stay green; it is reachable only through the localhost `?testRenderer=2d` overri
 keep matching what was rendered.
 
 This paragraph said the opposite until 2026-08-19 and cost a full session of work on the wrong
-character. **The player's on-screen body is the pencil vampire in `src/render/pencil/`, not the
-`vampire-01` atlas sprite.** `pencilBillboards()` filters `visualId === 'vampire-01'` and
-substitutes the drawn character on the 2.5D path, so atlas edits to `vampire-01` change nothing you
-can see in the running game. See [docs/art/character-sprite-design.md](docs/art/character-sprite-design.md).
+character. **The player's on-screen 2.5D body is the pencil vampire in `src/render/pencil/`, not the
+`vampire-01` atlas sprite.** `pencilBillboards()` substitutes it on the 2.5D path. Atlas entries
+still serve 2D rollback and portrait surfaces, so an atlas edit is not a global no-op. Start every
+character task in [docs/art/character-sprite-authoring.md](docs/art/character-sprite-authoring.md).
 
 The 2D path ([src/render/three/world-renderer.ts](src/render/three/world-renderer.ts)) draws
 textured quads through an `OrthographicCamera` with `NearestFilter` on a generated sprite atlas,
@@ -98,8 +98,9 @@ The 2.5D path lives in `src/render/three25/`. It draws the same
 heights are allowed.** Heightmaps, displacement maps, imported models, perspective cameras, and
 free camera orbit are not. Pixel rules are absolute: `NearestFilter`, integer scaling, flat
 shading, no anti-aliasing. **Characters stay upright four-direction billboards in both renderers**
-(`spec.md` line 319); no character sprite is redrawn and eight-direction art is out of scope. Only
-world geometry becomes boxes. Shadow maps are allowed only in the 2.5D lit path, per spec section 8.7:
+(`spec.md` §4.0.1), and eight-direction art is out of scope. Pencil characters can use their
+documented character-only boil frames; world geometry and props stay still. Only world geometry
+becomes boxes. Shadow maps are allowed only in the 2.5D lit path, per spec section 8.7:
 a no-lights fallback with flat blob shadows must also ship, hold 60 FPS, and carry its own packaged
 smoke, and path selection is explicit rather than a runtime FPS probe.
 
@@ -114,12 +115,13 @@ camera / geometry / colour / lighting / staging phases with their measured const
 loop, and a trap table where every entry cost a real capture round. Read its trap section before
 changing any 2.5D art, not after.
 
-**To add or change any character, follow
-[docs/art/character-sprite-design.md](docs/art/character-sprite-design.md).** It carries the head
-proportions that make the cast read as cute, the 24×30 row map, the numbered steps from roster row
-to `art:check`, and a trap table. Note that `head`, `build` and `eyes` on `CharacterLook` are
-declared but never read by the shipped baker. `docs/art/halcyra-art-bible.md` section 9 stays the
-rule source; the sprite design doc is the procedure.
+**To add or change any character, start with
+[docs/art/character-sprite-authoring.md](docs/art/character-sprite-authoring.md).** It conducts the
+adaptive design interview, verifies pencil versus atlas routing, and stops unsupported architecture
+work. Load [docs/art/character-sprite-design2.0.md](docs/art/character-sprite-design2.0.md) only for
+pencil work. Load [docs/art/character-sprite-design.md](docs/art/character-sprite-design.md) only
+for atlas work. Art-bible identity and originality rules apply to both; fixed `24×30` geometry is
+atlas-only.
 
 See [docs/specs/2026-08-16-threejs-2-5d-renderer.md](docs/specs/2026-08-16-threejs-2-5d-renderer.md).
 It supersedes the top-down renderer statements in `spec.md` (lines 66, 295) and amends the 2.5D and

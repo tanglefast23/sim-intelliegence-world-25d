@@ -38,7 +38,8 @@ export function vampirePencilFrames(): readonly Uint8ClampedArray[] {
   return cachedFrames;
 }
 
-export function vampireBoilIndex(animationTimestampMilliseconds: number): number {
+export function vampireBoilIndex(animationTimestampMilliseconds: number, reducedMotion = false): number {
+  if (reducedMotion) return 0;
   const fps = 1.15;
   return Math.floor(animationTimestampMilliseconds / 1000 * fps) % BOIL_FRAMES;
 }
@@ -62,9 +63,10 @@ export function blitPencilFrame(
   target: Uint8ClampedArray,
   character: WorldCharacterPlacement,
   animationTimestampMilliseconds: number,
+  reducedMotion = false,
 ): void {
-  const pose = poseFromSprite(character.sprite, character.moving);
-  const index = vampireSheetIndex(pose, vampireBoilIndex(animationTimestampMilliseconds));
+  const pose = poseFromSprite(character.sprite, character.moving && !reducedMotion);
+  const index = vampireSheetIndex(pose, vampireBoilIndex(animationTimestampMilliseconds, reducedMotion));
   const src = vampirePencilFrames()[index] ?? vampirePencilFrames()[0]!;
   target.set(src);
 }

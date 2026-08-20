@@ -14,7 +14,10 @@ describe('rear-frame derivation', () => {
       expect(rear.slice(8, 13).join('')).not.toContain('E');
       const frontAlpha = front.map((row) => [...row].map((token) => token !== '.'));
       const rearAlpha = rear.map((row) => [...row].map((token) => token !== '.'));
-      expect(rearAlpha).toEqual(frontAlpha);
+      const expectedRearAlpha = source.signatureOddity.id === 'asymmetric-high-collar'
+        ? frontAlpha.map((row) => [...row].reverse())
+        : frontAlpha;
+      expect(rearAlpha).toEqual(expectedRearAlpha);
       expect(rear).not.toEqual(front);
     },
   );

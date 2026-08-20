@@ -17,25 +17,25 @@ export function drawFangs(sketch: Sketch, F: VampireLayout, pose: VampirePose): 
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
     const mouth = sketch.smooth([
-      F.head(dir * 12, 103), F.head(dir * 27, 104),
-      F.head(dir * 26, 111), F.head(dir * 12, 109),
+      F.head(dir * 14, 104), F.head(dir * 25, 105),
+      F.head(dir * 24, 110), F.head(dir * 14, 109),
     ]);
     F.media.skin(sketch, mouth, colors.hollow, { paper: false, underdraw: false, alpha: 0.85 });
     sketch.broken(mouth, F.lwThin * 1.4);
-    const fang = [F.head(dir * 20, 109), F.head(dir * 23, 120), F.head(dir * 25, 108)];
+    const fang = [F.head(dir * 19, 108), F.head(dir * 21, 116), F.head(dir * 23, 108)];
     F.media.skin(sketch, fang, colors.fang, { paper: false, underdraw: false, alpha: 1 });
     sketch.broken(fang, F.lwThin * 1.1);
     return;
   }
 
   const mouth = sketch.smooth([
-    F.head(-11, 103), F.head(11, 103),
-    F.head(9, 112), F.head(-9, 112),
+    F.head(-8, 104), F.head(8, 104),
+    F.head(6, 109), F.head(-6, 109),
   ]);
   F.media.skin(sketch, mouth, colors.hollow, { paper: false, underdraw: false, alpha: 0.85 });
   sketch.broken(mouth, F.lwThin * 1.4);
-  const left = [F.head(-8, 108), F.head(-5, 119), F.head(-2, 107)];
-  const right = [F.head(2, 107), F.head(5, 119), F.head(8, 108)];
+  const left = [F.head(-6, 107), F.head(-4, 114), F.head(-2, 107)];
+  const right = [F.head(2, 107), F.head(4, 114), F.head(6, 107)];
   F.media.skin(sketch, left, colors.fang, { paper: false, underdraw: false, alpha: 1 });
   F.media.skin(sketch, right, colors.fang, { paper: false, underdraw: false, alpha: 1 });
   sketch.broken(left, F.lwThin * 1.1);

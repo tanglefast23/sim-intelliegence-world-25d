@@ -317,6 +317,36 @@ function portraitHeadCommands(look: CharacterLook): DrawCommand[] {
 }
 
 function portraitExpressionCommands(expression: PortraitExpression, look: CharacterLook): DrawCommand[] {
+  if (look.id === 'vampire-01') {
+    if (expression === 'joy') {
+      return [
+        pixelsCommand('H', [[7, 10], [8, 11], [9, 10], [14, 10], [15, 11], [16, 10]]),
+        pixelsCommand('K', [[7, 11], [9, 11], [14, 11], [16, 11], [11, 14], [12, 14]]),
+        pixelsCommand('A', [[8, 12], [15, 12]]),
+        rectCommand('K', 9, 15, 6, 2),
+        rectCommand('W', 11, 15, 2, 1),
+      ];
+    }
+    if (expression === 'upset') {
+      return [
+        pixelsCommand('H', [[6, 10], [7, 10], [8, 11], [9, 12], [14, 12], [15, 11], [16, 10], [17, 10]]),
+        pixelsCommand('K', [[7, 11], [9, 12], [14, 12], [16, 11]]),
+        pixelsCommand('A', [[8, 11], [15, 11]]),
+        rectCommand('K', 10, 16, 4, 1),
+        pixelsCommand('K', [[9, 17], [14, 17]]),
+      ];
+    }
+    return [
+      pixelsCommand('H', [[6, 10], [7, 10], [8, 11], [9, 11], [14, 11], [15, 11], [16, 10], [17, 10]]),
+      rectCommand('W', 7, 13, 4, 2),
+      rectCommand('W', 13, 13, 4, 2),
+      pixelsCommand('A', [[8, 13], [14, 13]]),
+      pixelsCommand('K', [[8, 14], [14, 14]]),
+      pixelsCommand('D', [[10, 13], [16, 13]]),
+      pixelsCommand('s', [[11, 14], [12, 15]]),
+      rectCommand('s', 10, 16, 4, 1),
+    ];
+  }
   if (expression === 'joy') {
     return [
       pixelsCommand('K', [[7, 11], [8, 12], [9, 11], [14, 11], [15, 12], [16, 11], [11, 14], [12, 14]]),
@@ -331,7 +361,6 @@ function portraitExpressionCommands(expression: PortraitExpression, look: Charac
       pixelsCommand('K', [[9, 17], [14, 17]]),
     ];
   }
-  void look;
   return [
     pixelsCommand('H', [[7, 11], [8, 11], [9, 11], [14, 11], [15, 11], [16, 11]]),
     rectCommand('W', 7, 13, 4, 2),
@@ -371,6 +400,10 @@ function worldHairCommands(look: CharacterLook): DrawCommand[] {
     case 'spikes': return [rectCommand('H', 6, 5, 12, 4), pixelsCommand('H', [[6, 3], [8, 2], [10, 4], [12, 2], [14, 3], [17, 2], [18, 4]])];
     case 'side-fan': return [rectCommand('H', 6, 5, 10, 4), pixelsCommand('H', [[16, 4], [17, 3], [18, 2], [19, 3], [20, 4], [19, 5], [18, 6], [17, 7]])];
     case 'ponytail': return [rectCommand('H', 6, 4, 12, 4), rectCommand('H', 17, 6, 4, 8), pixelsCommand('h', [[18, 7], [19, 9]])];
+    case 'widow-peak': return [
+      rectCommand('H', 5, 3, 14, 4),
+      pixelsCommand('H', [[4, 5], [19, 5], [5, 7], [18, 7], [10, 7], [13, 7], [11, 8], [12, 8], [11, 9], [12, 9]]),
+    ];
   }
 }
 
@@ -456,6 +489,10 @@ function worldHairTextureCommands(look: CharacterLook): DrawCommand[] {
     case 'ponytail': return texture(
       [[7, 4], [9, 5], [12, 4], [15, 5], [18, 7], [19, 9], [18, 12]],
       [[8, 7], [12, 7], [16, 7], [19, 13]],
+    );
+    case 'widow-peak': return texture(
+      [[6, 3], [7, 3], [9, 4], [14, 4], [16, 3], [17, 3], [5, 6], [18, 6]],
+      [[8, 6], [15, 6], [10, 7], [13, 7], [11, 9], [12, 9]],
     );
   }
 }
@@ -657,6 +694,13 @@ function oddityCommands(look: CharacterLook): DrawCommand[] {
      * touch either. That is why the fangs can use columns 10 and 13 even though those columns
      * are in `EYE_COLUMNS` — the band is bounded by row, not by column.
      */
+    case 'asymmetric-high-collar': return [
+      rectCommand('c', 3, 16, 4, 6),
+      rectCommand('C', 17, 12, 4, 10),
+      pixelsCommand('A', [[7, 18], [16, 17]]),
+      rectCommand('D', 8, 18, 8, 8),
+      pixelsCommand('S', [[3, 11], [2, 12], [3, 13], [20, 11], [21, 12], [20, 13]]),
+    ];
     case 'fang-mouth': return [
       rectCommand('K', 10, 15, 4, 1),
       pixelsCommand('W', [[10, 16], [13, 16]]),
@@ -695,6 +739,7 @@ function secondaryWorldCommands(look: CharacterLook): DrawCommand[] {
     // inside the head box (rows 4-17), so a 7px wide accent rectangle covered the left jaw and
     // chin on both wearers. The two clasp pixels stay at the collar.
     case 'half-cape': return [rectCommand('A', 4, 18, 7, 8), rectCommand('a', 5, 18, 2, 7), pixelsCommand('A', [[11, 17], [12, 18]])];
+    case 'visible-fangs': return [rectCommand('K', 10, 15, 4, 1), pixelsCommand('W', [[10, 16], [13, 16]])];
     case 'suspenders': return [rectCommand('A', 8, 17, 2, 8), rectCommand('A', 14, 17, 2, 8), rectCommand('a', 9, 23, 6, 1)];
     case 'pearl-necklace': return [pixelsCommand('W', [[8, 16], [9, 17], [10, 18], [11, 18], [12, 18], [13, 18], [14, 17], [15, 16]]), pixelsCommand('A', [[11, 19], [12, 19]])];
     case 'star-cuff': return [pixelsCommand('A', [[18, 19], [19, 20], [21, 20], [20, 21], [21, 22], [19, 22], [18, 23], [18, 21], [17, 20]])];

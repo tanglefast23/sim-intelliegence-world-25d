@@ -35,7 +35,7 @@
     "measure:25d-draw-calls": "tsx scripts/verification/measure-25d-draw-calls.ts",
     "capture:art04-25d": "tsx scripts/verification/capture-art04-25d.ts",
     "model:smoke": "tsx scripts/model/run-package-model-smoke.ts",
-    "art:atlas": "tsx scripts/art/build-world-atlas.ts",
+    "art:atlas": "tsx scripts/art/build-world-atlas.ts && tsx scripts/art/write-protagonist-dialogue-portrait.ts",
     "art:baseline": "tsx scripts/art/write-pixel-baseline.ts",
     "art:crayon": "tsx scripts/art/build-crayon-tile.ts",
     "art:review": "tsx scripts/art/build-art-quality-review.ts",

@@ -1635,7 +1635,7 @@ export async function createWorldRenderer25(
     if (pencilMesh.visible && pencilPixels && pencilContext && pencilTexture) {
       const vampire = next.characters.find((character) => character.visualId === 'vampire-01');
       if (vampire) {
-        blitPencilFrame(pencilPixels.data, vampire, next.animationTimestampMilliseconds);
+        blitPencilFrame(pencilPixels.data, vampire, next.animationTimestampMilliseconds, next.reducedMotion);
         pencilContext.putImageData(pencilPixels, 0, 0);
         pencilTexture.needsUpdate = true;
       }

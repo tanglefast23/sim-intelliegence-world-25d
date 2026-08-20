@@ -12,6 +12,7 @@ export const VAMPIRE_COLORS = {
   hairEdge: [46, 42, 52],
   cloak: [24, 22, 30],
   cloakLift: [50, 44, 56],
+  shirt: [108, 106, 112],
   lining: [132, 22, 32],
   fang: [254, 252, 248],
   red: [182, 16, 22],
