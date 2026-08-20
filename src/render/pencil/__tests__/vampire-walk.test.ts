@@ -1,7 +1,7 @@
 import { buildVampireLayout, HEAD_SHARE, VAMPIRE_COLORS } from '../layout';
 import { drawVampireCharacter } from '../parts';
 import { drawArms } from '../parts/arms';
-import { drawCloak } from '../parts/cloak';
+import { drawCloak, drawCollar } from '../parts/cloak';
 import { drawEyes } from '../parts/eyes';
 import { drawFangs } from '../parts/fangs';
 import { drawHair } from '../parts/hair';
@@ -89,18 +89,18 @@ describe('pencil vampire walk and proportions', () => {
     }
   });
 
-  test('the cardigan is compact and carries one high collar', () => {
+  test('the cardigan is compact and carries a balanced high collar', () => {
     const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
     const F = buildVampireLayout();
     sketch.boil(hashSeed('vampire-01', 'front', 'cardigan-review', 0));
     drawCloak(sketch, F, { facing: 'front', gait: 0, moving: false });
+    drawCollar(sketch, F, { facing: 'front', gait: 0, moving: false });
     const bounds = paintedBounds(sketch);
-    expect(bounds.maxX - bounds.minX).toBeLessThanOrEqual(52);
+    expect(bounds.maxX - bounds.minX).toBeLessThanOrEqual(60);
     const leftTop = topPaintedRow(sketch, 0, Math.floor(F.cx) - 1);
     const rightTop = topPaintedRow(sketch, Math.ceil(F.cx) + 1, sketch.width - 1);
-    // Anatomical left appears on screen-right when the character faces the camera.
-    expect(rightTop).toBeLessThan(leftTop - 4);
-    expect(countsNear(sketch, [108, 106, 112], 20)).toBeGreaterThan(12);
+    expect(Math.abs(rightTop - leftTop)).toBeLessThanOrEqual(2);
+    expect(countsNear(sketch, VAMPIRE_COLORS.cloakLift, 20)).toBeGreaterThan(12);
   });
 
   test('the guarded face carries cool under-eye shadows', () => {
@@ -117,7 +117,7 @@ describe('pencil vampire walk and proportions', () => {
     sketch.boil(hashSeed('vampire-01', 'front', 'mouth-review', 0));
     drawFangs(sketch, F, { facing: 'front', gait: 0, moving: false });
     const bounds = paintedBounds(sketch);
-    expect(bounds.maxX - bounds.minX + 1).toBeLessThanOrEqual(16);
+    expect(bounds.maxX - bounds.minX + 1).toBeLessThanOrEqual(20);
     expect(bounds.maxY - bounds.minY + 1).toBeLessThanOrEqual(11);
   });
   test('the head is the largest mass, per the design doc', () => {
@@ -205,11 +205,12 @@ describe('pencil vampire walk and proportions', () => {
   test('the rear view shows no hands and no face', () => {
     // Measured directly since the medium refactor: paper gaps read as pale everywhere, so a
     // pale-pixel ratio no longer distinguishes a face from a cape.
-    // The cape hangs closed over both arms — the arms part draws nothing from behind.
+    // Rear sleeves remain visible, but the hands stay beneath the closed cape.
     const armsOnly = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
     armsOnly.boil(hashSeed('vampire-01', 'rear', 'idle', 0));
     drawArms(armsOnly, buildVampireLayout(), { facing: 'rear', gait: 0, moving: false });
-    expect(armsOnly.data.every((byte) => byte === 0)).toBe(true);
+    expect(armsOnly.data.some((byte) => byte !== 0)).toBe(true);
+    expect(countsNear(armsOnly, VAMPIRE_COLORS.pale, 12)).toBe(0);
     // And no eye colour appears on the back of a head.
     expect(countsNear(render('rear', 0), VAMPIRE_COLORS.red, 12)).toBe(0);
   });

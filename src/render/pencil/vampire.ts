@@ -32,15 +32,14 @@ export function drawVampire(
 
 export function bakeVampireFrames(): readonly Uint8ClampedArray[] {
   const frames: Uint8ClampedArray[] = [];
-  // The single front idle first, then facing-major walk frames. `vampireSheetIndex` assumes
-  // exactly this order.
-  for (let boil = 0; boil < BOIL_FRAMES; boil += 1) {
-    const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
-    sketch.boil(hashSeed('vampire-01', 'front', 'idle', boil));
-    drawVampire(sketch, { facing: 'front', gait: 0, moving: false });
-    frames.push(sketch.data);
-  }
+  // Facing-major: idle first, then both walk gaits. `vampireSheetIndex` assumes this order.
   for (const facing of VAMPIRE_FACINGS) {
+    for (let boil = 0; boil < BOIL_FRAMES; boil += 1) {
+      const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
+      sketch.boil(hashSeed('vampire-01', facing, 'idle', boil));
+      drawVampire(sketch, { facing, gait: 0, moving: false });
+      frames.push(sketch.data);
+    }
     for (const gait of [0, 1] as const) {
       for (let boil = 0; boil < BOIL_FRAMES; boil += 1) {
         const sketch = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);

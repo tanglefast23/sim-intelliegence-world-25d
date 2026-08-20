@@ -224,6 +224,19 @@ function gaitStopProgress(movement: MovementState): number | undefined {
     : undefined;
 }
 
+const OPENING_CAST_TILES = {
+  linda: { x: 22, y: 25 },
+  mina_park: { x: 24, y: 25 },
+  devon_price: { x: 26, y: 25 },
+  rafael_cruz: { x: 28, y: 25 },
+  tomas_reed: { x: 22, y: 27 },
+  priya_nair: { x: 24, y: 27 },
+  sora_tan: { x: 26, y: 27 },
+  elise_moreau: { x: 28, y: 27 },
+} as const;
+
+const OPENING_CAST_IDS = new Set<string>(Object.keys(OPENING_CAST_TILES));
+
 function actorTiles(
   state: WorldState,
   mapId: string,
@@ -236,6 +249,7 @@ function actorTiles(
   reactionId: string | undefined,
   poseFrame: 0 | 1,
   tilted: boolean,
+  openingShowcase: boolean,
 ): WorldActors {
   const output: Record<string, WorldActors[string]> = {};
   for (const [stateId, npc] of Object.entries(state.npcs)) {
@@ -259,6 +273,25 @@ function actorTiles(
         travelDistance: movement?.travelDistance ?? 0,
         turnCurve: movement?.latchedTurnCurve,
         stopProgress: movement ? gaitStopProgress(movement) : undefined,
+      };
+    }
+  }
+  if (openingShowcase && mapId === 'northwest_residential') {
+    for (const [stateId, tile] of Object.entries(OPENING_CAST_TILES)) {
+      output[stateId] = {
+        tile,
+        visualId: visualIdForNpc(stateId),
+        direction: tilted ? tiltedFacing('down') : 'down',
+        visualFoot: snapWorldPoint(tileFootPoint(tile), zoom, dpr),
+        walkFrame: 0,
+        moving: false,
+        reducedMotion,
+        horizontalRunDistance: 0,
+        pose: stateId === reactionId ? 'reaction' : stateId === conversationNpcId ? 'talk' : 'idle',
+        poseFrame: stateId === selectedId || stateId === conversationNpcId ? poseFrame : 0,
+        travelDistance: 0,
+        poseProgress: 0,
+        poseDirection: 1,
       };
     }
   }
@@ -365,9 +398,11 @@ export function WorldScene({
   }), [initialState]);
   const initialMapId = initialState.protagonist.worldPosition.mapId as MapId;
   const initialMap = WORLD_MAP_CATALOG[initialMapId];
-  const initialZoom = initialPresentationPreferences.worldZoom ?? automaticWorldZoom(surface);
+  const automaticZoom = automaticWorldZoom(surface);
+  const initialZoom = initialPresentationPreferences.worldZoom
+    ?? (newGame && initialMapId === 'northwest_residential' ? Math.max(2, automaticZoom) : automaticZoom);
   const initialAnchor = newGame
-    ? (initialMap.source.startComposition?.cameraAnchor ?? initialTile)
+    ? (initialMapId === 'northwest_residential' ? { x: 22, y: 27 } : initialMap.source.startComposition?.cameraAnchor ?? initialTile)
     : initialTile;
   const [runtime, setRuntime] = useState<RuntimeViewState>(() => ({
     movement: createMovementState(initialTile),
@@ -386,6 +421,7 @@ export function WorldScene({
   const [hudCollapsed, setHudCollapsed] = useState(initialPresentationPreferences.hudCollapsed);
   const volumes = useAudioVolumes();
   const [selected, setSelected] = useState<string>(initialConversationFixtureId ?? 'protagonist');
+  const [openingShowcase, setOpeningShowcase] = useState(newGame && initialMapId === 'northwest_residential');
   const [reactionId, setReactionId] = useState<string>();
   const [poseFrame, setPoseFrame] = useState<0 | 1>(0);
   const [saveStatus, setSaveStatus] = useState(initialSaveStatus);
@@ -527,7 +563,8 @@ export function WorldScene({
     reactionId,
     poseFrame,
     renderer2_5d,
-  ), [camera.zoom, conversationNpcId, dpr, mapId, poseFrame, reactionId, reducedMotion, renderer2_5d, runtime.npcMovements, runtime.worldState, selected]);
+    openingShowcase,
+  ), [camera.zoom, conversationNpcId, dpr, mapId, openingShowcase, poseFrame, reactionId, reducedMotion, renderer2_5d, runtime.npcMovements, runtime.worldState, selected]);
   const speed = effectiveSpeed(runtime.worldState.clock);
   const selectedNpcId = stateNpcId(selected, runtime.worldState);
   const lindaQuestActions = lindaContextActions(runtime.worldState, selectedNpcId);
@@ -1115,7 +1152,12 @@ export function WorldScene({
     if (conversationNpcId || questOfferOpen || openPanel) return;
     if (!insideMap(camera, point, MAP_PIXELS)) return;
     const visibleNpc = Object.entries(npcTiles)
-      .sort(([left], [right]) => left.localeCompare(right, 'en'))
+      .sort(([, left], [, right]) => {
+        const leftScreen = project(camera, left.visualFoot ?? tileFootPoint(left.tile));
+        const rightScreen = project(camera, right.visualFoot ?? tileFootPoint(right.tile));
+        return Math.hypot(point.x - leftScreen.x, point.y - leftScreen.y) -
+          Math.hypot(point.x - rightScreen.x, point.y - rightScreen.y);
+      })
       .find(([, actor]) => {
         const foot = actor.visualFoot ?? tileFootPoint(actor.tile);
         const screen = project(camera, foot);
@@ -1125,6 +1167,7 @@ export function WorldScene({
     if (visibleNpc) {
       selectCharacter(visibleNpc[0]);
       setRuntime((current) => ({ ...current, movement: cancelMovement(current.movement) }));
+      if (openingShowcase && OPENING_CAST_IDS.has(visibleNpc[0])) setConversationNpcId(visibleNpc[0]);
       return;
     }
     const tile = unproject(camera, point);
@@ -1139,6 +1182,7 @@ export function WorldScene({
     if (resolved.kind === 'npc') {
       selectCharacter(resolved.id);
       setRuntime((current) => ({ ...current, movement: cancelMovement(current.movement) }));
+      if (openingShowcase && OPENING_CAST_IDS.has(resolved.id)) setConversationNpcId(resolved.id);
       return;
     }
     if (resolved.kind === 'object') {
@@ -1176,7 +1220,8 @@ export function WorldScene({
       emitTransientCue(WATER_GROUND_SPRITES.has(ground.sprite) ? 'ripple' : 'dust', center, 'strong');
     }
     if (resolved.tile) requestTile(resolved.tile);
-  }, [camera, conversationNpcId, emitTransientCue, insideMap, map, npcTiles, openPanel, project, questOfferOpen, requestTile, runtime.movement.player, runtime.worldState, selectCharacter, unproject]);
+    setOpeningShowcase(false);
+  }, [camera, conversationNpcId, emitTransientCue, insideMap, map, npcTiles, openPanel, openingShowcase, project, questOfferOpen, requestTile, runtime.movement.player, runtime.worldState, selectCharacter, unproject]);
 
   useEffect(() => {
     if (!destinationMarker || rendererSuspended || rendererParityPulseFrozen) return;

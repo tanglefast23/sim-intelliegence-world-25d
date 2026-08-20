@@ -33,9 +33,9 @@ export function drawHair(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
       F.head(0, 24),
       F.head(26, 32),
       F.head(34, 64),
-      F.head(26, 100),
-      F.head(0, 116),
-      F.head(-26, 100),
+      F.head(28, 108),
+      F.head(0, 118),
+      F.head(-28, 108),
       F.head(-34, 64),
       F.head(-26, 32),
     ], HAIR_SCRIBBLE * F.k));

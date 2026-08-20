@@ -13,7 +13,7 @@ import {
   VAMPIRE_SHEET_FRAMES,
   WORLD_CELL_HEIGHT,
 } from '../vampire';
-import { poseFromSprite, vampireSheetIndex } from '../pose';
+import { poseFromSprite, screenSideForAttachment, VAMPIRE_FACINGS, vampireSheetIndex } from '../pose';
 import { hashSeed, Sketch } from '../sketch';
 import { blitPencilFrame, pencilBillboards, vampireBoilIndex, vampirePencilFrames } from '../billboard';
 
@@ -64,15 +64,22 @@ describe('vampire pencil character', () => {
 
   test('the part registry is behind-first and complete', () => {
     expect(VAMPIRE_PART_IDS).toEqual([
-      'cloak', 'legs', 'arms', 'skull', 'ears', 'hair', 'eyes', 'nose', 'fangs',
+      'cloak', 'legs', 'arms', 'skull', 'collar', 'ears', 'hair', 'eyes', 'nose', 'fangs',
     ]);
-    expect(VAMPIRE_PARTS).toHaveLength(9);
+    expect(VAMPIRE_PARTS).toHaveLength(10);
   });
 
-  test('sheet has every facing and gait, and they are not the same drawing', () => {
+  test('sheet has a three-boil idle and two walk gaits for every facing', () => {
     const once = bakeVampireFrames();
     expect(once).toHaveLength(VAMPIRE_SHEET_FRAMES);
+    expect(once).toHaveLength(VAMPIRE_FACINGS.length * 3 * BOIL_FRAMES);
     expect(once[0]!.length).toBe(PENCIL_WIDTH * PENCIL_HEIGHT * 4);
+    const idleIndexes = VAMPIRE_FACINGS.map((facing) => vampireSheetIndex({ facing, gait: 0, moving: false }, 0));
+    expect(idleIndexes).toEqual([0, 9, 18, 27]);
+    expect(new Set(idleIndexes).size).toBe(VAMPIRE_FACINGS.length);
+    const [frontIdle, rearIdle, leftIdle, rightIdle] = idleIndexes;
+    expect([...once[frontIdle!]!]).not.toEqual([...once[rearIdle!]!]);
+    expect([...once[leftIdle!]!]).not.toEqual([...once[rightIdle!]!]);
     const front = vampireSheetIndex({ facing: 'front', gait: 0, moving: true }, 0);
     const rear = vampireSheetIndex({ facing: 'rear', gait: 0, moving: true }, 0);
     const left = vampireSheetIndex({ facing: 'left', gait: 0, moving: true }, 0);
@@ -86,6 +93,11 @@ describe('vampire pencil character', () => {
   test('poseFromSprite reads the walk sprite', () => {
     expect(poseFromSprite('character.vampire-01.rear-1')).toEqual({ facing: 'rear', gait: 0, moving: false });
     expect(poseFromSprite('character.vampire-01.right-2', true)).toEqual({ facing: 'right', gait: 1, moving: true });
+  });
+
+  test('body-local sides project consistently through every facing', () => {
+    expect(VAMPIRE_FACINGS.map((facing) => screenSideForAttachment('right', facing, 'trailing'))).toEqual([-1, 1, 1, -1]);
+    expect(VAMPIRE_FACINGS.map((facing) => screenSideForAttachment('left', facing, 'leading'))).toEqual([1, -1, -1, 1]);
   });
 
   test('a part draw uses the same seed crumbs', () => {
@@ -118,14 +130,18 @@ describe('vampire pencil character', () => {
     expect([...target]).toEqual([...vampirePencilFrames()[index]!]);
   });
 
-  test('reduced motion pins the pencil vampire to the idle boil frame', () => {
+  test('reduced motion pins the current facing to idle boil frame zero', () => {
     const frame = buildWorldFrameState(MAP, createInitialState(), {}, 'right', 1, {
       visualFoot: { x: 592, y: 606 }, walkFrame: 1, moving: true, reducedMotion: true, horizontalRunDistance: 16,
     });
     const player = frame.characters.find(({ id }) => id === 'protagonist')!;
     const target = new Uint8ClampedArray(PENCIL_WIDTH * PENCIL_HEIGHT * 4);
     blitPencilFrame(target, player, 2000, true);
-    expect([...target]).toEqual([...vampirePencilFrames()[0]!]);
+    const expected = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
+    expected.boil(hashSeed('vampire-01', 'right', 'idle', 0));
+    drawVampireCharacter(expected, buildVampireLayout(), { facing: 'right', gait: 0, moving: false });
+    expect(player.sprite).toBe('character.vampire-01.right-1');
+    expect([...target]).toEqual([...expected.data]);
     expect(vampireBoilIndex(2000, true)).toBe(0);
   });
 

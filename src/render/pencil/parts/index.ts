@@ -1,7 +1,7 @@
 import type { Sketch } from '../sketch';
 import { buildVampireLayout, type VampireLayout } from '../layout';
 import type { VampirePose } from '../pose';
-import { drawCloak } from './cloak';
+import { drawCloak, drawCollar } from './cloak';
 import { drawLegs } from './legs';
 import { drawArms } from './arms';
 import { drawSkull } from './skull';
@@ -16,6 +16,7 @@ export type VampirePartId =
   | 'legs'
   | 'arms'
   | 'skull'
+  | 'collar'
   | 'ears'
   | 'hair'
   | 'eyes'
@@ -33,6 +34,7 @@ export const VAMPIRE_PARTS: readonly VampirePart[] = [
   { id: 'legs', draw: drawLegs },
   { id: 'arms', draw: drawArms },
   { id: 'skull', draw: drawSkull },
+  { id: 'collar', draw: drawCollar },
   { id: 'ears', draw: drawEars },
   { id: 'hair', draw: drawHair },
   { id: 'eyes', draw: drawEyes },

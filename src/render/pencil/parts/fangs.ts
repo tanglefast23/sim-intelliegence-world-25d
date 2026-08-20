@@ -17,27 +17,24 @@ export function drawFangs(sketch: Sketch, F: VampireLayout, pose: VampirePose): 
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
     const mouth = sketch.smooth([
-      F.head(dir * 14, 104), F.head(dir * 25, 105),
-      F.head(dir * 24, 110), F.head(dir * 14, 109),
+      F.head(dir * 13, 104), F.head(dir * 26, 104),
+      F.head(dir * 25, 113), F.head(dir * 13, 113),
     ]);
-    F.media.skin(sketch, mouth, colors.hollow, { paper: false, underdraw: false, alpha: 0.85 });
-    sketch.broken(mouth, F.lwThin * 1.4);
-    const fang = [F.head(dir * 19, 108), F.head(dir * 21, 116), F.head(dir * 23, 108)];
+    F.media.tone(sketch, mouth, { style: 'black', paper: false });
+    F.media.skin(sketch, mouth, colors.hollow, { paper: false, underdraw: false, alpha: 0.95 });
+    const fang = [F.head(dir * 16, 107), F.head(dir * 20, 113), F.head(dir * 24, 107)];
     F.media.skin(sketch, fang, colors.fang, { paper: false, underdraw: false, alpha: 1 });
-    sketch.broken(fang, F.lwThin * 1.1);
     return;
   }
 
   const mouth = sketch.smooth([
-    F.head(-8, 104), F.head(8, 104),
-    F.head(6, 109), F.head(-6, 109),
+    F.head(-10, 104), F.head(10, 104),
+    F.head(9, 113), F.head(-9, 113),
   ]);
-  F.media.skin(sketch, mouth, colors.hollow, { paper: false, underdraw: false, alpha: 0.85 });
-  sketch.broken(mouth, F.lwThin * 1.4);
-  const left = [F.head(-6, 107), F.head(-4, 114), F.head(-2, 107)];
-  const right = [F.head(2, 107), F.head(4, 114), F.head(6, 107)];
+  F.media.tone(sketch, mouth, { style: 'black', paper: false });
+  F.media.skin(sketch, mouth, colors.hollow, { paper: false, underdraw: false, alpha: 0.95 });
+  const left = [F.head(-9, 107), F.head(-6, 113), F.head(-3, 107)];
+  const right = [F.head(3, 107), F.head(6, 113), F.head(9, 107)];
   F.media.skin(sketch, left, colors.fang, { paper: false, underdraw: false, alpha: 1 });
   F.media.skin(sketch, right, colors.fang, { paper: false, underdraw: false, alpha: 1 });
-  sketch.broken(left, F.lwThin * 1.1);
-  sketch.broken(right, F.lwThin * 1.1);
 }

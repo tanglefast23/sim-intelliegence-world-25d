@@ -1,6 +1,22 @@
-import type { Sketch } from '../sketch';
 import type { VampireLayout } from '../layout';
 import { gaitSwing, type VampirePose } from '../pose';
+import type { Point, Sketch } from '../sketch';
+
+type Rgb = readonly [number, number, number];
+
+function clothMass(
+  sketch: Sketch,
+  F: VampireLayout,
+  points: readonly Point[],
+  color: Rgb,
+  angle = 0.45,
+  smooth = true,
+): void {
+  const shape = smooth ? sketch.smooth(points) : points;
+  F.media.tone(sketch, shape, { style: 'light', angle });
+  F.media.skin(sketch, shape, color, { paper: false, underdraw: false, alpha: 0.86 });
+  F.media.edge(sketch, [...shape, shape[0]!], F.lwMain);
+}
 
 export function drawCloak(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
   const { colors } = F;
@@ -8,79 +24,74 @@ export function drawCloak(sketch: Sketch, F: VampireLayout, pose: VampirePose): 
 
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
-    const cardigan = sketch.smooth([
-      F.body(-dir * 6, 124),
-      F.body(-dir * 18, 132),
-      F.body(-dir * 40, 176),
-      F.body(-dir * 46 + sway, 228),
-      F.body(-dir * 34 + sway, 270),
-      F.body(-dir * 12, 244),
-      F.body(-dir * 4, 166),
-    ]);
-    F.media.tone(sketch, cardigan, { style: 'black', angle: 0.45 });
-    F.media.skin(sketch, sketch.smooth([
-      F.body(-dir * 18, 160),
-      F.body(-dir * 34, 210),
-      F.body(-dir * 24, 252),
-      F.body(-dir * 10, 180),
-    ]), colors.lining, { paper: false, underdraw: false, alpha: 0.3 });
-    sketch.broken(cardigan, F.lwMain);
-    const collarTop = pose.facing === 'right' ? 80 : 102;
-    const collar = [F.body(-dir * 2, 118), F.body(-dir * 24, collarTop), F.body(-dir * 12, 128)];
-    F.media.tone(sketch, collar, { style: 'black', angle: 0.45 });
-    sketch.broken(collar, F.lwThin * 1.6);
-    const shirt = sketch.smooth([
-      F.body(-8, 132), F.body(8, 132), F.body(9, 198), F.body(-9, 198),
-    ]);
-    F.media.tone(sketch, shirt, { style: 'hatch' });
-    F.media.skin(sketch, shirt, colors.shirt, { paper: false, underdraw: false, alpha: 0.62 });
-    sketch.broken(shirt, F.lwMain);
+    clothMass(sketch, F, [
+      F.body(-dir * 5, 124), F.body(-dir * 22, 132), F.body(-dir * 42, 178),
+      F.body(-dir * 44 + sway, 232), F.body(-dir * 30 + sway, 270),
+      F.body(-dir * 12, 244), F.body(-dir * 7, 166),
+    ], colors.cloak);
+    clothMass(sketch, F, [
+      F.body(-dir * 5, 128), F.body(dir * 11, 134),
+      F.body(dir * 16, 198), F.body(-dir * 9, 198),
+    ], colors.shirt, -0.35);
+    clothMass(sketch, F, [
+      F.body(-dir * 8, 136), F.body(-dir * 15, 150),
+      F.body(-dir * 13, 226), F.body(-dir * 7, 210),
+    ], colors.lining, -0.55);
     return;
   }
 
   if (pose.facing === 'rear') {
-    const back = sketch.smooth([
-      F.body(-18, 124), F.body(18, 124),
-      F.body(48 + sway, 186), F.body(44 + sway, 244),
-      F.body(0, 270),
-      F.body(-44 - sway, 244), F.body(-48 - sway, 186),
-    ]);
-    F.media.tone(sketch, back, { style: 'black', angle: 0.45 });
-    sketch.broken(back, F.lwMain);
-    const leftCollar = [F.body(-4, 118), F.body(-28, 80), F.body(-18, 128)];
-    const rightCollar = [F.body(4, 118), F.body(20, 102), F.body(16, 128)];
-    F.media.tone(sketch, leftCollar, { style: 'black', angle: 0.45 });
-    F.media.tone(sketch, rightCollar, { style: 'black', angle: 0.45 });
-    sketch.broken(leftCollar, F.lwThin * 1.6);
-    sketch.broken(rightCollar, F.lwThin * 1.6);
+    clothMass(sketch, F, [
+      F.body(-18, 124), F.body(18, 124), F.body(48 + sway, 186),
+      F.body(44 + sway, 236), F.body(18, 250), F.body(0, 246), F.body(-18, 250),
+      F.body(-44 - sway, 236), F.body(-48 - sway, 186),
+    ], colors.cloak);
+    F.media.edge(sketch, [F.body(0, 132), F.body(0, 252)], F.lwThin * 1.3);
     return;
   }
 
-  const left = sketch.smooth([
-    F.body(-8, 124), F.body(-34, 132), F.body(-54, 174), F.body(-56 + sway, 228),
-    F.body(-42 + sway, 250), F.body(-28 + sway, 270), F.body(-16, 236), F.body(-10, 166),
-  ]);
-  const right = sketch.smooth([
-    F.body(8, 124), F.body(30, 134), F.body(46, 176), F.body(48 + sway, 226),
-    F.body(38 + sway, 248), F.body(26 + sway, 266), F.body(16, 236), F.body(10, 166),
-  ]);
-  F.media.tone(sketch, left, { style: 'black', angle: 0.45 });
-  F.media.tone(sketch, right, { style: 'black', angle: 0.45 });
-  F.media.skin(sketch, sketch.smooth([
-    F.body(34, 158), F.body(46, 206), F.body(34, 244), F.body(20, 178),
-  ]), colors.lining, { paper: false, underdraw: false, alpha: 0.3 });
-  sketch.broken(left, F.lwMain);
-  sketch.broken(right, F.lwMain);
-  const leftCollar = [F.body(-4, 118), F.body(-20, 102), F.body(-16, 128)];
-  const rightCollar = [F.body(4, 118), F.body(28, 80), F.body(18, 128)];
-  F.media.tone(sketch, leftCollar, { style: 'black', angle: 0.45 });
-  F.media.tone(sketch, rightCollar, { style: 'black', angle: 0.45 });
-  sketch.broken(leftCollar, F.lwThin * 1.6);
-  sketch.broken(rightCollar, F.lwThin * 1.6);
-  const shirt = sketch.smooth([
-    F.body(-12, 132), F.body(12, 132), F.body(14, 198), F.body(-14, 198),
-  ]);
-  F.media.tone(sketch, shirt, { style: 'hatch' });
-  F.media.skin(sketch, shirt, colors.shirt, { paper: false, underdraw: false, alpha: 0.62 });
-  sketch.broken(shirt, F.lwMain);
+  clothMass(sketch, F, [
+    F.body(-8, 124), F.body(-34, 132), F.body(-52, 174), F.body(-52 + sway, 228),
+    F.body(-40 + sway, 250), F.body(-27 + sway, 270), F.body(-20, 236), F.body(-18, 166),
+  ], colors.cloak);
+  clothMass(sketch, F, [
+    F.body(8, 124), F.body(34, 132), F.body(52, 174), F.body(52 + sway, 228),
+    F.body(40 + sway, 250), F.body(27 + sway, 270), F.body(20, 236), F.body(18, 166),
+  ], colors.cloak);
+  clothMass(sketch, F, [
+    F.body(-18, 132), F.body(0, 150), F.body(18, 132),
+    F.body(20, 206), F.body(-20, 206),
+  ], colors.shirt, -0.35);
+  for (const y of [168, 190]) {
+    const button = F.body(0, y);
+    F.media.skin(sketch, sketch.blobPts(button.x, button.y, 1.4, 1.4, 0, 0.2), colors.lining, {
+      paper: false,
+      underdraw: false,
+      alpha: 0.9,
+    });
+  }
+  clothMass(sketch, F, [
+    F.body(-16, 140), F.body(-21, 154), F.body(-20, 228), F.body(-16, 210),
+  ], colors.lining, -0.55);
+  clothMass(sketch, F, [
+    F.body(16, 140), F.body(21, 154), F.body(20, 228), F.body(16, 210),
+  ], colors.lining, 0.55);
+}
+
+export function drawCollar(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
+  if (pose.facing === 'left' || pose.facing === 'right') {
+    const dir = pose.facing === 'right' ? 1 : -1;
+    clothMass(sketch, F, [
+      F.body(-dir * 6, 124), F.body(-dir * 38, 136),
+      F.head(-dir * 34, 101), F.head(-dir * 27, 118),
+    ], F.colors.cloakLift, -dir * 0.25, false);
+    return;
+  }
+
+  for (const side of [-1, 1] as const) {
+    clothMass(sketch, F, [
+      F.body(side * 8, 124), F.body(side * 40, 136),
+      F.head(side * 34, pose.facing === 'rear' ? 98 : 101), F.head(side * 27, 118),
+    ], F.colors.cloakLift, side * 0.25, false);
+  }
 }

@@ -154,8 +154,13 @@ Each shipped material family needs:
 
 - One approved character brief is authoritative for the person's identity across portraits and world views. Current code can use separate render sources, but they must remain synchronized to that brief.
 - The approved identity record owns the stable look ID, skin or surface, face, hair, body build, clothing, accessory, held item, and expression intent.
+- For a named creature, the approved identity record also owns literal archetype anatomy: skull or
+  face, torso, limbs and ground contact, surface or material, and canonical creature features.
+  Clothing and accessories cannot substitute for creature anatomy.
 - For atlas-path characters, generate the portrait and eight walking cells from this shared source. Do not draw a portrait and world character as separate identities.
-- A portrait can contain more detail. It cannot change the head shape, hair mass, skin ramp, key facial feature, body build, main clothing shape, or signature accessory.
+- A portrait can contain more detail. It cannot change the archetype, skull or face, torso, limbs,
+  surface, head shape, hair mass, key facial feature, body build, main clothing shape, or signature
+  accessory.
 - A rear or lateral cell can omit a hidden detail. It must preserve the same readable person.
 - A recolor, status tint, outfit state, or expression changes only that state. It does not create a new face.
 
@@ -168,6 +173,10 @@ Each shipped material family needs:
 - Atlas only: light the character from the upper left.
 - Use a large, readable head and face. The face must remain readable at native `1x`.
 - Design the silhouette before the face detail. One major silhouette feature must identify the person before color is considered.
+- A creature must read as its archetype with clothing and accessories hidden. Reject a human body
+  wearing a creature symbol, printed bones, fur trim, tusk accessory, witch hat, or stitch costume.
+- Public-domain archetypes can use recognizable anatomy. Do not copy the exact costume, makeup,
+  pose, or silhouette of one protected adaptation.
 - Use a controlled dark outer contour. Keep skin, hair, clothing, and accessory values separate where they touch.
 - Atlas only: use the shared Halcyra palette families. Add a color only when it improves identity at `1x`.
 - Keep all identities fictional and original. Do not copy a real person, full costume, badge, or exact character silhouette.
@@ -382,7 +391,10 @@ The compact look records in `scripts/art/character-look-roster.ts` are authorita
 | `resident-23` | two stacked pairs of square goggles | short jacket |
 | `resident-24` | spiral shell shoulders | thin ponytail |
 
-Revision 12 uses the protagonist as the shared proportion bar for the full cast. Every character keeps the same large face, matching eye grid, rounded weighted body, narrow side profile, portrait body, and stable floating pose. Hair, skin, clothing, and two identity features remain character-specific. The automated protagonist-style score must remain at least `9.7/10` for every character in roster order.
+Revision 12 is a historical atlas contract. It uses the protagonist as the shared proportion bar for
+legacy atlas humans. It does not control pencil creature anatomy or creature dialogue portraits.
+Literal creature anatomy overrides the shared human face, eye grid, body, and profile. The old
+automated protagonist-style score cannot approve a creature redesign.
 
 The cast keeps generated rear cells and the front-body lateral method. Named sources generate `rest`, `joy`, and `upset`; ambient sources generate `rest`. Review `artifacts/phase-24/art-quality/phase-33-hfm-full-cast/full-cast-identity-1x.png` before the `3x` board.
 

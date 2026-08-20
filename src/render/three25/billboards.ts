@@ -3,6 +3,7 @@ import { mixHex } from '../atmosphere';
 import type { DistrictLighting } from '../district-lighting';
 import type { WorldFrameState } from '../world-frame';
 import { stableTupleHash } from '../../world/presentation/material-selection';
+import { isPencilVisualId } from '../pencil/characters';
 
 const TILE_SIZE = 32;
 
@@ -100,7 +101,7 @@ export function isStandingDecal(sprite: string): boolean {
 
 export function buildBillboards(frame: WorldFrameState): readonly BillboardDescriptor[] {
   const characters = frame.characters
-    .filter((character) => character.visualId !== 'vampire-01')
+    .filter((character) => !isPencilVisualId(character.visualId))
     .map((character) => ({
     id: character.id,
     source: character.source,
@@ -148,7 +149,7 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
    * strides too, which is fine: people blink while walking.
    */
   const eyes = frame.characters.flatMap((character) => {
-    if (character.visualId === 'vampire-01') return [];
+    if (isPencilVisualId(character.visualId)) return [];
     if (!character.sprite.endsWith('.front-1')) return [];
     if (!isBlinking(character.visualId, frame.animationTimestampMilliseconds)) return [];
     const band = atlasRectangle(`character.${character.visualId}.eyes`);

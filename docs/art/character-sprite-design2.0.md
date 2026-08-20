@@ -16,15 +16,13 @@ Use [character-sprite-authoring.md](character-sprite-authoring.md) first for eve
 That guide conducts the interview, verifies the render path, and stops unsupported work. Load this
 reference only after the task routes to the 2.5D pencil path or changes pencil architecture.
 
-Use [character-sprite-design.md](character-sprite-design.md) for the `24×30` atlas pipeline. Do not
-mix the two pipelines. An atlas look record cannot change a pencil body, and a pencil part cannot
-change an atlas cell.
+Every character world body targets this pencil method. Dialogue portraits use the vampire
+portrait's block-pixel treatment, but they share the pencil body's approved anatomy contract.
 
 This document combines three sources:
 
 1. [Halcyra art bible §9](halcyra-art-bible.md#9-character-identity-and-proportions) supplies shared
-   identity continuity, originality, silhouette, and two-feature rules. Its fixed pixel geometry is
-   atlas-only.
+   identity continuity, originality, silhouette, and two-feature rules.
 2. [How a creature is drawn](https://kindergrimm.vercel.app/how) supplies the drawing and rig
    method.
 3. GBrain slug `concepts/kindergrimm` records source architecture, constants, and traps.
@@ -36,11 +34,15 @@ Kindergrimm's procedural sketch method and calibrated for SI World's bright 2.5D
 
 ## 1. Current and target in one view
 
-**CURRENT:** SI World has one hardcoded pencil vampire, nine draw-only parts, whole-character
-canvases, and no recipe, bones, species system, expressions, or selectable character medium.
+**CURRENT:** Gate A is complete. SI World has a versioned registry, nine pencil visual IDs,
+whole-character canvases, four-facing idle and walk states, and several pencil bodies on screen.
+The vampire is approved. Seven creature recipes are rejected human-template prototypes. Priya has
+a literal skeleton renderer, but her revised world body remains in review until Joe approves it.
 
-**TARGET after the named migration gates:** a deterministic recipe builds a large expressive head,
-a small body, ordered sketch parts, and a rig that moves those parts without redrawing identity.
+**TARGET:** every character world body uses a deterministic recipe with literal anatomy. A creature
+recipe defines its skull or face, torso, limbs and contact, surface or material, and canonical
+features before clothing. Dialogue portraits keep the existing vampire portrait style and the same
+literal anatomy.
 
 Five rules apply now:
 
@@ -51,6 +53,7 @@ Five rules apply now:
    contours through `edge` remains open work.
 4. **Stable choices happen before drawing.** A boil frame can change graphite wobble, not identity.
 5. **Only characters boil.** The world keeps its drawn grain still.
+6. **Archetype controls anatomy.** A human body with a creature feature or costume is rejected.
 
 ---
 
@@ -63,7 +66,6 @@ Five rules apply now:
 | What must be decided before drawing? | `character-sprite-authoring.md` |
 | Who is this person, and what makes them readable? | Art bible §9.1, §9.3, and identity/originality clauses in §9.2 |
 | How does a shipping pencil character draw and move? | This document |
-| How does the pixel atlas work? | `character-sprite-design.md` and atlas-only geometry clauses in art bible §9 |
 | What does the game implement today? | `src/render/pencil/` and its tests |
 | Where did the procedural method come from? | Kindergrimm's live `how` page |
 
@@ -72,13 +74,14 @@ fix the stale side, and update the test that protects the decision.
 
 ### 2.2 Shared identity law
 
-These rules apply to both pencil and atlas characters:
+These identity rules apply to pencil world bodies and vampire-style dialogue portraits:
 
 - One approved character brief defines one person across every view.
-- The portrait and world figure must show the same head, hair mass, body, face, and signature item.
-- Current `vampire-01` code violates the ideal one-source architecture: its pencil body and atlas
-  portrait are separate sources. Keep them synchronized from one brief and review them side by side;
-  do not describe this debt as solved.
+- The portrait and world figure must show the same archetype, skull or face, torso, limbs, surface,
+  head mass, body, and signature item.
+- Current `vampire-01` code uses a pencil body and a separate high-resolution pixel portrait. That
+  split is the approved surface style but remains identity-sync debt. Keep both synchronized from
+  one brief and review them side by side.
 - Each person gets one primary signature oddity and one supporting feature.
 - Both features change shape or add a readable object.
 - The primary oddity survives front, rear, left, and right.
@@ -88,9 +91,12 @@ These rules apply to both pencil and atlas characters:
 - Keep identities fictional and original. Do not copy a real person, full costume, badge, emblem,
   or exact known character silhouette.
 - Never make a cruel stereotype the character's signature feature.
+- A named creature must read as its archetype with clothing and accessories hidden.
+- Canonical creature anatomy is not the character's signature oddity. It is the required base.
+- Use recognizable public-domain archetype anatomy without copying one protected adaptation.
 
-For the target pencil system, the stable source is a recipe. Pencil portraits are not implemented
-yet. Do not solve that gap with a separately designed portrait.
+For the target world-body system, the stable source is a recipe. Portraits are not pencil drawings;
+they match the existing vampire dialogue portrait and share the same approved identity brief.
 
 ### 2.3 What this document does not require now
 
@@ -104,39 +110,21 @@ Do not build speculative systems.
 
 ---
 
-## 3. The two render paths
+## 3. Pencil render path
 
 | Path | Current use | Source | Output | Rules |
 |---|---|---|---|---|
-| Pencil | The shipping 2.5D protagonist with `visualId === 'vampire-01'` | `src/render/pencil/` | A `120×180` transparent sketch sheet on a `42×60` world billboard | This document |
-| Atlas | Other current characters and fallback rendering | `scripts/art/` plus the look roster | `24×30` world cells and `24×29` portraits | Original design document |
+| Pencil | Every character world body; the vampire is approved and eight creature prototypes await redraw | `src/render/pencil/` | A `120×180` transparent sketch sheet on a `42×60` world billboard | This document |
 
-`src/render/three25/billboards.ts` removes `vampire-01` from the atlas billboard batch.
-`src/render/pencil/billboard.ts` adds it to the pencil batch. The 2.5D renderer then uploads the
-selected pencil frame to one `CanvasTexture`.
+`src/render/pencil/billboard.ts` builds the pencil batch. The 2.5D renderer uploads visible pencil
+frames into fixed horizontal texture slots.
 
 This routing has three consequences:
 
-1. Editing `vampire-01` in `CHARACTER_LOOKS` does not change the on-screen **2.5D pencil** vampire.
-2. Atlas entries for `vampire-01` still exist. Roster changes can affect atlas fallback and portrait
-   surfaces, so they are not a global no-op.
-3. The pencil renderer supports one visual design today. A second design needs generic recipe
-   routing and a texture strategy. Do not copy `vampire.ts` and add another special-case mesh.
-
-### 3.1 Legacy atlas guardrails
-
-These apply only when the atlas path is the intended output:
-
-- `head`, `build`, and `eyes` on `CharacterLook` document intent but do not change atlas pixels.
-- An ID missing from `CHARACTER_IDS` silently falls back to `generic-resident`.
-- `CHARACTER_IDS` and `CHARACTER_LOOKS` must contain the same IDs.
-- The blink overlay rewrites its fixed eye columns. Put persistent details outside that band.
-- Use existing palette ramps before adding a colour.
-- Build and verify generated atlas art with `npm run art:check`.
-
-The exact grid, blink columns, cell ceilings, and roster workflow remain in
-[character-sprite-design.md](character-sprite-design.md). Do not copy those values into pencil
-parts.
+1. A world-body edit belongs in `src/render/pencil/`.
+2. Dialogue portrait pixels do not change the pencil world body.
+3. New pencil identities use `PENCIL_CHARACTER_RECIPES`. Do not copy `vampire.ts` or add another
+   special-case mesh.
 
 ---
 
@@ -196,36 +184,38 @@ already exists.
 | 1 | Pencil | Filled-ribbon strokes, three sine bands, grit, breathing width, crumbs, erased bites, end overshoot, and seeded `mulberry32` | Shipped | Keep shared |
 | 2 | Shape | `blobPts`, `jitterRing`, Chaikin smoothing, and nine head shapes | Shipped | Keep shared |
 | 3 | Material | `tone` and `skin` are used; `edge` exists, but parts still call `sketch.broken()` directly; `CHARCOAL` exists in the module and tests, but character routing hardcodes graphite and props use crayon | Partial | Route contours through `media.edge`; add another selectable character medium only for a real need |
-| 4 | Head | Nine shape families, `HEAD_ROUND = 0.92`, and profile swell/collapse | Shipped | Move the chosen shape into the recipe |
-| 5 | Map | `buildVampireLayout()` publishes transforms and anchors, but the working nose uses row 95 while stale `F.L.noseY` points to row 86 | Partial | Reconcile and test shared positions before another character consumes them |
-| 6 | Parts | Nine ordered vampire draw files | Partial | Add recipe params, bone placement, size, states, and per-part canvases |
+| 4 | Head | Nine envelope families, `HEAD_ROUND = 0.92`, and profile swell/collapse; creature-specific skull anatomy is not built | Partial | Keep envelopes shared; author literal skull or face anatomy per archetype |
+| 5 | Map | `buildPencilLayout()` publishes shared transforms and anchors, but the working nose uses row 95 while stale `F.L.noseY` points to row 86 | Partial | Reconcile shared positions; let creature anatomy omit or replace human face anchors |
+| 6 | Parts | Shared vampire primitives plus one prototype feature function for eight creatures | Rejected for creatures | Replace each prototype with creature-specific skull, torso, limb, surface, and canonical-feature drawing |
 | 7 | Species | No casting table and no generated part params | Missing | Build only when generated populations need loaded dice |
 | 8 | Boil | Three whole-character frames on one `1.15 fps` clock | Partial | Give each part its own three frames, speed, and offset |
 | 9 | Face | One static face per facing; no blink or expression states | Missing | Lazy face states switched behind a blink |
-| 10 | Pose | One front idle plus two walk drawings for four facings; no bones or blend API | Partial | Poses write blended bone offsets |
-| 11 | Seed | Boil redraws are deterministic through `hashSeed`; no durable recipe JSON, locks, or part rerolls | Partial | Save one versioned recipe and rebuild the same person anywhere |
+| 10 | Pose | One idle plus two walk drawings for each of four facings; no bones or blend API | Partial | Poses write blended bone offsets |
+| 11 | Seed | Versioned authored recipes and deterministic `hashSeed`; no saved JSON, locks, or part rerolls | Partial | Persist only if saves need recipe data |
 
 Current correctness gaps that the older document hides:
 
 - The published `F.L.noseY` is stale and unused. Do not replace working row 95 with row 86 merely
   to satisfy the anchor abstraction.
 - Pencil parts use the medium for masses and washes, but bypass `media.edge()` for contours.
-- Reduced-motion mode now pins the pencil character to front idle and boil frame 0. Keep that
+- Reduced-motion mode pins the pencil character to its current-facing idle and boil frame 0. Keep that
   regression test independent of the future bone rig.
+- The eight creature prototypes all run through the same human anatomy. Their registry and routing
+  tests pass, but their art status remains rejected.
 
 ### 5.1 The current frame budget
 
 The current sheet contains:
 
-- one front idle;
+- one idle for each of four facings;
 - two walk frames for each of four facings; and
 - three boil frames for every state.
 
-That is `3 + 4 × 2 × 3 = 27` frames. At `120×180×4`, the raw frame data is about `2.23 MiB` per
+That is `4 × 3 × 3 = 36` frames. At `120×180×4`, the raw frame data is about `2.97 MiB` per
 character before texture overhead.
 
-This budget is acceptable for the current vampire. It is the wrong curve for many poses or many
-hardcoded characters.
+This budget is acceptable for the current cast and its fixed pose scope. It is the wrong curve for
+many more poses.
 
 ---
 
@@ -251,8 +241,16 @@ Target saved state:
 {
   version,
   seed,
-  species,
-  base,
+  archetype,
+  anatomy: {
+    base,
+    skullOrFace,
+    torso,
+    limbsAndContact,
+    surfaceOrMaterial,
+    canonicalFeatures,
+    absentHumanFeatures
+  },
   medium,
   color,
   parts: {
@@ -267,7 +265,8 @@ Rules:
 - Each part gets an independent RNG stream from `seed`, `partId`, and `rr`.
 - Incrementing `rr` rerolls one part only.
 - `lock` keeps a selected part through a global reroll.
-- A species profile biases generation. It does not remain a runtime dependency after params exist.
+- An authored archetype and anatomy contract are stable identity. They are not generation hints.
+- A future species profile can bias generated recipes. It cannot replace the anatomy contract.
 - The recipe stores identity. Boil frame seeds store only redraw variation.
 - Version the recipe before any recipe ships in a save.
 
@@ -316,7 +315,25 @@ Part rules:
 - A part asks the medium how to render a mass. It does not call a graphite-only fill helper.
 - A part can request darkness and stroke direction. The medium owns the technique.
 
-### 6.4 Species are loaded dice
+### 6.4 Archetype anatomy is required; species generation is optional
+
+An authored creature recipe must define literal anatomy even when no generator exists.
+
+- `skullOrFace`: skull, sockets, muzzle, jaw, brow mass, ears, crown, or constructed head.
+- `torso`: flesh, fur, ribs, shroud, armour, assembled mass, or another real body structure.
+- `limbsAndContact`: arms, claws, bones, legs, paws, vapor taper, float height, and floor rule.
+- `surfaceOrMaterial`: skin, fur, bone, spectral haze, stitched flesh, scales, or another covering.
+- `canonicalFeatures`: the minimum features that make the archetype readable without clothing.
+- `absentHumanFeatures`: human features that must not be drawn, such as skin, hair, nose, or flesh.
+
+Draw the anatomy base first. Add the individual's oddity, clothing, and role object afterward. A
+skeleton with ribs printed on a sweater fails. An orc with human skin and attached tusks fails.
+
+A creature-specific skull, torso, or limb drawing can use the current full-character canvas when
+the four-facing biped locomotion and floor rule stay unchanged. It does not need a species generator
+or bone rig.
+
+Species generation is loaded dice.
 
 A species is data that biases `gen()`.
 
@@ -329,7 +346,7 @@ Use the cheapest lever that creates the needed difference:
 A dog is not a duplicate character system. A muzzle is usually a skull param. Wings qualify as a
 part because they need their own layer and motion.
 
-Do not build this layer until SI World needs generated non-human residents or crowds.
+Do not build species generation until SI World needs generated non-human residents or crowds.
 
 ### 6.5 Each part boils on its own clock
 
@@ -460,8 +477,11 @@ round, square, tall, drop, pear, lump, wide, bumpy, wonky
 The ring moves `0.92` of the way toward its mathematical target. Never move it all the way. A fully
 perfect target stops looking drawn.
 
-The vampire uses `tall`. A Frankenstein-like broad skull would use `square`. A witch with a narrow
-crown and heavier jaw could use `drop`.
+The vampire uses `tall`. A constructed corpse can use `square`. A witch can use `drop`.
+
+These are outer envelopes, not anatomy. `square` does not create a constructed corpse. `tall` does
+not create a skeleton. The archetype still needs its own skull or face construction inside the
+envelope.
 
 For a profile or three-quarter construction:
 
@@ -472,6 +492,57 @@ For a profile or three-quarter construction:
 - push the nose and mouth toward the leading edge.
 
 A profile is not a front view squeezed narrower.
+
+### 7.5 Body-local attachment and physical layer order
+
+Place parts on the character, not on the screen. Every asymmetric body part, hairstyle, garment,
+accessory, and held item needs a body-local attachment record before drawing:
+
+- **anchor:** the skull region, joint, limb, garment point, or held-item bone where it starts;
+- **anatomical side:** character-left, character-right, or centre;
+- **path:** every anchor the shape must remain connected through from start to end;
+- **profile placement:** near, far, leading, trailing, or hidden;
+- **depth relation:** which nearby masses draw before it and which draw after it; and
+- **motion owner:** the body part whose gait or pose offset it follows.
+
+Convert anatomical side to screen side through one shared facing map. Do not choose screen `x` with
+an isolated `pose.facing` ternary inside a part. Front and rear usually swap screen sides. Left and
+right profiles must obey the approved near/far or leading/trailing rule. The same mapping controls
+the attachment anchor and every later point in the shape.
+
+Write a four-facing attachment table for every asymmetric part:
+
+| Facing | Screen side | Visible anchor | Profile placement | Draw before | Draw after |
+|---|---|---|---|---|---|
+| Front | mapped from anatomical side | named anchor | n/a | named deeper masses | named nearer masses |
+| Rear | mapped from anatomical side | named anchor | n/a | named deeper masses | named nearer masses |
+| Left | mapped from anatomical side | near/far or leading/trailing | explicit | named deeper masses | named nearer masses |
+| Right | mapped from anatomical side | near/far or leading/trailing | explicit | named deeper masses | named nearer masses |
+
+The path must overlap its anchor. A line or chain cannot begin after a transparent gap. A hanging
+shape follows gravity from its anchor unless the brief gives it another force. Colour can separate
+two attached parts, but colour cannot repair a detached or physically impossible shape.
+
+Layer order follows body depth, not code convenience. Draw a far paired limb first, then the torso
+or garment, then a hanging middle layer, then the near limb. A sleeveless garment cannot cover an
+exposed arm. Hair behind a skull can emerge over clothing while remaining behind the near arm.
+
+### 7.6 Adjacent masses and garment topology
+
+Before adding texture, inspect every pair of touching masses. They must differ through at least one
+strong channel: value, colour family, pencil density, stroke direction, or a visible paper gap.
+Do not place several near-black masses together and expect outlines alone to separate them at play
+zoom. Keep one darkest identity mass and step adjacent clothing or anatomy to another value.
+
+Every garment mass uses one closed contour. Do not double-render mirrored front panels in a profile;
+their overlap becomes an unintended dark slab. A profile garment must preserve the same neckline,
+armhole, raised hem, split, and exposed anatomy promised by the front brief. If the garment does not
+cover a body part, draw that body part on the visible side of the garment.
+
+Run a semantic-confusion check after dressing: name each silhouette mass without looking at the
+code. Reject the frame if hair reads as a limb, an accessory reads as anatomy, two limbs merge into
+one, or clothing hides a required joint. Fix attachment, topology, depth, or value before adding
+detail.
 
 ---
 
@@ -484,14 +555,15 @@ matter to pencil architecture after Joe approves the creative brief.
 | Decision | Required answer |
 |---|---|
 | Stable identity | Character ID, name, role, and story reason for the look |
-| Creature identity | Human, human-shaped creature, superhero, monster, cat, animal, or custom hybrid |
-| Anatomical base | Biped, sit, quad, winged, serpentine, limbless, or custom |
+| Creature identity | Human, literal creature archetype, superhero, animal, or custom hybrid |
+| Anatomical base | Upright biped, crouched biped, sit, quad, winged, serpentine, limbless, skeletal, spectral, constructed, or custom |
+| Literal anatomy | Skull or face; torso; limbs and contact; surface or material; canonical features; absent human features |
 | Generation mode | Authored named character now, or generated population later |
 | Silhouette | One primary signature oddity that survives all four facings |
 | Supporting feature | One secondary shape or readable object |
 | Head | One of the nine families, or a clearly blocked custom skull requirement |
 | Proportion | Keep the vampire default `0.56`, or state the visual reason and floor-contact plan |
-| Surface | Skin, fur, feathers, scales, shell, cloth, armour, spectral material, or another covering |
+| Surface | Skin, fur, feathers, scales, shell, bone, cloth, armour, spectral material, stitched flesh, or another covering |
 | Medium | Graphite is current; another character medium is target intent until routing exists |
 | Parts | Required parts, new files, mirrored parts, held items, and layer order |
 | Face | Resting face and only expressions with named gameplay uses |
@@ -502,6 +574,8 @@ Reject the brief if:
 - identity depends on colour;
 - the signature oddity disappears from the rear or side;
 - the new person is a palette swap;
+- a creature becomes an ordinary human when clothing and accessories are hidden;
+- canonical anatomy is treated as a printed symbol, costume, or attached prop;
 - every part is exaggerated;
 - the design needs a separate portrait identity;
 - the request copies a real person, costume, badge, emblem, or exact known silhouette;
@@ -512,37 +586,21 @@ Reject the brief if:
 
 ## 9. Build workflow
 
-### 9.1 Before the generic rig exists
+### 9.1 Current generic whole-character baker
 
-The current pencil path is a vampire-specific pilot.
-
-For a change to the vampire:
-
-1. Confirm that the 2.5D pencil path is the visible path.
-2. Fill the character brief for the requested change.
-3. Reuse the existing layout, medium, part registry, and pose shape.
-4. Make the smallest change in the owning part or shared primitive.
-5. Add or update one focused deterministic test.
-6. Render at native play zoom and inspect the result in the world.
-
-For a second pencil character, stop before copying files. Complete migration gate A in section 11.
-
-### 9.2 After the generic rig exists
-
-For each new character:
+For each new character world body:
 
 1. Write one versioned recipe.
-2. Choose one head shape and head share.
-3. Define the signature oddity and supporting feature as parts or shape params.
-4. Reuse existing parts before adding files.
-5. Set stable params in the recipe or `gen()`.
-6. Build the layout once.
-7. Draw parts through the selected medium.
-8. Bake only the required part states and boil frames.
-9. Attach part planes to bones.
-10. Add front idle and four-facing walk.
-11. Build only requested expression states.
-12. Compare world figure and portrait from the same recipe.
+2. Record the literal anatomy contract.
+3. Choose one head envelope and head share.
+4. Draw creature skull or face, torso, limbs and contact, surface, and canonical features.
+5. Hide clothing and accessories. Confirm that the archetype still reads.
+6. Add the individual's signature oddity and supporting feature.
+7. Reuse shared primitives only when their anatomy is correct for the creature.
+8. Build the layout once and draw through the selected medium.
+9. Bake only four-facing idle, two walk states, and three boil frames.
+10. Compare the pencil world figure with the vampire-style portrait from the same brief.
+11. Keep both surfaces rejected until the literal-anatomy review passes.
 
 ---
 
@@ -574,7 +632,7 @@ For each new character:
 ### Idle and gait
 
 - Idle is its own drawing. Do not reuse a walk frame with one foot lifted.
-- Current idle is front-facing only because a stopped character turns toward the camera.
+- Stopping preserves the last facing. Front, rear, left, and right each have an idle drawing.
 - Pass `moving` explicitly. A zero gait offset can mean standing or one instant of a walk.
 - Both walk frames must change the silhouette.
 - One shared gait phase drives opposite limb states. Do not mirror both legs on one axis and create a
@@ -586,7 +644,7 @@ For each new character:
 
 Build these gates only when their trigger becomes real.
 
-### Gate A — before the second pencil character
+### Gate A — generic pencil registry — complete
 
 Generalize identity and renderer routing without changing the vampire's pixels.
 
@@ -597,11 +655,14 @@ Required result:
 - a registry keyed by pencil visual ID;
 - renderer support for more than one pencil design on screen;
 - the existing vampire tests and captures remain stable; and
-- no atlas look record controls a pencil character.
+- no external character look record controls a pencil character.
 
 Do not add species generation, an editor, or extra media in this gate.
 
-### Gate B — before a new anatomical base, extra poses, or independent boil
+Gate A is complete in `src/render/pencil/characters.ts`, `billboard.ts`, and the 2.5D texture path.
+Its completion proves routing and texture support. It does not approve the eight creature drawings.
+
+### Gate B — before different locomotion, extra poses, or independent boil
 
 Split parts into their own canvases and attach them to bones.
 
@@ -615,8 +676,9 @@ Required result:
 - idle and walk are bone offsets rather than full redraws; and
 - current contact points, facings, and world scale do not move.
 
-After Gate A, this gate can unlock authored sit, quad, winged, serpentine, or custom bases. It also
-unlocks sitting, attack, sleep, run, and proper non-unison boil. It does not create generated
+This gate can unlock authored sit, quad, winged, serpentine, or limbless locomotion. It also unlocks
+sitting, attack, sleep, run, and proper non-unison boil. A creature-specific skull, torso, limb, or
+surface inside the current biped canvas does not require Gate B. Gate B does not create generated
 species data.
 
 ### Gate C — when gameplay needs visible emotion
@@ -668,6 +730,7 @@ Add focused checks for:
 - reduced-motion boil and walk freeze;
 - foot contact and profile width;
 - rear face and hand exclusions;
+- rear garment topology and visible far profile limbs;
 - unique depth ranks after the bone split; and
 - recipe round-trip after recipes ship.
 
@@ -677,17 +740,23 @@ The existing hidden 2.5D smokes prove an in-world shipped frame, but they cannot
 character facing, gait, or boil frame. A task that changes those states needs a deterministic
 character-state capture before claiming complete visual evidence.
 
+Never score the front view and infer that the other views pass. Review front, rear, left, and right
+as separate drawings. For each facing, confirm every asymmetric part's mapped side, visible anchor,
+unbroken path, depth order, and intended meaning. Then repeat the check for idle, both walks, and all
+three boil frames. A `10/10` claim is allowed only after this full matrix and native play zoom pass.
+
 Review in this order:
 
-1. Black silhouette with colour removed.
-2. Native play zoom in the real world.
-3. Front, rear, left, and right.
-4. Idle and both walk states.
-5. Motion edges against the outfit.
-6. Paper coverage over bright and dark ground.
-7. Three boil frames for identity stability.
-8. Part clocks for non-unison boil after gate B.
-9. Portrait beside the front world figure after pencil portraits exist.
+1. Archetype-only drawing with clothing and accessories hidden.
+2. Black silhouette with colour removed.
+3. Native play zoom in the real world.
+4. Front, rear, left, and right.
+5. Idle and both walk states.
+6. Motion edges against the outfit.
+7. Paper coverage over bright and dark ground.
+8. Three boil frames for identity stability.
+9. Part clocks for non-unison boil after gate B.
+10. Vampire-style dialogue portrait beside the front pencil world figure.
 
 Reject the character if:
 
@@ -699,22 +768,28 @@ Reject the character if:
 - a moving limb disappears into clothing;
 - the rear shows a face, hand, or sole that should be hidden;
 - the boil changes shape, side, length, or identity;
-- the whole world shimmers; or
-- the design reads only when enlarged.
+- the whole world shimmers;
+- the design reads only when enlarged;
+- a named creature reads as a human wearing its archetype;
+- a skeleton contains human skin, scalp, flesh, a printed rib cage, or hair without an approved
+  supernatural attachment that still passes the hair-hidden anatomy review;
+- a spectral body uses ordinary human legs and floor contact without an approved reason; or
+- clothing or an accessory supplies the only recognizable archetype feature.
 
 ---
 
 ## 13. Traps
 
-### Editing the wrong pipeline
+### Editing the wrong source
 
-`vampire-01` is replaced by the pencil billboard in 2.5D. Editing its atlas roster row does not
-change the visible pencil character.
+World-body identity lives in the pencil recipe and its anatomy renderer. Editing portrait art or an
+unrelated character roster does not change the visible pencil body.
 
-### Copying the vampire for character two
+### Treating an archetype as a costume
 
-The renderer has one vampire-specific texture path. Copying it creates a second special case and
-still does not solve multiple designs on screen. Complete gate A.
+The registry can route many drawings, but routing does not create anatomy. Do not call the shared
+human skull, torso, arms, and legs and then paint ribs, fur, tusks, stitches, or a hat on top. Draw
+the creature anatomy first.
 
 ### Treating the recipe seed as the boil seed
 
@@ -766,12 +841,21 @@ Joe's darker calibration for play-zoom survival.
 A shipping pencil character is done when the following checks pass.
 
 - [ ] one recipe or stable authored source defines the person;
+- [ ] a named creature has a written literal-anatomy contract;
+- [ ] the skull or face, torso, limbs and contact, surface or material, canonical features, and
+      absent human features match that contract;
+- [ ] the creature reads as its archetype with clothing and accessories hidden;
 - [ ] one signature oddity and one supporting feature read without colour;
 - [ ] the design is original and does not use a cruel stereotype;
 - [ ] the head is the largest identity mass;
 - [ ] shared anchors are verified against the proven drawing before parts consume them;
 - [ ] parts use the current medium contract, with open `edge` bypasses labeled honestly;
 - [ ] stable choices do not reroll across boil frames;
+- [ ] every asymmetric part uses a body-local side, named anchor, continuous path, and four-facing
+      attachment table;
+- [ ] touching masses remain distinct by value, colour, texture, or a visible gap at play zoom;
+- [ ] garment contours are closed and preserve their openings and exposed anatomy in profiles;
+- [ ] no hair, accessory, garment, or body part can be mistaken for a different body part;
 - [ ] front, rear, left, and right preserve identity;
 - [ ] idle and both walk states read at play zoom;
 - [ ] feet contact the ground and motion has a visible value edge;
@@ -779,6 +863,8 @@ A shipping pencil character is done when the following checks pass.
 - [ ] deterministic tests pass;
 - [ ] reduced-motion mode freezes the boil;
 - [ ] the world remains still while the character boils;
+- [ ] the vampire-style dialogue portrait matches the approved pencil-body identity;
+- [ ] neither surface is marked as a rejected human-template prototype;
 - [ ] a real in-game capture passes visual review; and
 - [ ] the document and code describe the same implementation status.
 
@@ -787,7 +873,6 @@ A shipping pencil character is done when the following checks pass.
 ## References
 
 - [Character sprite authoring task entrypoint](character-sprite-authoring.md)
-- [Character sprite design, atlas procedure and pencil history](character-sprite-design.md)
 - [Halcyra art bible](halcyra-art-bible.md)
 - [Kindergrimm: how a creature is drawn](https://kindergrimm.vercel.app/how)
 - GBrain slug: `concepts/kindergrimm`

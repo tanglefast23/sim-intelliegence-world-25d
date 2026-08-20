@@ -1,8 +1,8 @@
 ---
 title: Character sprite design — atlas procedure and pencil history
 type: reference
-status: authoritative-atlas-only
-scope: 24x30 atlas characters and 24x29 atlas portraits
+status: legacy-character-body-reference
+scope: legacy 24x30 world-body compatibility and vampire-style dialogue portrait sources
 task-entrypoint: character-sprite-authoring.md
 rule-source: docs/art/halcyra-art-bible.md atlas clauses in section 9
 last-reviewed: 2026-08-20
@@ -11,18 +11,24 @@ last-reviewed: 2026-08-20
 # Character sprite design — atlas procedure and pencil history
 
 Start every character task with [character-sprite-authoring.md](character-sprite-authoring.md).
-That guide selects the render path and conducts the design interview.
+That guide routes every world body to pencil and conducts the design interview.
 
-Sections 1–5 and [Traps](#traps) are authoritative for the atlas path. Section 6 is a historical
-record of the pencil vampire pilot. Current pencil rules live in
-[character-sprite-design2.0.md](character-sprite-design2.0.md).
+**Do not use this document to create, recast, or approve a character world body.** Its character
+atlas rules remain only for compatibility maintenance and for the existing dialogue-portrait source
+style. The environment atlas remains active. Section 6 is a historical record of the pencil vampire
+pilot. Current world-body rules live in [character-sprite-design2.0.md](character-sprite-design2.0.md).
+
+The shared atlas human template is also not an anatomy reference for a creature portrait. A
+skeleton portrait needs a skull, jaw, sockets, spine, ribs, pelvis, and limb bones. An orc needs an
+orc skull, jaw, tusks, shoulders, hands, and surface. Match the vampire portrait's pixel treatment,
+not its human anatomy. Clothing and accessories come after the creature reads without them.
 
 Three atlas facts are easy to get wrong:
 
 1. **The head is the biggest thing.** That is what makes the cast read as cute.
 2. **`head`, `build` and `eyes` on `CharacterLook` do nothing.** See [Traps](#traps).
-3. **Atlas edits do not change the visible 2.5D pencil vampire.** They can still affect atlas
-   rollback and portrait surfaces.
+3. **Atlas edits do not change a visible 2.5D pencil body.** They can still affect legacy rollback
+   and portrait surfaces, so compatibility edits require narrow verification.
 
 ---
 
@@ -231,16 +237,15 @@ and interview decisions live in the new authoring guide.
 | 7 | the species | **Missing.** No `gen()`, so there is nothing to load the dice on | Human or not. Only actionable once `gen()` exists. |
 | 8 | the boil | 3 frames per state at 1.15fps. **We boil in unison**, which the reference warns reads as video | Nothing yet. Per-part clocks are a shared fix. |
 | 9 | the face | **Missing.** No expression states, no blink, no lazy state drawing | **Which expressions.** Never assume. The vampire has none. |
-| 10 | the pose | Idle (front only) and walk (all four facings). Baked canvases, no bones | **Which poses beyond idle and walk.** See 6.6 — they are blocked on a bone rig. |
+| 10 | the pose | Idle and walk in all four facings. Baked canvases, no bones | **Which poses beyond idle and walk.** See 6.6 — they are blocked on a bone rig. |
 | 11 | the seed | **Missing.** Nothing is saved. Characters are hardcoded TypeScript, no recipe JSON | Nothing yet. |
 
 Five of the eleven are missing entirely. Say so when the grill reaches them, rather than inventing
 an answer.
 
-**Locked pose scope.** Every character gets an **idle, front-facing only** — a character who stops
-turns to face the camera, so the other three idles would never be seen. Every character gets
-**walking in all four facings**. Nothing else is drawn up front; sitting, attack and sleep are
-designed one at a time.
+**Locked pose scope.** Every character keeps its last facing when it stops. Front, rear, left, and
+right each get an idle plus two walking states, with three boil frames per state. Nothing else is
+drawn up front; sitting, attack and sleep are designed one at a time.
 
 ### 6.5.1 Historical questions
 
@@ -262,7 +267,7 @@ and build only those.
 
 The original `240×360` implementation baked
 `facings (4) × states (3) × boil (3) = 36` frames, or **12.4 MB** for idle and two walk frames.
-Those numbers are historical. Current code uses a `120×180` sheet and 27 frames, about `2.23 MiB`.
+Those dimensions are historical. Current code uses a `120×180` sheet and 36 frames, about `2.97 MiB`.
 The scaling lesson below remains valid: do not add more full-character baked poses.
 
 The historical expansion was:
