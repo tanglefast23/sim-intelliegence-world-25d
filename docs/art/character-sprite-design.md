@@ -1,25 +1,28 @@
 ---
-title: Character sprite design
+title: Character sprite design — atlas procedure and pencil history
 type: reference
-date: 2026-08-19
-status: authoritative
-rule-source: docs/art/halcyra-art-bible.md section 9
+status: authoritative-atlas-only
+scope: 24x30 atlas characters and 24x29 atlas portraits
+task-entrypoint: character-sprite-authoring.md
+rule-source: docs/art/halcyra-art-bible.md atlas clauses in section 9
+last-reviewed: 2026-08-20
 ---
 
-# Character sprite design
+# Character sprite design — atlas procedure and pencil history
 
-Read this before you make any new character. It is the procedure and the proportions.
+Start every character task with [character-sprite-authoring.md](character-sprite-authoring.md).
+That guide selects the render path and conducts the design interview.
 
-Section 9 of [halcyra-art-bible.md](halcyra-art-bible.md) is the law. This document does not
-change it. This document tells you the numbers, the steps, and the traps.
+Sections 1–5 and [Traps](#traps) are authoritative for the atlas path. Section 6 is a historical
+record of the pencil vampire pilot. Current pencil rules live in
+[character-sprite-design2.0.md](character-sprite-design2.0.md).
 
-Three things are true and people keep getting them wrong:
+Three atlas facts are easy to get wrong:
 
 1. **The head is the biggest thing.** That is what makes the cast read as cute.
 2. **`head`, `build` and `eyes` on `CharacterLook` do nothing.** See [Traps](#traps).
-3. **The character the player sees is the pencil vampire, not an atlas sprite.** Sections 1–5 cover
-   the 24×30 atlas pipeline. If you are changing what is on screen right now, go to
-   [section 6](#6-the-pencil-vampire) first.
+3. **Atlas edits do not change the visible 2.5D pencil vampire.** They can still affect atlas
+   rollback and portrait surfaces.
 
 ---
 
@@ -27,7 +30,7 @@ Three things are true and people keep getting them wrong:
 
 The head is the largest mass in the sprite. Not the torso. This is the whole cute read.
 
-Kindergrimm ([how a creature is drawn](https://kindergrimm.vercel.app/how.html), by Alberto
+Kindergrimm ([how a creature is drawn](https://kindergrimm.vercel.app/how), by Alberto
 Beiz) is the clearest reference for this. Every creature on that page is a big head, a small
 lozenge torso, and thin stick limbs. The head carries the character. The body is a stand.
 
@@ -45,14 +48,14 @@ Head plus hair is **15 to 17 of 30 rows, 50–57% of the character**. The range 
 **1.4 : 1** by height. The figure is roughly three head-heights tall, not seven.
 
 The head box is `x 4–19`, `y 4–17` — **16 px wide out of 24, 67% of the cell width**
-(`headBounds()`, [character-source.ts:293](../../scripts/art/character-source.ts:293)).
+(`headBounds()`, [character-source.ts:293](../../scripts/art/character-source.ts)).
 
 **Do not shrink the head to fit a new hat, collar or prop.** Push the prop into rows 1–3, or into
 the torso band. If the prop cannot fit, the prop is wrong, not the head.
 
 **Known deviation from the reference.** Our torso is as wide as the head — both peak at 16 px
 (`worldBodyCommands`, rows 19–23 at `x 4–19`,
-[character-source.ts:463](../../scripts/art/character-source.ts:463)). Kindergrimm keeps the torso
+[character-source.ts:463](../../scripts/art/character-source.ts)). Kindergrimm keeps the torso
 clearly narrower than the head. If a character needs to read cuter, narrow the torso in its
 `outfitPattern`. Do not widen the head to compensate.
 
@@ -81,7 +84,7 @@ Hard limits:
 
 - Never paint `x = 0` or `x = 23`. The outward contour needs those columns.
 - Row 28 stays **one** painted run. Splitting it moves `shadowWorldY`
-  ([character-source.ts:517](../../scripts/art/character-source.ts:517)).
+  ([character-source.ts:517](../../scripts/art/character-source.ts)).
 - The blink band rewrites only `W/K/D` inside `EYE_COLUMNS`. Anything you want to survive a
   blink must sit outside columns 7–10 and 13–16. Fangs at `[11,15]` and `[12,15]` survive; that
   is why they are placed there.
@@ -126,7 +129,7 @@ front-only. No two production people share a primary oddity.
    `world-character` (currently 288, 24×30), `world-character-eyes` (36, 24×3),
    `portrait` (56, 24×29). One named character costs **12 cells**: 8 walk + 1 eyes + 3 portraits.
    An ambient character costs 10: 8 walk + 1 eyes + 1 portrait.
-6. **Bump `ART_REVISION`** in [src/render/atlas.ts:47](../../src/render/atlas.ts:47).
+6. **Bump `ART_REVISION`** in [src/render/atlas.ts:47](../../src/render/atlas.ts).
 7. **Rebuild and check.**
 
 ```bash
@@ -161,16 +164,15 @@ These do **not** apply. We are a pixel atlas, not a live canvas:
 
 ---
 
-## 6. The pencil vampire
+## 6. Historical pencil vampire record — superseded
 
-**This is the character the player sees.** Everything above governs the 24×30 atlas sprites. The
-pencil vampire in [src/render/pencil/](../../src/render/pencil/) is a separate, live Kindergrimm
-renderer — filled-ribbon strokes, `mulberry32`, three boil frames per pose. `pencilBillboards()`
-filters `visualId === 'vampire-01'` and draws it in place of that atlas sprite on the 2.5D path,
-which is the shipping path. Editing `vampire-01` in the roster changes nothing on screen.
+> **Do not use this section as the current pencil procedure.** It records how the pilot evolved.
+> Current pencil work starts in [character-sprite-authoring.md](character-sprite-authoring.md) and
+> uses [character-sprite-design2.0.md](character-sprite-design2.0.md) as its deep reference.
 
-This document previously claimed production did not use the pencil path. That was wrong and cost a
-full session of work on the wrong character.
+The pencil vampire in [src/render/pencil/](../../src/render/pencil/) replaces `vampire-01` on the
+shipping 2.5D path. Atlas entries still exist for rollback and portrait surfaces. Editing the atlas
+roster does not change the visible 2.5D pencil body.
 
 ### 6.1 Proportions live in one constant
 
@@ -209,15 +211,14 @@ has no edge, so a correctly animated foot is still an invisible one. Every boot 
 | rear | **No hands** — the cape hangs closed over both arms. **No sole** — you cannot see the underside of a shoe from behind; the pale band moves to the ankle cuff. **No face** — the hair must cover the skull to the jaw, or a pale chin-shaped wedge reads as a face on the back of his head. |
 | left / right | Both boots are drawn, not just the leading one. The toe points the way he walks — a hardcoded `+x` toe puts his foot on backwards when he walks left. |
 
-### 6.5 The character workflow
+### 6.5 Historical character workflow
 
-**Every new character starts with `/grill-with-docs`.** Joe must type it — it cannot be invoked
-for him. Its job is to settle the eleven decisions below before a line is drawn. Do not start
-drawing and do not guess; come back with the table filled in.
+The old workflow required Joe to invoke `/grill-with-docs`. That instruction is superseded. The
+current [authoring guide](character-sprite-authoring.md) runs a focused adaptive interview directly,
+without asking Joe to invoke another command.
 
-The eleven rows are the eleven sections of
-[how a creature is drawn](https://kindergrimm.vercel.app/how.html). Each row says what we have, and
-what has to be decided per character.
+The eleven rows below are retained as historical mapping to the Kindergrimm source. Current support
+and interview decisions live in the new authoring guide.
 
 | # | Section | What we have | Decide per character |
 |---|---|---|---|
@@ -241,19 +242,11 @@ turns to face the camera, so the other three idles would never be seen. Every ch
 **walking in all four facings**. Nothing else is drawn up front; sitting, attack and sleep are
 designed one at a time.
 
-### 6.5.1 Ask, do not guess
+### 6.5.1 Historical questions
 
-**Run the `grill-with-docs` skill before drawing any new character.** Come back with questions, and
-give a recommendation with each one so Joe can say "yes" rather than design it himself.
-
-Ask at least these:
-
-| Question | Options | How to suggest |
-|---|---|---|
-| Head shape | the nine in `HEAD_SHAPES` | Name one and say why. Frankenstein → `square`. A witch → `drop`. |
-| Expressions | which faces this character can pull | Never assume. The vampire has none yet. |
-| Signature part | what makes them theirs | One exaggerated feature, one supporting. Art bible §9.3 applies here too. |
-| Species | human, or loaded dice toward something else | Only ask once the `gen()` layer exists. |
+These questions are preserved for provenance. Do not run them from this atlas document. The current
+adaptive interview separates creature identity, anatomical base, generation mode, surface, medium,
+and implementation support in [character-sprite-authoring.md](character-sprite-authoring.md).
 
 **Head shape is one word.** [head-shape.ts](../../src/render/pencil/head-shape.ts) carries
 `round, square, tall, drop, pear, lump, wide, bumpy, wonky`. `buildVampireLayout('square')` is the
@@ -265,18 +258,18 @@ costs a canvas at build time — and swaps them while a blink hides the change. 
 no blink, and no expression table. When Joe asks for a character, ask which expressions it needs
 and build only those.
 
-### 6.6 Poses do not scale the way we build them (LOCKED)
+### 6.6 Historical baked-canvas memory analysis — superseded
 
-Today every state is a **fully baked canvas**. `bakeVampireFrames()` draws
-`facings (4) × states (3) × boil (3) = 36` frames at 240×360×4 bytes — **12.4 MB** for idle and
-two walk frames.
+The original `240×360` implementation baked
+`facings (4) × states (3) × boil (3) = 36` frames, or **12.4 MB** for idle and two walk frames.
+Those numbers are historical. Current code uses a `120×180` sheet and 27 frames, about `2.23 MiB`.
+The scaling lesson below remains valid: do not add more full-character baked poses.
 
-The plan is many more poses: sitting, attack, sleep, run for the vampire, and at least idle, walk
-and sitting for everyone else. On the current architecture:
+The historical expansion was:
 
-| States | Frames | Memory |
+| States | Historical frames | Historical memory |
 |---|---|---|
-| idle + walk (now) | 36 | 12.4 MB |
+| idle + walk | 36 | 12.4 MB |
 | + sitting | 48 | 16.6 MB |
 | + sitting, attack, sleep, run | 84 | 29 MB |
 
@@ -412,7 +405,7 @@ blocker (6.6), and the missing lazy faces.
 
 **Misapplication 6 — the ¾ swell is undersized.** The page: a ¾ turn "swells the near side by 10%
 and collapses the far side by 28%." Ours: near ×1.02, far ×0.72. The collapse matches; the swell
-is 2% where it should be 10% ([head-shape.ts:79](../../src/render/pencil/head-shape.ts:79)).
+is 2% where it should be 10% ([head-shape.ts:79](../../src/render/pencil/head-shape.ts)).
 
 **Faithful, verified line by line:** the stroke maths (resample `max(2.2, w·.9)`, sines f1 1.5–3.5
 / f2 5–9 / f3 11–17 with .55/.3/.15, grit ±.35, breathing `.38·sin(t·7.3)+.14·sin(t·19)`, rail
@@ -434,7 +427,7 @@ Each of these has already cost someone a build.
 
 **`head`, `build` and `eyes` are dead fields.** `CharacterLook` declares them, and the shipped
 baker never reads them. `headBounds()` takes `_look` and returns a constant
-([character-source.ts:293](../../scripts/art/character-source.ts:293)). `portraitExpressionCommands`
+([character-source.ts:293](../../scripts/art/character-source.ts)). `portraitExpressionCommands`
 ends with `void look;`. Only `hair`, `outfitPattern`, `oddity`, `secondary` and the four colour
 ramps change pixels. Writing `head: 'long', build: 'slim', eyes: 'beady'` documents intent and
 draws nothing. If you need a different head shape, that is real work in the baker, not a field.
