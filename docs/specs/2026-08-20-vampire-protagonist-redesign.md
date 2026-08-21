@@ -27,9 +27,9 @@ entrypoint: docs/art/character-sprite-authoring.md
 - Compact chibi biped
 - `tall` head family
 - `HEAD_SHARE = 0.56`
-- Front idle
+- Front, rear, left, and right idle; stopping preserves the last facing
 - Front, rear, left, and right two-state walk
-- Reduced motion pins front idle and boil frame 0
+- Reduced motion pins the current-facing idle and boil frame 0
 - No extra poses
 
 ## Hair and face

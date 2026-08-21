@@ -7,7 +7,7 @@ import type { UiScale } from '../render/responsive-layout';
 import { UI_LAYER } from './ui-layers';
 import { uiMetrics } from './ui-metrics';
 
-const portraits: Partial<Record<CharacterId, number>> = {
+export const portraits: Partial<Record<CharacterId, number>> = {
   'devon-price': require('../../assets/source/dialogue-portraits/devon-price.png') as number,
   'elise-moreau': require('../../assets/source/dialogue-portraits/elise-moreau.png') as number,
   'generic-resident': require('../../assets/source/dialogue-portraits/generic-resident.png') as number,
@@ -43,6 +43,21 @@ const portraits: Partial<Record<CharacterId, number>> = {
   'resident-24': require('../../assets/source/dialogue-portraits/resident-24.png') as number,
   'sora-tan': require('../../assets/source/dialogue-portraits/sora-tan.png') as number,
   'tomas-reed': require('../../assets/source/dialogue-portraits/tomas-reed.png') as number,
+};
+
+export type DialoguePortraitExpression = 'rest' | 'joy' | 'upset';
+
+export const portraitExpressions: Partial<Record<CharacterId, Partial<Record<DialoguePortraitExpression, number>>>> = {
+  'elise-moreau': {
+    rest: require('../../assets/source/dialogue-portraits/elise-moreau.png') as number,
+    joy: require('../../assets/source/dialogue-portraits/elise-moreau.joy.png') as number,
+    upset: require('../../assets/source/dialogue-portraits/elise-moreau.upset.png') as number,
+  },
+  'priya-nair': {
+    rest: require('../../assets/source/dialogue-portraits/priya-nair.png') as number,
+    joy: require('../../assets/source/dialogue-portraits/priya-nair.joy.png') as number,
+    upset: require('../../assets/source/dialogue-portraits/priya-nair.upset.png') as number,
+  },
 };
 
 type QuestOfferDialogueProps = Readonly<{

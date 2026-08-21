@@ -37,7 +37,9 @@ import { buildBillboards, type BillboardDescriptor } from './billboards';
 import {
   blitPencilFrame,
   pencilBillboards,
+  PENCIL_TEXTURE_WIDTH,
 } from '../pencil/billboard';
+import { isPencilVisualId, PENCIL_VISUAL_IDS } from '../pencil/characters';
 import { PENCIL_HEIGHT, PENCIL_WIDTH } from '../pencil/vampire';
 import { bakePropSketchTile, PROP_TILE_SIZE } from '../pencil/prop-texture';
 import { vfxGlowPools, vfxQuads, type VfxQuad } from './vfx-25';
@@ -1178,11 +1180,11 @@ export async function createWorldRenderer25(
   const billboardMesh = new Mesh(new BufferGeometry(), billboardMaterial);
   const pencilCanvas = typeof document === 'undefined' ? undefined : document.createElement('canvas');
   if (pencilCanvas) {
-    pencilCanvas.width = PENCIL_WIDTH;
+    pencilCanvas.width = PENCIL_TEXTURE_WIDTH;
     pencilCanvas.height = PENCIL_HEIGHT;
   }
   const pencilContext = pencilCanvas?.getContext('2d') ?? undefined;
-  const pencilPixels = pencilContext?.createImageData(PENCIL_WIDTH, PENCIL_HEIGHT);
+  const pencilPixels = pencilContext?.createImageData(PENCIL_TEXTURE_WIDTH, PENCIL_HEIGHT);
   const pencilTexture = pencilCanvas
     ? new CanvasTexture(pencilCanvas)
     : undefined;
@@ -1628,17 +1630,26 @@ export async function createWorldRenderer25(
       pencils,
       billboardRight,
       BILLBOARD_UP,
-      PENCIL_WIDTH,
+      PENCIL_TEXTURE_WIDTH,
       PENCIL_HEIGHT,
     );
     pencilMesh.visible = pencils.length > 0 && pencilPixels !== undefined && pencilContext !== undefined;
     if (pencilMesh.visible && pencilPixels && pencilContext && pencilTexture) {
-      const vampire = next.characters.find((character) => character.visualId === 'vampire-01');
-      if (vampire) {
-        blitPencilFrame(pencilPixels.data, vampire, next.animationTimestampMilliseconds, next.reducedMotion);
-        pencilContext.putImageData(pencilPixels, 0, 0);
-        pencilTexture.needsUpdate = true;
+      pencilPixels.data.fill(0);
+      for (const character of next.characters) {
+        if (!isPencilVisualId(character.visualId)) continue;
+        const slot = PENCIL_VISUAL_IDS.indexOf(character.visualId);
+        blitPencilFrame(
+          pencilPixels.data,
+          character,
+          next.animationTimestampMilliseconds,
+          next.reducedMotion,
+          PENCIL_TEXTURE_WIDTH,
+          slot * PENCIL_WIDTH,
+        );
       }
+      pencilContext.putImageData(pencilPixels, 0, 0);
+      pencilTexture.needsUpdate = true;
     }
   };
 

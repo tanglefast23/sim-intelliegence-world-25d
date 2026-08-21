@@ -36,7 +36,8 @@ function drawBoot(
     F.body(toeX + overhang, bottom), F.body(heelX, bottom),
   ]);
   F.media.tone(sketch, shape, { style: 'black' });
-  sketch.broken(shape, F.lwThin * 1.6);
+  F.media.skin(sketch, shape, F.colors.hair, { paper: false, underdraw: false, alpha: 0.82 });
+  F.media.edge(sketch, [...shape, shape[0]!], F.lwThin * 1.6);
   // The light band is what separates a near-black boot from a near-black cloak. It sits under the
   // boot when the sole faces us and at the ankle when it does not — a sole seen from directly
   // behind is a drawing mistake, not a highlight.
@@ -84,10 +85,12 @@ export function drawLegs(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
     ]);
     const trailLeg = leg(trailX, trailLift, 0);
     const leadLeg = leg(leadX, 0, 6);
-    F.media.tone(sketch, trailLeg, { style: 'black', angle: 0.45 });
-    F.media.tone(sketch, leadLeg, { style: 'black', angle: 0.45 });
-    sketch.broken(trailLeg, F.lwMain);
-    sketch.broken(leadLeg, F.lwMain);
+    F.media.tone(sketch, trailLeg, { style: 'hatch', angle: 0.45 });
+    F.media.tone(sketch, leadLeg, { style: 'hatch', angle: -0.45 });
+    F.media.skin(sketch, trailLeg, F.colors.hairEdge, { paper: false, underdraw: false, alpha: 0.78 });
+    F.media.skin(sketch, leadLeg, F.colors.hairEdge, { paper: false, underdraw: false, alpha: 0.78 });
+    F.media.edge(sketch, [...trailLeg, trailLeg[0]!], F.lwMain);
+    F.media.edge(sketch, [...leadLeg, leadLeg[0]!], F.lwMain);
     // Trailing boot first so the leading one overlaps it, same as the legs above.
     drawBoot(sketch, F, trailX - dir * 7, trailX + dir * 9, BOOT_Y - trailLift);
     drawBoot(sketch, F, leadX - dir * 8, leadX + dir * 11, BOOT_Y + 3);
@@ -111,10 +114,12 @@ export function drawLegs(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
     F.body(1, HIP_Y), F.body(8, HIP_Y),
     F.body(10 + rightX, FLOOR_Y - rightLift), F.body(2 + rightX, FLOOR_Y - rightLift),
   ]);
-  F.media.tone(sketch, left, { style: 'black', angle: 0.45 });
-  F.media.tone(sketch, right, { style: 'black', angle: 0.45 });
-  sketch.broken(left, F.lwMain);
-  sketch.broken(right, F.lwMain);
+  F.media.tone(sketch, left, { style: 'hatch', angle: 0.45 });
+  F.media.tone(sketch, right, { style: 'hatch', angle: -0.45 });
+  F.media.skin(sketch, left, F.colors.hairEdge, { paper: false, underdraw: false, alpha: 0.78 });
+  F.media.skin(sketch, right, F.colors.hairEdge, { paper: false, underdraw: false, alpha: 0.78 });
+  F.media.edge(sketch, [...left, left[0]!], F.lwMain);
+  F.media.edge(sketch, [...right, right[0]!], F.lwMain);
   // Toes point outward on both facings. From behind that is anatomically the heel, but at this
   // size the silhouette is identical and a separate rear boot would only add a part to maintain.
   const band = pose.facing === 'rear' ? 'cuff' : 'sole';

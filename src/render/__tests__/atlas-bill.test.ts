@@ -78,10 +78,9 @@ describe('runtime atlas bill and movement contract', () => {
     expect(() => assertZoomLevel(4)).toThrow('exactly');
   });
 
-  // Stage 7 removed Skia and the atlas proof surface. Portraits and the new-game vista draw one
-  // nearest-neighbour atlas crop each through the renderer-neutral AtlasSprite, and the world
-  // samples the atlas through the Three.js renderer. This asserts sampling behaviour, not syntax.
-  test('uses one nearest-neighbor atlas crop per surface and no runtime layer composition', () => {
+  // World bodies and the new-game vista keep nearest-neighbour atlas sampling. Dialogue portraits
+  // use their large authored PNGs, which are already nearest-neighbour enlarged pixel art.
+  test('uses one image per surface and no runtime layer composition', () => {
     const portrait = readFileSync(resolve(process.cwd(), 'src/ui/CharacterPortrait.tsx'), 'utf8');
     const sprite = readFileSync(resolve(process.cwd(), 'src/ui/AtlasSprite.tsx'), 'utf8');
     const newGame = readFileSync(resolve(process.cwd(), 'src/application/NewGameFlow.tsx'), 'utf8');
@@ -93,12 +92,14 @@ describe('runtime atlas bill and movement contract', () => {
     // The neutral crop keeps nearest-neighbour sampling and creates no extra drawing surface.
     expect(sprite).toContain('pixelated');
     expect(sprite.match(/<Image\b/gu)).toHaveLength(1);
-    expect(portrait.match(/<AtlasSprite\b/gu)).toHaveLength(1);
+    expect(portrait.match(/<Image\b/gu)).toHaveLength(1);
+    expect(portrait).toContain('portraits[identityId]');
     expect(newGame.match(/<AtlasSprite\b/gu)).toHaveLength(1);
     for (const source of [portrait, newGame, sprite, renderer]) {
       expect(source).not.toContain('shopify/react-native-skia');
     }
-    expect(`${portrait}\n${runtime}`).not.toMatch(/assets\/source|scripts\/art|composeFrontFrame|drawTokenCommands/u);
+    expect(runtime).not.toMatch(/assets\/source|scripts\/art|composeFrontFrame|drawTokenCommands/u);
+    expect(portrait).not.toMatch(/scripts\/art|composeFrontFrame|drawTokenCommands/u);
   });
 
   test('uses one immutable presentation index and a bounded static ground-detail batch', () => {

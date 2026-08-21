@@ -9,15 +9,17 @@ export const VAMPIRE_COLORS = {
   ash: [160, 156, 162],
   hollow: [72, 66, 78],
   hair: [22, 20, 26],
-  hairEdge: [46, 42, 52],
-  cloak: [24, 22, 30],
-  cloakLift: [50, 44, 56],
-  shirt: [108, 106, 112],
+  hairEdge: [78, 68, 88],
+  cloak: [46, 35, 58],
+  cloakLift: [76, 61, 86],
+  shirt: [92, 76, 106],
   lining: [132, 22, 32],
   fang: [254, 252, 248],
   red: [182, 16, 22],
   white: [248, 244, 240],
 } as const satisfies Record<string, Rgb>;
+
+export type PencilPalette = Readonly<Record<keyof typeof VAMPIRE_COLORS, Rgb>>;
 
 /**
  * The head's share of the drawn figure, crown to sole.
@@ -90,7 +92,7 @@ const BODY_SCALE_Y = (FLOOR - SHOULDER_Y) / (BODY_DESIGN_FLOOR - BODY_DESIGN_SHO
  * Character pixels, y down, origin at the canvas left/top.
  * Parts must not invent anchors.
  */
-export type VampireLayout = Readonly<{
+export type PencilLayout = Readonly<{
   cx: number;
   /** The skull's shape family. The vampire is `tall`; a Frankenstein would be `square`. */
   shape: HeadShape;
@@ -123,12 +125,17 @@ export type VampireLayout = Readonly<{
   };
   lwMain: number;
   lwThin: number;
-  colors: typeof VAMPIRE_COLORS;
+  colors: PencilPalette;
   /** The medium answers tone/skin/edge. Parts never fill a mass themselves — audit 6.9. */
   media: Medium;
 }>;
 
-export function buildVampireLayout(shape: HeadShape = 'tall'): VampireLayout {
+export type VampireLayout = PencilLayout;
+
+export function buildPencilLayout(
+  shape: HeadShape = 'tall',
+  colors: PencilPalette = VAMPIRE_COLORS,
+): PencilLayout {
   const cx = SHEET_WIDTH / 2;
   // Both mappers work in the authored 240x360 basis and land on the real sheet in one multiply.
   const head = (dx: number, dy: number): Point => ({
@@ -167,9 +174,13 @@ export function buildVampireLayout(shape: HeadShape = 'tall'): VampireLayout {
     },
     lwMain: PEN_UNIT * 0.05,
     lwThin: PEN_UNIT * 0.021,
-    colors: VAMPIRE_COLORS,
+    colors,
     media: GRAPHITE,
   };
+}
+
+export function buildVampireLayout(shape: HeadShape = 'tall'): VampireLayout {
+  return buildPencilLayout(shape, VAMPIRE_COLORS);
 }
 
 export function pt(x: number, y: number): Point {
