@@ -144,4 +144,22 @@ describe('authored pencil character registry', () => {
     }
     expect(Math.max(...opaqueXs) - Math.min(...opaqueXs)).toBeGreaterThan(70);
   });
+
+  test('Elise keeps her head connected to her neck in every facing', () => {
+    const recipe = PENCIL_CHARACTER_RECIPES['elise-moreau'];
+    const frames = bakePencilCharacterFrames(recipe, { hidePersonalLayers: true });
+    const layout = buildPencilLayout(recipe.shape, recipe.palette);
+    const top = Math.ceil(layout.head(0, 121).y);
+    const bottom = Math.floor(layout.L.chinY);
+
+    for (const frameIndex of [0, 9, 18, 27]) {
+      for (let y = top; y <= bottom; y += 1) {
+        let opaque = 0;
+        for (let x = layout.cx - 6; x <= layout.cx + 6; x += 1) {
+          if (frames[frameIndex]![(y * PENCIL_WIDTH + x) * 4 + 3]! > 0) opaque += 1;
+        }
+        expect(opaque).toBeGreaterThan(0);
+      }
+    }
+  });
 });

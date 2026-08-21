@@ -71,11 +71,11 @@ function drawHead(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
     ? sketch.smooth([
       F.head(-dir * 37, 31), F.head(dir * 27, 29), F.head(dir * 40, 42),
       F.head(dir * 41, 78), F.head(dir * 48, 91), F.head(dir * 39, 103),
-      F.head(dir * (pose.facing === 'left' ? 39 : 34), 119), F.head(-dir * 22, 121), F.head(-dir * 36, 102),
+      F.head(dir * (pose.facing === 'left' ? 39 : 34), 128), F.head(-dir * 22, 128), F.head(-dir * 36, 102),
     ])
     : sketch.smooth([
       F.head(-37, 30), F.head(-43, 38), F.head(-42, 82), F.head(-34, 106),
-      F.head(-27, 120), F.head(25, 120), F.head(36, 106), F.head(42, 82),
+      F.head(-27, 128), F.head(25, 128), F.head(36, 106), F.head(42, 82),
       F.head(42, 37), F.head(35, 30),
     ]);
   fleshMass(sketch, F, outline);
