@@ -79,7 +79,7 @@ export const PRODUCTION_AMBIENT_RESIDENTS = DISTRICT_HUBS.flatMap((district, dis
     const number = String(districtIndex * district.hubs.length + localIndex + 1).padStart(2, '0');
     return Object.freeze({
       id: `resident_${number}`,
-      displayName: `Resident ${number}`,
+      displayName: number === '01' ? 'Calder Nine' : `Resident ${number}`,
       position: place(district.mapId, home),
       work: place(district.mapId, district.hubs[(localIndex + 2) % district.hubs.length]!),
       social: place(district.mapId, district.hubs[(localIndex + 4) % district.hubs.length]!),
@@ -87,43 +87,25 @@ export const PRODUCTION_AMBIENT_RESIDENTS = DISTRICT_HUBS.flatMap((district, dis
   })
 ));
 
-/**
- * The Ledger Annex staff: twelve clerks at twelve desks, plus the manager.
- *
- * Stand tiles are the same grid `westMap()` derives its cubicles from — column west edges 8, 13,
- * 18, 23 and row north edges 8, 13, 18, with the stand at `(west + 2, north + 2)`. Written as the
- * grid rather than twelve literal pairs so a module that moves cannot leave a clerk standing in a
- * partition.
- *
- * They sleep at their desks. The spec calls that a staging lie and accepts it for v1: an office
- * with no homes authored for its staff is better than thirteen commuters walking a route that
- * `routeBetween` cannot yet solve in one leg.
- */
-const OFFICE_CUBICLE_COLUMN_WEST = [8, 13, 18, 23] as const;
-const OFFICE_CUBICLE_ROW_NORTH = [8, 13, 18] as const;
+function officeStaff(id: string, displayName: string, point: readonly [number, number]) {
+  const desk = place('west_office', point, 'ledger_annex');
+  return Object.freeze({ id, displayName, position: desk, work: desk });
+}
 
+/** Nine occupied seats. The Vampire chair at 10,10 and three other cubicles stay empty. */
 export const PRODUCTION_OFFICE_STAFF = [
-  ...OFFICE_CUBICLE_ROW_NORTH.flatMap((north, rowIndex) => (
-    OFFICE_CUBICLE_COLUMN_WEST.map((west, columnIndex) => {
-      const number = String(rowIndex * OFFICE_CUBICLE_COLUMN_WEST.length + columnIndex + 1).padStart(2, '0');
-      const desk = place('west_office', [west + 2, north + 2], 'ledger_annex');
-      return Object.freeze({
-        id: `clerk_${number}`,
-        displayName: `Clerk ${number}`,
-        position: desk,
-        work: desk,
-        social: place('west_office', [25, 31], 'ledger_annex'),
-      });
-    })
-  )),
-  Object.freeze({
-    id: 'office_manager',
-    displayName: 'Annex Manager',
-    position: place('west_office', [12, 32], 'ledger_annex'),
-    work: place('west_office', [12, 32], 'ledger_annex'),
-    social: place('west_office', [25, 31], 'ledger_annex'),
-  }),
+  officeStaff('clerk_01', 'Marcus Vale', [15, 10]),
+  officeStaff('clerk_02', 'Devon Price', [20, 10]),
+  officeStaff('clerk_03', 'Rafael Cruz', [25, 10]),
+  officeStaff('clerk_04', 'Tomas Reed', [10, 15]),
+  officeStaff('clerk_05', 'Priya Nair', [15, 15]),
+  officeStaff('clerk_06', 'Sora Tan', [20, 15]),
+  officeStaff('clerk_07', 'Milo', [25, 15]),
+  officeStaff('clerk_08', 'Elise Moreau', [10, 20]),
+  officeStaff('office_manager', 'Calder Nine', [12, 32]),
 ] as const;
+
+const RETIRED_OFFICE_STAFF_IDS = ['clerk_09', 'clerk_10', 'clerk_11', 'clerk_12'] as const;
 
 const NAMED_LIFE: Readonly<Record<string, Readonly<{ home: Place; social: Place; evening: Place }>>> = {
   mina_park: {
@@ -256,11 +238,11 @@ function residentSchedule(
  * Four blocks, all of them on the clerk's own stand tile.
  *
  * Deliberately NOT `residentSchedule`. That one sends everyone to a social tile at midday, and the
- * office staff share one — so at 12:00 all thirteen clerks walked out of their cubicles and piled
+ * office staff share one — so at 12:00 all nine workers walked out of their seats and piled
  * onto a single tile beside the water cooler. The spec's whole staging is that they stay at their
  * desks; an office whose workers abandon it at lunch is not the scene that was asked for.
  *
- * Sleeping at the desk is a staging lie the spec takes on purpose: it is cheaper than thirteen
+ * Sleeping at the desk is a staging lie the spec takes on purpose: it is cheaper than nine
  * homes on Sunward, and it keeps a night capture populated. A later pass may give them homes and a
  * commute, and that pass also has to stop `routeBetween('west_office', 'southeast_docks')` from
  * throwing.
@@ -333,6 +315,7 @@ export function migrateProductionSchedules(state: WorldState): WorldState {
 export function refreshProductionSchedules(state: WorldState): WorldState {
   const production = createProductionSchedules();
   const schedules = { ...state.schedules };
+  for (const id of RETIRED_OFFICE_STAFF_IDS) delete schedules[`${id}_daily`];
   for (const [id, schedule] of Object.entries(production)) {
     if (schedules[id]) schedules[id] = schedule;
   }
@@ -355,6 +338,7 @@ export function insertMissingProductionCast(state: WorldState): WorldState {
   const productionNpcs = createProductionNpcs(production);
   const schedules = { ...state.schedules };
   const npcs = { ...state.npcs };
+  for (const id of RETIRED_OFFICE_STAFF_IDS) delete npcs[id];
   for (const [id, schedule] of Object.entries(production)) {
     if (schedules[id]) continue;
     const npc = productionNpcs[schedule.npcId];
@@ -362,11 +346,26 @@ export function insertMissingProductionCast(state: WorldState): WorldState {
     schedules[id] = schedule;
     npcs[schedule.npcId] ??= npc;
   }
+  for (const staff of PRODUCTION_OFFICE_STAFF) {
+    if (!state.maps[staff.work.mapId]) continue;
+    const authored = productionNpcs[staff.id]!;
+    const { scheduleGoal: _retiredGoal, ...saved } = npcs[staff.id] ?? authored;
+    npcs[staff.id] = {
+      ...saved,
+      presence: {
+        kind: state.maps[staff.work.mapId]!.active ? 'active_local' : 'inactive',
+        mapId: staff.work.mapId,
+        locationId: staff.work.locationId,
+        tileX: staff.work.x,
+        tileY: staff.work.y,
+      },
+    };
+  }
   return { ...state, npcs, schedules };
 }
 
 /**
- * Counts as FORMULAS, not literals. The office added thirteen ambient actors, and a literal here
+ * Counts as FORMULAS, not literals. The office cast size can change, and a literal here
  * would have to be re-derived by hand every time the cast changes — which is exactly how a count
  * test starts asserting a number nobody can explain.
  */

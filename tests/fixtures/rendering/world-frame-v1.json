@@ -29,10 +29,10 @@
         "vfxMode": "procedural"
       },
       "expected": {
-        "frameHash": "2d55ff1c",
+        "frameHash": "049ccd6d",
         "mapHash": "ab126923",
         "presentationHash": "306d53f4",
-        "atlasHash": "de64d76f29b5bf8cb6fd6432d8a9b549189650e4119d68defd258c2ade5815fb",
+        "atlasHash": "2b1a3c04d6144f65def54f173facc31bc1622ba786efdeb55416528800c93df4",
         "drawCounts": { "floor": 665, "prop": 39, "shadow": 2, "character": 2, "effect": 3, "wall": 56, "roof": 0, "total": 767 },
         "counts": { "floors": 494, "groundDetails": 171, "props": 34, "doors": 5, "characters": 2, "effects": 3, "fallbackEffects": 0, "walls": 56, "roofs": 0, "propShadows": 19, "characterShadows": 2, "thresholds": 5, "journalMarkers": 1, "shelterCells": 1 },
         "firstIds": { "floor": "floor-11-14", "detail": "transition-24-14", "prop": "shoreglass-spa-fixtures-part-05", "door": "bathroom-hall-door", "character": "protagonist", "effect": "patio-leaves", "wall": "shoreglass-spa-east-5", "journal": "journal_linda_boyfriend" },
@@ -59,10 +59,10 @@
         "vfxMode": "circle"
       },
       "expected": {
-        "frameHash": "203ba71c",
+        "frameHash": "f8095c86",
         "mapHash": "ab126923",
         "presentationHash": "306d53f4",
-        "atlasHash": "de64d76f29b5bf8cb6fd6432d8a9b549189650e4119d68defd258c2ade5815fb",
+        "atlasHash": "2b1a3c04d6144f65def54f173facc31bc1622ba786efdeb55416528800c93df4",
         "drawCounts": { "floor": 858, "prop": 56, "shadow": 1, "character": 1, "effect": 4, "wall": 60, "roof": 187, "total": 1167 },
         "counts": { "floors": 858, "groundDetails": 0, "props": 51, "doors": 5, "characters": 1, "effects": 0, "fallbackEffects": 4, "walls": 60, "roofs": 187, "propShadows": 23, "characterShadows": 1, "thresholds": 5, "journalMarkers": 0, "shelterCells": 0 },
         "firstIds": { "floor": "floor-9-14", "prop": "shoreglass-spa-fixtures-part-05", "door": "bathroom-hall-door", "character": "protagonist", "fallbackEffect": "patio-fire", "wall": "shoreglass-spa-east-5", "roof": "roof-protagonist-villa-roof-9-14" },

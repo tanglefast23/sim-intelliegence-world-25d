@@ -48,13 +48,12 @@ describe('renderer mask emitter', () => {
       const key = `${mask.logicalBounds.width}x${mask.logicalBounds.height}:${cells}`;
       families.set(key, (families.get(key) ?? 0) + 1);
     }
-    // The native family is an OUTLINE — 93 edge cells of a 600-cell silhouette. Everything else is
-    // the filled silhouette, expanded by nearest neighbour at zoom 2 and 3.
+    // The native family is an outline. Higher-DPR families use the filled authored silhouette.
     expect(Object.fromEntries(families)).toEqual({
-      '28x35:93': 4,
-      '28x35:600': 5,
-      '56x70:2400': 5,
-      '84x105:5411': 5,
+      '28x35:90': 4,
+      '28x35:670': 5,
+      '56x70:2721': 5,
+      '84x105:6104': 5,
     });
   });
 

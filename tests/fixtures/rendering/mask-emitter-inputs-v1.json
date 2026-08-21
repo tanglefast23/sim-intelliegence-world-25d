@@ -3,10 +3,10 @@
   "inputs": [
     {
       "fixtureId": "northwest-1280x720-dpr1-zoom1",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -31,18 +31,18 @@
     },
     {
       "fixtureId": "northeast-1440x900-dpr1-zoom2",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
       "worldX": 706,
       "worldY": 733,
       "camera": {
-        "x": 368,
-        "y": 439,
+        "x": 367.5,
+        "y": 438.5,
         "zoom": 2
       },
       "viewport": {
@@ -59,17 +59,17 @@
     },
     {
       "fixtureId": "southwest-1600x720-dpr1-zoom3",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
       "worldX": 802,
       "worldY": 1213,
       "camera": {
-        "x": 554,
+        "x": 554.3333333333334,
         "y": 1021,
         "zoom": 3
       },
@@ -87,10 +87,10 @@
     },
     {
       "fixtureId": "southeast-1920x1080-dpr1-zoom1",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -115,10 +115,10 @@
     },
     {
       "fixtureId": "northwest-2560x1440-dpr1-zoom1",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -143,10 +143,10 @@
     },
     {
       "fixtureId": "northwest-1440x900-dpr1_25-zoom1",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -171,18 +171,18 @@
     },
     {
       "fixtureId": "northeast-1600x720-dpr1_25-zoom2",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
       "worldX": 706,
       "worldY": 733.2,
       "camera": {
-        "x": 327,
-        "y": 483,
+        "x": 327.5,
+        "y": 483.5,
         "zoom": 2
       },
       "viewport": {
@@ -199,10 +199,10 @@
     },
     {
       "fixtureId": "southwest-1920x1080-dpr1_25-zoom3",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -227,10 +227,10 @@
     },
     {
       "fixtureId": "southeast-2560x1440-dpr1_25-zoom1",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -255,18 +255,18 @@
     },
     {
       "fixtureId": "northwest-1600x720-dpr1_5-zoom2",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
       "worldX": 866,
       "worldY": 1117,
       "camera": {
-        "x": 487,
-        "y": 867,
+        "x": 487.5,
+        "y": 867.5,
         "zoom": 2
       },
       "viewport": {
@@ -283,10 +283,10 @@
     },
     {
       "fixtureId": "northeast-1920x1080-dpr1_5-zoom3",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -311,10 +311,10 @@
     },
     {
       "fixtureId": "southwest-2560x1440-dpr1_5-zoom1",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -339,18 +339,18 @@
     },
     {
       "fixtureId": "southeast-1280x720-dpr1_5-zoom2",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
       "worldX": 674,
       "worldY": 1117,
       "camera": {
-        "x": 375,
-        "y": 867,
+        "x": 375.5,
+        "y": 867.5,
         "zoom": 2
       },
       "viewport": {
@@ -367,10 +367,10 @@
     },
     {
       "fixtureId": "northwest-1920x1080-dpr2-zoom3",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -395,10 +395,10 @@
     },
     {
       "fixtureId": "northeast-2560x1440-dpr2-zoom1",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -423,18 +423,18 @@
     },
     {
       "fixtureId": "southwest-1280x720-dpr2-zoom2",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
       "worldX": 802,
       "worldY": 1213,
       "camera": {
-        "x": 504,
-        "y": 964,
+        "x": 503.5,
+        "y": 963.5,
         "zoom": 2
       },
       "viewport": {
@@ -451,10 +451,10 @@
     },
     {
       "fixtureId": "southeast-1440x900-dpr2-zoom3",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -479,10 +479,10 @@
     },
     {
       "fixtureId": "maximum-load-2560x1440-dpr2-zoom1",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },
@@ -507,10 +507,10 @@
     },
     {
       "fixtureId": "fallback-circle-1280x720-dpr1-zoom1",
-      "sprite": "character.protagonist.front-1",
+      "sprite": "character.vampire-01.front-1",
       "source": {
-        "x": 911,
-        "y": 341,
+        "x": 703,
+        "y": 533,
         "width": 24,
         "height": 30
       },

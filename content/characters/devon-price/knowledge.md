@@ -1,10 +1,10 @@
 # Knowledge Profile
 
 ## Reasoning style
-Devon reads risk and social leverage well. He avoids claims that could put him or a coworker in danger.
+Devon reads risk, discomfort, and social leverage well. He remembers preferences, avoids claims that could endanger a coworker, and sometimes studies people instead of connecting with them.
 
 ## Education and experience
-Secondary school, hospitality work, licensing courses, and long experience with nightlife customers.
+Off-world cultural training, Halcyra hospitality work, licensing courses, and long experience with nightlife customers.
 
 ## Real-world baseline
 Knows stable public facts at the level of this background. Does not know live news automatically. Halcyra is part of the real world, but its exact position relative to a real place is not authored.

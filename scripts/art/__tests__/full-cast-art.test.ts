@@ -24,6 +24,7 @@ import {
   PROTAGONIST_STYLE_PASS_SCORE,
   scoreCharacterAgainstProtagonist,
 } from '../character-style-score';
+import { isPencilVisualId } from '../../../src/render/pencil/characters';
 
 function alphaSignature(commands: readonly DrawCommand[]): string {
   return JSON.stringify(commands.map((command) => command.kind === 'rect'
@@ -238,7 +239,9 @@ describe('full-cast shared-source character art', () => {
         expect(painted(commandFrame(commands, WORLD_CELL.width, height)).size).toBeGreaterThanOrEqual(4);
       }
       expect(alphaSignature(features.primaryWorld)).not.toEqual(alphaSignature(features.secondaryWorld));
-      expect(look.supportingFeature.toLowerCase()).toContain(secondaryKeywords[look.secondary]);
+      if (!isPencilVisualId(look.id)) {
+        expect(look.supportingFeature.toLowerCase()).toContain(secondaryKeywords[look.secondary]);
+      }
       const secondaryLayer = look?.secondaryLayer;
       expect(secondaryLayer).toBeDefined();
       if (secondaryLayer) {

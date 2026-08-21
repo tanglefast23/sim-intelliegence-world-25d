@@ -1306,6 +1306,10 @@ function cubicleModules(): readonly CubicleModule[] {
             ],
           }),
           objectFromTiles({
+            id: `${id}-chair`, kind: 'office-chair', areaId: 'cubicle-floor',
+            tiles: [{ x: west + 2, y: north + 2, sprite: 'tile.office-chair' }],
+          }),
+          objectFromTiles({
             id: `${id}-filing`, kind: 'filing', areaId: 'cubicle-floor',
             tiles: [{ x: west + 4, y: north + 1, sprite: 'tile.counter-left', solid: true }],
           }),
@@ -1431,6 +1435,10 @@ function westMap(): WorldMapV2 {
         { x: 11, y: 30, sprite: 'tile.table-left', solid: true },
         { x: 12, y: 30, sprite: 'tile.table-right', solid: true },
       ],
+    }),
+    objectFromTiles({
+      id: 'manager-chair', kind: 'office-chair', areaId: 'manager-office',
+      tiles: [{ x: 12, y: 32, sprite: 'tile.office-chair' }],
     }),
     objectFromTiles({
       id: 'manager-filing', kind: 'filing', areaId: 'manager-office',

@@ -129,6 +129,23 @@ describe('baked scene geometry', () => {
     expect(baked.floors.getAttribute('position').count).toBe(0);
     expect(baked.boxes.getIndex()!.count).toBe(0);
   });
+
+  test('moves a layered box toward the camera without changing its size', () => {
+    const source = { x: 0, y: 0, width: 32, height: 32 } as never;
+    const make = (depthBias?: number) => ({
+      id: 'armrest', sprite: 'tile.office-chair', source,
+      x: 2, y: 0.5, z: 3, width: 0.16, height: 0.07, depth: 0.48,
+      tint: '#ffffff', flatShade: true, depthBias,
+    });
+    const base = bakeSceneGeometry({ floors: [], boxes: [make()] }, ATLAS, ATLAS).flatBoxes
+      .getAttribute('position');
+    const shifted = bakeSceneGeometry(
+      { floors: [], boxes: [make(0.8)] }, ATLAS, ATLAS, { x: 0.5, y: 0.5, z: 0.5 },
+    ).flatBoxes.getAttribute('position');
+    expect(shifted.getX(0) - base.getX(0)).toBeCloseTo(0.4, 6);
+    expect(shifted.getY(0) - base.getY(0)).toBeCloseTo(0.4, 6);
+    expect(shifted.getZ(0) - base.getZ(0)).toBeCloseTo(0.4, 6);
+  });
 });
 
 describe('the surface mounts the 2.5D renderer when it is selected', () => {
@@ -262,6 +279,17 @@ describe('character billboards bake into one upright batch', () => {
     const position = geometry.getAttribute('position');
     const anchor = billboards[0]!;
     expect((position.getX(0) + position.getX(1)) / 2).toBeCloseTo(anchor.x, 6);
+  });
+
+  test('can change chair occlusion without changing the authored anchor', () => {
+    const depth = { x: 0.2, y: 0.4, z: 0.6 } as const;
+    const biased = [{ ...billboards[0]!, depthBias: 0.5 }];
+    const base = bakeBillboardGeometry([{ ...biased[0]!, depthBias: 0 }], RIGHT, UP, 1024, 1024, depth)
+      .getAttribute('position');
+    const shifted = bakeBillboardGeometry(biased, RIGHT, UP, 1024, 1024, depth).getAttribute('position');
+    expect(shifted.getX(0) - base.getX(0)).toBeCloseTo(0.1, 6);
+    expect(shifted.getY(0) - base.getY(0)).toBeCloseTo(0.2, 6);
+    expect(shifted.getZ(0) - base.getZ(0)).toBeCloseTo(0.3, 5);
   });
 
   test('twenty characters still bake into one geometry', () => {

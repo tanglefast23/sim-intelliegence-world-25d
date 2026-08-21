@@ -159,7 +159,7 @@ export class SaveRepository {
        * change has blocked, and refreshing afterwards writes the authored tile back over that
        * repair. Measured, the reverse order is worse. Recovery treats every block on a map whose
        * saved revision is stale as a candidate, and a map the save has never seen is stale by
-       * definition — so refreshing first let recovery scatter all thirteen office clerks off the
+       * definition — so refreshing first let recovery scatter the office workers off the
        * desks they are authored to stand at.
        *
        * Writing the authored tile back is safe by construction anyway: `content:build` validates

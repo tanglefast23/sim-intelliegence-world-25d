@@ -3,10 +3,13 @@ import { resolve } from 'node:path';
 
 import {
   bakePencilCharacterFrames,
+  bakeSeatedPencilCharacterFrames,
   PENCIL_CHARACTER_RECIPES,
   type PencilVisualId,
 } from '../../src/render/pencil/characters';
+import { ATLAS_INDEX } from '../../src/render/atlas';
 import { bakeVampireFrames, PENCIL_HEIGHT, PENCIL_WIDTH } from '../../src/render/pencil/vampire';
+import { bakeSeatedVampireFrames } from '../../src/render/pencil/seated-vampire';
 import { drawText } from './build-review-sheet';
 import { blitScaled, createBitmap, decodePng, encodePng, setPixel, type Bitmap } from './png';
 
@@ -22,6 +25,53 @@ const CAST = [
 ] as const satisfies readonly (readonly [PencilVisualId, string])[];
 
 const IDLE_INDEXES = [0, 9, 18, 27] as const;
+
+const SEATED_CAST = [
+  ['vampire-01', 'VAMPIRE'],
+  ['linda-boyfriend', 'MARCUS / WEREWOLF'],
+  ['devon-price', 'DEVON / ALIEN'],
+  ['rafael-cruz', 'RAFAEL / ORC'],
+  ['tomas-reed', 'TOMAS / GHOST'],
+  ['priya-nair', 'PRIYA / SKELETON'],
+  ['sora-tan', 'SORA / GHOUL'],
+  ['resident-01', 'CALDER / ROBOT'],
+  ['resident-02', 'MILO / GOBLIN'],
+  ['elise-moreau', 'ELISE / FRANKENSTEIN'],
+] as const satisfies readonly (readonly [PencilVisualId, string])[];
+
+export function writeMarcusAtlasBaseline(root = process.cwd()): string {
+  return writeAtlasBaseline('linda-boyfriend', 'marcus', root);
+}
+
+export function writeSoraAtlasBaseline(root = process.cwd()): string {
+  return writeAtlasBaseline('sora-tan', 'sora', root);
+}
+
+function writeAtlasBaseline(visualId: PencilVisualId, filename: string, root: string): string {
+  const scale = 6;
+  const labelHeight = 30;
+  const cellWidth = 24;
+  const cellHeight = 30;
+  const output = createBitmap(cellWidth * scale * 4, cellHeight * scale + labelHeight, [246, 241, 229, 255]);
+  const atlas = decodePng(readFileSync(resolve(root, 'assets/generated/world-atlas.png')));
+  (['front', 'rear', 'left', 'right'] as const).forEach((facing, column) => {
+    drawText(output, facing.toUpperCase(), column * cellWidth * scale + 8, 8, [31, 29, 26, 255], 2);
+    const rectangle = ATLAS_INDEX.sprites[`character.${visualId}.${facing}-1`]!;
+    const cell = createBitmap(cellWidth, cellHeight);
+    for (let y = 0; y < cellHeight; y += 1) {
+      for (let x = 0; x < cellWidth; x += 1) {
+        const offset = ((rectangle.y + y) * atlas.width + rectangle.x + x) * 4;
+        setPixel(cell, x, y, [atlas.data[offset]!, atlas.data[offset + 1]!, atlas.data[offset + 2]!, atlas.data[offset + 3]!]);
+      }
+    }
+    blitScaled(cell, output, column * cellWidth * scale, labelHeight, scale);
+  });
+  const directory = resolve(root, 'artifacts/creature-cast-recast');
+  mkdirSync(directory, { recursive: true });
+  const path = resolve(directory, `${filename}-baseline-atlas-four-facings.png`);
+  writeFileSync(path, encodePng(output));
+  return path;
+}
 
 function frameBitmap(data: Uint8ClampedArray): Bitmap {
   return { width: PENCIL_WIDTH, height: PENCIL_HEIGHT, data: Buffer.from(data) };
@@ -101,6 +151,26 @@ export function writePriyaLiteralReview(root = process.cwd()): string {
   return writeCreatureLiteralReview('priya-nair', 'priya-literal-anatomy-review.png', root);
 }
 
+export function writeLindaLiteralReview(tag = 'baseline', root = process.cwd()): string {
+  return writeCreatureLiteralReview('linda', `linda-${tag}-literal-anatomy-review.png`, root);
+}
+
+export function writeDevonLiteralReview(tag = 'baseline', root = process.cwd()): string {
+  return writeCreatureLiteralReview('devon-price', `devon-${tag}-literal-anatomy-review.png`, root);
+}
+
+export function writeRafaelLiteralReview(tag = 'baseline', root = process.cwd()): string {
+  return writeCreatureLiteralReview('rafael-cruz', `rafael-${tag}-literal-anatomy-review.png`, root);
+}
+
+export function writeMarcusLiteralReview(tag = 'baseline', root = process.cwd()): string {
+  return writeCreatureLiteralReview('linda-boyfriend', `marcus-${tag}-literal-anatomy-review.png`, root);
+}
+
+export function writeSoraLiteralReview(tag = 'pass-1', root = process.cwd()): string {
+  return writeCreatureLiteralReview('sora-tan', `sora-${tag}-literal-anatomy-review.png`, root);
+}
+
 function writeCreatureLiteralReview(
   visualId: PencilVisualId,
   filename: string,
@@ -142,12 +212,56 @@ export function writeEliseLiteralReview(tag = 'pass-1', root = process.cwd()): s
   return writeCreatureLiteralReview('elise-moreau', `elise-${tag}-literal-anatomy-review.png`, root);
 }
 
+export function writeMinaLiteralReview(tag = 'pass-1', root = process.cwd()): string {
+  return writeCreatureLiteralReview('mina-park', `mina-${tag}-literal-anatomy-review.png`, root);
+}
+
+export function writeTomasLiteralReview(tag = 'pass-1', root = process.cwd()): string {
+  return writeCreatureLiteralReview('tomas-reed', `tomas-${tag}-literal-anatomy-review.png`, root);
+}
+
+export function writeCalderLiteralReview(tag = 'pass-1', root = process.cwd()): string {
+  return writeCreatureLiteralReview('resident-01', `calder-${tag}-literal-anatomy-review.png`, root);
+}
+
 export function writePriyaMotionReviews(root = process.cwd()): readonly string[] {
   return writeMotionReviews('priya', bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES['priya-nair']), root);
 }
 
+export function writeLindaMotionReviews(tag = 'baseline', root = process.cwd()): readonly string[] {
+  return writeMotionReviews(`linda-${tag}`, bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES.linda), root);
+}
+
+export function writeDevonMotionReviews(tag = 'baseline', root = process.cwd()): readonly string[] {
+  return writeMotionReviews(`devon-${tag}`, bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES['devon-price']), root);
+}
+
+export function writeRafaelMotionReviews(tag = 'baseline', root = process.cwd()): readonly string[] {
+  return writeMotionReviews(`rafael-${tag}`, bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES['rafael-cruz']), root);
+}
+
+export function writeMarcusMotionReviews(tag = 'baseline', root = process.cwd()): readonly string[] {
+  return writeMotionReviews(`marcus-${tag}`, bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES['linda-boyfriend']), root);
+}
+
+export function writeSoraMotionReviews(tag = 'pass-1', root = process.cwd()): readonly string[] {
+  return writeMotionReviews(`sora-${tag}`, bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES['sora-tan']), root);
+}
+
 export function writeEliseMotionReviews(tag = 'pass-1', root = process.cwd()): readonly string[] {
   return writeMotionReviews(`elise-${tag}`, bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES['elise-moreau']), root);
+}
+
+export function writeMinaMotionReviews(tag = 'pass-1', root = process.cwd()): readonly string[] {
+  return writeMotionReviews(`mina-${tag}`, bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES['mina-park']), root);
+}
+
+export function writeTomasMotionReviews(tag = 'pass-1', root = process.cwd()): readonly string[] {
+  return writeMotionReviews(`tomas-${tag}`, bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES['tomas-reed']), root);
+}
+
+export function writeCalderMotionReviews(tag = 'pass-1', root = process.cwd()): readonly string[] {
+  return writeMotionReviews(`calder-${tag}`, bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES['resident-01']), root);
 }
 
 function writeMotionReviews(prefix: string, frames: readonly Uint8ClampedArray[], root: string): readonly string[] {
@@ -210,6 +324,95 @@ export function writeVampireFourFacingReview(tag = 'baseline', root = process.cw
   return path;
 }
 
+export function writeSeatedVampireFourFacingReview(tag = 'pass-1', root = process.cwd()): string {
+  const scale = 3;
+  const labelHeight = 26;
+  const rowHeight = PENCIL_HEIGHT * scale + labelHeight;
+  const frames = bakeSeatedVampireFrames();
+  const rows = [
+    ['SEATED', [246, 241, 229, 255] as const, false],
+    ['BRIGHT GROUND', [213, 202, 136, 255] as const, false],
+    ['DARK GROUND', [48, 57, 64, 255] as const, false],
+    ['SILHOUETTE', [246, 241, 229, 255] as const, true],
+  ] as const;
+  const output = createBitmap(PENCIL_WIDTH * scale * 4, rowHeight * rows.length, rows[0]![1]);
+  rows.forEach(([label, background, silhouette], row) => {
+    const rowY = row * rowHeight;
+    for (let y = rowY; y < rowY + rowHeight; y += 1) {
+      for (let x = 0; x < output.width; x += 1) setPixel(output, x, y, background);
+    }
+    drawText(output, label, 8, rowY + 7, [31, 29, 26, 255], 2);
+    for (let facing = 0; facing < 4; facing += 1) {
+      const frame = silhouette ? silhouetteBitmap(frames[facing * 3]!) : frameBitmap(frames[facing * 3]!);
+      blitScaled(frame, output, facing * PENCIL_WIDTH * scale, rowY + labelHeight, scale);
+    }
+  });
+  const directory = resolve(root, 'artifacts/creature-cast-recast');
+  mkdirSync(directory, { recursive: true });
+  const path = resolve(directory, `vampire-seated-${tag}-four-facings.png`);
+  writeFileSync(path, encodePng(output));
+  return path;
+}
+
+function seatedFrames(visualId: PencilVisualId): readonly Uint8ClampedArray[] {
+  return visualId === 'vampire-01'
+    ? bakeSeatedVampireFrames()
+    : bakeSeatedPencilCharacterFrames(PENCIL_CHARACTER_RECIPES[visualId]);
+}
+
+export function writeSeatedCharacterFourFacingReview(
+  visualId: PencilVisualId,
+  tag = 'pass-1',
+  root = process.cwd(),
+): string {
+  const scale = 3;
+  const labelHeight = 26;
+  const rowHeight = PENCIL_HEIGHT * scale + labelHeight;
+  const frames = seatedFrames(visualId);
+  const rows = [
+    ['SEATED', [246, 241, 229, 255] as const, false],
+    ['BRIGHT GROUND', [213, 202, 136, 255] as const, false],
+    ['DARK GROUND', [48, 57, 64, 255] as const, false],
+    ['SILHOUETTE', [246, 241, 229, 255] as const, true],
+  ] as const;
+  const output = createBitmap(PENCIL_WIDTH * scale * 4, rowHeight * rows.length, rows[0]![1]);
+  rows.forEach(([label, background, silhouette], row) => {
+    const rowY = row * rowHeight;
+    for (let y = rowY; y < rowY + rowHeight; y += 1) {
+      for (let x = 0; x < output.width; x += 1) setPixel(output, x, y, background);
+    }
+    drawText(output, label, 8, rowY + 7, [31, 29, 26, 255], 2);
+    for (let facing = 0; facing < 4; facing += 1) {
+      const frame = silhouette ? silhouetteBitmap(frames[facing * 3]!) : frameBitmap(frames[facing * 3]!);
+      blitScaled(frame, output, facing * PENCIL_WIDTH * scale, rowY + labelHeight, scale);
+    }
+  });
+  const directory = resolve(root, 'artifacts/creature-cast-recast');
+  mkdirSync(directory, { recursive: true });
+  const path = resolve(directory, `${visualId}-seated-${tag}-four-facings.png`);
+  writeFileSync(path, encodePng(output));
+  return path;
+}
+
+export function writeSeatedCastReview(tag = 'pass-1', root = process.cwd()): string {
+  const scale = 2;
+  const labelHeight = 28;
+  const rowHeight = PENCIL_HEIGHT * scale + labelHeight;
+  const output = createBitmap(PENCIL_WIDTH * scale * 4, rowHeight * SEATED_CAST.length, [246, 241, 229, 255]);
+  SEATED_CAST.forEach(([visualId, label], row) => {
+    const frames = seatedFrames(visualId);
+    drawText(output, label, 8, row * rowHeight + 8, [31, 29, 26, 255], 2);
+    for (let facing = 0; facing < 4; facing += 1) {
+      blitScaled(frameBitmap(frames[facing * 3]!), output, facing * PENCIL_WIDTH * scale, row * rowHeight + labelHeight, scale);
+    }
+  });
+  const directory = resolve(root, 'artifacts/creature-cast-recast');
+  mkdirSync(directory, { recursive: true });
+  const path = resolve(directory, `seated-cast-${tag}-four-facings.png`);
+  writeFileSync(path, encodePng(output));
+  return path;
+}
+
 export function writePriyaPortraitExpressionReview(root = process.cwd()): string {
   return writePortraitExpressionReview('priya-nair', 'priya-dialogue-portrait-expressions.png', root);
 }
@@ -246,6 +449,38 @@ function writePortraitExpressionReview(visualId: PencilVisualId, filename: strin
 
 export function writeElisePortraitExpressionReview(root = process.cwd()): string {
   return writePortraitExpressionReview('elise-moreau', 'elise-dialogue-portrait-expressions.png', root);
+}
+
+export function writeTomasPortraitExpressionReview(root = process.cwd()): string {
+  return writePortraitExpressionReview('tomas-reed', 'tomas-dialogue-portrait-expressions.png', root);
+}
+
+export function writeMinaPortraitExpressionReview(root = process.cwd()): string {
+  return writePortraitExpressionReview('mina-park', 'mina-dialogue-portrait-expressions.png', root);
+}
+
+export function writeLindaPortraitExpressionReview(root = process.cwd()): string {
+  return writePortraitExpressionReview('linda', 'linda-dialogue-portrait-expressions.png', root);
+}
+
+export function writeDevonPortraitExpressionReview(root = process.cwd()): string {
+  return writePortraitExpressionReview('devon-price', 'devon-dialogue-portrait-expressions.png', root);
+}
+
+export function writeMarcusPortraitExpressionReview(root = process.cwd()): string {
+  return writePortraitExpressionReview('linda-boyfriend', 'marcus-dialogue-portrait-expressions.png', root);
+}
+
+export function writeRafaelPortraitExpressionReview(root = process.cwd()): string {
+  return writePortraitExpressionReview('rafael-cruz', 'rafael-dialogue-portrait-expressions.png', root);
+}
+
+export function writeSoraPortraitExpressionReview(root = process.cwd()): string {
+  return writePortraitExpressionReview('sora-tan', 'sora-dialogue-portrait-expressions.png', root);
+}
+
+export function writeCalderPortraitExpressionReview(root = process.cwd()): string {
+  return writePortraitExpressionReview('resident-01', 'calder-dialogue-portrait-expressions.png', root);
 }
 
 if (require.main === module) {

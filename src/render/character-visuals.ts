@@ -7,29 +7,26 @@ import { CHARACTER_IDS, type CharacterId } from './atlas';
  * test, and a test that has to mount a React component to check a string lookup is a test nobody
  * writes. `WorldScene` imports it rather than owning it.
  *
- * The default is a literal id match, and that default is what makes new cast silently wrong. The
- * Ledger Annex clerks are `clerk_01`..`clerk_12`, which become `clerk-01`..`clerk-12`, which are in
- * no atlas — so without the rule below every one of them falls through to `generic-resident` and
- * the office renders twelve identical people in twelve cubicles. Nothing throws.
- *
- * The clerk's own number picks the borrowed sheet, so the twelve are distinct by construction
- * rather than by a hand-kept table that can drift out of step with the cast.
+ * Office state ids do not match the authored character ids. Keep the explicit mapping here so each
+ * seated worker uses the correct creature sheet instead of silently falling back to a generic
+ * resident. Nothing throws when that fallback happens, so this table is covered by content tests.
  */
-const CLERK_VISUAL_PATTERN = /^clerk_(\d{2})$/u;
-
 const BORROWED_VISUALS: Readonly<Record<string, CharacterId>> = {
-  office_manager: 'resident-13',
+  clerk_01: 'linda-boyfriend',
+  clerk_02: 'devon-price',
+  clerk_03: 'rafael-cruz',
+  clerk_04: 'tomas-reed',
+  clerk_05: 'priya-nair',
+  clerk_06: 'sora-tan',
+  clerk_07: 'resident-02',
+  clerk_08: 'elise-moreau',
+  office_manager: 'resident-01',
 };
+const OFFICE_SEAT_IDS = new Set(Object.keys(BORROWED_VISUALS));
 
 export function visualIdForNpc(stateId: string): CharacterId {
   const candidate = stateId.replaceAll('_', '-') as CharacterId;
   if (CHARACTER_IDS.includes(candidate)) return candidate;
-
-  const clerkNumber = CLERK_VISUAL_PATTERN.exec(stateId)?.[1];
-  if (clerkNumber !== undefined) {
-    const borrowed = `resident-${clerkNumber}` as CharacterId;
-    if (CHARACTER_IDS.includes(borrowed)) return borrowed;
-  }
 
   const named = BORROWED_VISUALS[stateId];
   if (named !== undefined && CHARACTER_IDS.includes(named)) return named;
@@ -50,5 +47,9 @@ export function visualIdForNpc(stateId: string): CharacterId {
  * and no other cast is touched.
  */
 export function idleFacingForNpc(stateId: string): 'up' | undefined {
-  return CLERK_VISUAL_PATTERN.test(stateId) || stateId === 'office_manager' ? 'up' : undefined;
+  return OFFICE_SEAT_IDS.has(stateId) ? 'up' : undefined;
+}
+
+export function isOfficeSeatNpc(stateId: string): boolean {
+  return OFFICE_SEAT_IDS.has(stateId);
 }

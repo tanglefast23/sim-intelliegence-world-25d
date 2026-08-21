@@ -1,8 +1,9 @@
 import type { PencilLayout } from '../layout';
 import { gaitSwing, screenSideForAttachment, type VampirePose } from '../pose';
+import { seatedArmAnchors, seatedLegAnchors } from '../seated';
 import type { Point, Sketch } from '../sketch';
 
-type SkeletonOptions = Readonly<{ dressed: boolean }>;
+type SkeletonOptions = Readonly<{ dressed: boolean; seated?: boolean }>;
 
 function boneMass(
   sketch: Sketch,
@@ -179,7 +180,12 @@ function drawArm(sketch: Sketch, F: PencilLayout, shoulder: Point, elbow: Point,
   }
 }
 
-function drawProfileArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 1): void {
+function drawProfileArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 1, seated = false): void {
+  if (seated) {
+    const anchors = seatedArmAnchors(F, pose.facing, side, 0.96);
+    drawArm(sketch, F, anchors.shoulder, anchors.elbow, anchors.wrist);
+    return;
+  }
   const dir: -1 | 1 = pose.facing === 'right' ? 1 : -1;
   const swing = pose.moving ? gaitSwing(pose.gait) : 0;
   const armSwing = side === dir ? swing : -swing;
@@ -191,7 +197,14 @@ function drawProfileArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side
   );
 }
 
-function drawArms(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawArms(sketch: Sketch, F: PencilLayout, pose: VampirePose, seated = false): void {
+  if (seated) {
+    for (const side of [-1, 1] as const) {
+      const anchors = seatedArmAnchors(F, pose.facing, side, 0.96);
+      drawArm(sketch, F, anchors.shoulder, anchors.elbow, anchors.wrist);
+    }
+    return;
+  }
   const swing = pose.moving ? gaitSwing(pose.gait) : 0;
   for (const side of [-1, 1] as const) {
     const verticalSwing = side * swing * 0.34;
@@ -215,7 +228,18 @@ function drawLeg(sketch: Sketch, F: PencilLayout, hip: Point, knee: Point, ankle
   for (const spread of [-2, 0, 2]) boneSegment(sketch, F, toe, { x: toe.x + spread, y: toe.y + 2 }, 0.4);
 }
 
-function drawLegs(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawLegs(sketch: Sketch, F: PencilLayout, pose: VampirePose, seated = false): void {
+  if (seated) {
+    for (const side of [-1, 1] as const) {
+      const anchors = seatedLegAnchors(F, pose.facing, side, 0.95);
+      const toe = {
+        x: anchors.ankle.x + anchors.footDirection * 9 * F.k,
+        y: F.body(0, 289).y,
+      };
+      drawLeg(sketch, F, anchors.hip, anchors.knee, anchors.ankle, toe);
+    }
+    return;
+  }
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
     const spread = pose.moving && pose.gait === 0;
@@ -285,13 +309,13 @@ export function drawPriyaSkeleton(
   const farSide: -1 | 1 = dir === 1 ? -1 : 1;
   const hairSide = screenSideForAttachment('right', pose.facing, 'trailing');
   if (options.dressed) drawHairRoot(sketch, F, hairSide);
-  drawLegs(sketch, F, pose);
+  drawLegs(sketch, F, pose, options.seated);
   drawPelvis(sketch, F, pose);
   drawRibCage(sketch, F, pose);
-  if (profile) drawProfileArm(sketch, F, pose, farSide);
+  if (profile) drawProfileArm(sketch, F, pose, farSide, options.seated);
   if (options.dressed) drawClothing(sketch, F, pose);
   drawSkull(sketch, F, pose);
   if (options.dressed) drawBraid(sketch, F, pose, hairSide);
-  if (profile) drawProfileArm(sketch, F, pose, dir);
-  else drawArms(sketch, F, pose);
+  if (profile) drawProfileArm(sketch, F, pose, dir, options.seated);
+  else drawArms(sketch, F, pose, options.seated);
 }

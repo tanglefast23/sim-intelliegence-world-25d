@@ -15,7 +15,13 @@ import {
 } from '../vampire';
 import { poseFromSprite, screenSideForAttachment, VAMPIRE_FACINGS, vampireSheetIndex } from '../pose';
 import { hashSeed, Sketch } from '../sketch';
-import { blitPencilFrame, pencilBillboards, vampireBoilIndex, vampirePencilFrames } from '../billboard';
+import {
+  AUTHORED_SEAT_DEPTH_TILES,
+  blitPencilFrame,
+  pencilBillboards,
+  vampireBoilIndex,
+  vampirePencilFrames,
+} from '../billboard';
 
 const MAP = WORLD_MAP_CATALOG.northwest_residential;
 
@@ -156,5 +162,25 @@ describe('vampire pencil character', () => {
     expect(pencil!.lift).toBeLessThan(0);
     expect(rowsBelowGround).toBeCloseTo(PENCIL_HEIGHT - PENCIL_CONTACT_ROW, 6);
     expect(pencil!.lift).toBeCloseTo(-(52 / 360) * WORLD_CELL_HEIGHT * player.scale / 32, 6);
+  });
+
+  test('centres and lowers sitters, with only the foreground armrest above solid bodies', () => {
+    const frontFrame = buildWorldFrameState(MAP, createInitialState(), {}, 'down', 0);
+    const rearFrame = buildWorldFrameState(MAP, createInitialState(), {}, 'up', 0);
+    const front = frontFrame.characters.find(({ id }) => id === 'protagonist')!;
+    const rear = rearFrame.characters.find(({ id }) => id === 'protagonist')!;
+    const [frontSeated] = pencilBillboards({ ...frontFrame, characters: [{ ...front, pose: 'seated' }] });
+    const [rearSeated] = pencilBillboards({ ...rearFrame, characters: [{ ...rear, pose: 'seated' }] });
+    const [frontStanding] = pencilBillboards(frontFrame);
+    const [ghostSeated] = pencilBillboards({
+      ...frontFrame,
+      characters: [{ ...front, visualId: 'tomas-reed', pose: 'seated' }],
+    });
+    expect(front.shadowWorldY / 32 - frontSeated!.z).toBeCloseTo(AUTHORED_SEAT_DEPTH_TILES, 6);
+    expect(rear.shadowWorldY / 32 - rearSeated!.z).toBeCloseTo(AUTHORED_SEAT_DEPTH_TILES, 6);
+    expect(frontStanding!.lift - frontSeated!.lift).toBeCloseTo(0.1, 6);
+    expect(frontSeated!.depthBias).toBeGreaterThan(0);
+    expect(rearSeated!.depthBias).toBe(0);
+    expect(ghostSeated!.depthBias).toBeGreaterThan(frontSeated!.depthBias!);
   });
 });

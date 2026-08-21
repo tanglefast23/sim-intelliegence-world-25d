@@ -1,8 +1,9 @@
 import type { PencilLayout } from '../layout';
 import { gaitSwing, screenSideForAttachment, type AnatomicalSide, type VampirePose } from '../pose';
+import { seatedArmAnchors, seatedLegAnchors, segmentBox } from '../seated';
 import type { Point, Sketch } from '../sketch';
 
-type ConstructedCorpseOptions = Readonly<{ dressed: boolean }>;
+type ConstructedCorpseOptions = Readonly<{ dressed: boolean; seated?: boolean }>;
 
 function fleshMass(
   sketch: Sketch,
@@ -71,11 +72,11 @@ function drawHead(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
     ? sketch.smooth([
       F.head(-dir * 37, 31), F.head(dir * 27, 29), F.head(dir * 40, 42),
       F.head(dir * 41, 78), F.head(dir * 48, 91), F.head(dir * 39, 103),
-      F.head(dir * (pose.facing === 'left' ? 39 : 34), 119), F.head(-dir * 22, 121), F.head(-dir * 36, 102),
+      F.head(dir * (pose.facing === 'left' ? 39 : 34), 128), F.head(-dir * 22, 128), F.head(-dir * 36, 102),
     ])
     : sketch.smooth([
       F.head(-37, 30), F.head(-43, 38), F.head(-42, 82), F.head(-34, 106),
-      F.head(-27, 120), F.head(25, 120), F.head(36, 106), F.head(42, 82),
+      F.head(-27, 128), F.head(25, 128), F.head(36, 106), F.head(42, 82),
       F.head(42, 37), F.head(35, 30),
     ]);
   fleshMass(sketch, F, outline);
@@ -207,7 +208,17 @@ function drawHand(sketch: Sketch, F: PencilLayout, wrist: Point, side: -1 | 1, y
   }
 }
 
-function drawArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 1, profile = false): void {
+function drawArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 1, profile = false, seated = false): void {
+  if (seated) {
+    const anchors = seatedArmAnchors(F, pose.facing, side, 1.02);
+    const isLeft = side === screenSideForAttachment('left', pose.facing, 'trailing');
+    const isRight = side === screenSideForAttachment('right', pose.facing, 'trailing');
+    fleshMass(sketch, F, sketch.smooth(segmentBox(anchors.shoulder, anchors.elbow, 5.5 * F.k)), isLeft ? 'ash' : 'pale', side * 0.4);
+    fleshMass(sketch, F, sketch.smooth(segmentBox(anchors.elbow, anchors.wrist, 5 * F.k)), isLeft ? 'hollow' : 'pale', -side * 0.45);
+    if (isRight) seam(sketch, F, segmentBox(anchors.shoulder, anchors.elbow, 2 * F.k).slice(0, 2));
+    drawHand(sketch, F, anchors.wrist, side, anchors.wrist.y + 5 * F.k);
+    return;
+  }
   const swing = pose.moving ? gaitSwing(pose.gait) : 0;
   const vertical = side * swing * 0.28;
   const shoulderX = profile ? side * 16 : side * 39;
@@ -243,7 +254,15 @@ function drawFoot(sketch: Sketch, F: PencilLayout, x: number, y: number, dir: -1
   else fleshMass(sketch, F, points, 'ash', 0.15);
 }
 
-function drawLeg(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 1, profile: boolean, booted: boolean): void {
+function drawLeg(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 1, profile: boolean, booted: boolean, seated = false): void {
+  if (seated) {
+    const anchors = seatedLegAnchors(F, pose.facing, side, 0.98);
+    const isLeft = side === screenSideForAttachment('left', pose.facing, 'trailing');
+    fleshMass(sketch, F, sketch.smooth(segmentBox(anchors.hip, anchors.knee, 5.5 * F.k)), isLeft ? 'ash' : 'pale', side * 0.25);
+    fleshMass(sketch, F, sketch.smooth(segmentBox(anchors.knee, anchors.ankle, 5 * F.k)), isLeft ? 'ash' : 'pale', -side * 0.25);
+    drawFoot(sketch, F, (anchors.ankle.x - F.cx) / (F.k * 0.8), 290, anchors.footDirection, booted);
+    return;
+  }
   const phase = pose.gait === 0 ? 1 : -1;
   const passing = pose.moving && side * phase > 0;
   const lift = passing ? 9 : 0;
@@ -348,18 +367,18 @@ export function drawConstructedCorpse(
   const near: -1 | 1 = profile ? dir : 1;
 
   if (profile) {
-    drawLeg(sketch, F, pose, far, true, options.dressed);
-    drawLeg(sketch, F, pose, near, true, options.dressed);
+    drawLeg(sketch, F, pose, far, true, options.dressed, options.seated);
+    drawLeg(sketch, F, pose, near, true, options.dressed, options.seated);
   } else {
-    drawLeg(sketch, F, pose, -1, false, options.dressed);
-    drawLeg(sketch, F, pose, 1, false, options.dressed);
+    drawLeg(sketch, F, pose, -1, false, options.dressed, options.seated);
+    drawLeg(sketch, F, pose, 1, false, options.dressed, options.seated);
   }
-  if (profile) drawArm(sketch, F, pose, far, true);
+  if (profile) drawArm(sketch, F, pose, far, true, options.seated);
   drawTorso(sketch, F, pose);
   drawNeck(sketch, F, pose);
   if (!profile) {
-    drawArm(sketch, F, pose, -1);
-    drawArm(sketch, F, pose, 1);
+    drawArm(sketch, F, pose, -1, false, options.seated);
+    drawArm(sketch, F, pose, 1, false, options.seated);
   }
   if (options.dressed) drawClothing(sketch, F, pose);
   drawHead(sketch, F, pose);
@@ -367,5 +386,5 @@ export function drawConstructedCorpse(
     drawHair(sketch, F, pose);
     drawRecorder(sketch, F, pose);
   }
-  if (profile) drawArm(sketch, F, pose, near, true);
+  if (profile) drawArm(sketch, F, pose, near, true, options.seated);
 }

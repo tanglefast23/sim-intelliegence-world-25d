@@ -370,6 +370,7 @@ function bakeGeometry(
   atlasWidth: number,
   atlasHeight: number,
   faceShade: readonly number[] = FACE_SHADE,
+  viewDepth: Readonly<{ x: number; y: number; z: number }> = { x: 0, y: 0, z: 0 },
 ): BufferGeometry {
   const vertexCount = quads.length * 4 + boxes.length * 24;
   const indexCount = quads.length * 6 + boxes.length * 36;
@@ -443,6 +444,10 @@ function bakeGeometry(
   }
 
   for (const box of boxes) {
+    const depthBias = box.depthBias ?? 0;
+    const biasedX = box.x + viewDepth.x * depthBias;
+    const biasedY = box.y + viewDepth.y * depthBias;
+    const biasedZ = box.z + viewDepth.z * depthBias;
     const topCell = atlasCell(box.source, atlasWidth, atlasHeight);
     // Vertical faces may use a different, opaque cell. See `BoxDescriptor.sideSource`.
     const sideCell = box.sideSource === undefined
@@ -478,9 +483,9 @@ function bakeGeometry(
         const u = box.flatShade === true ? uv[0] : cell.u0 + uv[0] * (cell.u1 - cell.u0);
         const v = box.flatShade === true ? uv[1] : cell.v0 + uv[1] * (cell.v1 - cell.v0);
         pushCorner(
-          box.x + corner[0] * box.width,
-          box.y + corner[1] * box.height,
-          box.z + corner[2] * box.depth,
+          biasedX + corner[0] * box.width,
+          biasedY + corner[1] * box.height,
+          biasedZ + corner[2] * box.depth,
           face.normal,
           u,
           v,
@@ -525,6 +530,7 @@ export function bakeBillboardGeometry(
   up: Readonly<{ x: number; y: number; z: number }>,
   atlasWidth: number,
   atlasHeight: number,
+  viewDepth?: Readonly<{ x: number; y: number; z: number }>,
 ): BufferGeometry {
   const positions = new Float32Array(billboards.length * 4 * 3);
   const normals = new Float32Array(billboards.length * 4 * 3);
@@ -539,6 +545,7 @@ export function bakeBillboardGeometry(
     right.z * up.x - right.x * up.z,
     right.x * up.y - right.y * up.x,
   ];
+  const depth = viewDepth ?? { x: normal[0], y: normal[1], z: normal[2] };
 
   billboards.forEach((billboard, billboardIndex) => {
     const cell = atlasCell(billboard.source, atlasWidth, atlasHeight);
@@ -547,6 +554,7 @@ export function bakeBillboardGeometry(
     // `lift` raises a quad off the contact point. Body quads stand on it at 0; the blink band
     // is three rows tall and would otherwise be a stamp on the character's shoes.
     const lift = billboard.lift;
+    const depthBias = billboard.depthBias ?? 0;
     const corners: readonly (readonly [number, number])[] = [
       [-billboard.width / 2, lift],
       [billboard.width / 2, lift],
@@ -556,9 +564,9 @@ export function bakeBillboardGeometry(
     corners.forEach((corner, cornerIndex) => {
       const vertex = billboardIndex * 4 + cornerIndex;
       const uv = FACE_UVS[cornerIndex]!;
-      positions[vertex * 3] = billboard.x + right.x * corner[0] + up.x * corner[1];
-      positions[vertex * 3 + 1] = right.y * corner[0] + up.y * corner[1];
-      positions[vertex * 3 + 2] = billboard.z + right.z * corner[0] + up.z * corner[1];
+      positions[vertex * 3] = billboard.x + right.x * corner[0] + up.x * corner[1] + depth.x * depthBias;
+      positions[vertex * 3 + 1] = right.y * corner[0] + up.y * corner[1] + depth.y * depthBias;
+      positions[vertex * 3 + 2] = billboard.z + right.z * corner[0] + up.z * corner[1] + depth.z * depthBias;
       normals[vertex * 3] = normal[0];
       normals[vertex * 3 + 1] = normal[1];
       normals[vertex * 3 + 2] = normal[2];
@@ -873,6 +881,7 @@ export function bakeSceneGeometry(
   scene: SceneDescriptor,
   atlasWidth: number,
   atlasHeight: number,
+  viewDepth?: Readonly<{ x: number; y: number; z: number }>,
 ): Readonly<{
   floors: BufferGeometry;
   boxes: BufferGeometry;
@@ -889,9 +898,9 @@ export function bakeSceneGeometry(
     // this renderer bans for furniture — left in place on every wall in the game because the fix
     // was applied to the flat batch alone. A north wall was losing 40% of its albedo to a stand-in
     // for the very light that was already shading it.
-    boxes: bakeGeometry([], textured, atlasWidth, atlasHeight, LIT_FACE_SHADE),
-    flatBoxes: bakeGeometry([], flat, atlasWidth, atlasHeight, LIT_FACE_SHADE),
-    glowBoxes: bakeGeometry([], glow, atlasWidth, atlasHeight, NO_FACE_SHADE),
+    boxes: bakeGeometry([], textured, atlasWidth, atlasHeight, LIT_FACE_SHADE, viewDepth),
+    flatBoxes: bakeGeometry([], flat, atlasWidth, atlasHeight, LIT_FACE_SHADE, viewDepth),
+    glowBoxes: bakeGeometry([], glow, atlasWidth, atlasHeight, NO_FACE_SHADE, viewDepth),
   };
 }
 
@@ -924,6 +933,10 @@ function sceneSignature(scene: SceneDescriptor): number {
   for (const box of scene.boxes) {
     mix(box.source.x);
     mix(box.source.y);
+    mix(box.x * 64);
+    mix(box.y * 64);
+    mix(box.z * 64);
+    mix((box.depthBias ?? 0) * 64);
     mix((box.gain ?? 1) * 1024);
     mix(box.width * 64);
     mix(box.height * 64);
@@ -1271,6 +1284,8 @@ export async function createWorldRenderer25(
     renderer.setSize(buffer.width, buffer.height, false);
 
     const lookAt = frameCamera(camera, renderCamera, surface, yawDegrees);
+    camera.updateMatrixWorld(true);
+    camera.matrixWorld.extractBasis(cameraRight, cameraUp, cameraBack);
 
     // Cover the whole visible footprint plus a wide margin, centred on what the camera looks at.
     // Cheaper and steadier than fitting it to the map: one quad, no rebuild, no seam at the edge.
@@ -1303,7 +1318,7 @@ export async function createWorldRenderer25(
       boxMesh.geometry.dispose();
       flatBoxMesh.geometry.dispose();
       glowBoxMesh.geometry.dispose();
-      const baked = bakeSceneGeometry(built, atlasWidth, atlasHeight);
+      const baked = bakeSceneGeometry(built, atlasWidth, atlasHeight, cameraBack);
       floorMesh.geometry = baked.floors;
       boxMesh.geometry = baked.boxes;
       flatBoxMesh.geometry = baked.flatBoxes;
@@ -1623,6 +1638,7 @@ export async function createWorldRenderer25(
       BILLBOARD_UP,
       atlasWidth,
       atlasHeight,
+      cameraBack,
     );
     const pencils = pencilBillboards(next);
     pencilMesh.geometry.dispose();
@@ -1632,6 +1648,7 @@ export async function createWorldRenderer25(
       BILLBOARD_UP,
       PENCIL_TEXTURE_WIDTH,
       PENCIL_HEIGHT,
+      cameraBack,
     );
     pencilMesh.visible = pencils.length > 0 && pencilPixels !== undefined && pencilContext !== undefined;
     if (pencilMesh.visible && pencilPixels && pencilContext && pencilTexture) {

@@ -10,8 +10,8 @@ import { resolveEvidenceOutputRoot } from './evidence-output';
  * Four frames rather than one, because this is the first INTERIOR built for the 2.5D path and the
  * things that can go wrong there are not the things that go wrong outdoors:
  *
- * - `cubicles-night` is the scene. Fourteen troffers, twelve partitions and thirteen clerks under
- *   an overhead key. This is the frame the rubric is scored against.
+ * - `cubicles-night` is the scene. Fourteen troffers, twelve partitions, eight cubicle workers,
+ *   and four empty cubicles under an overhead key. This is the frame the rubric is scored against.
  * - `cubicles-noon` is the control. The sun does the work and the panels sit near-off, so a colour
  *   or material fault that the night rig would hide shows here instead. A capture round that
  *   changes a lighting constant and cannot see it at night can always see it at noon.

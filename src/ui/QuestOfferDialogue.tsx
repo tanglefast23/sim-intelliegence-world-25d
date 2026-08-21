@@ -48,6 +48,36 @@ export const portraits: Partial<Record<CharacterId, number>> = {
 export type DialoguePortraitExpression = 'rest' | 'joy' | 'upset';
 
 export const portraitExpressions: Partial<Record<CharacterId, Partial<Record<DialoguePortraitExpression, number>>>> = {
+  'devon-price': {
+    rest: require('../../assets/source/dialogue-portraits/devon-price.png') as number,
+    joy: require('../../assets/source/dialogue-portraits/devon-price.joy.png') as number,
+    upset: require('../../assets/source/dialogue-portraits/devon-price.upset.png') as number,
+  },
+  linda: {
+    rest: require('../../assets/source/dialogue-portraits/linda.png') as number,
+    joy: require('../../assets/source/dialogue-portraits/linda.joy.png') as number,
+    upset: require('../../assets/source/dialogue-portraits/linda.upset.png') as number,
+  },
+  'linda-boyfriend': {
+    rest: require('../../assets/source/dialogue-portraits/linda-boyfriend.png') as number,
+    joy: require('../../assets/source/dialogue-portraits/linda-boyfriend.joy.png') as number,
+    upset: require('../../assets/source/dialogue-portraits/linda-boyfriend.upset.png') as number,
+  },
+  'mina-park': {
+    rest: require('../../assets/source/dialogue-portraits/mina-park.png') as number,
+    joy: require('../../assets/source/dialogue-portraits/mina-park.joy.png') as number,
+    upset: require('../../assets/source/dialogue-portraits/mina-park.upset.png') as number,
+  },
+  'rafael-cruz': {
+    rest: require('../../assets/source/dialogue-portraits/rafael-cruz.png') as number,
+    joy: require('../../assets/source/dialogue-portraits/rafael-cruz.joy.png') as number,
+    upset: require('../../assets/source/dialogue-portraits/rafael-cruz.upset.png') as number,
+  },
+  'sora-tan': {
+    rest: require('../../assets/source/dialogue-portraits/sora-tan.png') as number,
+    joy: require('../../assets/source/dialogue-portraits/sora-tan.joy.png') as number,
+    upset: require('../../assets/source/dialogue-portraits/sora-tan.upset.png') as number,
+  },
   'elise-moreau': {
     rest: require('../../assets/source/dialogue-portraits/elise-moreau.png') as number,
     joy: require('../../assets/source/dialogue-portraits/elise-moreau.joy.png') as number,
@@ -58,6 +88,26 @@ export const portraitExpressions: Partial<Record<CharacterId, Partial<Record<Dia
     joy: require('../../assets/source/dialogue-portraits/priya-nair.joy.png') as number,
     upset: require('../../assets/source/dialogue-portraits/priya-nair.upset.png') as number,
   },
+  'tomas-reed': {
+    rest: require('../../assets/source/dialogue-portraits/tomas-reed.png') as number,
+    joy: require('../../assets/source/dialogue-portraits/tomas-reed.joy.png') as number,
+    upset: require('../../assets/source/dialogue-portraits/tomas-reed.upset.png') as number,
+  },
+  'resident-01': {
+    rest: require('../../assets/source/dialogue-portraits/resident-01.png') as number,
+    joy: require('../../assets/source/dialogue-portraits/resident-01.joy.png') as number,
+    upset: require('../../assets/source/dialogue-portraits/resident-01.upset.png') as number,
+  },
+};
+
+export const cinematicPortraits: Partial<Record<CharacterId, number>> = {
+  'devon-price': require('../../assets/source/dialogue-portraits/devon-price.cinematic.png') as number,
+  linda: require('../../assets/source/dialogue-portraits/linda.cinematic.png') as number,
+  'linda-boyfriend': require('../../assets/source/dialogue-portraits/linda-boyfriend.cinematic.png') as number,
+  'mina-park': require('../../assets/source/dialogue-portraits/mina-park.cinematic.png') as number,
+  'rafael-cruz': require('../../assets/source/dialogue-portraits/rafael-cruz.cinematic.png') as number,
+  'sora-tan': require('../../assets/source/dialogue-portraits/sora-tan.cinematic.png') as number,
+  'resident-01': require('../../assets/source/dialogue-portraits/resident-01.cinematic.png') as number,
 };
 
 type QuestOfferDialogueProps = Readonly<{
@@ -115,7 +165,7 @@ export function QuestOfferDialogue({
             nativeID={`conversation-portrait-${speakerId}`}
             onLoad={() => setSpeakerPortraitLoaded(true)}
             resizeMode="contain"
-            source={portraits[speakerId] ?? portraits['generic-resident']}
+            source={cinematicPortraits[speakerId] ?? portraits[speakerId] ?? portraits['generic-resident']}
             style={{ height: portraitHeight, width: portraitWidth }}
           />
           {speakerPortraitLoaded ? <View nativeID={`conversation-portrait-${speakerId}-ready`} style={styles.portraitReady} /> : null}

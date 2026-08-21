@@ -180,6 +180,28 @@ describe('prop, door and roof boxes', () => {
     expect(first.y).toBeCloseTo(recipe.boxes[0]!.y, 6);
   });
 
+  test('turns an occupied chair for a visible face but keeps the rear-facing chair', () => {
+    const tile = { x: 10, y: 10 };
+    const chair = {
+      ...frame.props[0]!, id: 'test-chair', sprite: 'tile.office-chair',
+      source: atlasRectangle('tile.office-chair'), tile,
+    };
+    const sitter = { ...frame.characters[0]!, tile, pose: 'seated' as const };
+    const chairBoxes = (sprite?: string) => buildPropBoxes({
+      ...frame,
+      props: [chair],
+      characters: sprite ? [{ ...sitter, sprite }] : [],
+    });
+    const chairBack = (sprite?: string) => chairBoxes(sprite).find(({ id }) => id === 'test-chair#2')!;
+
+    expect(chairBack('character.vampire-01.front-1').z).toBeCloseTo(tile.y + 0.5 - 0.29, 6);
+    expect(chairBack('character.vampire-01.rear-1').z).toBeCloseTo(tile.y + 0.5 + 0.29, 6);
+    expect(chairBack().z).toBeCloseTo(tile.y + 0.5 + 0.29, 6);
+    expect(chairBoxes('character.vampire-01.front-1').filter(({ depthBias }) => depthBias !== undefined))
+      .toEqual([expect.objectContaining({ id: 'test-chair#8', depthBias: 0.8 })]);
+    expect(chairBoxes('character.vampire-01.rear-1').every(({ depthBias }) => depthBias === undefined)).toBe(true);
+  });
+
   test('doors fill their gap and stand on the floor', () => {
     const doors = buildDoorBoxes(frame);
     expect(doors).toHaveLength(frame.doors.length);

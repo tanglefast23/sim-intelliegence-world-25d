@@ -5,6 +5,7 @@ import { extname, join, normalize, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { CAMERA_YAW_DEGREES, GROUND_Z_SCALE } from '../../src/render/three25/projection';
+import type { CharacterId } from '../../src/render/atlas';
 
 /**
  * Drives the 2.5D renderer in a real Electron window with a real WebGL 2 context, and captures it.
@@ -26,6 +27,7 @@ import { CAMERA_YAW_DEGREES, GROUND_Z_SCALE } from '../../src/render/three25/pro
 export type SceneRequest = Readonly<{
   /** Written as `<name>.png` under the output root. */
   name: string;
+  authoredDialogueFixture?: Exclude<CharacterId, 'protagonist' | 'vampire-01'>;
   yawDegrees?: number;
   shadowPath?: 'lit' | 'fallback';
   /**
@@ -93,6 +95,16 @@ export type SceneRequest = Readonly<{
    * it worth photographing.
    */
   standOnTile?: Readonly<{ x: number; y: number }>;
+  /** Capture the protagonist in a non-persistent authored pose. */
+  playerPose?: 'idle' | 'seated';
+  /** Replace the protagonist art for a hidden character-chair review. */
+  playerVisualId?: CharacterId;
+  /** Capture one exact screen-facing without moving the protagonist. */
+  playerFacing?: 'front' | 'rear' | 'left' | 'right';
+  /** Hide the office crowd so a single character-chair pairing can be judged. */
+  hideNpcs?: boolean;
+  /** Remove interface panels from a close visual-art review. */
+  hideHud?: boolean;
   /**
    * Relocate the protagonist to another map, through the app's own VFX fixture.
    *
@@ -351,14 +363,77 @@ async function capture(scene) {
     await new Promise((r) => setTimeout(r, 600));
   }
 
-  if (scene.centreOnPlayer) {
-    // The app's own Center control, driven by its key binding: the surface listens for "f".
-    await window.webContents.executeJavaScript(
-      '(() => { const e = { key: "f", code: "KeyF", bubbles: true };'
-      + ' window.dispatchEvent(new KeyboardEvent("keydown", e));'
-      + ' window.dispatchEvent(new KeyboardEvent("keyup", e)); return true; })()',
+  if (scene.playerPose) {
+    const posed = await window.webContents.executeJavaScript(
+      'typeof window.siWorldSetPlayerPose === "function"'
+      + ' ? (window.siWorldSetPlayerPose(' + JSON.stringify(scene.playerPose) + '), true) : false',
     );
+    if (!posed) throw new Error('siWorldSetPlayerPose is missing.');
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
+  if (scene.playerVisualId) {
+    const changed = await window.webContents.executeJavaScript(
+      'typeof window.siWorldSetPlayerVisual === "function"'
+      + ' ? (window.siWorldSetPlayerVisual(' + JSON.stringify(scene.playerVisualId) + '), true) : false',
+    );
+    if (!changed) throw new Error('siWorldSetPlayerVisual is missing.');
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
+  if (scene.playerFacing) {
+    const faced = await window.webContents.executeJavaScript(
+      'typeof window.siWorldSetPlayerFacing === "function"'
+      + ' ? (window.siWorldSetPlayerFacing(' + JSON.stringify(scene.playerFacing) + '), true) : false',
+    );
+    if (!faced) throw new Error('siWorldSetPlayerFacing is missing.');
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
+  if (scene.hideNpcs) {
+    const hidden = await window.webContents.executeJavaScript(
+      'typeof window.siWorldSetNpcsVisible === "function"'
+      + ' ? (window.siWorldSetNpcsVisible(false), true) : false',
+    );
+    if (!hidden) throw new Error('siWorldSetNpcsVisible is missing.');
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
+  if (scene.hideHud) {
+    const selectionHidden = await window.webContents.executeJavaScript(
+      'typeof window.siWorldSetSelectionVisible === "function"'
+      + ' ? (window.siWorldSetSelectionVisible(false), true) : false',
+    );
+    if (!selectionHidden) throw new Error('siWorldSetSelectionVisible is missing.');
+    await window.webContents.executeJavaScript(
+      '(() => { const style = document.createElement("style");'
+      + ' style.textContent = "#world-ui-hud,#world-selected-character,#world-ui-character-card,#world-ui-help{display:none!important}";'
+      + ' document.head.appendChild(style); return true; })()',
+    );
+    await new Promise((r) => setTimeout(r, 300));
+  }
+
+  if (scene.centreOnPlayer) {
+    const centred = await window.webContents.executeJavaScript(
+      'typeof window.siWorldCenterOnPlayer === "function"'
+      + ' ? (window.siWorldCenterOnPlayer(), true) : false',
+    );
+    if (!centred) throw new Error('siWorldCenterOnPlayer is missing.');
     await new Promise((r) => setTimeout(r, 900));
+  }
+
+  if (scene.authoredDialogueFixture) {
+    const opened = await window.webContents.executeJavaScript(
+      'typeof window.siWorldSetAuthoredDialogueFixture === "function"'
+      + ' ? (window.siWorldSetAuthoredDialogueFixture(' + JSON.stringify(scene.authoredDialogueFixture) + '), true) : false',
+    );
+    if (!opened) throw new Error('siWorldSetAuthoredDialogueFixture is missing.');
+    await window.webContents.executeJavaScript(
+      '(async () => { const wait = (ms) => new Promise((r) => setTimeout(r, ms));'
+      + ' for (let i = 0; i < 80; i += 1) {'
+      + ' if (document.querySelector("#conversation-portrait-' + scene.authoredDialogueFixture + '-ready")) return true;'
+      + ' await wait(50); } throw new Error("large conversation portrait did not load"); })()',
+    );
   }
 
   if (scene.suppressVfx) {

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "fixture": "southwest-1280x720-dpr2-zoom2",
-  "sourceCommit": "af979ae9e4e2be33eee8e12ddfe8667dbcd4ed50",
+  "sourceCommit": "b027b2629c02ef33954b3df1dabdff7b2661fe48",
   "mode": "parity",
   "viewport": {
     "width": 1280,

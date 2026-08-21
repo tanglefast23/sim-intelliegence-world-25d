@@ -16,8 +16,9 @@ Use [character-sprite-authoring.md](character-sprite-authoring.md) first for eve
 That guide conducts the interview, verifies the render path, and stops unsupported work. Load this
 reference only after the task routes to the 2.5D pencil path or changes pencil architecture.
 
-Every character world body targets this pencil method. Dialogue portraits use the vampire
-portrait's block-pixel treatment, but they share the pencil body's approved anatomy contract.
+Every World Sprite targets this pencil method. Dialogue Icons and Cinematic Portraits use the
+vampire portrait's block-pixel treatment, but they share the World Sprite's anatomy contract.
+Cinematic Portraits are separate detailed assets, never enlarged Dialogue Icons.
 
 This document combines three sources:
 
@@ -34,10 +35,12 @@ Kindergrimm's procedural sketch method and calibrated for SI World's bright 2.5D
 
 ## 1. Current and target in one view
 
-**CURRENT:** Gate A is complete. SI World has a versioned registry, nine pencil visual IDs,
+**CURRENT:** Gate A is complete. SI World has a versioned registry, twelve pencil visual IDs,
 whole-character canvases, four-facing idle and walk states, and several pencil bodies on screen.
-The vampire is approved. Seven creature recipes are rejected human-template prototypes. Priya has
-a literal skeleton renderer, but her revised world body remains in review until Joe approves it.
+The vampire, Calder, Devon, Rafael, Sora, and Tomas are approved. Six creature recipes remain rejected human-template
+prototypes. Priya has a literal skeleton renderer, but her revised world body remains in review. A
+small Gate B slice now gives the ten assigned desk characters a part-separated, four-facing seated
+pose. It does not convert standing locomotion or unlock arbitrary extra poses.
 
 **TARGET:** every character world body uses a deterministic recipe with literal anatomy. A creature
 recipe defines its skull or face, torso, limbs and contact, surface or material, and canonical
@@ -74,11 +77,13 @@ fix the stale side, and update the test that protects the decision.
 
 ### 2.2 Shared identity law
 
-These identity rules apply to pencil world bodies and vampire-style dialogue portraits:
+These identity rules apply to World Sprites, Dialogue Icons, and Cinematic Portraits:
 
 - One approved character brief defines one person across every view.
-- The portrait and world figure must show the same archetype, skull or face, torso, limbs, surface,
+- All three surfaces must show the same archetype, skull or face, torso, limbs, surface,
   head mass, body, and signature item.
+- A Dialogue Icon must remain clear at small size. A Cinematic Portrait must add authored detail,
+  close framing, and clean anatomy instead of scaling the Dialogue Icon.
 - Current `vampire-01` code uses a pencil body and a separate high-resolution pixel portrait. That
   split is the approved surface style but remains identity-sync debt. Keep both synchronized from
   one brief and review them side by side.
@@ -105,7 +110,10 @@ Do not build speculative systems.
 - Do not build all six Kindergrimm media. Graphite is the character medium now.
 - Do not build a species generator until SI World needs generated crowds.
 - Do not build an editor before recipes exist and two characters prove the contract.
-- Do not add sitting, attack, sleep, or run as more baked full-character canvases.
+- Do not add attack, sleep, run, or new sitting systems as more baked full-character canvases. The
+  desk-seat slice reuses one shared anchor contract and the existing character-specific parts.
+- The desk-seat chair keeps its seat and back behind a visible body. Only the camera-side armrest
+  layers above a solid body. An approved loose sheet can drape over that armrest.
 - Do not make world props boil. Their texture stays one frame.
 
 ---
@@ -114,7 +122,7 @@ Do not build speculative systems.
 
 | Path | Current use | Source | Output | Rules |
 |---|---|---|---|---|
-| Pencil | Every character world body; the vampire is approved and eight creature prototypes await redraw | `src/render/pencil/` | A `120×180` transparent sketch sheet on a `42×60` world billboard | This document |
+| Pencil | Every character world body; six are approved and six remain in review | `src/render/pencil/` | A `120×180` transparent sketch sheet on a `42×60` world billboard | This document |
 
 `src/render/pencil/billboard.ts` builds the pencil batch. The 2.5D renderer uploads visible pencil
 frames into fixed horizontal texture slots.
@@ -523,6 +531,11 @@ The path must overlap its anchor. A line or chain cannot begin after a transpare
 shape follows gravity from its anchor unless the brief gives it another force. Colour can separate
 two attached parts, but colour cannot repair a detached or physically impossible shape.
 
+A held item must cross the gripping hand, not stop beside it. Draw the deeper item segment, then the
+hand, then any nearer segment. Give a cleaning tool, cane, or weapon a clear lower endpoint or
+contact rule. In both profiles, keep it behind the face unless the approved action puts it there.
+Headwear must cover its intended skull area without stray skin or hair leaking above the brim.
+
 Layer order follows body depth, not code convenience. Draw a far paired limb first, then the torso
 or garment, then a hanging middle layer, then the near limb. A sleeveless garment cannot cover an
 exposed arm. Hair behind a skull can emerge over clothing while remaining behind the near arm.
@@ -853,6 +866,7 @@ A shipping pencil character is done when the following checks pass.
 - [ ] stable choices do not reroll across boil frames;
 - [ ] every asymmetric part uses a body-local side, named anchor, continuous path, and four-facing
       attachment table;
+- [ ] held items cross their gripping hand, obey their contact rule, and do not drift across the face;
 - [ ] touching masses remain distinct by value, colour, texture, or a visible gap at play zoom;
 - [ ] garment contours are closed and preserve their openings and exposed anatomy in profiles;
 - [ ] no hair, accessory, garment, or body part can be mistaken for a different body part;

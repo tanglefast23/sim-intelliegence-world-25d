@@ -71,6 +71,8 @@ export type BoxDescriptor = Readonly<{
   glow?: boolean;
   /** Linear albedo multiplier applied on top of `tint`. Above 1 brightens. See `QuadDescriptor`. */
   gain?: number;
+  /** Camera-axis layer offset. It changes depth without moving the box on screen. */
+  depthBias?: number;
   x: number;
   y: number;
   z: number;
@@ -562,6 +564,14 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
     if (consumed.has(prop.sprite)) continue;
     const recipe = recipeFor(prop.sprite);
     if (recipe === undefined) continue;
+    const seatedCharacter = prop.sprite === 'tile.office-chair'
+      ? frame.characters.find((character) => (
+        character.pose === 'seated'
+        && character.tile.x === prop.tile.x
+        && character.tile.y === prop.tile.y
+      ))
+      : undefined;
+    const turnChair = seatedCharacter !== undefined && !/\.rear-[12]$/u.test(seatedCharacter.sprite);
     recipe.boxes.forEach((box, index) => {
       const core = texturedCore(prop.sprite, box);
       // Spread the real rect so the atlas metadata rides along; only the window moves.
@@ -582,12 +592,13 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
         // Furniture reads as flat-shaded volumes UNLESS the box is big enough to carry the
         // sprite's own grain, in which case the opaque core is mapped across it instead.
         flatShade: core === undefined,
-        x: prop.tile.x + 0.5 + box.x,
+        x: prop.tile.x + 0.5 + (turnChair ? -box.x : box.x),
         y: box.y,
-        z: prop.tile.y + 0.5 + box.z,
+        z: prop.tile.y + 0.5 + (turnChair ? -box.z : box.z),
         width: box.width,
         height: box.height,
         depth: box.depth,
+        depthBias: turnChair && box.foregroundWhenTurned === true ? 0.8 : undefined,
         glow: box.glow,
         // An authored per-box tint wins, so a sofa's arms can differ from its seat. Otherwise the
         // sprite's measured dominant colour - never the frame colour, which is plain white here.

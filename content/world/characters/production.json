@@ -66,7 +66,7 @@
   {
     "schemaVersion": 1,
     "id": "resident_01",
-    "displayName": "Resident 01",
+    "displayName": "Calder Nine",
     "tier": "ambient",
     "homeLocationId": "northwest_residential",
     "factionIds": []
@@ -258,7 +258,7 @@
   {
     "schemaVersion": 1,
     "id": "clerk_01",
-    "displayName": "Clerk 01",
+    "displayName": "Marcus Vale",
     "tier": "ambient",
     "homeLocationId": "ledger_annex",
     "factionIds": []
@@ -266,7 +266,7 @@
   {
     "schemaVersion": 1,
     "id": "clerk_02",
-    "displayName": "Clerk 02",
+    "displayName": "Devon Price",
     "tier": "ambient",
     "homeLocationId": "ledger_annex",
     "factionIds": []
@@ -274,7 +274,7 @@
   {
     "schemaVersion": 1,
     "id": "clerk_03",
-    "displayName": "Clerk 03",
+    "displayName": "Rafael Cruz",
     "tier": "ambient",
     "homeLocationId": "ledger_annex",
     "factionIds": []
@@ -282,7 +282,7 @@
   {
     "schemaVersion": 1,
     "id": "clerk_04",
-    "displayName": "Clerk 04",
+    "displayName": "Tomas Reed",
     "tier": "ambient",
     "homeLocationId": "ledger_annex",
     "factionIds": []
@@ -290,7 +290,7 @@
   {
     "schemaVersion": 1,
     "id": "clerk_05",
-    "displayName": "Clerk 05",
+    "displayName": "Priya Nair",
     "tier": "ambient",
     "homeLocationId": "ledger_annex",
     "factionIds": []
@@ -298,7 +298,7 @@
   {
     "schemaVersion": 1,
     "id": "clerk_06",
-    "displayName": "Clerk 06",
+    "displayName": "Sora Tan",
     "tier": "ambient",
     "homeLocationId": "ledger_annex",
     "factionIds": []
@@ -306,7 +306,7 @@
   {
     "schemaVersion": 1,
     "id": "clerk_07",
-    "displayName": "Clerk 07",
+    "displayName": "Milo",
     "tier": "ambient",
     "homeLocationId": "ledger_annex",
     "factionIds": []
@@ -314,39 +314,7 @@
   {
     "schemaVersion": 1,
     "id": "clerk_08",
-    "displayName": "Clerk 08",
-    "tier": "ambient",
-    "homeLocationId": "ledger_annex",
-    "factionIds": []
-  },
-  {
-    "schemaVersion": 1,
-    "id": "clerk_09",
-    "displayName": "Clerk 09",
-    "tier": "ambient",
-    "homeLocationId": "ledger_annex",
-    "factionIds": []
-  },
-  {
-    "schemaVersion": 1,
-    "id": "clerk_10",
-    "displayName": "Clerk 10",
-    "tier": "ambient",
-    "homeLocationId": "ledger_annex",
-    "factionIds": []
-  },
-  {
-    "schemaVersion": 1,
-    "id": "clerk_11",
-    "displayName": "Clerk 11",
-    "tier": "ambient",
-    "homeLocationId": "ledger_annex",
-    "factionIds": []
-  },
-  {
-    "schemaVersion": 1,
-    "id": "clerk_12",
-    "displayName": "Clerk 12",
+    "displayName": "Elise Moreau",
     "tier": "ambient",
     "homeLocationId": "ledger_annex",
     "factionIds": []
@@ -354,7 +322,7 @@
   {
     "schemaVersion": 1,
     "id": "office_manager",
-    "displayName": "Annex Manager",
+    "displayName": "Calder Nine",
     "tier": "ambient",
     "homeLocationId": "ledger_annex",
     "factionIds": []

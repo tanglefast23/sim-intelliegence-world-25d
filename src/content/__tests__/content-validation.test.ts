@@ -16,9 +16,9 @@ describe('content validation', () => {
 
   test('the locked content layout and minimum fixtures validate', () => {
     const catalog = buildContentCatalog(validBundle);
-    expect(catalog.characters).toHaveLength(48);
+    expect(catalog.characters).toHaveLength(44);
     expect(catalog.characters.filter(({ tier }) => tier === 'full_ai')).toHaveLength(8);
-    expect(catalog.characters.filter(({ tier }) => tier === 'ambient')).toHaveLength(39);
+    expect(catalog.characters.filter(({ tier }) => tier === 'ambient')).toHaveLength(35);
     expect(catalog.locations).toHaveLength(16);
     expect(catalog.factions).toHaveLength(2);
     expect(catalog.rules).toHaveLength(10);

@@ -25,6 +25,8 @@ export type BoxRecipe = Readonly<{
   gain?: number;
   /** Draw unlit, keeping `tint` exactly. Only for boxes that ARE the light — see `BoxDescriptor`. */
   glow?: boolean;
+  /** Move this part toward the camera only when an occupied chair turns to face the viewer. */
+  foregroundWhenTurned?: boolean;
 }>;
 
 export type PropRecipe = Readonly<{
@@ -182,6 +184,29 @@ const tableTile = (): readonly BoxRecipe[] => [
   { x: 0, y: 0.23, z: 0, width: 0.09, height: 0.46, depth: 0.6, tint: PALE_WOOD_SHADE },
 ];
 
+/** Compact swivel chair: layered upholstery, armrests, pedestal, and a four-wheel rolling base. */
+const officeChair = (): readonly BoxRecipe[] => [
+  { x: 0, y: 0.27, z: 0, width: 0.8, height: 0.1, depth: 0.66, tint: '#6f91a0', gain: 2.35 },
+  { x: 0, y: 0.33, z: -0.01, width: 0.7, height: 0.08, depth: 0.58, tint: '#a7d1dc', gain: 2.45 },
+  { x: 0, y: 0.58, z: 0.29, width: 0.82, height: 0.64, depth: 0.11, tint: '#6f91a0', gain: 2.35 },
+  { x: 0, y: 0.59, z: 0.22, width: 0.68, height: 0.48, depth: 0.08, tint: '#a7d1dc', gain: 2.45 },
+  { x: 0, y: 0.62, z: 0.17, width: 0.54, height: 0.06, depth: 0.04, tint: '#d4e5e9', gain: 2.5 },
+  { x: -0.3, y: 0.38, z: 0, width: 0.07, height: 0.25, depth: 0.07, tint: '#d2d8db', gain: 2.4 },
+  { x: 0.3, y: 0.38, z: 0, width: 0.07, height: 0.25, depth: 0.07, tint: '#d2d8db', gain: 2.4 },
+  { x: -0.3, y: 0.5, z: 0, width: 0.16, height: 0.07, depth: 0.48, tint: '#8fb1bd', gain: 2.35 },
+  {
+    x: 0.3, y: 0.5, z: 0, width: 0.16, height: 0.07, depth: 0.48,
+    tint: '#8fb1bd', gain: 2.35, foregroundWhenTurned: true,
+  },
+  { x: 0, y: 0.16, z: 0, width: 0.09, height: 0.28, depth: 0.09, tint: '#d2d8db', gain: 2.4 },
+  { x: 0, y: 0.045, z: 0, width: 0.82, height: 0.07, depth: 0.09, tint: '#8b979d', gain: 2.3 },
+  { x: 0, y: 0.045, z: 0, width: 0.09, height: 0.07, depth: 0.82, tint: '#8b979d', gain: 2.3 },
+  { x: -0.39, y: 0.055, z: 0, width: 0.14, height: 0.11, depth: 0.14, tint: '#566068', gain: 2.2 },
+  { x: 0.39, y: 0.055, z: 0, width: 0.14, height: 0.11, depth: 0.14, tint: '#566068', gain: 2.2 },
+  { x: 0, y: 0.055, z: -0.39, width: 0.14, height: 0.11, depth: 0.14, tint: '#566068', gain: 2.2 },
+  { x: 0, y: 0.055, z: 0.39, width: 0.14, height: 0.11, depth: 0.14, tint: '#566068', gain: 2.2 },
+];
+
 /** Hull slab plus superstructure. Four in a row give the harbour ferry. */
 const ferryTile = (): readonly BoxRecipe[] => [
   { x: 0, y: 0.3, z: 0, width: 0.98, height: 0.6, depth: 0.95 },
@@ -274,6 +299,7 @@ export const PROP_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze(
   // Ragged run, so one box per tile. See RUN_FORMING_GROUPS below.
   'tile.table-left': { boxes: tableTile() },
   'tile.table-right': { boxes: tableTile() },
+  'tile.office-chair': { boxes: officeChair() },
   // The bed runs EAST, not south: content/maps/northwest.json places villa-bed as
   // tile.bed-head@0,0 and tile.bed-foot@1,0.
   'tile.bed-head': {
