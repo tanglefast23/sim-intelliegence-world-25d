@@ -12,9 +12,15 @@ legacy-atlas-reference: character-sprite-design.md
 Start here for every character task. This file decides what Joe wants, which render path owns it,
 and whether current code can draw it. It does not authorize renderer architecture work.
 
-**Permanent style decision.** Every character world body uses the pencil method. Dialogue portraits
-use the existing vampire dialogue-portrait style. A `24x30` atlas character is never an approved
-world-body result. The environment atlas remains active and is outside this rule.
+**Permanent style decision.** Use these names for every character surface:
+
+- **World Sprite:** the pencil character that walks in the world.
+- **Dialogue Icon:** the small block-pixel portrait used in normal conversations.
+- **Cinematic Portrait:** separate, detailed block-pixel art used in the large cinematic panel.
+
+Dialogue Icons and Cinematic Portraits use the existing vampire portrait style. Never enlarge a
+Dialogue Icon to make a Cinematic Portrait. A `24x30` atlas character is never an approved
+World Sprite. The environment atlas remains active and is outside this rule.
 
 ## 1. Run the interview yourself
 
@@ -47,7 +53,8 @@ and stop. Do not shrink a cat into a vampire-shaped human or start a new rig.
 |---|---|
 | Shipping 2.5D `vampire-01` body | Pencil reference |
 | Any other current or future world body | Pencil reference; complete the brief, then stop at Gate A until the generic pencil route exists |
-| Dialogue portrait | Match the existing vampire dialogue-portrait style from the same approved brief |
+| Dialogue Icon | Match the existing vampire portrait style from the same approved brief |
+| Cinematic Portrait | Draw a separate detailed asset in the existing vampire portrait style |
 | Legacy atlas world-body cell | Compatibility maintenance only; never a character deliverable or visual acceptance target |
 
 For `vampire-01`, atlas entries still serve rollback and portrait generation. Atlas edits do not
@@ -60,17 +67,31 @@ extend this legacy split to new world bodies.
 
 | CURRENT | NOT CURRENT |
 |---|---|
-| Versioned registry for the vampire and eight creature prototypes | Eight approved literal creature builds |
-| Several pencil identities on screen together | Sit, quad, winged, serpentine, or limbless locomotion |
+| Versioned registry for twelve pencil bodies | Approved status for the six bodies still in review |
+| Several pencil identities on screen together | Non-desk sit, quad, winged, serpentine, or limbless locomotion |
 | One whole-character baker with shared primitives | Per-part canvases and bones |
 | Nine head-envelope families | Approved creature-specific skull, torso, and limb anatomy |
 | Per-character head family and palette recipes | Per-character head share and floor plan in the recipe |
 | Graphite hardcoded for the character | Selectable character media |
-| Four-facing idle and four-facing two-state walk | Extra poses or world-body expressions |
+| Four-facing idle, walk, and the assigned ten-character desk-seat pose | Other extra poses or world-body expressions |
 | Three whole-character boil frames | Per-part boil or blink-swapped faces |
 
-The eight creature recipes are rejected human-template prototypes. They prove registry, texture,
-and routing support only. They do not prove creature anatomy or visual acceptance.
+Six recipe statuses remain rejected or in review. Registry, texture, and routing support do not
+prove creature anatomy or visual acceptance.
+
+### 3.1 Desk-seat visibility rule
+
+Use the same chair contract for every assigned desk character:
+
+- Anchor the body at the chair pan. Do not leave it on the standing foot edge.
+- Keep screen placement separate from camera depth. A front-facing body renders over the chair
+  back without moving away from the chair on screen.
+- In a rear view, show the back of the head above the chair. Hide the torso behind the chair back.
+- Show feet only when their authored contact extends below the chair. Never expose the torso to
+  prove that feet exist.
+- Apply the rule after the character-specific anatomy. Wide limbs, hair, tails, sheets, bones, and
+  accessories must not leak around the rear chair.
+- Verify front and rear in the shipping 3/4 camera. Head-on captures are diagnostics, not proof.
 
 Reduced-motion mode pins the pencil character to the current-facing idle pose and boil frame 0.
 Keep that behavior in every character change; it does not require the future rig.
@@ -199,7 +220,7 @@ Finish the brief, then stop when any applies:
 |---|---|
 | Existing pencil vampire within current scope | Smallest owning-part or shared-primitive change |
 | New pencil visual ID | Add one versioned recipe through the existing registry |
-| Different locomotion, extra poses, bones, or independent boil | Gate B |
+| Different locomotion, new extra poses, bones, or independent boil | Gate B |
 | Expressions or blink transitions | Gate B, then Gate C |
 | Generated species, crowds, rerolls, locks, or editor | Gate D after Gates A and B |
 | Authored skull, muzzle, beak, jaw, bone, spectral, or constructed anatomy in the current biped canvas | Creature-specific drawing through the generic pencil registry |

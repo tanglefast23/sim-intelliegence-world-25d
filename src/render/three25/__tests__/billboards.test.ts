@@ -17,6 +17,19 @@ describe('character billboards', () => {
   // depend on a hash rather than on the code under test.
   const frame = { ...pixelIndoorFrame(), animationTimestampMilliseconds: closedBlinkTimestamp('protagonist') };
 
+  test('crops a seated body without shrinking its width', () => {
+    const character = frame.characters[0]!;
+    const standing = buildBillboards(frame)[0]!;
+    const seated = buildBillboards({
+      ...frame,
+      characters: [{ ...character, pose: 'seated' }],
+    })[0]!;
+    expect(seated.width).toBe(standing.width);
+    expect(seated.height).toBeLessThan(standing.height);
+    expect(seated.lift).toBeGreaterThan(0);
+    expect(seated.source.y).toBe(standing.source.y);
+  });
+
   test('the fixture actually has a character to place', () => {
     expect(frame.characters.length).toBeGreaterThan(0);
   });

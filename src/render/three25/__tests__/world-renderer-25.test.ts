@@ -264,6 +264,17 @@ describe('character billboards bake into one upright batch', () => {
     expect((position.getX(0) + position.getX(1)) / 2).toBeCloseTo(anchor.x, 6);
   });
 
+  test('can change chair occlusion without changing the authored anchor', () => {
+    const depth = { x: 0.2, y: 0.4, z: 0.6 } as const;
+    const biased = [{ ...billboards[0]!, depthBias: 0.5 }];
+    const base = bakeBillboardGeometry([{ ...biased[0]!, depthBias: 0 }], RIGHT, UP, 1024, 1024, depth)
+      .getAttribute('position');
+    const shifted = bakeBillboardGeometry(biased, RIGHT, UP, 1024, 1024, depth).getAttribute('position');
+    expect(shifted.getX(0) - base.getX(0)).toBeCloseTo(0.1, 6);
+    expect(shifted.getY(0) - base.getY(0)).toBeCloseTo(0.2, 6);
+    expect(shifted.getZ(0) - base.getZ(0)).toBeCloseTo(0.3, 5);
+  });
+
   test('twenty characters still bake into one geometry', () => {
     const frame = restingFrame();
     const many = {

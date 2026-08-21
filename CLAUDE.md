@@ -83,10 +83,17 @@ stay green; it is reachable only through the localhost `?testRenderer=2d` overri
 keep matching what was rendered.
 
 This paragraph said the opposite until 2026-08-19 and cost a full session of work on the wrong
-character. **The player's on-screen 2.5D body is the pencil vampire in `src/render/pencil/`, not the
-`vampire-01` atlas sprite.** `pencilBillboards()` substitutes it on the 2.5D path. Atlas entries
-still serve 2D rollback and portrait surfaces, so an atlas edit is not a global no-op. Start every
-character task in [docs/art/character-sprite-authoring.md](docs/art/character-sprite-authoring.md).
+character. **Every character world body must use the pencil method in `src/render/pencil/`.** The
+current game has completed that migration only for `vampire-01`; atlas bodies for other characters
+are legacy compatibility data, not an approved art route. Dialogue portraits follow the existing
+vampire portrait style. Start every character task in
+[docs/art/character-sprite-authoring.md](docs/art/character-sprite-authoring.md).
+
+For a creature archetype, the archetype controls anatomy. Never reuse a normal human skull, torso,
+arms, and legs and treat fur, ribs, tusks, a hat, or stitches as a costume layer. Define the skull
+or face, torso, limbs and contact, surface or material, and canonical creature features first.
+Current human-template creature builds are rejected prototypes until replaced one character at a
+time on both the pencil body and dialogue portrait.
 
 The 2D path ([src/render/three/world-renderer.ts](src/render/three/world-renderer.ts)) draws
 textured quads through an `OrthographicCamera` with `NearestFilter` on a generated sprite atlas,
@@ -117,11 +124,10 @@ changing any 2.5D art, not after.
 
 **To add or change any character, start with
 [docs/art/character-sprite-authoring.md](docs/art/character-sprite-authoring.md).** It conducts the
-adaptive design interview, verifies pencil versus atlas routing, and stops unsupported architecture
-work. Load [docs/art/character-sprite-design2.0.md](docs/art/character-sprite-design2.0.md) only for
-pencil work. Load [docs/art/character-sprite-design.md](docs/art/character-sprite-design.md) only
-for atlas work. Art-bible identity and originality rules apply to both; fixed `24×30` geometry is
-atlas-only.
+adaptive design interview, routes every world body to pencil, and stops unsupported architecture
+work. Load [docs/art/character-sprite-design2.0.md](docs/art/character-sprite-design2.0.md) for all
+world-body work. [docs/art/character-sprite-design.md](docs/art/character-sprite-design.md) is a
+legacy compatibility and portrait reference only; never use it to approve a world body.
 
 See [docs/specs/2026-08-16-threejs-2-5d-renderer.md](docs/specs/2026-08-16-threejs-2-5d-renderer.md).
 It supersedes the top-down renderer statements in `spec.md` (lines 66, 295) and amends the 2.5D and

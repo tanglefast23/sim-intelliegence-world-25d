@@ -379,7 +379,7 @@ Object-landmark is 62 / 64. Raise `maximumCount` from 64 to 68. Bump `artRevisio
 
 Two partition sprites are required because recipes are axis-aligned and sprite-keyed. One sprite cannot be both a north wall and an east wall.
 
-Do **not** add `tile.office-desk` or `tile.office-chair` in v1. A chair the NPC cannot sit in is set dressing the atlas cannot afford until object-landmark is raised again. If a capture round scores the desks as slabs, that is the moment to spend a fifth and sixth cell, not now.
+Use `tile.office-chair` at every clerk stand tile and at the manager desk. The chair is a non-solid, textured 2.5D swivel chair. Idle office staff use the shared seated pose, so the chair is functional staging rather than unused set dressing.
 
 Do **not** add new character cells. Reuse `resident-01` … `resident-13` for the thirteen new actor ids.
 

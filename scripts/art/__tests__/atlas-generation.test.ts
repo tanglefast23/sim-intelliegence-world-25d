@@ -69,18 +69,18 @@ describe('deterministic SI World atlas generation', () => {
     expect(first.index.version).toBe(3);
     expect(first.index.artRevision).toBe(21);
     expect(first.index.image).toMatchObject({ colorType: 'rgba', gutter: 1 });
-    // Previous 652 + 8 walk + 1 blink band + 3 named portraits = 664.
-    expect(Object.keys(first.index.sprites)).toHaveLength(664);
-    expect(first.index.tiles).toHaveLength(284);
+    // Previous 652 + 8 walk + 1 blink band + 3 named portraits + 1 office chair = 665.
+    expect(Object.keys(first.index.sprites)).toHaveLength(665);
+    expect(first.index.tiles).toHaveLength(285);
     expect(first.index.groundCells).toHaveLength(81);
-    expect(first.index.transparentPartCells).toHaveLength(143);
+    expect(first.index.transparentPartCells).toHaveLength(144);
     expect(first.index.presentationCells).toHaveLength(60);
     expect(createHash('sha256').update(first.png).digest('hex')).toBe(first.index.image.sha256);
     expect(first.index.publicSpriteIds).toEqual(Object.keys(first.index.sprites));
     expect(first.index.internalReviewSpriteIds).toEqual([]);
     // Union of both grants: +4 object-landmark slots (office) and +36 world-character-eyes
     // (blink), over the previous 756_574 base. Computed from the merged manifest, not by hand.
-    expect(first.report.forecast).toMatchObject({ rawRectangleArea: 774_952, width: 1024 });
+    expect(first.report.forecast).toMatchObject({ rawRectangleArea: 776_108, width: 1024 });
   });
 
   test('keeps all atlas cells inside the generated image', () => {

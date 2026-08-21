@@ -46,11 +46,11 @@ const performanceFixture = JSON.parse(
 describe('Phase 13 production content bill', () => {
   test('ships the locked full-AI and deterministic ambient cast', () => {
     const state = createInitialState();
-    expect(PRODUCTION_CAST_COUNTS).toEqual({ fullAi: 8, ambient: 39, totalNpcs: 47 });
+    expect(PRODUCTION_CAST_COUNTS).toEqual({ fullAi: 8, ambient: 35, totalNpcs: 43 });
     expect(Object.values(state.npcs).filter(({ tier }) => tier === 'full_ai')).toHaveLength(8);
-    expect(Object.values(state.npcs).filter(({ tier }) => tier === 'ambient')).toHaveLength(39);
+    expect(Object.values(state.npcs).filter(({ tier }) => tier === 'ambient')).toHaveLength(35);
     expect(bill.fullAiCount).toBe(8);
-    expect(bill.ambientCount).toBe(39);
+    expect(bill.ambientCount).toBe(35);
     expect(new Set(bill.fullAiNpcIds)).toEqual(new Set(Object.values(state.npcs).filter(({ tier }) => tier === 'full_ai').map(({ id }) => id)));
     expect(new Set(bill.ambientNpcIds)).toEqual(new Set(Object.values(state.npcs).filter(({ tier }) => tier === 'ambient').map(({ id }) => id)));
     expect(new Set(bill.scheduleIds)).toEqual(new Set(Object.keys(state.schedules)));
@@ -128,7 +128,7 @@ describe('Phase 13 production content bill', () => {
       conversationId: 'conversation-resident-01', npcId: 'resident_01', state,
     });
     expect(result).toEqual(expect.objectContaining({
-      kind: 'ambient', npcId: 'resident_01', displayName: 'Resident 01', state,
+      kind: 'ambient', npcId: 'resident_01', displayName: 'Calder Nine', state,
     }));
     expect(writingCalls).toBe(0);
     expect(inference.requests).toHaveLength(0);
@@ -262,13 +262,19 @@ describe('Phase 13 production content bill', () => {
  * The office cast borrows resident art, and the borrowing is the part that can silently fail.
  * `visualIdForNpc` matches a literal id against `CHARACTER_IDS`, so `clerk_01` becomes `clerk-01`,
  * which is in no atlas, and every clerk falls through to `generic-resident`. Nothing throws. The
- * only symptom is twelve identical people in twelve cubicles.
+ * only symptom is a seated worker drawing with the wrong creature body.
  */
 describe('Ledger Annex staff', () => {
-  test('gives every clerk a different face', () => {
+  test('puts the approved office cast in the occupied seats', () => {
     const visuals = PRODUCTION_OFFICE_STAFF.map(({ id }) => visualIdForNpc(id));
-    expect(new Set(visuals).size).toBe(PRODUCTION_OFFICE_STAFF.length);
-    expect(visuals).not.toContain('generic-resident');
+    expect(visuals).toEqual([
+      'linda-boyfriend', 'devon-price', 'rafael-cruz', 'tomas-reed', 'priya-nair',
+      'sora-tan', 'resident-02', 'elise-moreau', 'resident-01',
+    ]);
+    expect(PRODUCTION_OFFICE_STAFF.map(({ displayName }) => displayName)).toEqual([
+      'Marcus Vale', 'Devon Price', 'Rafael Cruz', 'Tomas Reed', 'Priya Nair',
+      'Sora Tan', 'Milo', 'Elise Moreau', 'Calder Nine',
+    ]);
   });
 
   test('stands every clerk on a walkable desk tile inside the annex', () => {
@@ -296,14 +302,29 @@ describe('Ledger Annex staff', () => {
    * formula agree. A wrong offset in that formula passes. This list is the independent source.
    */
   const SPEC_STAND_TILES = [
-    { x: 10, y: 10 }, { x: 15, y: 10 }, { x: 20, y: 10 }, { x: 25, y: 10 },
-    { x: 10, y: 15 }, { x: 15, y: 15 }, { x: 20, y: 15 }, { x: 25, y: 15 },
-    { x: 10, y: 20 }, { x: 15, y: 20 }, { x: 20, y: 20 }, { x: 25, y: 20 },
+    { x: 15, y: 10 }, { x: 20, y: 10 }, { x: 25, y: 10 }, { x: 10, y: 15 },
+    { x: 15, y: 15 }, { x: 20, y: 15 }, { x: 25, y: 15 }, { x: 10, y: 20 },
   ];
 
-  test('stands the twelve clerks on the tiles the spec names', () => {
+  test('leaves the Vampire chair and the remaining cubicles empty', () => {
     const clerks = PRODUCTION_OFFICE_STAFF.filter(({ id }) => id.startsWith('clerk_'));
     expect(clerks.map(({ work }) => ({ x: work.x, y: work.y }))).toEqual(SPEC_STAND_TILES);
+    expect(clerks.some(({ work }) => work.x === 10 && work.y === 10)).toBe(false);
+  });
+
+  test('puts one non-blocking office chair under every worker', () => {
+    const map = WORLD_MAP_CATALOG.west_office;
+    const chairs = map.source.objects.filter(({ kind }) => kind === 'office-chair');
+    expect(chairs).toHaveLength(13);
+    expect(chairs.flatMap(({ renderParts }) => renderParts).map(({ sprite }) => sprite))
+      .toEqual(Array(13).fill('tile.office-chair'));
+    for (const staff of PRODUCTION_OFFICE_STAFF) {
+      const chair = chairs.find(({ anchor, renderParts }) => renderParts.some(({ offset }) => (
+        anchor.x + offset.x === staff.position.x && anchor.y + offset.y === staff.position.y
+      )));
+      expect(chair).toBeDefined();
+      expect(map.blockedKeys.has(`${staff.position.x},${staff.position.y}`)).toBe(false);
+    }
   });
 
   test('keeps every clerk on their own desk tile in all four blocks', () => {

@@ -71,7 +71,7 @@ import {
   type AtlasRectangle,
   type CharacterId,
 } from './atlas';
-import { idleFacingForNpc, visualIdForNpc } from './character-visuals';
+import { idleFacingForNpc, isOfficeSeatNpc, visualIdForNpc } from './character-visuals';
 import {
   assertWorldZoom,
   MAX_WORLD_ZOOM,
@@ -168,6 +168,7 @@ import {
   buildWorldFrameState,
   DESTINATION_PULSE_MS,
   type WorldActors,
+  type CharacterPose,
   type WorldCharacterPlacement,
   type WorldGroundedEntry,
   type WorldLayer,
@@ -229,13 +230,16 @@ const OPENING_CAST_TILES = {
   mina_park: { x: 24, y: 25 },
   devon_price: { x: 26, y: 25 },
   rafael_cruz: { x: 28, y: 25 },
+  linda_boyfriend: { x: 30, y: 25 },
   tomas_reed: { x: 22, y: 27 },
   priya_nair: { x: 24, y: 27 },
   sora_tan: { x: 26, y: 27 },
   elise_moreau: { x: 28, y: 27 },
+  resident_01: { x: 30, y: 27 },
 } as const;
 
 const OPENING_CAST_IDS = new Set<string>(Object.keys(OPENING_CAST_TILES));
+type AuthoredDialogueFixtureId = Exclude<CharacterId, 'protagonist' | 'vampire-01'>;
 
 function actorTiles(
   state: WorldState,
@@ -268,7 +272,11 @@ function actorTiles(
         moving: movement?.segment !== undefined,
         reducedMotion,
         horizontalRunDistance: movement?.horizontalRunDistance ?? 0,
-        pose: stateId === reactionId ? 'reaction' : stateId === conversationNpcId ? 'talk' : 'idle',
+        pose: stateId === reactionId
+          ? 'reaction'
+          : mapId === 'west_office' && isOfficeSeatNpc(stateId) && movement?.segment === undefined
+            ? 'seated'
+            : stateId === conversationNpcId ? 'talk' : 'idle',
         poseFrame: stateId === selectedId || stateId === conversationNpcId ? poseFrame : 0,
         travelDistance: movement?.travelDistance ?? 0,
         turnCurve: movement?.latchedTurnCurve,
@@ -424,6 +432,9 @@ export function WorldScene({
   const [openingShowcase, setOpeningShowcase] = useState(newGame && initialMapId === 'northwest_residential');
   const [reactionId, setReactionId] = useState<string>();
   const [poseFrame, setPoseFrame] = useState<0 | 1>(0);
+  const [playerPoseFixture, setPlayerPoseFixture] = useState<CharacterPose>();
+  const [playerVisualFixture, setPlayerVisualFixture] = useState<CharacterId>();
+  const [selectionFixtureVisible, setSelectionFixtureVisible] = useState(true);
   const [saveStatus, setSaveStatus] = useState(initialSaveStatus);
   const [transitioning, setTransitioning] = useState(false);
   // Dev tool. React state only: never saved, never in presentation preferences, resets on reload.
@@ -434,7 +445,7 @@ export function WorldScene({
   const [conversationNpcId, setConversationNpcId] = useState<string | undefined>(initialConversationFixtureId);
   const [conversationFixtureId, setConversationFixtureId] = useState<CharacterId | undefined>(initialConversationFixtureId);
   const [questOfferOpen, setQuestOfferOpen] = useState(false);
-  const [authoredDialogueFixtureId, setAuthoredDialogueFixtureId] = useState<'linda-boyfriend'>();
+  const [authoredDialogueFixtureId, setAuthoredDialogueFixtureId] = useState<AuthoredDialogueFixtureId>();
   const [openPanel, setOpenPanel] = useState<'journal' | 'relationships' | undefined>(initialOpenPanel);
   const [audioCaption, setAudioCaption] = useState<string>();
   const [responsiveEvidence, setResponsiveEvidence] = useState('');
@@ -763,6 +774,9 @@ export function WorldScene({
       ));
     };
     window.siWorldSetAuthoredDialogueFixture = (characterId) => {
+      if (characterId === undefined || !CHARACTER_IDS.includes(characterId)) {
+        throw new Error(`Unknown authored dialogue fixture ${String(characterId)}.`);
+      }
       setOpenPanel(undefined);
       setConversationFixtureId(undefined);
       setConversationNpcId(undefined);
@@ -900,6 +914,49 @@ export function WorldScene({
       vfxClock.current = { ...vfxClock.current, ageMilliseconds: step * VFX_STEP_MILLISECONDS };
       setVfxAgeStep(step);
     };
+    window.siWorldSetPlayerPose = setPlayerPoseFixture;
+    window.siWorldSetPlayerVisual = setPlayerVisualFixture;
+    window.siWorldSetSelectionVisible = setSelectionFixtureVisible;
+    window.siWorldSetPlayerFacing = (facing) => {
+      const step = facing === 'front' ? { x: 1, y: 1 }
+        : facing === 'rear' ? { x: -1, y: -1 }
+          : facing === 'left' ? { x: -1, y: 1 }
+            : { x: 1, y: -1 };
+      setRuntime((current) => ({
+        ...current,
+        movement: {
+          ...current.movement,
+          previousTile: {
+            x: current.movement.player.x - step.x,
+            y: current.movement.player.y - step.y,
+          },
+        },
+      }));
+    };
+    window.siWorldSetNpcsVisible = (visible) => {
+      setRuntime((current) => ({
+        ...current,
+        worldState: parseWorldState({
+          ...current.worldState,
+          npcs: Object.fromEntries(Object.entries(current.worldState.npcs).map(([id, npc]) => [id, {
+            ...npc,
+            presence: npc.presence.kind === 'in_transit' || visible
+              ? npc.presence
+              : { ...npc.presence, kind: 'inactive' },
+          }])),
+        }),
+      }));
+    };
+    window.siWorldCenterOnPlayer = () => {
+      setCamera((current) => centerCameraOnWorld(
+        runtimeRef.current.movement.visualFoot,
+        current.zoom,
+        surfaceRef.current,
+        MAP_PIXELS,
+        clampRef.current,
+      ));
+      updateCameraMotion(suspendFollow);
+    };
     /**
      * Stand the protagonist on a chosen tile of the map they are already on.
      *
@@ -1005,6 +1062,12 @@ export function WorldScene({
       delete window.siWorldSetSmokeMinute;
       delete window.siWorldSetVfxStep;
       delete window.siWorldStandOnTile;
+      delete window.siWorldSetPlayerPose;
+      delete window.siWorldSetPlayerVisual;
+      delete window.siWorldSetPlayerFacing;
+      delete window.siWorldSetSelectionVisible;
+      delete window.siWorldSetNpcsVisible;
+      delete window.siWorldCenterOnPlayer;
       delete window.siWorldStartNaturalMovementFixture;
       delete window.siWorldOpenRendererFeedbackFixture;
       delete window.siWorldOpenRendererMotionFixture;
@@ -1541,7 +1604,7 @@ export function WorldScene({
   }, [transientFrame]);
 
   const playerVisualFoot = snapWorldPoint(runtime.movement.visualFoot, camera.zoom, dpr);
-  const selectedFoot = selected === 'protagonist'
+  const selectedFoot = !selectionFixtureVisible ? { x: -100_000, y: -100_000 } : selected === 'protagonist'
     ? playerVisualFoot
     : npcTiles[selected]?.visualFoot ?? tileFootPoint(npcTiles[selected]?.tile ?? runtime.movement.player);
   const worldFrame = useMemo(
@@ -1549,11 +1612,13 @@ export function WorldScene({
       ? tiltedFacing(runtime.movement.direction, runtime.movement)
       : runtime.movement.direction, 0, {
       visualFoot: playerVisualFoot,
+      visualId: playerVisualFixture,
       walkFrame: runtime.movement.walkFrame,
       moving: runtime.movement.segment !== undefined,
       reducedMotion,
       horizontalRunDistance: runtime.movement.horizontalRunDistance,
-      pose: selected === 'protagonist' ? (reactionId === 'protagonist' ? 'reaction' : 'idle') : 'idle',
+      pose: playerPoseFixture
+        ?? (selected === 'protagonist' ? (reactionId === 'protagonist' ? 'reaction' : 'idle') : 'idle'),
       poseFrame: selected === 'protagonist' ? poseFrame : 0,
       travelDistance: runtime.movement.travelDistance,
       turnCurve: runtime.movement.latchedTurnCurve,
@@ -1580,7 +1645,7 @@ export function WorldScene({
       transientEffects: transientFrame.rects,
       transientGlows: transientFrame.glows,
     }),
-    [artMode, renderCamera, destinationMarker, destinationPulseElapsedMs, dpr, map, npcTiles, playerVisualFoot, poseFrame, reactionId, reducedMotion, renderer2_5d, rendererParityPulseFrozen, runtime.movement, runtime.npcMovements, runtime.worldState, selected, selectedFoot, surface, transientFrame, vfxAgeStep, vfxMode],
+    [artMode, renderCamera, destinationMarker, destinationPulseElapsedMs, dpr, map, npcTiles, playerPoseFixture, playerVisualFixture, playerVisualFoot, poseFrame, reactionId, reducedMotion, renderer2_5d, rendererParityPulseFrozen, runtime.movement, runtime.npcMovements, runtime.worldState, selected, selectedFoot, surface, transientFrame, vfxAgeStep, vfxMode],
   );
   const propById = new Map(worldFrame.props.map((prop) => [prop.id, prop]));
   const characterById = new Map(worldFrame.characters.map((character) => [character.id, character]));
@@ -2117,10 +2182,14 @@ export function WorldScene({
             }}
             playerName={runtime.worldState.protagonist.displayName}
             speakerId={authoredDialogueFixtureId ?? 'linda'}
-            speakerName={authoredDialogueFixtureId ? 'Marcus Vale' : 'Linda'}
-            speakerText={authoredDialogueFixtureId
+            speakerName={authoredDialogueFixtureId
+              ? ATLAS_INDEX.characters[authoredDialogueFixtureId].displayName
+              : 'Linda'}
+            speakerText={authoredDialogueFixtureId === 'linda-boyfriend'
               ? 'Linda told you I frightened her? You have heard only one side. Ask what happened before you judge me.'
-              : undefined}
+              : authoredDialogueFixtureId
+                ? `${ATLAS_INDEX.characters[authoredDialogueFixtureId].displayName}'s large conversation portrait is ready for review.`
+                : undefined}
             surface={surface}
             uiScale={uiScale}
           />

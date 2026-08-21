@@ -4,6 +4,30 @@ Authoritative for Electron testing and for CI failures that are not yours.
 
 `CLAUDE.md` summarises this file. Where the two disagree, this one wins.
 
+## Character art policy
+
+- Every character world body uses the 2.5D pencil method in
+  `docs/art/character-sprite-design2.0.md`. This applies to the protagonist, named characters,
+  ambient characters, and future characters.
+- Never create, recast, or approve a `24x30` atlas character as a world-body deliverable. Existing
+  atlas character cells are legacy compatibility data until the pencil migration removes them.
+- Dialogue portraits use the existing vampire dialogue-portrait style. They are not pencil-body
+  sheets. Keep each portrait and pencil body synchronized through one approved character brief.
+- A named creature must use literal archetype anatomy before clothing or accessories are added.
+  Do not draw a standard human skull, torso, arms, and legs, then add a creature symbol or costume.
+  The brief must define the creature's skull or face, torso, limbs and ground contact, surface or
+  material, and canonical archetype features. These rules apply to both the world body and portrait.
+- A public-domain creature archetype can use its recognizable anatomy. Keep the interpretation
+  original and do not copy the exact costume or silhouette of one film, game, or illustration.
+- Mark human-template creature art as a rejected prototype. Do not call it approved or complete.
+  Replace one character at a time and keep the rejected status until both body and portrait pass.
+- The environment atlas remains active for ground, buildings, props, effects, and other world art.
+  Do not interpret the character rule as permission to remove the environment atlas.
+- A second pencil world identity requires Gate A in `character-sprite-design2.0.md`. Complete the
+  authoring interview and obtain approval before starting that architecture work.
+- For a multi-character request, complete and approve one character interview at a time. Reuse
+  answers from an approved plan and ask the user only for missing creative decisions.
+
 ## Electron testing protects the user's desktop
 
 An agent runs on someone's machine while they are using it. A window that steals focus, plays audio,

@@ -16,6 +16,7 @@ import type {
   RendererPresentationPatch,
 } from './presentation/preferences';
 import type { CharacterId } from '../render/atlas';
+import type { CharacterPose } from '../render/world-frame';
 import type { CameraDirector } from '../render/camera-motion';
 import type { MapId } from '../world/maps/catalog';
 import type { RendererKind, ToneMappingKind } from '../render/renderer-selection';
@@ -57,7 +58,9 @@ declare global {
     siWorldFreezeNpcMotion?: true;
     siWorldOpenConversationFixture?: (characterId: CharacterId) => void;
     siWorldCloseConversationFixture?: () => void;
-    siWorldSetAuthoredDialogueFixture?: (characterId?: 'linda-boyfriend') => void;
+    siWorldSetAuthoredDialogueFixture?: (
+      characterId?: Exclude<CharacterId, 'protagonist' | 'vampire-01'>,
+    ) => void;
     siWorldMeasureResponsiveEvidence?: () => Readonly<Record<string, unknown>> | undefined;
     /** Scripted camera control for dev-harness scenes and smokes. See src/render/camera-motion.ts. */
     siWorldCameraDirector?: CameraDirector;
@@ -77,6 +80,16 @@ declare global {
     siWorldSetVfxStep?: (step: number) => void;
     /** Stand the protagonist on a chosen tile, so a capture can frame a district's dense part. */
     siWorldStandOnTile?: (tileX: number, tileY: number) => void;
+    /** Capture-only pose override. It is React state and never enters a save. */
+    siWorldSetPlayerPose?: (pose?: CharacterPose) => void;
+    /** Capture-only character-art override. It is React state and never enters a save. */
+    siWorldSetPlayerVisual?: (visualId?: CharacterId) => void;
+    /** Capture-only screen-facing override for four-view art proof. */
+    siWorldSetPlayerFacing?: (facing: 'front' | 'rear' | 'left' | 'right') => void;
+    siWorldSetSelectionVisible?: (visible: boolean) => void;
+    /** Capture-only crowd control. It is never exposed outside smoke mode. */
+    siWorldSetNpcsVisible?: (visible: boolean) => void;
+    siWorldCenterOnPlayer?: () => void;
     siWorldStartNaturalMovementFixture?: () => Readonly<{
       npcId: 'linda';
       source: 'fixture';

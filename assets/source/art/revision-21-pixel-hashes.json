@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "artRevision": 21,
-  "allPublicCellsAggregateSha256": "923ac7a69b12255a8706abed79372c67bdee4fdfd48db30863607e7bf0588f0d",
+  "allPublicCellsAggregateSha256": "93bbac8746a9b8167d7c798ade7766b5cd9e8fb651de8cd283cf99c573379bba",
   "cells": {
     "character.devon-price.eyes": "c6ee3216adb03feb7f8791f16a2038227d0b603422706353cd9a75ad33c0f627",
     "character.devon-price.front-1": "1b5560cc75ee57ea802870cafa09e72801555f03b58b6357c6b860881575b5b8",
@@ -504,6 +504,7 @@
     "tile.open-door": "b8904b60f3fefcee04b32349e811236fc7fdbe05b05dbfb8ce315656ef6bddcd",
     "tile.open-door-horizontal": "b8904b60f3fefcee04b32349e811236fc7fdbe05b05dbfb8ce315656ef6bddcd",
     "tile.open-door-vertical": "5d5de2e6276aa02e5cdd2e2b8a5320b7319e3d131c6dd1f0e298ae3b9da0fa02",
+    "tile.office-chair": "fcfe0ae00957ea7839bcb7fd43d3929c91f8ce678a36dbaec1585093711bd40b",
     "tile.opening-door": "147c70f828a9ef95e7a7fad1065935dbe055d18ce6d0873f0bc243f0af695157",
     "tile.opening-door-horizontal": "147c70f828a9ef95e7a7fad1065935dbe055d18ce6d0873f0bc243f0af695157",
     "tile.opening-door-vertical": "c77c44ed66e19843a63b1d8f256e84ec8493792023dc7735a3f4380909b69a81",

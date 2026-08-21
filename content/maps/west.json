@@ -481,6 +481,31 @@
       "interactions": []
     },
     {
+      "id": "cubicle-r0c0-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 10,
+        "y": 10
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c0-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
       "id": "cubicle-r0c0-filing",
       "kind": "filing",
       "areaId": "cubicle-floor",
@@ -727,6 +752,31 @@
           }
         }
       ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c1-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 15,
+        "y": 10
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c1-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
       "interactions": []
     },
     {
@@ -979,6 +1029,31 @@
       "interactions": []
     },
     {
+      "id": "cubicle-r0c2-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 20,
+        "y": 10
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c2-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
       "id": "cubicle-r0c2-filing",
       "kind": "filing",
       "areaId": "cubicle-floor",
@@ -1225,6 +1300,31 @@
           }
         }
       ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r0c3-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 25,
+        "y": 10
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r0c3-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
       "interactions": []
     },
     {
@@ -1528,6 +1628,31 @@
       "interactions": []
     },
     {
+      "id": "cubicle-r1c0-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 10,
+        "y": 15
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c0-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
       "id": "cubicle-r1c0-filing",
       "kind": "filing",
       "areaId": "cubicle-floor",
@@ -1774,6 +1899,31 @@
           }
         }
       ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c1-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 15,
+        "y": 15
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c1-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
       "interactions": []
     },
     {
@@ -2026,6 +2176,31 @@
       "interactions": []
     },
     {
+      "id": "cubicle-r1c2-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 20,
+        "y": 15
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c2-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
       "id": "cubicle-r1c2-filing",
       "kind": "filing",
       "areaId": "cubicle-floor",
@@ -2272,6 +2447,31 @@
           }
         }
       ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r1c3-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 25,
+        "y": 15
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r1c3-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
       "interactions": []
     },
     {
@@ -2575,6 +2775,31 @@
       "interactions": []
     },
     {
+      "id": "cubicle-r2c0-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 10,
+        "y": 20
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c0-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
       "id": "cubicle-r2c0-filing",
       "kind": "filing",
       "areaId": "cubicle-floor",
@@ -2821,6 +3046,31 @@
           }
         }
       ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c1-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 15,
+        "y": 20
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c1-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
       "interactions": []
     },
     {
@@ -3073,6 +3323,31 @@
       "interactions": []
     },
     {
+      "id": "cubicle-r2c2-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 20,
+        "y": 20
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c2-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
+      "interactions": []
+    },
+    {
       "id": "cubicle-r2c2-filing",
       "kind": "filing",
       "areaId": "cubicle-floor",
@@ -3319,6 +3594,31 @@
           }
         }
       ],
+      "interactions": []
+    },
+    {
+      "id": "cubicle-r2c3-chair",
+      "kind": "office-chair",
+      "areaId": "cubicle-floor",
+      "anchor": {
+        "x": 25,
+        "y": 20
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "cubicle-r2c3-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
       "interactions": []
     },
     {
@@ -3967,6 +4267,31 @@
           }
         }
       ],
+      "interactions": []
+    },
+    {
+      "id": "manager-chair",
+      "kind": "office-chair",
+      "areaId": "manager-office",
+      "anchor": {
+        "x": 12,
+        "y": 32
+      },
+      "depthAnchorOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "renderParts": [
+        {
+          "id": "manager-chair-part-01",
+          "sprite": "tile.office-chair",
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "solidFootprints": [],
       "interactions": []
     },
     {

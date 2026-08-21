@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "fullAiCount": 8,
-  "ambientCount": 39,
+  "ambientCount": 35,
   "fullAiNpcIds": [
     "linda",
     "mina_park",
@@ -47,10 +47,6 @@
     "clerk_06",
     "clerk_07",
     "clerk_08",
-    "clerk_09",
-    "clerk_10",
-    "clerk_11",
-    "clerk_12",
     "office_manager"
   ],
   "visualIds": [
@@ -100,10 +96,6 @@
     "clerk_06_daily",
     "clerk_07_daily",
     "clerk_08_daily",
-    "clerk_09_daily",
-    "clerk_10_daily",
-    "clerk_11_daily",
-    "clerk_12_daily",
     "devon_price_daily",
     "elise_moreau_daily",
     "generic_daily",

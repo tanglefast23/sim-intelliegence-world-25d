@@ -82,7 +82,7 @@ export const WORLD_COMPOSITE_ORDER = [
 
 export type WorldLayer = typeof WORLD_LAYER_ORDER[number];
 export type WorldCompositeLayer = typeof WORLD_COMPOSITE_ORDER[number];
-export type CharacterPose = 'idle' | 'reaction' | 'talk' | 'impact' | 'recoil' | 'falling' | 'down';
+export type CharacterPose = 'idle' | 'seated' | 'reaction' | 'talk' | 'impact' | 'recoil' | 'falling' | 'down';
 export type WorldArtMode = 'enhanced' | 'legacy';
 export type WorldPoint = Readonly<{ x: number; y: number }>;
 
@@ -145,6 +145,7 @@ export type WorldCharacterPlacement = WorldAtlasPlacement & Readonly<{
    * where both feet are on the floor.
    */
   moving: boolean;
+  pose: CharacterPose;
 }>;
 
 export type WorldGroundedEntry = Readonly<{
@@ -765,6 +766,7 @@ export function buildWorldFrameState(
   frame: 0 | 1,
   playerPresentation?: Readonly<{
     visualFoot: WorldPoint;
+    visualId?: CharacterId;
     walkFrame: 0 | 1;
     moving: boolean;
     reducedMotion: boolean;
@@ -828,7 +830,7 @@ export function buildWorldFrameState(
   }>[] = [
     {
       id: 'protagonist',
-      visualId: 'vampire-01',
+      visualId: playerPresentation?.visualId ?? 'vampire-01',
       tile: playerTile,
       direction,
       visualFoot: playerPresentation?.visualFoot,
@@ -938,6 +940,7 @@ export function buildWorldFrameState(
       angleDegrees,
       gaitBobPixels: reducedMotion ? 0 : gaitBob,
       moving,
+      pose,
     };
   }).sort((left, right) => left.shadowWorldY - right.shadowWorldY || left.id.localeCompare(right.id, 'en'));
   const hiddenRoofGroupId = roofGroupAtV2(map, playerTile);

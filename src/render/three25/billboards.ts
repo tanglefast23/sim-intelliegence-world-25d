@@ -17,6 +17,8 @@ export type BillboardDescriptor = Readonly<{
   tint: string;
   /** Sprite rows to raise the quad above the contact point. Body quads stand on it, at 0. */
   lift: number;
+  /** Camera-depth offset that changes occlusion without changing the sprite's screen position. */
+  depthBias?: number;
 }>;
 
 export const BLINK_PERIOD_MILLISECONDS = 4_600;
@@ -28,6 +30,12 @@ const BLINK_CLOSED_MILLISECONDS = 290;
  * would be a stamp on the character's shoes.
  */
 const EYE_BAND_LIFT_ROWS = 29 - 14;
+const SEATED_VISIBLE_RATIO = 0.82;
+const SEATED_LIFT_TILES = 0.08;
+
+function seatedSource(source: AtlasRectangle): AtlasRectangle {
+  return { ...source, height: Math.max(1, Math.floor(source.height * SEATED_VISIBLE_RATIO)) };
+}
 
 /**
  * World pixels from `shadowWorldX` to the character's actual contact point.
@@ -104,15 +112,15 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
     .filter((character) => !isPencilVisualId(character.visualId))
     .map((character) => ({
     id: character.id,
-    source: character.source,
+    source: character.pose === 'seated' ? seatedSource(character.source) : character.source,
     x: (character.shadowWorldX + CHARACTER_CONTACT_OFFSET) / TILE_SIZE,
     z: character.shadowWorldY / TILE_SIZE,
     width: (character.source.width * character.scale) / TILE_SIZE,
-    height: (character.source.height * character.scale) / TILE_SIZE,
+    height: ((character.pose === 'seated' ? seatedSource(character.source).height : character.source.height) * character.scale) / TILE_SIZE,
     // Capped, like the furniture: an unlit sprite has no light to lift it back up, and a
     // protagonist who becomes a black silhouette after dusk is unusable.
     tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
-    lift: 0,
+    lift: character.pose === 'seated' ? SEATED_LIFT_TILES : 0,
   }));
   // Vegetation joins the batch the characters already use, so standing it up costs no draw call.
   const vegetation = frame.groundDetails
@@ -161,7 +169,9 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
       width: (band.width * character.scale) / TILE_SIZE,
       height: (band.height * character.scale) / TILE_SIZE,
       tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
-      lift: (EYE_BAND_LIFT_ROWS * character.scale) / TILE_SIZE,
+      lift: character.pose === 'seated'
+        ? SEATED_LIFT_TILES + ((seatedSource(character.source).height - 14) * character.scale) / TILE_SIZE
+        : (EYE_BAND_LIFT_ROWS * character.scale) / TILE_SIZE,
     }];
   });
   return [...characters, ...vegetation, ...eyes];

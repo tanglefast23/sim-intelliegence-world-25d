@@ -21,7 +21,7 @@
     "ground-decal": { "maximumCount": 64, "width": 32, "height": 32 },
     "wall-door": { "maximumCount": 80, "width": 32, "height": 32 },
     "roof": { "maximumCount": 32, "width": 32, "height": 32 },
-    "object-landmark": { "maximumCount": 68, "width": 32, "height": 32 },
+    "object-landmark": { "maximumCount": 69, "width": 32, "height": 32 },
     "world-character": { "maximumCount": 288, "width": 24, "height": 30 },
     "world-character-eyes": { "maximumCount": 36, "width": 24, "height": 3 },
     "portrait": { "maximumCount": 56, "width": 24, "height": 29 },

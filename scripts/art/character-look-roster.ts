@@ -146,17 +146,17 @@ export const CHARACTER_LOOKS = [
     supportingFeature: 'Two visible fangs reveal the guarded introvert as a vampire.', outfitPattern: 4, expressions: NAMED_EXPRESSIONS,
   },
   {
-    id: 'linda-boyfriend', displayName: "Linda's Boyfriend", kind: 'ambient', skin: 'sand', hairColor: 'auburn', clothing: 'sage', accent: 'pink',
+    id: 'linda-boyfriend', displayName: 'Marcus Vale', kind: 'ambient', skin: 'sand', hairColor: 'auburn', clothing: 'sage', accent: 'pink',
     head: 'long', build: 'slim', hair: 'pompadour', oddity: 'tiny-pompadour', oddityLayer: 'hair',
     secondary: 'bow-tie', secondaryLayer: 'accessory',
     signatureOddity: 'A tiny perfect pompadour perches on an unusually long head.',
     supportingFeature: 'A nervous bow tie is almost as wide as his shoulders.', outfitPattern: 2, expressions: AMBIENT_EXPRESSION,
   },
   {
-    id: 'resident-01', displayName: 'Resident 01', kind: 'ambient', skin: 'deep', hairColor: 'ink', clothing: 'coral', accent: 'gold',
+    id: 'resident-01', displayName: 'Calder Nine', kind: 'ambient', skin: 'deep', hairColor: 'ink', clothing: 'coral', accent: 'gold',
     head: 'round', build: 'wide', hair: 'bald', oddity: 'umbrella-hat', oddityLayer: 'accessory',
     secondary: 'rain-cape', secondaryLayer: 'torsoAndClothing',
-    signatureOddity: 'A tiny wearable umbrella spreads wider than the shoulders.', supportingFeature: 'A wide rain cape completes the shape.', outfitPattern: 4, expressions: AMBIENT_EXPRESSION,
+    signatureOddity: 'A rounded metal display head contains two amber eyes.', supportingFeature: 'A filing drawer and brass label slot fill the cabinet torso.', outfitPattern: 4, expressions: AMBIENT_EXPRESSION,
   },
   {
     id: 'resident-02', displayName: 'Resident 02', kind: 'ambient', skin: 'porcelain', hairColor: 'teal', clothing: 'plum', accent: 'pink',

@@ -525,6 +525,7 @@ export function bakeBillboardGeometry(
   up: Readonly<{ x: number; y: number; z: number }>,
   atlasWidth: number,
   atlasHeight: number,
+  viewDepth?: Readonly<{ x: number; y: number; z: number }>,
 ): BufferGeometry {
   const positions = new Float32Array(billboards.length * 4 * 3);
   const normals = new Float32Array(billboards.length * 4 * 3);
@@ -539,6 +540,7 @@ export function bakeBillboardGeometry(
     right.z * up.x - right.x * up.z,
     right.x * up.y - right.y * up.x,
   ];
+  const depth = viewDepth ?? { x: normal[0], y: normal[1], z: normal[2] };
 
   billboards.forEach((billboard, billboardIndex) => {
     const cell = atlasCell(billboard.source, atlasWidth, atlasHeight);
@@ -547,6 +549,7 @@ export function bakeBillboardGeometry(
     // `lift` raises a quad off the contact point. Body quads stand on it at 0; the blink band
     // is three rows tall and would otherwise be a stamp on the character's shoes.
     const lift = billboard.lift;
+    const depthBias = billboard.depthBias ?? 0;
     const corners: readonly (readonly [number, number])[] = [
       [-billboard.width / 2, lift],
       [billboard.width / 2, lift],
@@ -556,9 +559,9 @@ export function bakeBillboardGeometry(
     corners.forEach((corner, cornerIndex) => {
       const vertex = billboardIndex * 4 + cornerIndex;
       const uv = FACE_UVS[cornerIndex]!;
-      positions[vertex * 3] = billboard.x + right.x * corner[0] + up.x * corner[1];
-      positions[vertex * 3 + 1] = right.y * corner[0] + up.y * corner[1];
-      positions[vertex * 3 + 2] = billboard.z + right.z * corner[0] + up.z * corner[1];
+      positions[vertex * 3] = billboard.x + right.x * corner[0] + up.x * corner[1] + depth.x * depthBias;
+      positions[vertex * 3 + 1] = right.y * corner[0] + up.y * corner[1] + depth.y * depthBias;
+      positions[vertex * 3 + 2] = billboard.z + right.z * corner[0] + up.z * corner[1] + depth.z * depthBias;
       normals[vertex * 3] = normal[0];
       normals[vertex * 3 + 1] = normal[1];
       normals[vertex * 3 + 2] = normal[2];
@@ -1623,6 +1626,7 @@ export async function createWorldRenderer25(
       BILLBOARD_UP,
       atlasWidth,
       atlasHeight,
+      cameraBack,
     );
     const pencils = pencilBillboards(next);
     pencilMesh.geometry.dispose();
@@ -1632,6 +1636,7 @@ export async function createWorldRenderer25(
       BILLBOARD_UP,
       PENCIL_TEXTURE_WIDTH,
       PENCIL_HEIGHT,
+      cameraBack,
     );
     pencilMesh.visible = pencils.length > 0 && pencilPixels !== undefined && pencilContext !== undefined;
     if (pencilMesh.visible && pencilPixels && pencilContext && pencilTexture) {
