@@ -598,7 +598,11 @@ export function buildPropBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
         width: box.width,
         height: box.height,
         depth: box.depth,
-        depthBias: turnChair && box.foregroundWhenTurned === true ? 0.8 : undefined,
+        depthBias: turnChair
+          && seatedCharacter.visualId !== 'linda-boyfriend'
+          && box.foregroundWhenTurned === true
+          ? 0.8
+          : undefined,
         glow: box.glow,
         // An authored per-box tint wins, so a sofa's arms can differ from its seat. Otherwise the
         // sprite's measured dominant colour - never the frame colour, which is plain white here.

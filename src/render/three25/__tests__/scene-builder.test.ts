@@ -187,10 +187,10 @@ describe('prop, door and roof boxes', () => {
       source: atlasRectangle('tile.office-chair'), tile,
     };
     const sitter = { ...frame.characters[0]!, tile, pose: 'seated' as const };
-    const chairBoxes = (sprite?: string) => buildPropBoxes({
+    const chairBoxes = (sprite?: string, visualId = sitter.visualId) => buildPropBoxes({
       ...frame,
       props: [chair],
-      characters: sprite ? [{ ...sitter, sprite }] : [],
+      characters: sprite ? [{ ...sitter, sprite, visualId }] : [],
     });
     const chairBack = (sprite?: string) => chairBoxes(sprite).find(({ id }) => id === 'test-chair#2')!;
 
@@ -200,6 +200,8 @@ describe('prop, door and roof boxes', () => {
     expect(chairBoxes('character.vampire-01.front-1').filter(({ depthBias }) => depthBias !== undefined))
       .toEqual([expect.objectContaining({ id: 'test-chair#8', depthBias: 0.8 })]);
     expect(chairBoxes('character.vampire-01.rear-1').every(({ depthBias }) => depthBias === undefined)).toBe(true);
+    expect(chairBoxes('character.linda-boyfriend.left-1', 'linda-boyfriend')
+      .every(({ depthBias }) => depthBias === undefined)).toBe(true);
   });
 
   test('doors fill their gap and stand on the floor', () => {

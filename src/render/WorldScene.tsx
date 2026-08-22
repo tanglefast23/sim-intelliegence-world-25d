@@ -260,13 +260,16 @@ function actorTiles(
     const tile = activeNpcTile(state, stateId, mapId);
     if (tile) {
       const movement = movements[stateId];
+      const seatedOfficeWorker = mapId === 'west_office'
+        && isOfficeSeatNpc(stateId)
+        && movement?.segment === undefined;
       // A moving actor keeps its movement direction. A STILL one may name its own idle facing:
       // an office clerk who never walks would otherwise stand with their back to their desk.
       const facing = movement?.direction ?? idleFacingForNpc(stateId) ?? 'down';
       output[stateId] = {
         tile,
         visualId: visualIdForNpc(stateId),
-        direction: tilted ? tiltedFacing(facing, movement) : facing,
+        direction: seatedOfficeWorker ? 'up' : tilted ? tiltedFacing(facing, movement) : facing,
         visualFoot: snapWorldPoint(movement?.visualFoot ?? tileFootPoint(tile), zoom, dpr),
         walkFrame: movement?.walkFrame ?? 0,
         moving: movement?.segment !== undefined,
@@ -274,7 +277,7 @@ function actorTiles(
         horizontalRunDistance: movement?.horizontalRunDistance ?? 0,
         pose: stateId === reactionId
           ? 'reaction'
-          : mapId === 'west_office' && isOfficeSeatNpc(stateId) && movement?.segment === undefined
+          : seatedOfficeWorker
             ? 'seated'
             : stateId === conversationNpcId ? 'talk' : 'idle',
         poseFrame: stateId === selectedId || stateId === conversationNpcId ? poseFrame : 0,
