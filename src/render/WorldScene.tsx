@@ -779,7 +779,12 @@ export function WorldScene({
       ));
     };
     window.siWorldSetAuthoredDialogueFixture = (characterId) => {
-      if (characterId === undefined || !CHARACTER_IDS.includes(characterId)) {
+      if (characterId === undefined) {
+        setAuthoredDialogueFixtureId(undefined);
+        setQuestOfferOpen(true);
+        return;
+      }
+      if (!CHARACTER_IDS.includes(characterId)) {
         throw new Error(`Unknown authored dialogue fixture ${String(characterId)}.`);
       }
       setOpenPanel(undefined);

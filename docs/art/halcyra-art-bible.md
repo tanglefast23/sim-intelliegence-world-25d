@@ -13,7 +13,7 @@ Halcyra uses an original warm-noir pixel-diorama style.
 - Warm sun, clean water, and inviting businesses sell the public image.
 - Deep shade, worn service routes, guarded doors, and selective neon show the hidden vice economy.
 - The result must stay readable at native `1x` zoom.
-- Character World Sprites use SI World's 2.5D pencil method. Dialogue Icons and legacy atlas cells keep SI World's established block-pixel geometry.
+- Character World Sprites and explicitly requested KinderGrimm props use SI World's 2.5D pencil method. Dialogue Icons and unchanged legacy atlas cells keep SI World's established block-pixel geometry.
 
 ## 2. Fixed scale
 
@@ -141,6 +141,8 @@ Each shipped material family needs:
 
 ## 8. Props and landmarks
 
+- A request for a "KinderGrimm object" or "KinderGrimm prop" must follow `docs/art/kindergrimm-asset-authoring.md`. The fixed tile scale and depth rules below still apply, but legacy HFM or block-pixel construction does not.
+- A final KinderGrimm prop must come from a deterministic `Sketch` and pencil-medium recipe. Generic image generation can supply concept reference only.
 - Small props can fit one tile. Large props are composed first, then split into atlas cells.
 - Multi-tile seams must be invisible after composition.
 - Tall props declare an anchor tile and full transparent bounds.
