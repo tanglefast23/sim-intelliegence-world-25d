@@ -1,4 +1,4 @@
-import type { Sketch } from '../sketch';
+import type { Point, Sketch } from '../sketch';
 import type { VampireLayout } from '../layout';
 import type { VampirePose } from '../pose';
 
@@ -13,6 +13,54 @@ const SIDE_LIFT = 12;
 const BOOT_HEIGHT = 26;
 /** Thickness of the pale sole. */
 const SOLE = 7;
+
+function canvasSegment(start: Point, end: Point, width: number): readonly Point[] {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const length = Math.max(1, Math.hypot(dx, dy));
+  const nx = -dy / length * width;
+  const ny = dx / length * width;
+  return [
+    { x: start.x + nx, y: start.y + ny },
+    { x: end.x + nx, y: end.y + ny },
+    { x: end.x - nx, y: end.y - ny },
+    { x: start.x - nx, y: start.y - ny },
+  ];
+}
+
+export function drawRiggedLeg(
+  sketch: Sketch,
+  F: VampireLayout,
+  points: Readonly<{ hip: Point; knee: Point; foot: Point }>,
+  options: Readonly<{ near: boolean; rear: boolean }>,
+): void {
+  for (const [start, end, angle] of [
+    [points.hip, points.knee, options.near ? -0.42 : 0.42],
+    [points.knee, points.foot, options.near ? 0.36 : -0.36],
+  ] as const) {
+    const shape = sketch.smooth(canvasSegment(start, end, 3.1 * F.k));
+    F.media.tone(sketch, shape, { style: 'hatch', angle });
+    F.media.skin(sketch, shape, F.colors.hairEdge, { paper: false, underdraw: false, alpha: 0.78 });
+    F.media.edge(sketch, [...shape, shape[0]!], F.lwMain);
+  }
+  const direction = points.foot.x >= points.knee.x ? 1 : -1;
+  const boot = sketch.smooth([
+    { x: points.foot.x - direction * 3 * F.k, y: points.foot.y - 8 * F.k },
+    { x: points.foot.x + direction * 8 * F.k, y: points.foot.y - 5 * F.k },
+    { x: points.foot.x + direction * 9 * F.k, y: points.foot.y },
+    { x: points.foot.x - direction * 5 * F.k, y: points.foot.y },
+  ]);
+  F.media.tone(sketch, boot, { style: 'black' });
+  F.media.skin(sketch, boot, F.colors.hair, { paper: false, underdraw: false, alpha: 0.84 });
+  F.media.edge(sketch, [...boot, boot[0]!], F.lwThin * 1.6);
+  const bandY = options.rear ? points.foot.y - 7 * F.k : points.foot.y - 2 * F.k;
+  F.media.skin(sketch, sketch.smooth([
+    { x: points.foot.x - 5 * F.k, y: bandY },
+    { x: points.foot.x + 7 * F.k, y: bandY },
+    { x: points.foot.x + 7 * F.k, y: bandY + 2 * F.k },
+    { x: points.foot.x - 5 * F.k, y: bandY + 2 * F.k },
+  ]), F.colors.ash, { underdraw: false, alpha: 0.75 });
+}
 
 /**
  * One boot, heel to toe, with a pale sole under it.

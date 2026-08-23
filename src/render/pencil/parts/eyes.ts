@@ -9,10 +9,19 @@ import type { VampirePose } from '../pose';
  * first version drew small red-ringed blobs, which read as sore eyes rather than eyes. The red
  * stays — it is the vampire's identity — but as an iris around a big dark pupil.
  */
-export function drawEyes(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
+export function drawEyes(
+  sketch: Sketch,
+  F: VampireLayout,
+  pose: VampirePose,
+  options: Readonly<{ scale?: number; rightScale?: number; spacing?: number; fierce?: number }> = {},
+): void {
   if (pose.facing === 'rear') return;
   const { cx, hs, colors } = F;
   const y = F.L.eyeY;
+  const scale = options.scale ?? 1;
+  const rightScale = options.rightScale ?? 1;
+  const spacing = options.spacing ?? 1;
+  const fierce = options.fierce ?? 0;
 
   const eye = (ex: number, scale: number): void => {
     F.media.skin(sketch, sketch.blobPts(ex, y, 8 * hs * scale, 6.2 * hs * scale, 0, 0.2), colors.white, {
@@ -34,15 +43,18 @@ export function drawEyes(sketch: Sketch, F: VampireLayout, pose: VampirePose): v
 
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
-    const ex = cx + dir * 5 * hs;
-    eye(ex, 0.85);
-    sketch.sline([F.head(dir * 5 - 5, 75), F.head(dir * 5 + 5, 72)], F.lwMain, 0.7);
+    const ex = cx + dir * 5 * hs * spacing;
+    eye(ex, 0.85 * scale);
+    sketch.sline([F.head(dir * 5 - 5, 75 - fierce * 2), F.head(dir * 5 + 5, 72 + fierce * 2)], F.lwMain, 0.7);
     return;
   }
 
   for (const side of [-1, 1] as const) {
-    const ex = cx + F.L.eyeX(side);
-    eye(ex, 1);
-    sketch.sline([F.head(side * 12 - 6, 74), F.head(side * 12 + 6, 72)], F.lwMain, 0.7);
+    const ex = cx + F.L.eyeX(side) * spacing;
+    eye(ex, scale * (side === 1 ? rightScale : 1));
+    sketch.sline([
+      F.head(side * 12 - 6, 74 - fierce * side * 2),
+      F.head(side * 12 + 6, 72 + fierce * side * 2),
+    ], F.lwMain, 0.7);
   }
 }

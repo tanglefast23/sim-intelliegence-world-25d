@@ -16,7 +16,7 @@ import type {
   RendererPresentationPatch,
 } from './presentation/preferences';
 import type { CharacterId } from '../render/atlas';
-import type { CharacterPose } from '../render/world-frame';
+import type { CharacterPose, PencilRigIntent } from '../render/world-frame';
 import type { CameraDirector } from '../render/camera-motion';
 import type { MapId } from '../world/maps/catalog';
 import type { RendererKind, ToneMappingKind } from '../render/renderer-selection';
@@ -82,6 +82,8 @@ declare global {
     siWorldStandOnTile?: (tileX: number, tileY: number) => void;
     /** Capture-only pose override. It is React state and never enters a save. */
     siWorldSetPlayerPose?: (pose?: CharacterPose) => void;
+    /** Capture-only pencil rig input. It is React state and never enters a save. */
+    siWorldSetPlayerRigIntent?: (intent?: PencilRigIntent) => void;
     /** Capture-only character-art override. It is React state and never enters a save. */
     siWorldSetPlayerVisual?: (visualId?: CharacterId) => void;
     /** Capture-only screen-facing override for four-view art proof. */

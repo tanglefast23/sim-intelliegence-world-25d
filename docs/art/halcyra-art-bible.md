@@ -1,6 +1,6 @@
 # Halcyra art bible
 
-Status: Canonical art contract. The Phase 33 HFM-geometry full-cast rebuild follows section 9.
+Status: Canonical art contract. Section 9 owns current character rules. Section 17 records the Phase 33 legacy atlas rebuild.
 
 ## 1. Style target
 
@@ -13,7 +13,7 @@ Halcyra uses an original warm-noir pixel-diorama style.
 - Warm sun, clean water, and inviting businesses sell the public image.
 - Deep shade, worn service routes, guarded doors, and selective neon show the hidden vice economy.
 - The result must stay readable at native `1x` zoom.
-- Character art must reuse the proven HFM geometry and assembly grammar. Halcyra clothing, accessories, palettes, jobs, and identities remain original.
+- Character World Sprites use SI World's 2.5D pencil method. Dialogue Icons and legacy atlas cells keep SI World's established block-pixel geometry.
 
 ## 2. Fixed scale
 
@@ -166,9 +166,9 @@ Each shipped material family needs:
 
 ### 9.2 Halcyra character style
 
-- Atlas-path creation rule: every new or changed atlas portrait and world character uses the HFM `24x29` portrait and `24x30` world geometry in this section. Characters routed through `src/render/pencil/` use `character-sprite-authoring.md` and `character-sprite-design2.0.md` instead.
-- Use original expressive oddball chibi character art. HFM supplies the atlas shared-source method and pixel discipline; Kindergrimm supplies the pencil construction method. Neither supplies production character designs.
-- Atlas only: use HFM's cut-corner face box, fixed eye and mouth rows, stepped portrait shoulders, visible arm and hand columns, two narrow separated legs, shaped feet, and `face -> feature -> body -> outline` assembly order.
+- World Sprites use `character-sprite-authoring.md` and `character-sprite-design2.0.md`. Use the current `24x29` portrait and `24x30` world geometry only for Dialogue Icons and legacy atlas compatibility.
+- Use original expressive oddball chibi character art. Kindergrimm supplies the pencil construction method. SI World's existing portrait and atlas code supplies block-pixel constraints. Neither supplies production character designs.
+- Legacy atlas only: use the existing cut-corner face box, fixed eye and mouth rows, stepped portrait shoulders, visible arm and hand columns, two narrow separated legs, shaped feet, and `face -> feature -> body -> outline` assembly order.
 - Atlas only: use one logical pixel as the drawing unit. Use hard edges. Do not use gradients, smoothing, or anti-aliasing.
 - Atlas only: light the character from the upper left.
 - Use a large, readable head and face. The face must remain readable at native `1x`.
@@ -200,11 +200,11 @@ Every person must have a special, unique, and slightly goofy look. This is a pro
 ### 9.4 Atlas geometry and motion
 
 - For atlas-path characters, keep the current `24x30` world cell and eight walking cells.
-- Keep the HFM `24x29` portrait cell.
+- Keep SI World's current `24x29` portrait cell.
 - Use the same head, eye, mouth, hair, and feature coordinates in portrait and world sources. Do not scale a separate portrait drawing.
-- Keep the top, left, and right source margins open for the generated contour. World feet can use the bottom row, as in HFM.
+- Keep the top, left, and right source margins open for the generated contour. Legacy atlas feet can use the bottom row.
 - World bodies need visible arms or an intentional asymmetric garment, two separate narrow legs, and two shaped feet.
-- Portrait shoulders must widen through the HFM neck and four shoulder steps before the lower bust. A solid rectangle that starts directly below the head is rejected.
+- Portrait shoulders must widen through the current neck and four shoulder steps before the lower bust. A solid rectangle that starts directly below the head is rejected.
 - Feet must change in both walking frames.
 - Lateral movement keeps the current front-body method until a native-zoom test proves it unclear.
 - If lateral identity is unclear, add one mirrored three-quarter head and hair view before a full side body.
@@ -289,7 +289,7 @@ Reference games can teach scale, density, contrast, depth order, and review meth
 - Do not copy named material textures.
 - Do not copy a character silhouette or face design.
 - Do not copy UI framing, icons, fonts, labels, or color layout.
-- Keep Halcyra's warm-noir resort identity and HFM-derived character source method original.
+- Keep Halcyra's warm-noir resort identity and SI World's character source method original.
 
 ## 15. Review gate
 
@@ -342,7 +342,7 @@ The soft transition uses broken triangular edge groups. The built transition use
 
 The sofa, table, palm, lamp, and fountain are tall-prop review classes. Each needs player-in-front and player-behind proof. Contact shadows stay attached to the object. Ground decals never become solids or interactions.
 
-## 17. Phase 33 HFM full-cast two-feature ledger
+## 17. Phase 33 legacy atlas full-cast two-feature ledger
 
 The compact look records in `scripts/art/character-look-roster.ts` are authoritative. They generate 35 production identities, 280 world cells, 35 rest portraits, and 18 additional named-character expression portraits. The old per-character JSON sources are retired.
 
@@ -396,7 +396,7 @@ legacy atlas humans. It does not control pencil creature anatomy or creature dia
 Literal creature anatomy overrides the shared human face, eye grid, body, and profile. The old
 automated protagonist-style score cannot approve a creature redesign.
 
-The cast keeps generated rear cells and the front-body lateral method. Named sources generate `rest`, `joy`, and `upset`; ambient sources generate `rest`. Review `artifacts/phase-24/art-quality/phase-33-hfm-full-cast/full-cast-identity-1x.png` before the `3x` board.
+The cast keeps generated rear cells and the front-body lateral method. Named sources generate `rest`, `joy`, and `upset`; ambient sources generate `rest`. Review the Phase 33 native-size identity board before the `3x` board.
 
 ## 18. Phase 30 complete Sunward family ledger
 

@@ -127,6 +127,21 @@ function walkTo(target: { x: number; y: number }, initialState = createInitialSt
 }
 
 describe('authoritative world frame', () => {
+  test('copies the optional pencil rig intent into the protagonist placement', () => {
+    const rigIntent = {
+      reach: { hand: 'right', target: { x: 91, y: 82 }, weight: 0.75 },
+      heldItem: { item: 'brass-lantern', hand: 'right' },
+    } as const;
+    const frame = buildWorldFrameState(MAP, stateVariant('outside'), ACTORS, 'down', 0, {
+      visualFoot: { x: 17 * 32 + 16, y: 25 * 32 + 29 },
+      walkFrame: 0,
+      moving: false,
+      reducedMotion: false,
+      rigIntent,
+    });
+    expect(frame.characters.find(({ id }) => id === 'protagonist')?.rigIntent).toEqual(rigIntent);
+  });
+
   test('runs exactly two destination pulses and then disappears', () => {
     expect(destinationPulseFrame(0)).toMatchObject({ complete: false, opacity: 0.72, radius: 3 });
     expect(destinationPulseFrame(DESTINATION_PULSE_MS / 2)).toMatchObject({ complete: false, opacity: 0.72, radius: 3 });

@@ -169,6 +169,7 @@ import {
   DESTINATION_PULSE_MS,
   type WorldActors,
   type CharacterPose,
+  type PencilRigIntent,
   type WorldCharacterPlacement,
   type WorldGroundedEntry,
   type WorldLayer,
@@ -436,6 +437,7 @@ export function WorldScene({
   const [reactionId, setReactionId] = useState<string>();
   const [poseFrame, setPoseFrame] = useState<0 | 1>(0);
   const [playerPoseFixture, setPlayerPoseFixture] = useState<CharacterPose>();
+  const [playerRigIntentFixture, setPlayerRigIntentFixture] = useState<PencilRigIntent>();
   const [playerVisualFixture, setPlayerVisualFixture] = useState<CharacterId>();
   const [selectionFixtureVisible, setSelectionFixtureVisible] = useState(true);
   const [saveStatus, setSaveStatus] = useState(initialSaveStatus);
@@ -918,6 +920,7 @@ export function WorldScene({
       setVfxAgeStep(step);
     };
     window.siWorldSetPlayerPose = setPlayerPoseFixture;
+    window.siWorldSetPlayerRigIntent = setPlayerRigIntentFixture;
     window.siWorldSetPlayerVisual = setPlayerVisualFixture;
     window.siWorldSetSelectionVisible = setSelectionFixtureVisible;
     window.siWorldSetPlayerFacing = (facing) => {
@@ -1066,6 +1069,7 @@ export function WorldScene({
       delete window.siWorldSetVfxStep;
       delete window.siWorldStandOnTile;
       delete window.siWorldSetPlayerPose;
+      delete window.siWorldSetPlayerRigIntent;
       delete window.siWorldSetPlayerVisual;
       delete window.siWorldSetPlayerFacing;
       delete window.siWorldSetSelectionVisible;
@@ -1626,6 +1630,7 @@ export function WorldScene({
       travelDistance: runtime.movement.travelDistance,
       turnCurve: runtime.movement.latchedTurnCurve,
       stopProgress: gaitStopProgress(runtime.movement),
+      rigIntent: playerRigIntentFixture,
     }, {
       // The 2.5D path asks for a bigger window AND a shifted origin: `renderCamera.x/y` is the
       // world point at screen (0,0), which under rotation is not the north-west corner of the
@@ -1648,7 +1653,7 @@ export function WorldScene({
       transientEffects: transientFrame.rects,
       transientGlows: transientFrame.glows,
     }),
-    [artMode, renderCamera, destinationMarker, destinationPulseElapsedMs, dpr, map, npcTiles, playerPoseFixture, playerVisualFixture, playerVisualFoot, poseFrame, reactionId, reducedMotion, renderer2_5d, rendererParityPulseFrozen, runtime.movement, runtime.npcMovements, runtime.worldState, selected, selectedFoot, surface, transientFrame, vfxAgeStep, vfxMode],
+    [artMode, renderCamera, destinationMarker, destinationPulseElapsedMs, dpr, map, npcTiles, playerPoseFixture, playerRigIntentFixture, playerVisualFixture, playerVisualFoot, poseFrame, reactionId, reducedMotion, renderer2_5d, rendererParityPulseFrozen, runtime.movement, runtime.npcMovements, runtime.worldState, selected, selectedFoot, surface, transientFrame, vfxAgeStep, vfxMode],
   );
   const propById = new Map(worldFrame.props.map((prop) => [prop.id, prop]));
   const characterById = new Map(worldFrame.characters.map((character) => [character.id, character]));

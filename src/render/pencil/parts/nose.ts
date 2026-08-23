@@ -16,20 +16,26 @@ import type { VampirePose } from '../pose';
  * It sits at row 95, between the eyes at 85 and the mouth at 103. At 90 it overlapped the eye
  * blobs.
  */
-export function drawNose(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
+export function drawNose(
+  sketch: Sketch,
+  F: VampireLayout,
+  pose: VampirePose,
+  options: Readonly<{ size?: number }> = {},
+): void {
   if (pose.facing === 'rear') return;
   const { hs, colors } = F;
+  const size = options.size ?? 1;
 
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
     // Straddles the profile edge so it reads as a nose pushing out of the silhouette.
     const centre = F.head(dir * 27, 95);
-    F.media.skin(sketch, sketch.blobPts(centre.x, centre.y, 7 * hs, 5.5 * hs, 0, 0.28), colors.pale, { underdraw: false, alpha: 0.5 });
-    F.media.skin(sketch, sketch.blobPts(centre.x - dir * 1.5 * hs, centre.y + 3 * hs, 4.5 * hs, 2 * hs, 0, 0.7), colors.ash, { paper: false, underdraw: false, alpha: 0.5 });
+    F.media.skin(sketch, sketch.blobPts(centre.x, centre.y, 7 * hs * size, 5.5 * hs * size, 0, 0.28), colors.pale, { underdraw: false, alpha: 0.5 });
+    F.media.skin(sketch, sketch.blobPts(centre.x - dir * 1.5 * hs, centre.y + 3 * hs, 4.5 * hs * size, 2 * hs * size, 0, 0.7), colors.ash, { paper: false, underdraw: false, alpha: 0.5 });
     return;
   }
 
   const centre = F.head(0, 95);
-  F.media.skin(sketch, sketch.blobPts(centre.x, centre.y, 5.5 * hs, 4.5 * hs, 0, 0.28), colors.pale, { underdraw: false, alpha: 0.5 });
-  F.media.skin(sketch, sketch.blobPts(centre.x, centre.y + 2.6 * hs, 4 * hs, 1.8 * hs, 0, 0.7), colors.ash, { paper: false, underdraw: false, alpha: 0.5 });
+  F.media.skin(sketch, sketch.blobPts(centre.x, centre.y, 5.5 * hs * size, 4.5 * hs * size, 0, 0.28), colors.pale, { underdraw: false, alpha: 0.5 });
+  F.media.skin(sketch, sketch.blobPts(centre.x, centre.y + 2.6 * hs, 4 * hs * size, 1.8 * hs * size, 0, 0.7), colors.ash, { paper: false, underdraw: false, alpha: 0.5 });
 }

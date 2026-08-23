@@ -78,20 +78,33 @@ export function drawCloak(sketch: Sketch, F: VampireLayout, pose: VampirePose): 
   ], colors.lining, 0.55);
 }
 
-export function drawCollar(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
+export function drawCollar(
+  sketch: Sketch,
+  F: VampireLayout,
+  pose: VampirePose,
+  options: Readonly<{ asymmetric?: boolean }> = {},
+): void {
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
+    const pointX = options.asymmetric ? 40 : 34;
+    const pointY = options.asymmetric ? 96 : 101;
+    const innerX = options.asymmetric ? 24 : 27;
     clothMass(sketch, F, [
       F.body(-dir * 6, 124), F.body(-dir * 38, 136),
-      F.head(-dir * 34, 101), F.head(-dir * 27, 118),
+      F.head(-dir * pointX, pointY), F.head(-dir * innerX, 120),
     ], F.colors.cloakLift, -dir * 0.25, false);
     return;
   }
 
   for (const side of [-1, 1] as const) {
+    const highLeft = options.asymmetric && pose.facing === 'front' && side === 1;
+    const lowRight = options.asymmetric && pose.facing === 'front' && side === -1;
+    const pointX = options.asymmetric ? 40 : 34;
+    const innerX = options.asymmetric ? 24 : 27;
     clothMass(sketch, F, [
       F.body(side * 8, 124), F.body(side * 40, 136),
-      F.head(side * 34, pose.facing === 'rear' ? 98 : 101), F.head(side * 27, 118),
+      F.head(side * pointX, pose.facing === 'rear' ? 98 : highLeft ? 90 : lowRight ? 104 : 101),
+      F.head(side * innerX, highLeft ? 118 : 121),
     ], F.colors.cloakLift, side * 0.25, false);
   }
 }

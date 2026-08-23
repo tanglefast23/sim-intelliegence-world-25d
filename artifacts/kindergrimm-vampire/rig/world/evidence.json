@@ -1,0 +1,22 @@
+[
+  {
+    "name": "vampire-lantern-reach",
+    "yawDegrees": 45,
+    "shadowPath": "fallback",
+    "screenshot": "vampire-lantern-reach.png",
+    "evidence": {
+      "rendererKind": "threejs-2-5d",
+      "drawCalls": 10,
+      "meshCount": 876,
+      "yawDegrees": 45,
+      "shadowPath": "fallback",
+      "shadowMapEnabled": false,
+      "atlasDrawCalls": 2,
+      "vfxAdditiveQuads": 0,
+      "vfxAlphaQuads": 0,
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 9,
+      "frameSamples": 120
+    }
+  }
+]

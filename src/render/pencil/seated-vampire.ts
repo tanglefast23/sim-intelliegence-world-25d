@@ -1,12 +1,9 @@
 import { buildVampireLayout, SHEET_HEIGHT, SHEET_WIDTH, type VampireLayout } from './layout';
 import { screenSideForAttachment, VAMPIRE_FACINGS, type AnatomicalSide, type VampireFacing, type VampirePose } from './pose';
 import { hashSeed, type Point, Sketch } from './sketch';
-import { drawEars } from './parts/ears';
-import { drawEyes } from './parts/eyes';
-import { drawFangs } from './parts/fangs';
-import { drawHair } from './parts/hair';
-import { drawNose } from './parts/nose';
-import { drawSkull } from './parts/skull';
+import { drawCollar as drawApprovedCollar } from './parts/cloak';
+import { drawGeneratedVampireHead } from './generated-vampire';
+import { resolveVampireRigPose } from './vampire-rig';
 
 const BOIL_FRAMES = 3;
 
@@ -63,38 +60,20 @@ function screenSide(side: AnatomicalSide, facing: VampireFacing): -1 | 1 {
 }
 
 function legPoints(F: VampireLayout, facing: VampireFacing, side: AnatomicalSide): Readonly<{ hip: Point; knee: Point; ankle: Point }> {
-  const sideOnScreen = screenSide(side, facing);
-  if (facing === 'left' || facing === 'right') {
-    const dir = facing === 'right' ? 1 : -1;
-    const near = sideOnScreen === dir;
-    return {
-      hip: F.body(dir * (near ? 4 : -2), 220),
-      knee: F.body(dir * (near ? 66 : 50), near ? 220 : 224),
-      ankle: F.body(dir * (near ? 62 : 46), near ? 282 : 278),
-    };
-  }
+  const rig = resolveVampireRigPose(F, { pose: { facing, gait: 0, moving: false }, characterPose: 'seated' });
   return {
-    hip: F.body(sideOnScreen * 8, 220),
-    knee: F.body(sideOnScreen * 28, 220),
-    ankle: F.body(sideOnScreen * 28, 282),
+    hip: rig.joints[`${side}Hip`],
+    knee: rig.joints[`${side}Knee`],
+    ankle: rig.joints[`${side}Foot`],
   };
 }
 
 function armPoints(F: VampireLayout, facing: VampireFacing, side: AnatomicalSide): Readonly<{ shoulder: Point; elbow: Point; wrist: Point }> {
-  const sideOnScreen = screenSide(side, facing);
-  if (facing === 'left' || facing === 'right') {
-    const dir = facing === 'right' ? 1 : -1;
-    const near = sideOnScreen === dir;
-    return {
-      shoulder: F.body(dir * (near ? 7 : -1), 148),
-      elbow: F.body(dir * (near ? 31 : 21), near ? 181 : 177),
-      wrist: F.body(dir * (near ? 46 : 36), near ? 202 : 207),
-    };
-  }
+  const rig = resolveVampireRigPose(F, { pose: { facing, gait: 0, moving: false }, characterPose: 'seated' });
   return {
-    shoulder: F.body(sideOnScreen * 16, 148),
-    elbow: F.body(sideOnScreen * 36, 176),
-    wrist: F.body(sideOnScreen * 40, 202),
+    shoulder: rig.joints[`${side}Shoulder`],
+    elbow: rig.joints[`${side}Elbow`],
+    wrist: rig.joints[`${side}Hand`],
   };
 }
 
@@ -184,31 +163,13 @@ function drawArm(sketch: Sketch, F: VampireLayout, facing: VampireFacing, side?:
   });
 }
 
-function drawHead(sketch: Sketch, F: VampireLayout, facing: VampireFacing): void {
+function drawHead(sketch: Sketch, _F: VampireLayout, facing: VampireFacing): void {
   const pose: VampirePose = { facing, gait: 0, moving: false };
-  drawSkull(sketch, F, pose);
-  drawEars(sketch, F, pose);
-  drawHair(sketch, F, pose);
-  drawEyes(sketch, F, pose);
-  drawNose(sketch, F, pose);
-  drawFangs(sketch, F, pose);
+  drawGeneratedVampireHead(sketch, pose);
 }
 
 function drawCollar(sketch: Sketch, F: VampireLayout, facing: VampireFacing): void {
-  if (facing === 'left' || facing === 'right') {
-    const dir = facing === 'right' ? 1 : -1;
-    cloth(sketch, F, [
-      F.body(-dir * 5, 140), F.body(-dir * 25, 145),
-      F.head(-dir * 27, 105), F.head(-dir * 22, 119),
-    ], 'cloakLift', -dir * 0.25);
-    return;
-  }
-  for (const side of [-1, 1] as const) {
-    cloth(sketch, F, [
-      F.body(side * 6, 140), F.body(side * 36, 145),
-      F.head(side * 33, facing === 'rear' ? 99 : 103), F.head(side * 25, 119),
-    ], 'cloakLift', side * 0.25);
-  }
+  drawApprovedCollar(sketch, F, { facing, gait: 0, moving: false }, { asymmetric: true });
 }
 
 const SEATED_BONES: readonly SeatedBone[] = [
@@ -241,8 +202,7 @@ function compositeOver(target: Uint8ClampedArray, source: Uint8ClampedArray): vo
   }
 }
 
-export function bakeSeatedVampireFrames(): readonly Uint8ClampedArray[] {
-  const F = buildVampireLayout();
+export function bakeSeatedVampireFrames(F = buildVampireLayout()): readonly Uint8ClampedArray[] {
   return VAMPIRE_FACINGS.flatMap((facing) => Array.from({ length: BOIL_FRAMES }, (_, boil) => {
     const output = new Uint8ClampedArray(SHEET_WIDTH * SHEET_HEIGHT * 4);
     for (const bone of SEATED_BONES) {
