@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "status": "review",
+  "assetId": "modern-digital-alarm-clock-01",
+  "brief": "Modern soft-touch digital alarm clock with a dominant amber 7:30 display.",
+  "seed": 730,
+  "upstreamCommit": "de339ad739d8cbd28ff2dd4a940af38c0ede86c8",
+  "medium": "graphite",
+  "canvas": {
+    "width": 96,
+    "height": 66
+  },
+  "world": {
+    "tileSize": 32,
+    "frame": {
+      "width": 32,
+      "height": 22
+    },
+    "footprint": {
+      "width": 28,
+      "depth": 12
+    },
+    "collision": {
+      "x": -14,
+      "y": -6,
+      "width": 28,
+      "height": 12
+    },
+    "depth": {
+      "mode": "low"
+    }
+  },
+  "material": "charcoal soft-touch plastic, smoked glass, rubber feet",
+  "time": "7:30",
+  "orderedParts": [
+    "contact-shadow",
+    "feet",
+    "case",
+    "screen",
+    "time",
+    "buttons"
+  ],
+  "colors": {
+    "case": [
+      54,
+      52,
+      59
+    ],
+    "caseLight": [
+      92,
+      88,
+      94
+    ],
+    "screen": [
+      27,
+      25,
+      31
+    ],
+    "led": [
+      246,
+      166,
+      60
+    ],
+    "rubber": [
+      28,
+      26,
+      30
+    ],
+    "shadow": [
+      62,
+      48,
+      44
+    ]
+  },
+  "views": {
+    "front": {
+      "transparentBounds": {
+        "x": 2,
+        "y": 8,
+        "width": 92,
+        "height": 54
+      },
+      "groundContact": {
+        "x": 48,
+        "y": 57
+      },
+      "anchors": {
+        "snooze": {
+          "x": 48,
+          "y": 14
+        },
+        "hour": {
+          "x": 17,
+          "y": 16
+        },
+        "minute": {
+          "x": 25,
+          "y": 15
+        },
+        "alarm": {
+          "x": 74,
+          "y": 15
+        },
+        "power": {
+          "x": 83,
+          "y": 16
+        }
+      }
+    },
+    "side": {
+      "transparentBounds": {
+        "x": 12,
+        "y": 9,
+        "width": 71,
+        "height": 53
+      },
+      "groundContact": {
+        "x": 48,
+        "y": 57
+      },
+      "anchors": {
+        "snooze": {
+          "x": 50,
+          "y": 15
+        },
+        "hour": {
+          "x": 29,
+          "y": 18
+        },
+        "power": {
+          "x": 75,
+          "y": 35
+        }
+      }
+    }
+  }
+}

@@ -34,11 +34,10 @@ describe('character billboards', () => {
     expect(frame.characters.length).toBeGreaterThan(0);
   });
 
-  /** Characters, plus any vegetation decal that has to stand up rather than lie on the grass. */
-  test('emits one billboard per character, plus the standing decals', () => {
-    const standing = frame.groundDetails.filter((detail) => isStandingDecal(detail.sprite)).length;
-    expect(buildBillboards(frame)).toHaveLength(frame.characters.length + standing);
-    expect(buildBillboards(frame).filter((one) => one.id.startsWith('decal-'))).toHaveLength(standing);
+  /** KinderGrimm vegetation uses the separate pencil texture, never the legacy atlas texture. */
+  test('emits only atlas characters', () => {
+    expect(buildBillboards(frame)).toHaveLength(frame.characters.length);
+    expect(buildBillboards(frame).some((one) => one.id.startsWith('decal-'))).toBe(false);
   });
 
   test('anchors at the contact point, not the quad corner', () => {
@@ -93,16 +92,13 @@ describe('character billboards', () => {
    * A tree authored as a ground decal reads fine from directly overhead and lies down like a felled
    * log under a corner camera. Vegetation stands up; sand ripples and leaf litter do not.
    */
-  test('vegetation is boxes now, and ground marks stay flat', () => {
-    // Joe moved all four standing decals into DECAL_RECIPES on 2026-08-20: beside the box planter
-    // and palm, a flat card read as the odd one out. Each must be exactly one of the two, or the
-    // scene draws it twice / not at all.
+  test('vegetation stands in the pencil batch, while ground marks stay flat', () => {
     for (const sprite of [
       'tile.decal-canopy-tree', 'tile.decal-young-palm', 'tile.decal-sapling',
       'tile.decal-flowering-shrub',
     ]) {
-      expect(isStandingDecal(sprite)).toBe(false);
-      expect(DECAL_RECIPES[sprite]).toBeDefined();
+      expect(isStandingDecal(sprite)).toBe(true);
+      expect(DECAL_RECIPES[sprite]).toBeUndefined();
     }
     expect(isStandingDecal('tile.decal-sand-ripple')).toBe(false);
     expect(isStandingDecal('tile.decal-leaf-litter')).toBe(false);

@@ -4,6 +4,7 @@ import type { DistrictLighting } from '../district-lighting';
 import type { WorldFrameState } from '../world-frame';
 import { stableTupleHash } from '../../world/presentation/material-selection';
 import { isPencilVisualId } from '../pencil/characters';
+import { vegetationIdForSprite } from '../pencil/vegetation';
 
 const TILE_SIZE = 32;
 
@@ -92,19 +93,13 @@ export function isBlinking(visualId: string, animationTimestampMilliseconds: num
  * They became upright billboards rather than boxes, for the same reason characters do: the sprite
  * IS the art, and a tree extruded into a box is a green cube.
  *
- * **The set is now empty.** Joe compared the standing cards against the box planter and palm in
- * game on 2026-08-20 and chose the boxes for all four: a flat card beside a solid box reads as the
- * odd one out, and consistency beat pixel fidelity. The vegetation lives in `DECAL_RECIPES`.
- *
- * The mechanism stays for the next sprite that wants it — a decal listed here stands up, a decal
- * in `DECAL_RECIPES` becomes boxes, and `scene-builder` drops both from the flat batch so nothing
- * draws twice.
+ * The four active vegetation decals now use deterministic KinderGrimm pencil frames in the shared
+ * pencil texture. `scene-builder` reads this predicate to keep them out of the flat floor batch;
+ * the old vegetation box recipes are gone, so each plant is drawn once.
  */
-const STANDING_DECAL_SPRITES: ReadonlySet<string> = new Set<string>([]);
-
 /** Whether this ground detail should stand up instead of lying on the floor. */
 export function isStandingDecal(sprite: string): boolean {
-  return STANDING_DECAL_SPRITES.has(sprite);
+  return vegetationIdForSprite(sprite) !== undefined;
 }
 
 export function buildBillboards(frame: WorldFrameState): readonly BillboardDescriptor[] {
@@ -122,28 +117,11 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
     tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
     lift: character.pose === 'seated' ? SEATED_LIFT_TILES : 0,
   }));
-  // Vegetation joins the batch the characters already use, so standing it up costs no draw call.
-  const vegetation = frame.groundDetails
-    .filter((detail) => isStandingDecal(detail.sprite))
-    .map((detail) => ({
-      id: `decal-${detail.id}`,
-      source: detail.source,
-      // The tile's CONTACT point, not its origin: a billboard stands on the ground at the middle of
-      // its tile, and placing it at the corner would sink half the trunk into the neighbouring one.
-      x: detail.tile.x + 0.5,
-      z: detail.tile.y + 0.5,
-      width: detail.source.width / TILE_SIZE,
-      height: detail.source.height / TILE_SIZE,
-      tint: tintForLighting(detail.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
-      lift: 0,
-    }));
-
-  if (frame.reducedMotion) return [...characters, ...vegetation];
+  if (frame.reducedMotion) return characters;
 
   /**
    * Blink overlays, baked after the character bodies into the same geometry and material, so they
-   * win under `LessEqual` depth and the draw-call count does not change. Vegetation sitting between
-   * them in the array is harmless: a band is coplanar only with its own body, which precedes it.
+   * win under `LessEqual` depth and the draw-call count does not change.
    *
    * Keyed off `character.sprite`, not `character.source`: `source` is an `AtlasRectangle` whose
    * `sourceId` is the character id, so the frame suffix is only visible on `sprite`.
@@ -174,7 +152,7 @@ export function buildBillboards(frame: WorldFrameState): readonly BillboardDescr
         : (EYE_BAND_LIFT_ROWS * character.scale) / TILE_SIZE,
     }];
   });
-  return [...characters, ...vegetation, ...eyes];
+  return [...characters, ...eyes];
 }
 
 /**

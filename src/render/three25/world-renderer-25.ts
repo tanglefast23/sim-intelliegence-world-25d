@@ -37,11 +37,19 @@ import { buildBillboards, type BillboardDescriptor } from './billboards';
 import {
   blitPencilFrame,
   pencilBillboards,
+  vegetationBillboards,
+  vegetationSource,
+  PENCIL_TEXTURE_HEIGHT,
   PENCIL_TEXTURE_WIDTH,
 } from '../pencil/billboard';
 import { isPencilVisualId, PENCIL_VISUAL_IDS } from '../pencil/characters';
-import { PENCIL_HEIGHT, PENCIL_WIDTH } from '../pencil/vampire';
+import { PENCIL_WIDTH } from '../pencil/vampire';
 import { bakePropSketchTile, PROP_TILE_SIZE } from '../pencil/prop-texture';
+import {
+  blitVegetationFrame,
+  VEGETATION_IDS,
+  vegetationContactShadows,
+} from '../pencil/vegetation';
 import { vfxGlowPools, vfxQuads, type VfxQuad } from './vfx-25';
 import {
   DEFAULT_SHADOW_PATH,
@@ -1194,10 +1202,10 @@ export async function createWorldRenderer25(
   const pencilCanvas = typeof document === 'undefined' ? undefined : document.createElement('canvas');
   if (pencilCanvas) {
     pencilCanvas.width = PENCIL_TEXTURE_WIDTH;
-    pencilCanvas.height = PENCIL_HEIGHT;
+    pencilCanvas.height = PENCIL_TEXTURE_HEIGHT;
   }
   const pencilContext = pencilCanvas?.getContext('2d') ?? undefined;
-  const pencilPixels = pencilContext?.createImageData(PENCIL_TEXTURE_WIDTH, PENCIL_HEIGHT);
+  const pencilPixels = pencilContext?.createImageData(PENCIL_TEXTURE_WIDTH, PENCIL_TEXTURE_HEIGHT);
   const pencilTexture = pencilCanvas
     ? new CanvasTexture(pencilCanvas)
     : undefined;
@@ -1211,10 +1219,14 @@ export async function createWorldRenderer25(
     vertexColors: true,
     alphaTest: 0.08,
     transparent: true,
+    shadowSide: DoubleSide,
   });
   const pencilMesh = new Mesh(new BufferGeometry(), pencilMaterial);
   pencilMesh.frustumCulled = false;
   pencilMesh.visible = false;
+  const vegetationMesh = new Mesh(new BufferGeometry(), pencilMaterial);
+  vegetationMesh.frustumCulled = false;
+  vegetationMesh.visible = false;
   // The baked geometry is already in world space, so three's own bounding sphere would sit at the
   // origin and cull the whole batch.
   floorMesh.frustumCulled = false;
@@ -1222,8 +1234,9 @@ export async function createWorldRenderer25(
   billboardMesh.frustumCulled = false;
   // Enabling the shadow map is not enough: without these the sun has nothing to cast from and
   // nothing to cast onto, and the lit path renders identically to the fallback minus the ambient.
-  // Boxes cast and receive; floors only receive; billboards do neither - a camera-facing card has
-  // no meaningful silhouette from the sun, which is why characters get blobs in both paths.
+  // Boxes cast and receive; floors only receive. Characters keep their stable blob shadows.
+  // Pencil vegetation is separate so its alpha-cut silhouette can cast without also giving every
+  // camera-facing character a long directional shadow.
   boxMesh.castShadow = shadowPath === 'lit';
   boxMesh.receiveShadow = shadowPath === 'lit';
   flatBoxMesh.frustumCulled = false;
@@ -1232,8 +1245,9 @@ export async function createWorldRenderer25(
   glowBoxMesh.frustumCulled = false;
   // A lamp head casting a shadow of itself onto its own post is the one shadow nobody wants.
   glowBoxMesh.castShadow = false;
+  vegetationMesh.castShadow = shadowPath === 'lit';
   floorMesh.receiveShadow = shadowPath === 'lit';
-  scene.add(floorMesh, boxMesh, flatBoxMesh, glowBoxMesh, billboardMesh, pencilMesh);
+  scene.add(floorMesh, boxMesh, flatBoxMesh, glowBoxMesh, billboardMesh, pencilMesh, vegetationMesh);
 
   // Hoisted: extractBasis writes into these every frame, and allocating three vectors per frame
   // for a value that never escapes is pure garbage.
@@ -1596,7 +1610,11 @@ export async function createWorldRenderer25(
 
     const effects = vfxQuads(next);
     lastVfxCounts = { additive: effects.additive.length, alpha: effects.alpha.length };
-    const blobs = [...blobShadows(next), ...propContactShadows(next)];
+    const blobs = [
+      ...blobShadows(next),
+      ...propContactShadows(next),
+      ...vegetationContactShadows(next),
+    ];
     // The selection ring rides here too, rather than in the DOM overlay it used to come from. An
     // overlay is above the canvas by construction, so the ring drew ACROSS the character it names;
     // baked flat on the ground it is depth-tested against the billboard, and the half of it behind
@@ -1641,17 +1659,28 @@ export async function createWorldRenderer25(
       cameraBack,
     );
     const pencils = pencilBillboards(next);
+    const vegetation = vegetationBillboards(next);
     pencilMesh.geometry.dispose();
     pencilMesh.geometry = bakeBillboardGeometry(
       pencils,
       billboardRight,
       BILLBOARD_UP,
       PENCIL_TEXTURE_WIDTH,
-      PENCIL_HEIGHT,
+      PENCIL_TEXTURE_HEIGHT,
       cameraBack,
     );
     pencilMesh.visible = pencils.length > 0 && pencilPixels !== undefined && pencilContext !== undefined;
-    if (pencilMesh.visible && pencilPixels && pencilContext && pencilTexture) {
+    vegetationMesh.geometry.dispose();
+    vegetationMesh.geometry = bakeBillboardGeometry(
+      vegetation,
+      billboardRight,
+      BILLBOARD_UP,
+      PENCIL_TEXTURE_WIDTH,
+      PENCIL_TEXTURE_HEIGHT,
+      cameraBack,
+    );
+    vegetationMesh.visible = vegetation.length > 0 && pencilPixels !== undefined && pencilContext !== undefined;
+    if ((pencilMesh.visible || vegetationMesh.visible) && pencilPixels && pencilContext && pencilTexture) {
       pencilPixels.data.fill(0);
       for (const character of next.characters) {
         if (!isPencilVisualId(character.visualId)) continue;
@@ -1664,6 +1693,9 @@ export async function createWorldRenderer25(
           PENCIL_TEXTURE_WIDTH,
           slot * PENCIL_WIDTH,
         );
+      }
+      for (const id of VEGETATION_IDS) {
+        blitVegetationFrame(pencilPixels.data, id, 'front', PENCIL_TEXTURE_WIDTH, vegetationSource(id).x);
       }
       pencilContext.putImageData(pencilPixels, 0, 0);
       pencilTexture.needsUpdate = true;
@@ -1748,6 +1780,7 @@ export async function createWorldRenderer25(
       billboardMesh.geometry.dispose();
       billboardMaterial.dispose();
       pencilMesh.geometry.dispose();
+      vegetationMesh.geometry.dispose();
       pencilMaterial.dispose();
       pencilTexture?.dispose();
       poolMesh.geometry.dispose();
