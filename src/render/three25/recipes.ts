@@ -499,6 +499,42 @@ const STONE_LIGHT = '#9a8a6d';
  * wants volume, keep adding entries; only reach for a generator if the list passes ~6.
  */
 export const DECAL_RECIPES: Readonly<Record<string, PropRecipe>> = Object.freeze({
+  /**
+   * Vegetation as boxes, at Joe's request (2026-08-20).
+   *
+   * These four were upright BILLBOARDS — the authored pixels stood up on a plane. That kept every
+   * pixel of the art, and the comment on `STANDING_DECAL_SPRITES` argued a box would be "a green
+   * cube". Joe compared them against the box planter and palm in game and chose the boxes: a flat
+   * card beside a solid box reads as the odd one out, and consistency beat pixel fidelity.
+   *
+   * Trunks carry `gain` for the reason the palm's does: a thin post shows only vertical faces,
+   * which take the least light in the scene, so a brown hex alone renders black.
+   */
+  'tile.decal-canopy-tree': {
+    boxes: [
+      { x: 0, y: 0.85, z: 0, width: 0.26, height: 1.7, depth: 0.26, tint: TRUNK_BROWN, gain: TRUNK_GAIN },
+      { x: 0, y: 1.9, z: 0, width: 1.35, height: 0.42, depth: 1.35, tint: FOLIAGE_GREEN, gain: CANOPY_GAIN },
+    ],
+  },
+  'tile.decal-young-palm': {
+    boxes: [
+      { x: 0, y: 0.58, z: 0, width: 0.2, height: 1.15, depth: 0.2, tint: TRUNK_BROWN, gain: TRUNK_GAIN },
+      { x: 0, y: 1.28, z: 0, width: 1.0, height: 0.26, depth: 1.0, tint: FOLIAGE_GREEN, gain: CANOPY_GAIN },
+    ],
+  },
+  'tile.decal-sapling': {
+    boxes: [
+      { x: 0, y: 0.4, z: 0, width: 0.16, height: 0.8, depth: 0.16, tint: TRUNK_BROWN, gain: TRUNK_GAIN },
+      { x: 0, y: 0.93, z: 0, width: 0.7, height: 0.26, depth: 0.7, tint: FOLIAGE_GREEN, gain: CANOPY_GAIN },
+    ],
+  },
+  /** No trunk: a shrub is a mound, with the flowering tint as a cap so the blossom still reads. */
+  'tile.decal-flowering-shrub': {
+    boxes: [
+      { x: 0, y: 0.21, z: 0, width: 0.85, height: 0.42, depth: 0.85, tint: FOLIAGE_GREEN, gain: CANOPY_GAIN },
+      { x: 0, y: 0.48, z: 0, width: 0.62, height: 0.12, depth: 0.62, tint: FOLIAGE_FLOWERING, gain: CANOPY_GAIN },
+    ],
+  },
   'tile.decal-sand-pebbles': {
     boxes: [
       { x: 0.16, y: 0.06, z: 0.31, width: 0.31, height: 0.12, depth: 0.17, tint: STONE },

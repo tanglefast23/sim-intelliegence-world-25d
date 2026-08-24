@@ -102,6 +102,8 @@ describe('authored pencil character registry', () => {
     const pencils = pencilBillboards(frame);
     expect(pencils.map(({ id }) => id)).toEqual(['pencil-linda', 'pencil-mina_park', 'pencil-protagonist']);
     expect(new Set(pencils.map(({ source }) => source.x)).size).toBe(3);
+    expect(pencils.map(({ lift }) => lift)).toEqual([0, 0, expect.any(Number)]);
+    expect(pencils[2]!.lift).toBeLessThan(0);
   });
 
   test('ships the approved profile frames through the production registry', () => {

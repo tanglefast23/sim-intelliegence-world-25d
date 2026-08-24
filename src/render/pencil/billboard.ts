@@ -1,7 +1,6 @@
 import type { AtlasRectangle } from '../atlas';
 import { CHARACTER_CONTACT_OFFSET, tintForLighting, UNLIT_NIGHT_STRENGTH } from '../three25/billboards';
 import type { BillboardDescriptor } from '../three25/billboards';
-import { shelteredTint } from '../three25/scene-builder';
 import type { WorldCharacterPlacement, WorldFrameState } from '../world-frame';
 import { poseFromSprite, vampireSheetIndex } from './pose';
 import {
@@ -29,14 +28,6 @@ import {
   buildGeneratedVampireLayout,
   renderRiggedGeneratedVampireFrame,
 } from './generated-vampire';
-import {
-  VEGETATION_HEIGHT,
-  VEGETATION_IDS,
-  VEGETATION_RECIPE,
-  VEGETATION_WIDTH,
-  vegetationIdForSprite,
-  type VegetationId,
-} from './vegetation';
 
 const TILE_SIZE = 32;
 const MARCUS_WORLD_SCALE = 1.25;
@@ -45,8 +36,8 @@ export function pencilWorldScale(visualId: PencilVisualId): number {
   return visualId === 'linda-boyfriend' ? MARCUS_WORLD_SCALE : 1;
 }
 
-/** World pixels of empty sheet below the boot soles. Sink the quad by this or he floats. */
-const CONTACT_SINK_WORLD_PIXELS = ((PENCIL_HEIGHT - PENCIL_CONTACT_ROW) / PENCIL_HEIGHT) * WORLD_CELL_HEIGHT;
+/** World pixels of empty sheet below the vampire's boot soles. Sink only his quad by this. */
+const VAMPIRE_CONTACT_SINK_WORLD_PIXELS = ((PENCIL_HEIGHT - PENCIL_CONTACT_ROW) / PENCIL_HEIGHT) * WORLD_CELL_HEIGHT;
 const SEATED_VISIBLE_RATIO = 0.82;
 const SEATED_LIFT_TILES = 0.08;
 /** Pull an authored sitter off the tile's standing foot edge and into the chair pan. */
@@ -60,9 +51,7 @@ const GHOST_SHEET_OVER_CHAIR_LAYER_TILES = 0.9;
 const REAR_CHAIR_OCCLUSION_TOP = 84;
 const REAR_CHAIR_FOOT_REVEAL = 142;
 
-const VEGETATION_TEXTURE_X = PENCIL_WIDTH * PENCIL_VISUAL_IDS.length;
-export const PENCIL_TEXTURE_WIDTH = VEGETATION_TEXTURE_X + VEGETATION_WIDTH * VEGETATION_IDS.length;
-export const PENCIL_TEXTURE_HEIGHT = Math.max(PENCIL_HEIGHT, VEGETATION_HEIGHT);
+export const PENCIL_TEXTURE_WIDTH = PENCIL_WIDTH * PENCIL_VISUAL_IDS.length;
 
 export const PENCIL_SOURCE: AtlasRectangle = {
   x: 0,
@@ -150,21 +139,6 @@ export function pencilSource(visualId: PencilVisualId): AtlasRectangle {
   };
 }
 
-export function vegetationSource(id: VegetationId): AtlasRectangle {
-  return {
-    x: VEGETATION_TEXTURE_X + VEGETATION_IDS.indexOf(id) * VEGETATION_WIDTH,
-    y: 0,
-    width: VEGETATION_WIDTH,
-    height: VEGETATION_HEIGHT,
-    kind: 'tile',
-    sourceId: `${id}-pencil`,
-    cellClass: 'transparent-part',
-    wallAdjacencyMask: null,
-    category: 'ground-decal',
-    visibility: 'public',
-  };
-}
-
 export function vampireBoilIndex(animationTimestampMilliseconds: number, reducedMotion = false): number {
   if (reducedMotion) return 0;
   const fps = 1.15;
@@ -192,7 +166,8 @@ export function pencilBillboards(frame: WorldFrameState): readonly BillboardDesc
       tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
       lift: seated && !hasAuthoredSeat
         ? SEATED_LIFT_TILES
-        : -(CONTACT_SINK_WORLD_PIXELS * scale) / TILE_SIZE - (hasAuthoredSeat ? AUTHORED_SEAT_DROP_TILES : 0),
+        : (visualId === 'vampire-01' ? -(VAMPIRE_CONTACT_SINK_WORLD_PIXELS * scale) / TILE_SIZE : 0)
+          - (hasAuthoredSeat ? AUTHORED_SEAT_DROP_TILES : 0),
       depthBias: hasAuthoredSeat && !chairOccludesBody
         ? visualId === 'tomas-reed'
           ? GHOST_SHEET_OVER_CHAIR_LAYER_TILES
@@ -200,29 +175,6 @@ export function pencilBillboards(frame: WorldFrameState): readonly BillboardDesc
         : 0,
       };
     });
-}
-
-export function vegetationBillboards(frame: WorldFrameState): readonly BillboardDescriptor[] {
-  return frame.groundDetails.flatMap((detail) => {
-    const id = vegetationIdForSprite(detail.sprite);
-    if (!id) return [];
-    const recipe = VEGETATION_RECIPE.assets[id];
-    const contact = recipe.views.front.groundContact;
-    return [{
-      id: `pencil-${detail.id}`,
-      source: vegetationSource(id),
-      x: detail.tile.x + 0.5,
-      z: detail.tile.y + 0.5,
-      width: recipe.world.width,
-      height: recipe.world.height,
-      tint: shelteredTint(
-        tintForLighting(detail.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
-        detail.tile,
-        frame,
-      ),
-      lift: -((VEGETATION_HEIGHT - contact.y) / VEGETATION_HEIGHT) * recipe.world.height,
-    }];
-  });
 }
 
 export function blitPencilFrame(
