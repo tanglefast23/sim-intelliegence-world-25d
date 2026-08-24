@@ -169,16 +169,21 @@ async function captureLoadingSmokeScreenshot(window: BrowserWindow, screenshotPa
 }
 
 async function waitForRendererPaint(window: BrowserWindow): Promise<void> {
-  const painted = window.webContents.executeJavaScript(
-    `Promise.race([
-      new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true)))),
-      new Promise((resolve) => setTimeout(() => resolve(false), 1_000)),
-    ])`,
-    true,
-  ) as Promise<boolean>;
-  await window.webContents.capturePage(undefined, { stayHidden: true });
-  await window.webContents.capturePage(undefined, { stayHidden: true });
-  if (!await painted) throw new Error('Hidden renderer did not produce two paint frames.');
+  // A long Windows smoke can miss one compositor nudge even though the renderer stays healthy.
+  // Retry the same bounded handshake once; keep raw capturePage calls owned by this helper.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const painted = window.webContents.executeJavaScript(
+      `Promise.race([
+        new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true)))),
+        new Promise((resolve) => setTimeout(() => resolve(false), 1_000)),
+      ])`,
+      true,
+    ) as Promise<boolean>;
+    await window.webContents.capturePage(undefined, { stayHidden: true });
+    await window.webContents.capturePage(undefined, { stayHidden: true });
+    if (await painted) return;
+  }
+  throw new Error('Hidden renderer did not produce two paint frames after two attempts.');
 }
 
 async function captureDistinctSmokeScreenshot(

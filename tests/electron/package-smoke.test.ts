@@ -54,7 +54,8 @@ describe('packaged Electron smoke evidence', () => {
     expect(main).toContain("document.querySelector('#world-surface-state')?.getAttribute('aria-label')");
     expect(main).toContain('window.siWorldMeasureResponsiveEvidence?.() ?? null');
     expect(main.match(/await window\.webContents\.capturePage\(undefined, \{ stayHidden: true \}\);/gu)).toHaveLength(2);
-    expect(main).toContain("if (!await painted) throw new Error('Hidden renderer did not produce two paint frames.');");
+    expect(main).toContain('for (let attempt = 0; attempt < 2; attempt += 1) {');
+    expect(main).toContain("throw new Error('Hidden renderer did not produce two paint frames after two attempts.');");
     expect(main).toContain('while (Date.now() < deadline) {\n    await waitForRendererPaint(window);\n    try {');
     expect(main).toContain("button: 'middle' });\n  await waitForRendererPaint(window);\n  window.webContents.sendInputEvent({ type: 'mouseMove'");
     expect(main).toContain("button: 'middle', clickCount: 1 });\n  await waitForRendererPaint(window);\n  const afterPan");
