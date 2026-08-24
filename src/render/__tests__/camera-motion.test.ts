@@ -118,6 +118,15 @@ describe('impact shake', () => {
     expect(sampleCameraDirector(motion, camera, directorInput({ deltaMs: 45 })).active).toBe(false);
   });
 
+  test('a slow frame spends the full impact envelope', () => {
+    const motion = applyImpulse(INITIAL_CAMERA_MOTION, 1, { x: 1, y: 0 });
+    const sample = sampleCameraDirector(motion, centred(), directorInput({ deltaMs: 2_000 }));
+
+    expect(sample.motion.trauma).toBe(0);
+    expect(sample.offset).toEqual({ x: 0, y: 0 });
+    expect(sample.active).toBe(false);
+  });
+
   test('shake is trauma squared, so escalation is perceptible', () => {
     const traumas = [0.3, 0.6, 0.9].map((trauma) => {
       const motion = applyImpulse(INITIAL_CAMERA_MOTION, trauma);

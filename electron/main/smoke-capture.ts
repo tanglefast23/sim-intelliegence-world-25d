@@ -1,5 +1,7 @@
 export const SMOKE_CAPTURE_ATTEMPTS = 5;
 export const SMOKE_CAPTURE_RETRY_MILLISECONDS = 80;
+export const LOADING_SHELL_POLL_MILLISECONDS = 20;
+export const LOADING_SHELL_WAIT_MILLISECONDS = 400;
 
 export type SmokeCaptureRetryPolicy = Readonly<{
   deadlineMilliseconds?: number;
@@ -55,6 +57,24 @@ export async function captureNonEmptySmokeFrame<T extends EmptyCheckableFrame>(
   policy: SmokeCaptureRetryPolicy = {},
 ): Promise<T> {
   return retrySmokeCapture(async () => assertNonEmpty(await capture()), wait, policy);
+}
+
+export async function waitForLoadingShell(
+  loadingVisible: () => Promise<boolean>,
+  wait: (milliseconds: number) => Promise<void>,
+  maximumWaitMilliseconds = LOADING_SHELL_WAIT_MILLISECONDS,
+): Promise<boolean> {
+  if (!Number.isFinite(maximumWaitMilliseconds) || maximumWaitMilliseconds < 0) {
+    throw new Error('Loading shell wait must be a non-negative finite duration.');
+  }
+  let elapsedMilliseconds = 0;
+  while (!await loadingVisible()) {
+    if (elapsedMilliseconds >= maximumWaitMilliseconds) return false;
+    const delay = Math.min(LOADING_SHELL_POLL_MILLISECONDS, maximumWaitMilliseconds - elapsedMilliseconds);
+    await wait(delay);
+    elapsedMilliseconds += delay;
+  }
+  return true;
 }
 
 /**

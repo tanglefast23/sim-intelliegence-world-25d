@@ -7,6 +7,17 @@ import { isTrustedAppUrl } from '../../electron/main/security';
 import { APP_URL } from '../../electron/protocol/app-protocol';
 
 const RESULT_PREFIX = 'SI_WORLD_SMOKE_RESULT ';
+const LOADING_SHELL_OBSERVED_PREFIX = 'SI_WORLD_SMOKE_LOADING_SHELL_OBSERVED ';
+
+export function parseLoadingShellObserved(stdout: string): boolean {
+  const line = stdout.split(/\r?\n/u)
+    .find((candidate) => candidate.startsWith(LOADING_SHELL_OBSERVED_PREFIX));
+  if (!line) throw new Error('Packaged app did not emit loading-shell observation evidence.');
+  const value = line.slice(LOADING_SHELL_OBSERVED_PREFIX.length).trim();
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  throw new Error(`Packaged app emitted invalid loading-shell observation evidence: ${value}`);
+}
 
 function targetPackageArchitecture(): string {
   const architecture = process.env.SI_WORLD_PACKAGE_TARGET_ARCH ?? process.arch;
@@ -212,11 +223,15 @@ export function validateScreenshotBuffers(
   }
 }
 
-export function validateScreenshotEvidence(loadingPath: string, readyPath: string): void {
+export function validateScreenshotEvidence(
+  loadingPath: string,
+  readyPath: string,
+  options: Readonly<{ requireDifferentBytes?: boolean }> = {},
+): void {
   validateScreenshotBuffers(
     readFileSync(loadingPath),
     readFileSync(readyPath),
-    { requireSameDimensions: false },
+    { requireSameDimensions: false, requireDifferentBytes: options.requireDifferentBytes },
   );
 }
 

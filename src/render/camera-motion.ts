@@ -1,9 +1,5 @@
 import { MAX_WORLD_ZOOM, MIN_WORLD_ZOOM } from '../domain/presentation/world-zoom';
-import {
-  MAX_MOVEMENT_FRAME_MS,
-  routeMotionProgress,
-  type WorldPoint,
-} from '../world/movement/motion-clock';
+import { routeMotionProgress, type WorldPoint } from '../world/movement/motion-clock';
 import { stableTupleHash } from '../world/presentation/material-selection';
 import {
   CAMERA_DEAD_ZONE_RATIO,
@@ -248,7 +244,7 @@ export function sampleCameraDirector(
   camera: CameraState,
   input: CameraDirectorInput,
 ): CameraDirectorSample {
-  const deltaMs = clamp(input.deltaMs, 0, MAX_MOVEMENT_FRAME_MS);
+  const deltaMs = Math.max(0, input.deltaMs);
   const seconds = deltaMs / 1_000;
   let nextCamera = camera;
   // Floored, not just clamped: float residue of 1e-17 would read as "still shaking" and keep the
