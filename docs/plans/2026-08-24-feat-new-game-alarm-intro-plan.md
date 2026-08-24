@@ -2,7 +2,7 @@
 
 Date: 2026-08-24
 
-Status: implemented, locally verified, Grok-audited, and packaged-qualified; publication pending
+Status: implemented, locally verified, Grok-audited, packaged-qualified, and published
 
 Source: `docs/specs/2026-08-24-new-game-alarm-intro-master-spec.md`
 
@@ -232,8 +232,8 @@ Run in this order. Stop and fix the first failure.
 - [x] Mark every completed checkbox in this plan.
 - [x] Stage only the alarm feature, its audited spec and plan, supplied audio, generated review artifact if tracked by project convention, `tests/fixtures/first-hour/golden.json`, the two regenerated save fixtures, and their tests.
 - [x] Commit with one conventional feature message.
-- [ ] Push `codex/new-game-alarm-intro` to `origin`.
-- [ ] Confirm local and remote branch SHAs match.
+- [x] Push `codex/new-game-alarm-intro` to `origin`.
+- [x] Confirm local and remote branch SHAs match.
 
 ## Council audit record
 
