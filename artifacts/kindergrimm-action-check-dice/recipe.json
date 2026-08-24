@@ -1,0 +1,239 @@
+{
+  "version": 1,
+  "status": "approved",
+  "assetId": "action-check-dice-01",
+  "brief": "Warm isometric pencil dice for the deterministic Action Check overlay.",
+  "seed": 260823,
+  "upstreamCommit": "de339ad739d8cbd28ff2dd4a940af38c0ede86c8",
+  "medium": "graphite",
+  "canvas": {
+    "width": 128,
+    "height": 128
+  },
+  "layoutAnchors": {
+    "topFace": {
+      "x": 64,
+      "y": 43
+    },
+    "center": {
+      "x": 64,
+      "y": 64
+    },
+    "groundContact": {
+      "x": 64,
+      "y": 112
+    }
+  },
+  "orderedParts": [
+    "left-face",
+    "right-face",
+    "top-face",
+    "pips",
+    "edges"
+  ],
+  "colors": {
+    "ink": [
+      58,
+      36,
+      25
+    ],
+    "top": [
+      247,
+      226,
+      184
+    ],
+    "left": [
+      220,
+      188,
+      130
+    ],
+    "right": [
+      177,
+      132,
+      83
+    ],
+    "shadow": [
+      57,
+      39,
+      31
+    ]
+  },
+  "frames": {
+    "die-1": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-2": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-3": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-4": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-5": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-6": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "soft-flight-shadow": {
+      "kind": "shadow",
+      "transparentBounds": {
+        "x": 2,
+        "y": 82,
+        "width": 124,
+        "height": 44
+      },
+      "anchors": {
+        "center": {
+          "x": 67,
+          "y": 106
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "strong-contact-shadow": {
+      "kind": "shadow",
+      "transparentBounds": {
+        "x": 2,
+        "y": 82,
+        "width": 124,
+        "height": 44
+      },
+      "anchors": {
+        "center": {
+          "x": 67,
+          "y": 106
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    }
+  }
+}

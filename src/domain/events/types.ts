@@ -4,6 +4,7 @@ import { CommandIdSchema, EventIdSchema, PauseTokenSchema, StableIdSchema } from
 import { SimulationSpeedSchema } from '../clock/clock';
 import { PoliceHookSchema } from '../consequences/police';
 import { VERBAL_MISSION_OUTCOMES } from '../verbal-missions/contracts';
+import { ActionCheckResultSchema } from '../action-check';
 
 const EventBaseSchema = z.object({
   eventId: EventIdSchema,
@@ -124,6 +125,7 @@ export const DomainEventSchema = z.discriminatedUnion('type', [
     witnessNpcIds: z.array(StableIdSchema),
     policeFrom: z.enum(['none', 'noticed', 'questioned', 'wanted', 'arrest-on-sight']),
     policeTo: z.enum(['none', 'noticed', 'questioned', 'wanted', 'arrest-on-sight']),
+    actionCheck: ActionCheckResultSchema.optional(),
   }).strict(),
   EventBaseSchema.extend({
     type: z.literal('police-attention-advanced'),

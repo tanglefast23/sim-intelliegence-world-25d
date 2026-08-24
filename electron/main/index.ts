@@ -127,7 +127,7 @@ if (smokeRenderer !== undefined && (!smokeMode || !['threejs-2d', 'threejs-2-5d'
 
 if (naturalMovementReducedMode || proceduralVfxReducedMode) {
   app.commandLine.appendSwitch('force-prefers-reduced-motion', 'reduce');
-} else if (naturalMovementSmokeMode || proceduralVfxSmokeMode) {
+} else if (smokeMode) {
   app.commandLine.appendSwitch('force-prefers-no-reduced-motion');
 }
 
@@ -393,6 +393,36 @@ async function npcStateLabel(window: BrowserWindow): Promise<string> {
 async function questStateLabel(window: BrowserWindow): Promise<string> {
   return window.webContents.executeJavaScript(
     `document.querySelector('#world-quest-state')?.getAttribute('aria-label') ?? ''`,
+    true,
+  ) as Promise<string>;
+}
+
+async function actionCheckState(window: BrowserWindow): Promise<Record<string, unknown>> {
+  const label = await window.webContents.executeJavaScript(
+    `document.querySelector('#world-action-check-state')?.getAttribute('aria-label') ?? ''`,
+    true,
+  ) as string;
+  return JSON.parse(label) as Record<string, unknown>;
+}
+
+async function waitForActionCheckPhase(
+  window: BrowserWindow,
+  phase: 'idle' | 'preview' | 'rolling' | 'result',
+  timeoutMilliseconds = 6_000,
+): Promise<Record<string, unknown>> {
+  const deadline = Date.now() + timeoutMilliseconds;
+  let state: Record<string, unknown> = {};
+  while (Date.now() < deadline) {
+    state = await actionCheckState(window);
+    if (state.phase === phase) return state;
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 50));
+  }
+  throw new Error(`Action Check never reached ${phase}. Last: ${JSON.stringify(state)}`);
+}
+
+async function focusedAriaLabel(window: BrowserWindow): Promise<string> {
+  return window.webContents.executeJavaScript(
+    `document.activeElement?.getAttribute('aria-label') ?? ''`,
     true,
   ) as Promise<string>;
 }
@@ -846,6 +876,12 @@ function sendMouseClick(window: BrowserWindow, x: number, y: number): void {
 function sendKey(window: BrowserWindow, keyCode: 'Enter' | 'F' | 'Q' | 'Escape'): void {
   window.webContents.sendInputEvent({ type: 'keyDown', keyCode });
   window.webContents.sendInputEvent({ type: 'keyUp', keyCode });
+}
+
+function sendTab(window: BrowserWindow, shift = false): void {
+  const modifiers: Array<'shift'> = shift ? ['shift'] : [];
+  window.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Tab', modifiers });
+  window.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'Tab', modifiers });
 }
 
 
@@ -2542,15 +2578,95 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
   await clickAriaButton(window, "Confirm Linda's villa");
   await waitForRendererText(window, '#world-save-status', 'SAVED GEN 10');
   const choiceText = await rendererText(window, '#world-ui-journal-panel');
-  const questChoicePreview = choiceText.includes('PROTECT LINDA') && choiceText.includes('BETRAY LINDA') &&
-    choiceText.includes('WITHDRAW') && choiceText.includes('ACTION') && choiceText.includes('RESULT') &&
-    choiceText.includes('SOCIAL') && choiceText.includes('ROUTE');
+  const choiceUpper = choiceText.toUpperCase();
+  const questChoicePreview = choiceUpper.includes('PROTECT LINDA') && choiceUpper.includes('BETRAY LINDA') &&
+    choiceUpper.includes('WITHDRAW') && choiceUpper.includes('ACTION CHECK · 2D6 + 4 VS 9') &&
+    choiceUpper.includes('CHANCE 30/36 · 83.3%') && choiceUpper.includes('SUCCESS · LINDA PROTECTED') &&
+    choiceUpper.includes('FAILURE · INJURED ESCAPE');
   previousWorldBuffer = await captureDistinctSmokeScreenshot(
     window, join(directory, 'world-linda-quest.png'), [previousWorldBuffer],
   );
+  const saveBeforePreview = await rendererText(window, '#world-save-status');
+  const cursorBeforePreview = Number((await actionCheckState(window)).prngCursor);
   await clickAriaButton(window, 'Protect Linda');
-  const consequenceCaption = (await rendererText(window, '#world-audio-caption')).includes('CONSEQUENCE TONE');
+  const previewState = await waitForActionCheckPhase(window, 'preview');
+  const actionCheckPreview = previewState.reducedMotion === false &&
+    JSON.stringify(previewState.preview).includes('SUCCEED IF 2d6 + 4 >= 9') &&
+    JSON.stringify(previewState.preview).includes('CHANCE 30/36 · 83.3%');
+  const actionCheckInitialFocus = await focusedAriaLabel(window) === 'Roll action check';
+  const actionCheckBackgroundDisabled = await window.webContents.executeJavaScript(`(() => {
+    const overlay = document.querySelector('#world-action-check-overlay');
+    const controls = [...document.querySelectorAll('#world-ui-hud [role="button"], #world-ui-journal-panel [role="button"], #world-ui-character-card [role="button"]')];
+    return overlay?.getAttribute('aria-modal') === 'true' && controls.length > 0 &&
+      controls.every((control) => control.getAttribute('aria-disabled') === 'true');
+  })()`, true) as boolean;
+  previousWorldBuffer = await captureDistinctSmokeScreenshot(
+    window, join(directory, 'world-action-check-preview.png'), [previousWorldBuffer],
+  );
+  sendTab(window);
+  await waitForRendererPaint(window);
+  const tabToCancel = await focusedAriaLabel(window) === 'Cancel action check';
+  sendTab(window);
+  await waitForRendererPaint(window);
+  const tabCyclesToRoll = await focusedAriaLabel(window) === 'Roll action check';
+  sendTab(window, true);
+  await waitForRendererPaint(window);
+  const shiftTabCyclesToCancel = await focusedAriaLabel(window) === 'Cancel action check';
+  sendKey(window, 'Escape');
+  await waitForSelectorMissing(window, '#world-action-check-overlay');
+  await waitForRendererPaint(window);
+  const idleAfterCancel = await waitForActionCheckPhase(window, 'idle');
+  const actionCheckCancel = await focusedAriaLabel(window) === 'Protect Linda' &&
+    Number(idleAfterCancel.prngCursor) === cursorBeforePreview &&
+    await rendererText(window, '#world-save-status') === saveBeforePreview;
+  await clickAriaButton(window, 'Protect Linda');
+  await waitForActionCheckPhase(window, 'preview');
+  await clickAriaButton(window, 'Roll action check');
+  await waitForActionCheckPhase(window, 'rolling');
+  await window.webContents.executeJavaScript('window.siWorldPinActionCheck?.(450)', true);
+  sendTab(window);
+  await waitForRendererPaint(window);
+  const actionCheckRollingFocusTrap = await window.webContents.executeJavaScript(
+    `document.activeElement?.id === 'world-action-check-overlay'`, true,
+  ) as boolean;
+  sendKey(window, 'Escape');
+  await waitForRendererPaint(window);
+  const actionCheckRollingEscape = await window.webContents.executeJavaScript(
+    `Boolean(document.querySelector('#world-action-check-overlay'))`, true,
+  ) as boolean;
+  previousWorldBuffer = await captureDistinctSmokeScreenshot(
+    window, join(directory, 'world-action-check-tumble.png'), [previousWorldBuffer],
+  );
+  await window.webContents.executeJavaScript('window.siWorldPinActionCheck?.(900)', true);
+  previousWorldBuffer = await captureDistinctSmokeScreenshot(
+    window, join(directory, 'world-action-check-landing.png'), [previousWorldBuffer],
+  );
+  await window.webContents.executeJavaScript('window.siWorldPinActionCheck?.(1100)', true);
+  const actionCheckArithmetic = (await rendererText(window, '#world-action-check-overlay')).includes('3 + 5 + 4 = 12 · TARGET 9');
+  previousWorldBuffer = await captureDistinctSmokeScreenshot(
+    window, join(directory, 'world-action-check-arithmetic.png'), [previousWorldBuffer],
+  );
+  await window.webContents.executeJavaScript('window.siWorldPinActionCheck?.(1350)', true);
+  const actionCheckResultVisible = (await rendererText(window, '#world-action-check-overlay')).includes('SUCCESS');
+  previousWorldBuffer = await captureDistinctSmokeScreenshot(
+    window, join(directory, 'world-action-check-result.png'), [previousWorldBuffer],
+  );
+  await window.webContents.executeJavaScript('window.siWorldPinActionCheck?.(1650)', true);
+  const resultState = await waitForActionCheckPhase(window, 'result');
+  const actionCheckResult = JSON.stringify(resultState.dice) === '[3,5]' && resultState.modifier === 4 &&
+    resultState.target === 9 && resultState.total === 12 && resultState.success === true &&
+    resultState.reducedMotion === false && Number(resultState.prngCursor) !== cursorBeforePreview;
+  await waitForRendererPaint(window);
+  const actionCheckReadyFocus = await focusedAriaLabel(window) === 'Continue after action check';
+  previousWorldBuffer = await captureDistinctSmokeScreenshot(
+    window, join(directory, 'world-action-check-ready.png'), [previousWorldBuffer],
+  );
   await waitForRendererText(window, '#world-save-status', 'SAVED GEN 11');
+  sendKey(window, 'Escape');
+  await waitForSelectorMissing(window, '#world-action-check-overlay');
+  await waitForRendererPaint(window);
+  const actionCheckContinueFocus = await focusedAriaLabel(window) === 'Close quests';
+  const consequenceCaption = (await rendererText(window, '#world-audio-caption')).includes('CONSEQUENCE TONE');
   const questLabel = await questStateLabel(window);
   const questOutcome = questLabel.includes('Linda quest resolved') && questLabel.includes('linda_protected') &&
     questLabel.includes('police noticed') && questLabel.includes('evidence 1') &&
@@ -2603,7 +2719,11 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
     conversationFallback, firstFreeTextTurnSource, modelFailureFeedback, audioCaptions, conversationCommitSave,
     structuredInvitation, structuredInvitationSource, relationshipPanel, hiddenFaction, journalInvitation, socialPurchase,
     questOfferDialogue, questOfferPause, questStarted, questPreparationPreserved, questShortcut,
-    questChoicePreview, questOutcome, questAutosave, consequenceCaption, policeHooks, saveReload,
+    questChoicePreview, actionCheckPreview, actionCheckInitialFocus, actionCheckBackgroundDisabled,
+    actionCheckFocusTrap: tabToCancel && tabCyclesToRoll && shiftTabCyclesToCancel,
+    actionCheckCancel, actionCheckRollingFocusTrap, actionCheckRollingEscape,
+    actionCheckArithmetic, actionCheckResultVisible, actionCheckResult, actionCheckReadyFocus, actionCheckContinueFocus,
+    questOutcome, questAutosave, consequenceCaption, policeHooks, saveReload,
   };
 }
 

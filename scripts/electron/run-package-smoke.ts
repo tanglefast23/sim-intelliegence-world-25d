@@ -61,6 +61,8 @@ const conversationScreenshotPath = join(screenshotDirectory, 'world-conversation
 const socialScreenshotPath = join(screenshotDirectory, 'world-social.png');
 const journalScreenshotPath = join(screenshotDirectory, 'world-journal.png');
 const questScreenshotPath = join(screenshotDirectory, 'world-linda-quest.png');
+const actionCheckPaths = ['preview', 'tumble', 'landing', 'arithmetic', 'result', 'ready'].map((phase) =>
+  join(screenshotDirectory, `world-action-check-${phase}.png`));
 const questOutcomeScreenshotPath = join(screenshotDirectory, 'world-linda-outcome.png');
 const policeScreenshotPath = join(screenshotDirectory, 'world-police.png');
 const tierBArtSmokeMode = process.env.SI_WORLD_TIER_B_ART_SMOKE === '1';
@@ -82,6 +84,7 @@ rmSync(conversationScreenshotPath, { force: true });
 rmSync(socialScreenshotPath, { force: true });
 rmSync(journalScreenshotPath, { force: true });
 rmSync(questScreenshotPath, { force: true });
+actionCheckPaths.forEach((path) => rmSync(path, { force: true }));
 rmSync(questOutcomeScreenshotPath, { force: true });
 rmSync(policeScreenshotPath, { force: true });
 tierBZoomPaths.forEach((path) => rmSync(path, { force: true }));
@@ -207,7 +210,10 @@ child.once('close', (code) => {
     'conversationPause', 'conversationInputLocked', 'conversationSocialNavLocked', 'conversationResponsiveState', 'promptIdeasContextual', 'conversationBuffered', 'conversationFallback', 'modelFailureFeedback', 'audioCaptions', 'conversationCommitSave',
     'structuredInvitation', 'relationshipPanel', 'hiddenFaction', 'journalInvitation', 'socialPurchase',
     'questOfferDialogue', 'questOfferPause', 'questStarted', 'questPreparationPreserved', 'questShortcut',
-    'questChoicePreview', 'questOutcome', 'questAutosave', 'consequenceCaption', 'policeHooks', 'saveReload',
+    'questChoicePreview', 'actionCheckPreview', 'actionCheckInitialFocus', 'actionCheckBackgroundDisabled', 'actionCheckFocusTrap',
+    'actionCheckCancel', 'actionCheckRollingFocusTrap', 'actionCheckRollingEscape',
+    'actionCheckArithmetic', 'actionCheckResultVisible', 'actionCheckResult', 'actionCheckReadyFocus', 'actionCheckContinueFocus',
+    'questOutcome', 'questAutosave', 'consequenceCaption', 'policeHooks', 'saveReload',
   ]) {
     if (worldResult[key] !== true) {
       throw new Error(
@@ -241,7 +247,11 @@ child.once('close', (code) => {
   validateScreenshotBuffers(readFileSync(conversationScreenshotPath), readFileSync(socialScreenshotPath));
   validateScreenshotBuffers(readFileSync(socialScreenshotPath), readFileSync(journalScreenshotPath));
   validateScreenshotBuffers(readFileSync(journalScreenshotPath), readFileSync(questScreenshotPath));
-  validateScreenshotBuffers(readFileSync(questScreenshotPath), readFileSync(questOutcomeScreenshotPath));
+  validateScreenshotBuffers(readFileSync(questScreenshotPath), readFileSync(actionCheckPaths[0]!));
+  for (let index = 1; index < actionCheckPaths.length; index += 1) {
+    validateScreenshotBuffers(readFileSync(actionCheckPaths[index - 1]!), readFileSync(actionCheckPaths[index]!));
+  }
+  validateScreenshotBuffers(readFileSync(actionCheckPaths.at(-1)!), readFileSync(questOutcomeScreenshotPath));
   validateScreenshotBuffers(readFileSync(questOutcomeScreenshotPath), readFileSync(policeScreenshotPath));
   if (tierBArtSmokeMode) {
     for (const label of ['downtown', 'commercial', 'ferry']) {

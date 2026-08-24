@@ -1,0 +1,218 @@
+{
+  "deterministic": true,
+  "recipeSha256": "a41f5e2bb3e3a052879b08e6facb7dea29f8bfa69c8b3e86d7a0bd10a262d5a7",
+  "recipeDataSha256": "4653d0db34cec6bd79a36b52b0210ec14bb0217f4a9d110279365924fa14e087",
+  "atlas": {
+    "width": 1024,
+    "height": 128,
+    "pngSha256": "1dedd6ea9388d7e2c2ec7535ca68d855c6bbfa6f84a38a51e184394f31c63dcb",
+    "frames": {
+      "die-1": {
+        "x": 0,
+        "y": 0,
+        "width": 128,
+        "height": 128,
+        "anchors": {
+          "topFace": {
+            "x": 64,
+            "y": 43
+          },
+          "center": {
+            "x": 64,
+            "y": 64
+          },
+          "groundContact": {
+            "x": 64,
+            "y": 112
+          }
+        },
+        "rgbaSha256": "078a1594f6560bb34543d34fe10c6fe7a7fdc4e35d9477bc9454f7f1d6a7b6b0"
+      },
+      "die-2": {
+        "x": 128,
+        "y": 0,
+        "width": 128,
+        "height": 128,
+        "anchors": {
+          "topFace": {
+            "x": 64,
+            "y": 43
+          },
+          "center": {
+            "x": 64,
+            "y": 64
+          },
+          "groundContact": {
+            "x": 64,
+            "y": 112
+          }
+        },
+        "rgbaSha256": "9f704cc9e1a202df9160d3158266ef08e94e256256b7c624123e6e704d38c336"
+      },
+      "die-3": {
+        "x": 256,
+        "y": 0,
+        "width": 128,
+        "height": 128,
+        "anchors": {
+          "topFace": {
+            "x": 64,
+            "y": 43
+          },
+          "center": {
+            "x": 64,
+            "y": 64
+          },
+          "groundContact": {
+            "x": 64,
+            "y": 112
+          }
+        },
+        "rgbaSha256": "052dd18b8d791b7d2710fb3d95da3b569f44cb43cb0489909d5f918a870db5cd"
+      },
+      "die-4": {
+        "x": 384,
+        "y": 0,
+        "width": 128,
+        "height": 128,
+        "anchors": {
+          "topFace": {
+            "x": 64,
+            "y": 43
+          },
+          "center": {
+            "x": 64,
+            "y": 64
+          },
+          "groundContact": {
+            "x": 64,
+            "y": 112
+          }
+        },
+        "rgbaSha256": "a01a817fabb12fc26e29ecf6df230f612e5ed8a294b40a975723d25b1be142a2"
+      },
+      "die-5": {
+        "x": 512,
+        "y": 0,
+        "width": 128,
+        "height": 128,
+        "anchors": {
+          "topFace": {
+            "x": 64,
+            "y": 43
+          },
+          "center": {
+            "x": 64,
+            "y": 64
+          },
+          "groundContact": {
+            "x": 64,
+            "y": 112
+          }
+        },
+        "rgbaSha256": "1abc26893aafe03da88cafbd44180967a5c88702b74d24abacf87ef184fd0513"
+      },
+      "die-6": {
+        "x": 640,
+        "y": 0,
+        "width": 128,
+        "height": 128,
+        "anchors": {
+          "topFace": {
+            "x": 64,
+            "y": 43
+          },
+          "center": {
+            "x": 64,
+            "y": 64
+          },
+          "groundContact": {
+            "x": 64,
+            "y": 112
+          }
+        },
+        "rgbaSha256": "50767a5ef1864fa63bbb428de6c479291bb7924f64a1fc346d52a336e85ce8b1"
+      },
+      "soft-flight-shadow": {
+        "x": 768,
+        "y": 0,
+        "width": 128,
+        "height": 128,
+        "anchors": {
+          "center": {
+            "x": 67,
+            "y": 106
+          },
+          "groundContact": {
+            "x": 64,
+            "y": 112
+          }
+        },
+        "rgbaSha256": "de5692d24ab36838157ecaaf9e61e3ccade52b95eb60a3912b4f0c11062e620e"
+      },
+      "strong-contact-shadow": {
+        "x": 896,
+        "y": 0,
+        "width": 128,
+        "height": 128,
+        "anchors": {
+          "center": {
+            "x": 67,
+            "y": 106
+          },
+          "groundContact": {
+            "x": 64,
+            "y": 112
+          }
+        },
+        "rgbaSha256": "7088dbeb2c9fce7a861eb9335fe60d3f96c78de3df412cc25a1a448a422fc1ca"
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "die-1.png",
+      "pngSha256": "227f194a624fdd13d97cd8ac0a3a81e38e7cbe9a3ff38660041eea3fab20bf57"
+    },
+    {
+      "path": "die-2.png",
+      "pngSha256": "c357ad7cc70dff7c50d7e035aab638d878bb66b37dd0bf29ce3fa2e8d8e1d7e4"
+    },
+    {
+      "path": "die-3.png",
+      "pngSha256": "91f6d54b8e5b3fa39dfbf7e4ab450970b9a11a20e0d7ebda04017fc69e459e75"
+    },
+    {
+      "path": "die-4.png",
+      "pngSha256": "f1ed4ab99c31c3a326d34e8c5d030cd9081119dc327a3b386c7f17032a386124"
+    },
+    {
+      "path": "die-5.png",
+      "pngSha256": "e470e9b60080ecf97d71630c04959faad26dae26050275dc2d65290b79020f18"
+    },
+    {
+      "path": "die-6.png",
+      "pngSha256": "97aa908c2c42f227950034c4dbb2ade3030d0cc20e8835263755f0cee11803a8"
+    },
+    {
+      "path": "soft-flight-shadow.png",
+      "pngSha256": "8b6834c6bac2ea0eb29030df2ee7fc674d0e113cbeb325a43aaa4bbf980e3e6c"
+    },
+    {
+      "path": "strong-contact-shadow.png",
+      "pngSha256": "ab29cf59008410ae61f0e6766ec312f272ded29360a3a763697607763d8ea9fd"
+    },
+    {
+      "path": "action-check-dice-atlas-review.png",
+      "pngSha256": "1dedd6ea9388d7e2c2ec7535ca68d855c6bbfa6f84a38a51e184394f31c63dcb"
+    },
+    {
+      "path": "action-check-dice-review-1x.png",
+      "pngSha256": "4bb215eacf15d8d1fe74eaee9a8c3cec0dd55e9ad1e1887b1adba190b58c71e9"
+    },
+    {
+      "path": "action-check-dice-review-3x.png",
+      "pngSha256": "30692381434701e84d37c050780a0f6ce7478e4937fbb8ee5c3238e93d44f7f0"
+    }
+  ]
+}
