@@ -307,6 +307,20 @@ export function vfxQuads(frame: WorldFrameState): VfxQuads {
     });
   }
 
+  frame.weather?.marks.forEach((mark, index) => {
+    alpha.push({
+      id: `weather#${String(index)}`,
+      x: mark.worldX / TILE_SIZE,
+      y: mark.heightAboveGround / TILE_SIZE,
+      z: mark.worldY / TILE_SIZE,
+      width: mark.width / TILE_SIZE,
+      height: mark.height / TILE_SIZE,
+      tint: mark.color,
+      opacity: mark.opacity,
+      upright: true,
+    });
+  });
+
   /**
    * One-shots carry no kind — only a layer and a resolved colour — so the layer is the whole
    * selector. `ground` is a mark on the floor: a dust smear, a ripple, a blood stain, all matter

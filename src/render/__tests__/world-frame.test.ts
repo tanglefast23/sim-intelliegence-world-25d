@@ -307,6 +307,85 @@ describe('authoritative world frame', () => {
     expect(() => (frame.floors as unknown[]).push({})).toThrow();
   });
 
+  test('keeps the locked clear frame unchanged and adds deterministic rain and snow only when active', () => {
+    const automaticClear = buildWorldFrameState(MAP, createInitialState(), ACTORS, 'down', 0);
+    const forcedClear = buildWorldFrameState(MAP, createInitialState(), ACTORS, 'down', 0, undefined, {
+      weatherOverride: 'clear',
+    });
+    expect(forcedClear).toEqual(automaticClear);
+    expect(forcedClear.weather).toBeUndefined();
+    expect(JSON.stringify(forcedClear)).not.toContain('"weather"');
+
+    const rain = buildWorldFrameState(MAP, createInitialState(), ACTORS, 'down', 0, undefined, {
+      weatherOverride: 'rain',
+      vfxAgeStep: 4,
+    });
+    const snow = buildWorldFrameState(MAP, createInitialState(), ACTORS, 'down', 0, undefined, {
+      weatherOverride: 'snow',
+      vfxAgeStep: 4,
+    });
+    expect(rain.weather?.profile.kind).toBe('rain');
+    expect(rain.weather?.sampleStep).toBe(4);
+    expect(rain.weather?.marks.length).toBeGreaterThan(0);
+    expect(snow.weather?.profile.kind).toBe('snow');
+    expect(snow.weather?.marks.length).toBeGreaterThan(0);
+    expect(Object.isFrozen(rain.weather)).toBe(true);
+    expect(Object.isFrozen(rain.weather?.marks)).toBe(true);
+  });
+
+  test('keeps reduced weather static and clips revealed interior and tied door anchors', () => {
+    const atStep = (vfxAgeStep: number) => buildWorldFrameState(
+      MAP,
+      createInitialState(),
+      ACTORS,
+      'down',
+      0,
+      undefined,
+      { weatherOverride: 'rain', reducedMotion: true, vfxAgeStep },
+    );
+    const first = atStep(0);
+    const later = atStep(99);
+    expect(later.weather).toEqual(first.weather);
+    expect(first.weather?.sampleStep).toBe(0);
+    expect(first.weather?.marks.length).toBeLessThanOrEqual(16);
+    expect(first.hiddenRoofGroupId).toBe('protagonist-villa-roof');
+
+    const protectedKeys = new Set(MAP.roofGroupById.get(first.hiddenRoofGroupId ?? '')?.interiorKeys ?? []);
+    for (const door of MAP.doorById.values()) {
+      if (door.roofGroupId === first.hiddenRoofGroupId) protectedKeys.add(tileKey(door.tile));
+    }
+    expect(first.weather?.marks.every(({ worldX, worldY }) => (
+      !protectedKeys.has(`${Math.floor(worldX / 32)},${Math.floor(worldY / 32)}`)
+    ))).toBe(true);
+  });
+
+  test('allows precipitation above a roof that is still visible', () => {
+    const frame = buildWorldFrameState(MAP, stateVariant('outside'), ACTORS, 'down', 0, undefined, {
+      weatherOverride: 'rain',
+      vfxAgeStep: 2,
+    });
+    const visibleRoof = MAP.roofGroupById.get('protagonist-villa-roof');
+    expect(frame.hiddenRoofGroupId).toBeUndefined();
+    expect(visibleRoof).toBeDefined();
+    expect(frame.weather?.marks.some(({ worldX, worldY }) => (
+      visibleRoof?.interiorKeys.has(`${Math.floor(worldX / 32)},${Math.floor(worldY / 32)}`) === true
+    ))).toBe(true);
+  });
+
+  test('reconstructs scheduled weather from saved time without adding save data', () => {
+    const initial = createInitialState();
+    const rainy = WorldStateSchema.parse({
+      ...initial,
+      clock: { ...initial.clock, absoluteMinute: 720 },
+    });
+    const first = buildWorldFrameState(MAP, rainy, ACTORS, 'down', 0, undefined, { vfxAgeStep: 3 });
+    const loaded = WorldStateSchema.parse(JSON.parse(JSON.stringify(rainy)) as unknown);
+    const second = buildWorldFrameState(MAP, loaded, ACTORS, 'down', 0, undefined, { vfxAgeStep: 3 });
+    expect(second.weather).toEqual(first.weather);
+    expect(first.weather?.profile.kind).toBe('rain');
+    expect(JSON.stringify(rainy)).not.toContain('"weather"');
+  });
+
   test('records atlas rectangles, pivots, masks, colors, and stable grounded order', () => {
     const frame = buildWorldFrameState(MAP, createInitialState(), ACTORS, 'right', 1, {
       visualFoot: { x: 592, y: 606 },

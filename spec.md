@@ -213,6 +213,8 @@ The world advances continuously during ordinary exploration. The player can paus
 
 Starting an NPC conversation automatically pauses that clock. The world stays paused while the player reads, writes, or waits for a locally generated response. The clock resumes at the player's selected speed when the conversation ends. Menus may pause time when their specific design requires it; those menu rules remain to be defined.
 
+Version-one presentation weather uses deterministic `clear`, `rain`, and rare `snow` slots on a repeating seven-day table. It reconstructs from the authoritative clock, freezes with the existing ambient presentation clock, respects reduced motion, and stays out of the currently revealed interior and its doors. It changes no gameplay, save data, schedule, prompt, dialogue, audio, map content, or simulation result.
+
 The villa bed provides two actions:
 
 - **Nap:** available at any time; advances the clock and off-screen schedules by two game hours and restores some energy.
@@ -1199,7 +1201,7 @@ The following details have not yet been agreed:
 - Exact player-facing visibility of relationship values and NPC-specific stricter thresholds beyond the locked engine floors
 - Exact dating activities, engagement, wedding, marriage, breakup, and divorce content within the locked structured compatibility, consent, and rejection rules
 - Exact injury, arrest, recovery, item-loss, money-loss, time-loss, and reputation costs after protagonist defeat
-- Exact simulation depth for weather, events, businesses, additional factions, gossip spread, and inactive neighborhoods beyond the locked schedules, transfers, and two prototype factions
+- Exact gameplay consequences or deeper simulation for weather, events, businesses, additional factions, gossip spread, and inactive neighborhoods beyond the locked presentation weather, schedules, transfers, and two prototype factions
 - Exact manual-save slot count, names, thumbnails, storage limits, corruption-recovery UI, and Steam Cloud conflict UI
 - Exact pinned source revisions, conversion procedure, Qwen3.5-9B and Qwen3.5-4B GGUF artifacts, hashes, llama.cpp revision, and licence bundle selected by the model spike
 - CPU/GPU backend-selection and offload policy beyond the two named baseline machines

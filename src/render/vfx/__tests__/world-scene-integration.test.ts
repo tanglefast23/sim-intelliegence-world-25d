@@ -32,7 +32,7 @@ describe('WorldScene procedural VFX integration', () => {
 
   test('keeps time in the controller and gives the renderer sampled geometry only', () => {
     expect(scene()).toContain('const speed = effectiveSpeed(runtime.worldState.clock);');
-    expect(scene()).toContain("const running = !rendererSuspended && vfxMode === 'procedural' && (forceAmbientMotion || speed > 0);");
+    expect(scene()).toContain("const ambientRunning = !rendererSuspended && vfxMode === 'procedural' && (forceAmbientMotion || speed > 0);");
     expect(scene()).toContain('advanceAmbientVfxClock');
     expect(scene()).toContain('animationTimestampMilliseconds: rendererParityPulseFrozen ? 0 : vfxClock.current.ageMilliseconds');
     expect(scene()).toContain('vfxAgeStep: rendererParityPulseFrozen ? 0 : vfxAgeStep');
@@ -44,5 +44,15 @@ describe('WorldScene procedural VFX integration', () => {
     expect(scene()).toContain('nativeID="world-vfx-state"');
     expect(scene()).toContain('parseVfxEvidence');
     expect(scene()).not.toMatch(/save.*vfx|presentationPreferences.*vfx/iu);
+  });
+
+  test('keeps weather on the shared clock with local-only overrides and clear test defaults', () => {
+    expect(scene()).toContain("['localhost', '127.0.0.1'].includes(window.location.hostname)");
+    expect(scene()).toContain("localhostWeatherOverride() ?? (smokeMode || devHarnessMode ? 'clear' : undefined)");
+    expect(scene()).toContain('weatherOverride,');
+    expect(scene()).toContain('nativeID="world-weather-state"');
+    expect(scene()).toContain('parseWeatherEvidence');
+    expect(scene()).toContain('running: ambientRunning');
+    expect(scene()).not.toMatch(/weatherClock|setInterval\([^)]*weather/iu);
   });
 });

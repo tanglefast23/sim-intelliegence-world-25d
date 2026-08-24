@@ -53,6 +53,7 @@ import type { CompiledMapV2 } from '../world/maps/compiled-v2';
 import { selectOwnerInteractionApproach } from '../world/maps/compiler';
 import { resolveClickTarget, worldClickCandidates } from '../world/maps/hit-testing';
 import { presentationGroundAt } from '../world/presentation/art-presentation';
+import { stableTupleHash } from '../world/presentation/material-selection';
 import { tileKey, type TilePoint } from '../world/maps/schema';
 import type { MapId } from '../world/maps/catalog';
 import {
@@ -139,11 +140,20 @@ function worldToScreenTiltedRounded(
   const screen = worldToScreenTilted(camera, world);
   return { x: Math.round(screen.x), y: Math.round(screen.y) };
 }
+function localhostWeatherOverride(): WeatherKind | undefined {
+  if (typeof window === 'undefined' || !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    return undefined;
+  }
+  const value = new URLSearchParams(window.location.search).get('testWeather');
+  return isWeatherKind(value) ? value : undefined;
+}
 import { measureResponsiveEvidence } from './responsive-evidence';
 import { buildSmokeGeometryEvidence } from './smoke-geometry';
 import { parseVfxEvidence } from './vfx/evidence';
 import { PROCEDURAL_VFX_RENDER_NODE_COUNT } from './vfx/types';
 import { advanceAmbientVfxClock, INITIAL_AMBIENT_VFX_CLOCK } from './vfx/clock';
+import { isWeatherKind, visualWeatherAt, WEATHER_REVISION, type WeatherKind } from './vfx/weather';
+import { parseWeatherEvidence } from './vfx/weather-evidence';
 import {
   admitTransientCue,
   createTransientVfxCue,
@@ -564,6 +574,8 @@ export function WorldScene({
     ? 'legacy' as const
     : 'enhanced' as const;
   const smokeMode = typeof window !== 'undefined' && window.siWorldSmokeMode === true;
+  const devHarnessMode = typeof window !== 'undefined' && window.siWorldDevHarnessMode === true;
+  const weatherOverride = localhostWeatherOverride() ?? (smokeMode || devHarnessMode ? 'clear' : undefined);
   const vfxMode = smokeMode && window.siWorldVfxMode === 'circle'
     ? 'circle' as const
     : 'procedural' as const;
@@ -587,6 +599,7 @@ export function WorldScene({
     openingShowcase,
   ), [camera.zoom, conversationNpcId, dpr, mapId, openingShowcase, poseFrame, reactionId, reducedMotion, renderer2_5d, runtime.npcMovements, runtime.worldState, selected]);
   const speed = effectiveSpeed(runtime.worldState.clock);
+  const ambientRunning = !rendererSuspended && vfxMode === 'procedural' && (forceAmbientMotion || speed > 0);
   const selectedNpcId = stateNpcId(selected, runtime.worldState);
   const lindaQuestActions = lindaContextActions(runtime.worldState, selectedNpcId);
   const contextualMissionActions = verbalMissionContextActions(runtime.worldState, selectedNpcId);
@@ -659,11 +672,10 @@ export function WorldScene({
   }, [emitTransientCue, map, runtime.movement, transientVfxEnabled]);
 
   useEffect(() => {
-    const running = !rendererSuspended && vfxMode === 'procedural' && (forceAmbientMotion || speed > 0);
     // One-shot cues keep ageing while the world is paused. Spec section 3.3 requires exactly that:
     // a committed result must not become invisible because the movement loop stopped.
     const transientRunning = !rendererSuspended && transientVfxEnabled && transientLive;
-    if (!running && !transientRunning) {
+    if (!ambientRunning && !transientRunning) {
       vfxClock.current = advanceAmbientVfxClock(vfxClock.current, 0, { running: false });
       transientClock.current = advanceAmbientVfxClock(transientClock.current, 0, { running: false });
       return undefined;
@@ -677,7 +689,7 @@ export function WorldScene({
       // `running`, NOT `true`. A transient cue can start this loop while the world is paused, and
       // the packaged smoke throws if the AMBIENT age advances across a pause.
       vfxClock.current = advanceAmbientVfxClock(vfxClock.current, rawDelta, {
-        running,
+        running: ambientRunning,
         resumedFromSuspension,
       });
       transientClock.current = advanceAmbientVfxClock(transientClock.current, rawDelta, {
@@ -696,7 +708,7 @@ export function WorldScene({
     };
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  }, [forceAmbientMotion, mapId, rendererSuspended, speed, transientLive, transientVfxEnabled, vfxMode]);
+  }, [ambientRunning, mapId, transientLive, transientVfxEnabled]);
 
   useEffect(() => {
     if (reducedMotion) {
@@ -1701,10 +1713,11 @@ export function WorldScene({
       animationTimestampMilliseconds: rendererParityPulseFrozen ? 0 : vfxClock.current.ageMilliseconds,
       vfxAgeStep: rendererParityPulseFrozen ? 0 : vfxAgeStep,
       vfxMode,
+      weatherOverride,
       transientEffects: transientFrame.rects,
       transientGlows: transientFrame.glows,
     }),
-    [artMode, renderCamera, destinationMarker, destinationPulseElapsedMs, dpr, map, npcTiles, playerPoseFixture, playerRigIntentFixture, playerVisualFixture, playerVisualFoot, poseFrame, reactionId, reducedMotion, renderer2_5d, rendererParityPulseFrozen, runtime.movement, runtime.npcMovements, runtime.worldState, selected, selectedFoot, surface, transientFrame, vfxAgeStep, vfxMode],
+    [artMode, renderCamera, destinationMarker, destinationPulseElapsedMs, dpr, map, npcTiles, playerPoseFixture, playerRigIntentFixture, playerVisualFixture, playerVisualFoot, poseFrame, reactionId, reducedMotion, renderer2_5d, rendererParityPulseFrozen, runtime.movement, runtime.npcMovements, runtime.worldState, selected, selectedFoot, surface, transientFrame, vfxAgeStep, vfxMode, weatherOverride],
   );
   const propById = new Map(worldFrame.props.map((prop) => [prop.id, prop]));
   const characterById = new Map(worldFrame.characters.map((character) => [character.id, character]));
@@ -1780,6 +1793,41 @@ export function WorldScene({
       },
     }));
   }, [mapId, reducedMotion, smokeMode, transientFrame, transientVfxEnabled, vfxAgeStep, vfxMode, worldFrame]);
+  const weatherEvidence = useMemo(() => {
+    if (!smokeMode) return '';
+    const scheduled = visualWeatherAt(runtime.worldState.clock.absoluteMinute);
+    const kind = weatherOverride ?? scheduled.kind;
+    const live = worldFrame.weather;
+    const marks = live?.marks ?? [];
+    const interiorTileKeys = [...(map.roofGroupById.get(worldFrame.hiddenRoofGroupId ?? '')?.interiorKeys ?? [])]
+      .sort((left, right) => left.localeCompare(right, 'en'));
+    const doorTileKeys = [...map.doorById.values()]
+      .filter(({ roofGroupId }) => roofGroupId === worldFrame.hiddenRoofGroupId)
+      .map(({ tile }) => tileKey(tile))
+      .sort((left, right) => left.localeCompare(right, 'en'));
+    return JSON.stringify(parseWeatherEvidence({
+      schemaVersion: 1,
+      weatherRevision: WEATHER_REVISION,
+      source: weatherOverride === undefined ? 'auto' : 'forced',
+      kind,
+      absoluteMinute: runtime.worldState.clock.absoluteMinute,
+      slotStartMinute: scheduled.slotStartMinute,
+      reducedMotion,
+      running: ambientRunning,
+      liveMarks: marks.length,
+      droppedMarks: live?.droppedMarks ?? 0,
+      clippedMarks: live?.clippedMarks ?? 0,
+      sampleStep: live?.sampleStep ?? 0,
+      updateRateHz: kind !== 'clear' && !reducedMotion && ambientRunning
+        ? 1_000 / VFX_STEP_MILLISECONDS
+        : 0,
+      sampleHash: stableTupleHash([JSON.stringify(marks)]).toString(16).padStart(8, '0'),
+      marks,
+      interiorTileKeys,
+      doorTileKeys,
+      camera: renderCamera,
+    }));
+  }, [ambientRunning, map, reducedMotion, renderCamera, runtime.worldState.clock.absoluteMinute, smokeMode, weatherOverride, worldFrame]);
   const smokeGeometry = useMemo(
     () => smokeMode && map.source.id === 'northwest_residential' ? buildSmokeGeometryEvidence(map) : undefined,
     [map, smokeMode],
@@ -2011,6 +2059,12 @@ export function WorldScene({
         <View
           accessibilityLabel={vfxEvidence}
           nativeID="world-vfx-state"
+          pointerEvents="none"
+          style={styles.proofState}
+        />
+        <View
+          accessibilityLabel={weatherEvidence}
+          nativeID="world-weather-state"
           pointerEvents="none"
           style={styles.proofState}
         />
