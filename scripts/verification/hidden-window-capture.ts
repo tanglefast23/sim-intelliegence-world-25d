@@ -7,6 +7,8 @@ import { tmpdir } from 'node:os';
 import { CAMERA_YAW_DEGREES, GROUND_Z_SCALE } from '../../src/render/three25/projection';
 import type { CharacterId } from '../../src/render/atlas';
 import type { PencilRigIntent } from '../../src/render/world-frame';
+import type { WeatherKind } from '../../src/render/vfx/weather';
+import type { WeatherEvidence } from '../../src/render/vfx/weather-evidence';
 
 /**
  * Drives the 2.5D renderer in a real Electron window with a real WebGL 2 context, and captures it.
@@ -74,6 +76,10 @@ export type SceneRequest = Readonly<{
    * frame-diffing scorer must not have.
    */
   vfxStep?: number;
+  /** Presentation-only weather forced through a loopback-only query override. */
+  weather?: WeatherKind;
+  /** Use Chromium's reduced-motion media preference for this capture process. */
+  reducedMotion?: boolean;
   /**
    * Draw no procedural VFX, for a control frame.
    *
@@ -138,6 +144,7 @@ export type SceneEvidence = Readonly<{
     frameP95Ms: number;
     frameSamples: number;
   }>;
+  weather: WeatherEvidence;
   /** Present only when the scene asked for a click. */
   click?: Readonly<{
     /** The viewport-relative pixel the page actually dispatched at. */
@@ -231,6 +238,7 @@ const YAW_SIN = ${String(Math.sin((CAMERA_YAW_DEGREES * Math.PI) / 180))};
 const GROUND_Z_SCALE = ${String(GROUND_Z_SCALE)};
 
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
+${scenes[0]?.reducedMotion ? "app.commandLine.appendSwitch('force-prefers-reduced-motion');" : ''}
 
 // Electron reports an uncaught main-process exception by opening a modal dialog. In a hidden-window
 // capture that both hangs the run - nothing is there to click OK - and puts a window on the user's
@@ -283,8 +291,9 @@ async function capture(scene) {
   // Omitting yaw exercises the app's own default rather than pinning one.
   const yawQuery = scene.yawDegrees === undefined ? '' : '&testYaw=' + scene.yawDegrees;
   const shadowPath = scene.shadowPath === undefined ? 'fallback' : scene.shadowPath;
+  const weatherQuery = '&testWeather=' + (scene.weather === undefined ? 'clear' : scene.weather);
   await window.loadURL(
-    'http://127.0.0.1:${PORT}/?testRenderer=2-5d&testShadowPath=' + shadowPath + yawQuery,
+    'http://127.0.0.1:${PORT}/?testRenderer=2-5d&testShadowPath=' + shadowPath + yawQuery + weatherQuery,
   );
 
   // The web export boots to the title screen, so the world - and the renderer - do not exist until
@@ -570,6 +579,11 @@ async function capture(scene) {
   const shotEvidence = await window.webContents.executeJavaScript(
     'window.siWorld25dEvidence ? window.siWorld25dEvidence() : null',
   ) || evidence;
+  const weather = await window.webContents.executeJavaScript(
+    '(() => { const n = document.querySelector("#world-weather-state");'
+    + ' return n ? JSON.parse(n.getAttribute("aria-label") || "null") : null; })()',
+  );
+  if (!weather) throw new Error('Weather evidence is missing for scene ' + scene.name + '.');
 
   // Pinned to the requested viewport. capturePage returns DEVICE pixels, and a host whose display
   // scale is not 1 hands back a 2x image even with --force-device-scale-factor=1. That silently
@@ -601,6 +615,7 @@ async function capture(scene) {
     shadowPath,
     screenshot,
     evidence: shotEvidence,
+    weather,
     click,
     pan,
   };
@@ -626,6 +641,10 @@ export async function captureScenes(
   viewport: Readonly<{ width: number; height: number }> = { width: 1280, height: 720 },
   readyTimeoutMs = 60_000,
 ): Promise<readonly SceneEvidence[]> {
+  const reducedSceneCount = scenes.filter((scene) => scene.reducedMotion === true).length;
+  if (reducedSceneCount !== 0 && reducedSceneCount !== scenes.length) {
+    throw new Error('One capture process cannot mix reduced-motion and standard scenes.');
+  }
   const distRoot = resolve(process.cwd(), 'dist');
   if (!existsSync(join(distRoot, 'index.html'))) {
     throw new Error('dist/index.html is missing. Run `npm run export:web` first.');

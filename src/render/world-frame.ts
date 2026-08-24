@@ -36,6 +36,14 @@ import { PROTAGONIST_WOBBLE_PIVOT, protagonistWobbleDegrees } from './protagonis
 import { sampleVfxGeometry, vfxBoundsIntersectWorldRect } from './vfx/procedural-effects';
 import { partitionVfxEmitters } from './vfx/seed';
 import {
+  isWeatherKind,
+  sampleWeatherGeometry,
+  visualWeatherAt,
+  type WeatherKind,
+  type WeatherMark,
+  type WeatherProfile,
+} from './vfx/weather';
+import {
   VFX_STEP_MILLISECONDS,
   VFX_ROLE_COLORS,
   type AuthoredMapEffect,
@@ -217,6 +225,14 @@ export type WorldFallbackEffect = Readonly<{
   color: string;
 }>;
 
+export type WorldWeatherState = Readonly<{
+  profile: WeatherProfile;
+  marks: readonly WeatherMark[];
+  droppedMarks: number;
+  clippedMarks: number;
+  sampleStep: number;
+}>;
+
 export type WorldFrameView = Readonly<{
   camera: CameraState;
   viewport: ViewportSize;
@@ -231,6 +247,7 @@ export type WorldFrameView = Readonly<{
   animationTimestampMilliseconds: number;
   vfxAgeStep: number;
   vfxMode: VfxMode;
+  weatherOverride?: WeatherKind;
   /**
    * Sampled one-shot geometry. Optional and left UNDEFINED when empty, not an empty array:
    * `frameSummary()` hashes `JSON.stringify(frame)` and `JSON.stringify` omits undefined keys, so an
@@ -268,6 +285,8 @@ export type WorldFrameState = Readonly<{
   /** One-shot geometry. Undefined rather than empty when idle — see `WorldFrameView`. */
   transientEffects?: readonly TransientVfxRect[];
   transientGlows?: readonly TransientVfxGlow[];
+  /** Omitted for clear weather so locked clear frame bytes stay unchanged. */
+  weather?: WorldWeatherState;
   walls: readonly WorldWallPlacement[];
   roofs: readonly WorldRoofPlacement[];
   groundedOrder: readonly WorldGroundedEntry[];
@@ -826,6 +845,10 @@ export function buildWorldFrameState(
   if (!Number.isInteger(view.vfxAgeStep) || view.vfxAgeStep < 0) {
     throw new Error('Frame VFX age step must be a non-negative integer.');
   }
+  const scheduledWeather = visualWeatherAt(state.clock.absoluteMinute);
+  const weatherProfile: WeatherProfile = isWeatherKind(view.weatherOverride)
+    ? Object.freeze({ ...scheduledWeather, kind: view.weatherOverride })
+    : scheduledWeather;
   const characterInputs: Readonly<{
     id: string;
     visualId: CharacterId;
@@ -1015,6 +1038,34 @@ export function buildWorldFrameState(
     sun: { ...lightingSource.sun },
   };
   const atmosphere = { ...worldAtmosphere(state.clock.absoluteMinute) };
+  const weather = weatherProfile.kind === 'clear' ? undefined : (() => {
+    const protectedTileKeys = new Set(map.roofGroupById.get(hiddenRoofGroupId ?? '')?.interiorKeys ?? []);
+    for (const door of map.doorById.values()) {
+      if (door.roofGroupId === hiddenRoofGroupId) protectedTileKeys.add(tileKey(door.tile));
+    }
+    const sampleStep = view.reducedMotion ? 0 : view.vfxAgeStep;
+    const geometry = sampleWeatherGeometry({
+      profile: weatherProfile,
+      mapId: map.source.id,
+      mapPixels: { width: map.source.width * TILE_SIZE, height: map.source.height * TILE_SIZE },
+      worldRect: {
+        left: view.camera.x,
+        top: view.camera.y,
+        right: view.camera.x + view.viewport.width / view.camera.zoom,
+        bottom: view.camera.y + view.viewport.height / view.camera.zoom,
+      },
+      ageStep: sampleStep,
+      reducedMotion: view.reducedMotion,
+      protectedTileKeys,
+    });
+    return {
+      profile: weatherProfile,
+      marks: geometry.marks,
+      droppedMarks: geometry.droppedMarks,
+      clippedMarks: geometry.clippedMarks,
+      sampleStep,
+    };
+  })();
   const activeEffects = map.source.effects.filter((effect) => mapEffectVisible(effect.kind, state.clock.absoluteMinute));
   const vfxViewport = {
     left: view.camera.x - TILE_SIZE,
@@ -1109,6 +1160,7 @@ export function buildWorldFrameState(
     // Undefined, never [], when idle. See the field comment on `WorldFrameView`.
     ...(view.transientEffects?.length ? { transientEffects: view.transientEffects.map((entry) => ({ ...entry })) } : {}),
     ...(view.transientGlows?.length ? { transientGlows: view.transientGlows.map((entry) => ({ ...entry })) } : {}),
+    ...(weather ? { weather } : {}),
     walls,
     roofs,
     groundedOrder,

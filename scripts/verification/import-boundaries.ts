@@ -37,6 +37,7 @@ export const RENDERER_NEUTRAL_FILES = [
   'src/render/vfx/clock.ts',
   'src/render/vfx/seed.ts',
   'src/render/vfx/types.ts',
+  'src/render/vfx/weather.ts',
 ] as const;
 const DOM_GLOBALS = new Set([
   'document',

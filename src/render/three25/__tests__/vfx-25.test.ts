@@ -237,6 +237,46 @@ describe('transient one-shots', () => {
   });
 });
 
+describe('weather', () => {
+  test('uses upright alpha quads at the sampled world anchor and height', () => {
+    const frame = {
+      ...outdoorFrame(),
+      weather: {
+        profile: { revision: 1, kind: 'rain', slotStartMinute: 720 },
+        marks: [{
+          worldX: 320,
+          worldY: 640,
+          heightAboveGround: 96,
+          width: 1,
+          height: 8,
+          color: '#8fa8c8',
+          opacity: 0.4,
+        }],
+        droppedMarks: 0,
+        clippedMarks: 0,
+        sampleStep: 3,
+      },
+    } as unknown as WorldFrameState;
+    const [rain] = vfxQuads(frame).alpha.filter(({ id }) => id.startsWith('weather#'));
+    expect(rain).toEqual({
+      id: 'weather#0',
+      x: 10,
+      y: 3,
+      z: 20,
+      width: 1 / 32,
+      height: 1 / 4,
+      tint: '#8fa8c8',
+      opacity: 0.4,
+      upright: true,
+    });
+    expect(vfxQuads(frame).additive.some(({ id }) => id.startsWith('weather#'))).toBe(false);
+  });
+
+  test('adds no weather quad to a clear frame', () => {
+    expect(vfxQuads(outdoorFrame()).alpha.some(({ id }) => id.startsWith('weather#'))).toBe(false);
+  });
+});
+
 describe('transient glows', () => {
   test('become lamp pools, so the radial fan bake already handles them', () => {
     const frame = {

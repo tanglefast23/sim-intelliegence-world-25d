@@ -62,6 +62,7 @@
     "smoke:day-sweep": "tsx scripts/electron/run-day-sweep-smoke.ts",
     "smoke:25d:lit": "tsx scripts/electron/run-25d-shadow-smoke.ts --lit",
     "smoke:25d:fallback": "tsx scripts/electron/run-25d-shadow-smoke.ts --fallback",
+    "smoke:25d:weather": "tsx scripts/verification/verify-25d-weather.ts",
     "smoke:responsive": "tsx scripts/electron/run-responsive-package-smoke.ts",
     "smoke:responsive:high-dpi": "tsx scripts/electron/run-responsive-package-smoke.ts --high-dpi",
     "smoke:responsive:qualification": "tsx scripts/electron/run-responsive-package-smoke.ts --high-dpi --qualification",
