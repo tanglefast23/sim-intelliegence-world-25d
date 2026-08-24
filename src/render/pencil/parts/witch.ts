@@ -1,8 +1,9 @@
 import type { PencilLayout, PencilPalette } from '../layout';
+import type { MinaRigPose } from '../mina-rig';
 import { gaitSwing, screenSideForAttachment, type VampirePose } from '../pose';
 import type { Point, Sketch } from '../sketch';
 
-type WitchOptions = Readonly<{ dressed: boolean }>;
+type WitchOptions = Readonly<{ dressed: boolean; sideProfile?: boolean }>;
 type Color = Extract<keyof PencilPalette, 'pale' | 'ash' | 'hollow' | 'hair' | 'hairEdge' | 'cloak' | 'cloakLift' | 'shirt' | 'lining'>;
 
 function mass(
@@ -21,6 +22,85 @@ function mass(
 function shade(sketch: Sketch, F: PencilLayout, points: readonly Point[]): void {
   F.media.tone(sketch, points, { style: 'scribble', angle: 0.4, paper: false });
   F.media.skin(sketch, points, F.colors.ash, { paper: false, underdraw: false, alpha: 0.38 });
+}
+
+function limbShape(points: readonly Point[], halfWidths: readonly number[]): Point[] {
+  const left: Point[] = [];
+  const right: Point[] = [];
+  points.forEach((point, index) => {
+    const before = points[Math.max(0, index - 1)]!;
+    const after = points[Math.min(points.length - 1, index + 1)]!;
+    const dx = after.x - before.x;
+    const dy = after.y - before.y;
+    const length = Math.max(1, Math.hypot(dx, dy));
+    const nx = -dy / length * halfWidths[index]!;
+    const ny = dx / length * halfWidths[index]!;
+    left.push({ x: point.x + nx, y: point.y + ny });
+    right.push({ x: point.x - nx, y: point.y - ny });
+  });
+  return [...left, ...right.reverse()];
+}
+
+function drawRiggedLeg(sketch: Sketch, F: PencilLayout, rig: MinaRigPose, side: 'left' | 'right'): void {
+  const points = [rig.joints[`${side}Hip`], rig.joints[`${side}Knee`], rig.joints[`${side}Foot`]];
+  mass(sketch, F, sketch.smooth(limbShape(points, [4.6, 4.2, 3.5])), 'ash', 'light', side === 'left' ? -0.4 : 0.4);
+  F.media.edge(sketch, points, F.lwThin * 0.42);
+  const foot = points[2]!;
+  const direction = poseDirection(rig.facing, side);
+  mass(sketch, F, sketch.blobPts(foot.x + direction * 2.5, foot.y - 1.5, 7.2, 4.2, direction * 0.08, 0.28), 'hollow', 'hatch', 0.1);
+}
+
+function poseDirection(facing: VampirePose['facing'], side: 'left' | 'right'): -1 | 1 {
+  if (facing === 'left') return -1;
+  if (facing === 'right') return 1;
+  return screenSideForAttachment(side, facing, side === 'left' ? 'leading' : 'trailing');
+}
+
+function drawRiggedArm(
+  sketch: Sketch,
+  F: PencilLayout,
+  rig: MinaRigPose,
+  side: 'left' | 'right',
+  dressed: boolean,
+): void {
+  const points = [rig.joints[`${side}Shoulder`], rig.joints[`${side}Elbow`], rig.joints[`${side}Hand`]];
+  mass(sketch, F, sketch.smooth(limbShape(points, [4.8, 4.1, 3.2])), dressed ? 'cloakLift' : 'pale', dressed ? 'hatch' : 'light', side === 'left' ? -0.55 : 0.55);
+  F.media.edge(sketch, points, F.lwThin * 0.45);
+  const hand = points[2]!;
+  const direction = poseDirection(rig.facing, side);
+  mass(sketch, F, sketch.blobPts(hand.x, hand.y, 5.4, 6.6, direction * 0.08, 0.22), 'pale', 'light', direction * 0.25);
+  if (side === 'left') {
+    F.media.edge(sketch, [
+      { x: hand.x - direction * 1.6, y: hand.y + 1 },
+      { x: hand.x + direction * 1.8, y: hand.y + 2.3 },
+    ], F.lwThin * 0.5);
+    return;
+  }
+  for (const finger of [-1.8, 1.8]) {
+    F.media.edge(sketch, [
+      { x: hand.x + finger, y: hand.y + 0.5 },
+      { x: hand.x + finger + direction * 2.6, y: hand.y + 3.5 },
+    ], F.lwThin * 0.55);
+  }
+}
+
+function drawRiggedBroom(sketch: Sketch, F: PencilLayout, rig: MinaRigPose): void {
+  const hand = rig.joints.rightHand;
+  const brush = rig.joints.broomBrush;
+  const side = brush.x >= hand.x ? 1 : -1;
+  mass(sketch, F, limbShape([hand, brush], [1.3, 1.7]), 'lining', 'hatch', side * 0.2);
+  mass(sketch, F, [
+    { x: brush.x - side * 4, y: brush.y - 9 },
+    { x: brush.x + side * 7, y: brush.y - 9 },
+    { x: brush.x + side * 16, y: brush.y },
+    { x: brush.x - side * 10, y: brush.y },
+  ], 'lining', 'hatch', side * 0.65);
+  for (const offset of [-6, 0, 6]) {
+    F.media.edge(sketch, [
+      { x: brush.x + offset, y: brush.y - 8 },
+      { x: brush.x + offset + side * 5, y: brush.y },
+    ], F.lwThin * 0.55);
+  }
 }
 
 function drawNeck(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
@@ -50,11 +130,11 @@ function drawBroom(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
   }
 }
 
-function drawHair(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawHair(sketch: Sketch, F: PencilLayout, pose: VampirePose, offset: Point = { x: 0, y: 0 }): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const rear = pose.facing === 'rear';
   const dir = pose.facing === 'right' ? 1 : -1;
-  const hair = profile
+  const hair = (profile
     ? sketch.smooth([
       F.head(-dir * 25, 47), F.head(-dir * 38, 57), F.head(-dir * 37, 109),
       F.body(-dir * 37, 182), F.body(-dir * 23, 232), F.body(-dir * 7, 198),
@@ -64,13 +144,14 @@ function drawHair(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
       F.head(-34, 48), F.head(35, 48), F.head(40, 91), F.body(36, 203),
       F.body(19, 231), F.body(8, 196), F.body(-9, 198), F.body(-20, 232),
       F.body(-37, 204), F.head(-41, 91),
-    ]);
+    ])).map((point) => ({ x: point.x + offset.x, y: point.y + offset.y }));
   mass(sketch, F, hair, rear ? 'hairEdge' : 'hair', 'scribble', 0.8);
+  const shifted = (point: Point): Point => ({ x: point.x + offset.x, y: point.y + offset.y });
   if (profile) {
-    F.media.edge(sketch, [F.head(-dir * 25, 54), F.body(-dir * 27, 217)], F.lwThin * 0.62);
+    F.media.edge(sketch, [shifted(F.head(-dir * 25, 54)), shifted(F.body(-dir * 27, 217))], F.lwThin * 0.62);
   } else {
-    F.media.edge(sketch, [F.head(-23, 53), F.body(-22, 219)], F.lwThin * 0.55);
-    F.media.edge(sketch, [F.head(24, 53), F.body(22, 216)], F.lwThin * 0.55);
+    F.media.edge(sketch, [shifted(F.head(-23, 53)), shifted(F.body(-22, 219))], F.lwThin * 0.55);
+    F.media.edge(sketch, [shifted(F.head(24, 53)), shifted(F.body(22, 216))], F.lwThin * 0.55);
   }
 }
 
@@ -145,10 +226,12 @@ function drawRobe(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
   F.media.edge(sketch, hem, F.lwThin * 0.68);
 }
 
-function drawArms(sketch: Sketch, F: PencilLayout, pose: VampirePose, dressed: boolean): void {
+function drawArms(sketch: Sketch, F: PencilLayout, pose: VampirePose, dressed: boolean, sideProfile = false): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const swing = pose.moving ? gaitSwing(pose.gait) * 0.22 : 0;
-  const sides = profile ? [-1, 1] as const : [-1, 1] as const;
+  const sides: readonly (-1 | 1)[] = profile && sideProfile
+    ? [screenSideForAttachment('right', pose.facing, 'trailing')]
+    : [-1, 1];
   for (const side of sides) {
     const depth = profile ? side * 24 : side * 39;
     const shoulder = profile ? depth : side * 34;
@@ -239,8 +322,43 @@ export function drawClassicWitch(
   if (options.dressed) drawHair(sketch, F, pose);
   drawTorso(sketch, F, pose, options.dressed);
   if (options.dressed) drawRobe(sketch, F, pose);
-  drawArms(sketch, F, pose, options.dressed);
+  drawArms(sketch, F, pose, options.dressed, options.sideProfile);
   drawHead(sketch, F, pose);
   if (options.dressed && pose.facing === 'rear') drawRearHairCap(sketch, F);
   if (options.dressed) drawHat(sketch, F, pose);
+}
+
+function nearSide(side: 'left' | 'right', pose: VampirePose): boolean {
+  return screenSideForAttachment(side, pose.facing, side === 'left' ? 'leading' : 'trailing') === 1;
+}
+
+export function drawRiggedWitch(
+  sketch: Sketch,
+  F: PencilLayout,
+  pose: VampirePose,
+  rig: MinaRigPose,
+  partOrder: readonly string[],
+  options: WitchOptions = { dressed: true },
+): void {
+  const profile = pose.facing === 'left' || pose.facing === 'right';
+  const sides = [...(['left', 'right'] as const)]
+    .sort((a, b) => Number(nearSide(a, pose)) - Number(nearSide(b, pose)));
+  const draw: Readonly<Record<string, () => void>> = {
+    legs: () => { for (const side of sides) drawRiggedLeg(sketch, F, rig, side); },
+    broom: () => { if (options.dressed) drawRiggedBroom(sketch, F, rig); },
+    'far-arm': () => { if (!(profile && options.sideProfile)) drawRiggedArm(sketch, F, rig, sides[0]!, options.dressed); },
+    neck: () => drawNeck(sketch, F, pose),
+    hair: () => { if (options.dressed) drawHair(sketch, F, pose, rig.hairOffset); },
+    torso: () => drawTorso(sketch, F, pose, options.dressed),
+    robe: () => { if (options.dressed) drawRobe(sketch, F, pose); },
+    head: () => drawHead(sketch, F, pose),
+    'rear-hair-cap': () => { if (options.dressed && pose.facing === 'rear') drawRearHairCap(sketch, F); },
+    hat: () => { if (options.dressed) drawHat(sketch, F, pose); },
+    'near-arm': () => drawRiggedArm(sketch, F, rig, profile && options.sideProfile ? 'right' : sides[1]!, options.dressed),
+  };
+  for (const id of partOrder) {
+    const part = draw[id];
+    if (!part) throw new Error(`Mina rig data names unknown part ${id}.`);
+    part();
+  }
 }

@@ -1,8 +1,16 @@
 import type { PencilLayout, PencilPalette } from '../layout';
-import { gaitSwing, type VampirePose } from '../pose';
+import type { LindaRigPose } from '../linda-rig';
+import { gaitSwing, screenSideForAttachment, type VampirePose } from '../pose';
 import type { Point, Sketch } from '../sketch';
 
 type FurColor = Extract<keyof PencilPalette, 'pale' | 'ash' | 'hollow' | 'hair' | 'hairEdge'>;
+
+export type BigfootFeatureTuning = Readonly<{
+  eyeScale?: number;
+  muzzleScale?: number;
+  noseScale?: number;
+  sideProfile?: boolean;
+}>;
 
 function furMass(
   sketch: Sketch,
@@ -15,6 +23,68 @@ function furMass(
   F.media.tone(sketch, points, { style: 'scribble', angle, paper: false });
   F.media.skin(sketch, points, F.colors[color], { paper: false, underdraw: false, alpha: 0.82 });
   if (outline) F.media.edge(sketch, [...points, points[0]!], F.lwThin * 0.9);
+}
+
+function limbShape(points: readonly Point[], halfWidths: readonly number[]): Point[] {
+  const left: Point[] = [];
+  const right: Point[] = [];
+  points.forEach((point, index) => {
+    const before = points[Math.max(0, index - 1)]!;
+    const after = points[Math.min(points.length - 1, index + 1)]!;
+    const dx = after.x - before.x;
+    const dy = after.y - before.y;
+    const length = Math.max(1, Math.hypot(dx, dy));
+    const nx = -dy / length * halfWidths[index]!;
+    const ny = dx / length * halfWidths[index]!;
+    left.push({ x: point.x + nx, y: point.y + ny });
+    right.push({ x: point.x - nx, y: point.y - ny });
+  });
+  return [...left, ...right.reverse()];
+}
+
+function drawRiggedArm(
+  sketch: Sketch,
+  F: PencilLayout,
+  rig: LindaRigPose,
+  side: 'left' | 'right',
+  near: boolean,
+): void {
+  const points = [
+    rig.joints[`${side}Shoulder`],
+    rig.joints[`${side}Elbow`],
+    rig.joints[`${side}Hand`],
+  ];
+  furMass(sketch, F, sketch.smooth(limbShape(points, [5.5, 4.7, 3.7])), 'hair', near ? 0.55 : -0.55);
+  F.media.edge(sketch, points, F.lwThin * 0.45);
+  const hand = points[2]!;
+  furMass(sketch, F, sketch.blobPts(hand.x, hand.y, near ? 5.7 : 4.8, near ? 6.5 : 5.6, 0, 0.35), near ? 'pale' : 'hair');
+  for (const finger of [-2.6, 0, 2.6]) {
+    F.media.edge(sketch, [
+      { x: hand.x + finger, y: hand.y + 1 },
+      { x: hand.x + finger, y: hand.y + 6 },
+    ], F.lwThin * 0.55);
+  }
+}
+
+function drawRiggedLeg(
+  sketch: Sketch,
+  F: PencilLayout,
+  rig: LindaRigPose,
+  side: 'left' | 'right',
+  near: boolean,
+): void {
+  const points = [rig.joints[`${side}Hip`], rig.joints[`${side}Knee`], rig.joints[`${side}Foot`]];
+  furMass(sketch, F, sketch.smooth(limbShape(points, [6.2, 5.4, 4.2])), 'hair', near ? 0.45 : -0.45);
+  F.media.edge(sketch, points, F.lwThin * 0.42);
+  const foot = points[2]!;
+  const direction = foot.x >= points[1]!.x ? 1 : -1;
+  furMass(sketch, F, sketch.blobPts(foot.x + direction * 3, foot.y - 1.5, 8.5, 4.7, direction * 0.08, 0.35), 'pale');
+  for (const toe of [-2.8, 0, 2.8]) {
+    F.media.edge(sketch, [
+      { x: foot.x + direction * 3, y: foot.y + toe - 1.5 },
+      { x: foot.x + direction * 8, y: foot.y + toe - 1 },
+    ], F.lwThin * 0.5);
+  }
 }
 
 function drawFoot(sketch: Sketch, F: PencilLayout, x: number, y: number, direction: -1 | 1): void {
@@ -117,10 +187,18 @@ function drawArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 
   }
 }
 
-function drawHead(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawHead(
+  sketch: Sketch,
+  F: PencilLayout,
+  pose: VampirePose,
+  tuning: BigfootFeatureTuning = {},
+): void {
   const rear = pose.facing === 'rear';
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const direction: -1 | 1 = pose.facing === 'right' ? 1 : -1;
+  const eyeScale = tuning.eyeScale ?? 1;
+  const muzzleScale = tuning.muzzleScale ?? 1;
+  const noseScale = tuning.noseScale ?? 1;
   const outline = profile
     ? sketch.smooth([
       F.head(-direction * 38, 55), F.head(-direction * 18, 40), F.head(direction * 17, 43),
@@ -158,12 +236,12 @@ function drawHead(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
 
   const face = profile
     ? sketch.smooth([
-      F.head(direction * 2, 63), F.head(direction * 30, 62), F.head(direction * 47, 88),
-      F.head(direction * 35, 118), F.head(direction * 8, 123), F.head(-direction * 6, 94),
+      F.head(direction * 2, 63), F.head(direction * 30 * muzzleScale, 62), F.head(direction * 47 * muzzleScale, 88),
+      F.head(direction * 35 * muzzleScale, 118), F.head(direction * 8, 123), F.head(-direction * 6, 94),
     ])
     : sketch.smooth([
-      F.head(-27, 62), F.head(27, 62), F.head(34, 87), F.head(25, 120),
-      F.head(0, 128), F.head(-25, 120), F.head(-34, 87),
+      F.head(-27 * muzzleScale, 62), F.head(27 * muzzleScale, 62), F.head(34 * muzzleScale, 87), F.head(25 * muzzleScale, 120),
+      F.head(0, 128), F.head(-25 * muzzleScale, 120), F.head(-34 * muzzleScale, 87),
     ]);
   furMass(sketch, F, face, 'pale', 0.15);
 
@@ -175,7 +253,7 @@ function drawHead(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
   const eyes = profile ? [direction * 21] : [-16, 16];
   for (const x of eyes) {
     const eye = F.head(x, 80);
-    F.media.skin(sketch, sketch.blobPts(eye.x, eye.y, 3.2, 2.4, 0, 0.2), F.colors.hollow, {
+    F.media.skin(sketch, sketch.blobPts(eye.x, eye.y, 3.2 * eyeScale, 2.4 * eyeScale, 0, 0.2), F.colors.hollow, {
       paper: false, underdraw: false, alpha: 0.95,
     });
     F.media.skin(sketch, sketch.blobPts(eye.x + direction * 0.8, eye.y, 0.9, 0.9, 0, 0.1), F.colors.lining, {
@@ -185,16 +263,16 @@ function drawHead(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
 
   const muzzle = profile
     ? sketch.smooth([
-      F.head(direction * 14, 87), F.head(direction * 48, 88), F.head(direction * 52, 103),
-      F.head(direction * 34, 115), F.head(direction * 10, 108),
+      F.head(direction * 14, 87), F.head(direction * 48 * muzzleScale, 88), F.head(direction * 52 * muzzleScale, 103),
+      F.head(direction * 34 * muzzleScale, 115), F.head(direction * 10, 108),
     ])
     : sketch.smooth([
-      F.head(-20, 88), F.head(20, 88), F.head(27, 106), F.head(17, 121),
-      F.head(-17, 121), F.head(-27, 106),
+      F.head(-20 * muzzleScale, 88), F.head(20 * muzzleScale, 88), F.head(27 * muzzleScale, 106), F.head(17 * muzzleScale, 121),
+      F.head(-17 * muzzleScale, 121), F.head(-27 * muzzleScale, 106),
     ]);
   furMass(sketch, F, muzzle, 'ash', -0.1);
-  const nose = profile ? F.head(direction * 43, 96) : F.head(0, 98);
-  F.media.skin(sketch, sketch.blobPts(nose.x, nose.y, profile ? 5 : 7, 4.5, 0, 0.25), F.colors.hollow, {
+  const nose = profile ? F.head(direction * 43 * muzzleScale, 96) : F.head(0, 98);
+  F.media.skin(sketch, sketch.blobPts(nose.x, nose.y, (profile ? 5 : 7) * noseScale, 4.5 * noseScale, 0, 0.25), F.colors.hollow, {
     paper: false, underdraw: false, alpha: 0.92,
   });
   const mouth = profile
@@ -203,7 +281,7 @@ function drawHead(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
   F.media.edge(sketch, mouth, F.lwThin * 0.8);
 }
 
-function drawLongMane(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawLongMane(sketch: Sketch, F: PencilLayout, pose: VampirePose, offset: Point = { x: 0, y: 0 }): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const direction: -1 | 1 = pose.facing === 'right' ? 1 : -1;
   const sides = profile ? [-direction] as const : [-1, 1] as const;
@@ -213,7 +291,7 @@ function drawLongMane(sketch: Sketch, F: PencilLayout, pose: VampirePose): void 
       F.head(side * 43, 105), F.body(side * 49, 151), F.body(side * 43, 169),
       F.body(side * 51, 187), F.body(side * 42, 202), F.body(side * 47, 219),
       F.body(side * 35, 200), F.body(side * 34, 166), F.head(side * 25, 108),
-    ];
+    ].map((point) => ({ x: point.x + offset.x, y: point.y + offset.y }));
     furMass(sketch, F, mane, 'hair', side * 0.8);
     for (const offset of [-6, 1, 8]) {
       F.media.edge(sketch, [F.head(side * (31 + offset), 56), F.body(side * (41 + offset), 207)], F.lwThin * 0.45);
@@ -241,5 +319,36 @@ export function drawLiteralBigfoot(
   else {
     drawArm(sketch, F, pose, -1, false);
     drawArm(sketch, F, pose, 1, false);
+  }
+}
+
+function nearSide(side: 'left' | 'right', pose: VampirePose): boolean {
+  return screenSideForAttachment(side, pose.facing, side === 'left' ? 'leading' : 'trailing') === 1;
+}
+
+export function drawRiggedBigfoot(
+  sketch: Sketch,
+  F: PencilLayout,
+  pose: VampirePose,
+  rig: LindaRigPose,
+  partOrder: readonly string[],
+  featureTuning: BigfootFeatureTuning = {},
+): void {
+  const profile = pose.facing === 'left' || pose.facing === 'right';
+  const sides = [...(['left', 'right'] as const)]
+    .sort((a, b) => Number(nearSide(a, pose)) - Number(nearSide(b, pose)));
+  const draw: Readonly<Record<string, () => void>> = {
+    legs: () => { for (const side of sides) drawRiggedLeg(sketch, F, rig, side, nearSide(side, pose)); },
+    'far-arm': () => { if (!(profile && featureTuning.sideProfile)) drawRiggedArm(sketch, F, rig, sides[0]!, false); },
+    torso: () => drawTorso(sketch, F, pose),
+    'buried-neck': () => drawBuriedNeck(sketch, F, pose),
+    head: () => drawHead(sketch, F, pose, featureTuning),
+    mane: () => drawLongMane(sketch, F, pose, rig.maneOffset),
+    'near-arm': () => drawRiggedArm(sketch, F, rig, profile && featureTuning.sideProfile ? 'right' : sides[1]!, true),
+  };
+  for (const id of partOrder) {
+    const part = draw[id];
+    if (!part) throw new Error(`Linda rig data names unknown part ${id}.`);
+    part();
   }
 }

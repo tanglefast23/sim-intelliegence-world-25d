@@ -134,6 +134,7 @@ export class Sketch {
     if (px < 0 || py < 0 || px >= this.width || py >= this.height || strength <= 0) return;
     const i = (py * this.width + px) * 4 + 3;
     this.data[i] = Math.round((this.data[i] ?? 0) * (1 - Math.min(1, strength)));
+    if (this.data[i] === 0) this.data.fill(0, i - 3, i);
   }
 
   /**

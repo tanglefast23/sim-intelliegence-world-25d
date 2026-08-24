@@ -3,7 +3,7 @@ import { gaitSwing, screenSideForAttachment, type VampirePose } from '../pose';
 import { seatedArmAnchors, seatedLegAnchors, segmentBox } from '../seated';
 import type { Point, Sketch } from '../sketch';
 
-type RobotOptions = Readonly<{ adorned: boolean; seated?: boolean }>;
+type RobotOptions = Readonly<{ adorned: boolean; seated?: boolean; sideProfile?: boolean }>;
 type RobotColor = Extract<keyof PencilPalette,
   'pale' | 'ash' | 'hollow' | 'cloak' | 'cloakLift' | 'shirt' | 'lining' | 'fang'
 >;
@@ -81,7 +81,15 @@ function drawClamp(sketch: Sketch, F: PencilLayout, palm: Point, side: -1 | 1, c
   joint(sketch, F, palm, color);
 }
 
-function drawArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 1, far: boolean, seated = false): void {
+function drawArm(
+  sketch: Sketch,
+  F: PencilLayout,
+  pose: VampirePose,
+  side: -1 | 1,
+  far: boolean,
+  seated = false,
+  sideProfile = false,
+): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   if (seated) {
     const anchors = seatedArmAnchors(F, pose.facing, side, 1.02);
@@ -94,9 +102,11 @@ function drawArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 
     return;
   }
   const swing = pose.moving ? gaitSwing(pose.gait) * side * 0.26 : 0;
-  const shoulderX = profile ? side * (far ? 19 : 29) : side * 37;
-  const elbowX = profile ? side * (far ? 26 : 39) : side * 48;
-  const wristX = profile ? side * (far ? 31 : 46) : side * 54;
+  const dir = pose.facing === 'right' ? 1 : -1;
+  const centre = -dir * 3;
+  const shoulderX = profile && sideProfile ? centre + dir * 3 : profile ? side * (far ? 19 : 29) : side * 37;
+  const elbowX = profile && sideProfile ? centre - dir * 2 : profile ? side * (far ? 26 : 39) : side * 48;
+  const wristX = profile && sideProfile ? centre - dir * 4 : profile ? side * (far ? 31 : 46) : side * 54;
   const metal: RobotColor = far ? 'ash' : 'pale';
   joint(sketch, F, F.body(shoulderX, 158), far ? 'hollow' : 'lining');
   mass(sketch, F, [
@@ -111,7 +121,7 @@ function drawArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 
   drawClamp(sketch, F, F.body(wristX, 221 + swing), side, metal);
 }
 
-function drawTorso(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawTorso(sketch: Sketch, F: PencilLayout, pose: VampirePose, sideProfile = false): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const dir: -1 | 1 = pose.facing === 'right' ? 1 : -1;
   const centre = profile ? -dir * 3 : 0;
@@ -129,6 +139,11 @@ function drawTorso(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
     for (const y of [170, 180, 190]) {
       F.media.edge(sketch, [F.body(centre - 12, y), F.body(centre + 12, y)], F.lwThin * 0.58);
     }
+    return;
+  }
+
+  if (profile && sideProfile) {
+    F.media.edge(sketch, [F.body(centre + dir * 13, 158), F.body(centre + dir * 13, 202)], F.lwThin * 0.72);
     return;
   }
 
@@ -221,11 +236,11 @@ export function drawLiteralRobot(
 ): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   drawLegs(sketch, F, pose, options.seated);
-  if (profile) drawArm(sketch, F, pose, pose.facing === 'right' ? -1 : 1, true, options.seated);
+  if (profile && !options.sideProfile) drawArm(sketch, F, pose, pose.facing === 'right' ? -1 : 1, true, options.seated);
   drawNeck(sketch, F, pose);
-  drawTorso(sketch, F, pose);
+  drawTorso(sketch, F, pose, options.sideProfile);
   drawHead(sketch, F, pose);
-  if (profile) drawArm(sketch, F, pose, pose.facing === 'right' ? 1 : -1, false, options.seated);
+  if (profile) drawArm(sketch, F, pose, pose.facing === 'right' ? 1 : -1, false, options.seated, options.sideProfile);
   else {
     drawArm(sketch, F, pose, -1, false, options.seated);
     drawArm(sketch, F, pose, 1, false, options.seated);

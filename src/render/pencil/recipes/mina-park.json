@@ -1,0 +1,227 @@
+{
+  "version": 1,
+  "status": "shipping",
+  "visualId": "mina-park",
+  "upstreamCommit": "de339ad739d8cbd28ff2dd4a940af38c0ede86c8",
+  "seed": 2026,
+  "species": "human",
+  "base": "biped",
+  "media": "graphite",
+  "color": "auto",
+  "parts": {
+    "skull": {
+      "params": {
+        "s": 0.5773260848014616,
+        "wf": 0.7523583262041211,
+        "turn": -0.05120331118814647,
+        "shroud": false,
+        "round": 0.9633671035803855,
+        "shape": "drop",
+        "muzzle": 0,
+        "muzzleY": 0.6405372663401068,
+        "fur": false,
+        "jaw": 1.026371442922391,
+        "chinW": 1.2812209078110754,
+        "skullY": 0.9664484688127414,
+        "chinY": 0.7422233857074751,
+        "press": 1.4375116686336697,
+        "shade": "none",
+        "hollows": false,
+        "construction": true,
+        "darkSkin": false,
+        "plain": false,
+        "skinOn": false,
+        "skinIdx": 2,
+        "skinScrib": true
+      },
+      "overrides": {
+        "turn": 0,
+        "shape": "drop",
+        "shroud": false,
+        "fur": false
+      }
+    },
+    "eyes": {
+      "params": {
+        "type": "wide",
+        "type2": "none",
+        "scaleR": 1.1074735613889062,
+        "scale": 1.5373215280938894,
+        "ehJit": 0.9574696487281472,
+        "fierce": 0.43073218818753967,
+        "gazeJit": 0.015472939284518358,
+        "sx": 0.4980448378063739,
+        "sink": 0.7273123095510527,
+        "lashes": true,
+        "glint": true
+      }
+    },
+    "nose": {
+      "params": {
+        "style": "triangle",
+        "nostril": true,
+        "size": 0.916389076388441,
+        "snoutLen": 0.8221263880259357,
+        "snoutFat": 1.1248570141149685,
+        "snoutTip": 0.150777870984748
+      }
+    },
+    "mouth": {
+      "params": {
+        "style": "grit",
+        "myF": 0.5032363297278062,
+        "wF": 2.0647875269409273,
+        "beakLen": 0.9990985000040382,
+        "upperLip": false,
+        "crease": false,
+        "nTeeth": 4,
+        "nStitch": 4
+      }
+    },
+    "hair": {
+      "params": {
+        "style": "messy",
+        "tone": "scribble",
+        "colOn": false,
+        "colIdx": 0,
+        "bang": "ragged",
+        "bangN": 8,
+        "cpart": false,
+        "longZig": false,
+        "longNt": 4,
+        "flare": 1.0553418419091032,
+        "fall": 0.8238214290933684,
+        "spikyN": 11,
+        "bunsTop": true,
+        "afroR": 1.0996784178167582,
+        "mohawkN": 8,
+        "tailUp": true
+      }
+    },
+    "torso": {
+      "params": {
+        "shape": "drop",
+        "wF": 0.5190387210296467,
+        "hF": 0.629654449298978,
+        "lean": 0.05085264810360968,
+        "pattern": "none",
+        "clothOn": true,
+        "clothIdx": 1,
+        "tone": "hatch"
+      }
+    },
+    "arms": {
+      "params": {
+        "style": "stub",
+        "len": 0.8081851138733327,
+        "droop": 0.412237243540585,
+        "asym": -0.21726802692748606,
+        "hand": "dot"
+      },
+      "overrides": {
+        "hand": "claw"
+      }
+    },
+    "legs": {
+      "params": {
+        "style": "noodle",
+        "len": 0.4337778568267822,
+        "foot": "mitten"
+      },
+      "overrides": {
+        "foot": "oval"
+      }
+    }
+  },
+  "rig": {
+    "profileHiddenJoints": [
+      "leftShoulder",
+      "leftElbow",
+      "leftHand"
+    ],
+    "partOrder": [
+      "legs",
+      "broom",
+      "far-arm",
+      "neck",
+      "hair",
+      "torso",
+      "robe",
+      "head",
+      "rear-hair-cap",
+      "hat",
+      "near-arm"
+    ],
+    "anchors": {
+      "root": {
+        "hips": ["body", 0, 237],
+        "torso": ["body", 0, 190],
+        "neck": ["body", 0, 145],
+        "head": ["head", 0, 82],
+        "hair": ["head", 0, 50],
+        "hat": ["head", 0, 38]
+      },
+      "front": {
+        "eye": ["head", 14, 77],
+        "nose": ["head", 0, 94],
+        "shoulder": ["body", 34, 158],
+        "elbow": ["body", 43, 201],
+        "hand": ["body", 54, 224],
+        "hip": ["body", 12, 237],
+        "knee": ["body", 12, 260],
+        "foot": ["body", 12, 286],
+        "broomBrush": ["body", 66, 286]
+      },
+      "profile": {
+        "eye": ["head", 16, 77],
+        "nose": ["head", 39, 91],
+        "shoulder": ["body", 24, 158],
+        "elbow": ["body", 31, 201],
+        "hand": ["body", 38, 224],
+        "hip": ["body", 7, 237],
+        "knee": ["body", 7, 260],
+        "foot": ["body", 7, 286],
+        "broomBrush": ["body", 54, 286]
+      }
+    },
+    "bones": [
+      ["hat", "head"],
+      ["hair", "head"],
+      ["head", "neck"],
+      ["neck", "torso"],
+      ["torso", "hips"],
+      ["head", "leftEye"],
+      ["head", "rightEye"],
+      ["head", "nose"],
+      ["neck", "leftShoulder"],
+      ["leftShoulder", "leftElbow"],
+      ["leftElbow", "leftHand"],
+      ["neck", "rightShoulder"],
+      ["rightShoulder", "rightElbow"],
+      ["rightElbow", "rightHand"],
+      ["rightHand", "broomBrush"],
+      ["hips", "leftHip"],
+      ["leftHip", "leftKnee"],
+      ["leftKnee", "leftFoot"],
+      ["hips", "rightHip"],
+      ["rightHip", "rightKnee"],
+      ["rightKnee", "rightFoot"]
+    ],
+    "motion": {
+      "gaitSwing": 13,
+      "elbowSwingX": 0.08,
+      "elbowSwingY": 0.12,
+      "handSwingX": 0.16,
+      "handSwingY": 0.2,
+      "frontStride": 6,
+      "profileLeadX": 14,
+      "profileTrailX": -3,
+      "frontLift": 12,
+      "profileLift": 8,
+      "kneeLiftShare": 0.45,
+      "hairFollowX": 1.1,
+      "hairFollowY": 0.35,
+      "frontHairDirection": 0.6
+    }
+  }
+}

@@ -3,7 +3,7 @@ import { gaitSwing, screenSideForAttachment, type VampirePose } from '../pose';
 import { seatedArmAnchors, seatedLegAnchors } from '../seated';
 import type { Point, Sketch } from '../sketch';
 
-type SkeletonOptions = Readonly<{ dressed: boolean; seated?: boolean }>;
+type SkeletonOptions = Readonly<{ dressed: boolean; seated?: boolean; sideProfile?: boolean }>;
 
 function boneMass(
   sketch: Sketch,
@@ -264,7 +264,7 @@ function drawLegs(sketch: Sketch, F: PencilLayout, pose: VampirePose, seated = f
   }
 }
 
-function drawClothing(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawClothing(sketch: Sketch, F: PencilLayout, pose: VampirePose, sideProfile = false): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const dir = pose.facing === 'right' ? 1 : -1;
   const width = profile ? 20 : 38;
@@ -290,7 +290,11 @@ function drawClothing(sketch: Sketch, F: PencilLayout, pose: VampirePose): void 
     F.body(skirtWidth, 247), F.body(-skirtWidth, 247),
   ], true);
 
-  if (pose.facing !== 'rear') {
+  if (profile && sideProfile) {
+    const knot = F.body(dir * 4, 143);
+    clothMass(sketch, F, sketch.blobPts(F.body(dir * 10, 143).x, knot.y, 5.5, 3.8, dir * 0.3, 0.35), true);
+    clothMass(sketch, F, sketch.blobPts(knot.x, knot.y, 2.7, 2.7, 0, 0.25), true);
+  } else if (pose.facing !== 'rear') {
     const knot = F.body(0, 143);
     clothMass(sketch, F, sketch.blobPts(F.body(-11, 143).x, knot.y, 5.5, 3.8, 0.3, 0.35), true);
     clothMass(sketch, F, sketch.blobPts(F.body(11, 143).x, knot.y, 5.5, 3.8, -0.3, 0.35), true);
@@ -312,8 +316,8 @@ export function drawPriyaSkeleton(
   drawLegs(sketch, F, pose, options.seated);
   drawPelvis(sketch, F, pose);
   drawRibCage(sketch, F, pose);
-  if (profile) drawProfileArm(sketch, F, pose, farSide, options.seated);
-  if (options.dressed) drawClothing(sketch, F, pose);
+  if (profile && !options.sideProfile) drawProfileArm(sketch, F, pose, farSide, options.seated);
+  if (options.dressed) drawClothing(sketch, F, pose, options.sideProfile);
   drawSkull(sketch, F, pose);
   if (options.dressed) drawBraid(sketch, F, pose, hairSide);
   if (profile) drawProfileArm(sketch, F, pose, dir, options.seated);

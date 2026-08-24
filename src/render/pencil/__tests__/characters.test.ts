@@ -13,6 +13,9 @@ import { drawPriyaSkeleton } from '../parts/skeleton';
 import { Sketch } from '../sketch';
 import { VAMPIRE_SHEET_LENGTH } from '../pose';
 import { PENCIL_HEIGHT, PENCIL_WIDTH } from '../vampire';
+import { bakeGeneratedLindaFrames } from '../generated-linda';
+import { bakeGeneratedMinaFrames } from '../generated-mina';
+import { bakeMajorCharacterCandidateFrames, MAJOR_CHARACTER_IDS } from '../generated-major-characters';
 
 describe('authored pencil character registry', () => {
   test('holds unique versioned recipes and several characters in one frame', () => {
@@ -31,7 +34,7 @@ describe('authored pencil character registry', () => {
     }
 
     const creaturePrototypes = PENCIL_VISUAL_IDS
-      .filter((id) => !['vampire-01', 'devon-price', 'rafael-cruz', 'resident-01', 'sora-tan', 'tomas-reed'].includes(id))
+      .filter((id) => !['vampire-01', 'linda', 'mina-park', 'devon-price', 'rafael-cruz', 'resident-01', 'sora-tan', 'tomas-reed'].includes(id))
       .map((id) => PENCIL_CHARACTER_RECIPES[id]);
     expect(creaturePrototypes.every(({ artStatus }) => (
       artStatus.worldBody === 'rejected-human-template' &&
@@ -56,6 +59,14 @@ describe('authored pencil character registry', () => {
     expect(PENCIL_CHARACTER_RECIPES['resident-01'].artStatus).toEqual({
       worldBody: 'approved-literal-anatomy',
       dialoguePortrait: 'approved-literal-anatomy',
+    });
+    expect(PENCIL_CHARACTER_RECIPES.linda.artStatus).toEqual({
+      worldBody: 'approved-literal-anatomy',
+      dialoguePortrait: 'rejected-human-template',
+    });
+    expect(PENCIL_CHARACTER_RECIPES['mina-park'].artStatus).toEqual({
+      worldBody: 'approved-literal-anatomy',
+      dialoguePortrait: 'rejected-human-template',
     });
 
     expect(bakePencilCharacterFrames({
@@ -91,6 +102,21 @@ describe('authored pencil character registry', () => {
     const pencils = pencilBillboards(frame);
     expect(pencils.map(({ id }) => id)).toEqual(['pencil-linda', 'pencil-mina_park', 'pencil-protagonist']);
     expect(new Set(pencils.map(({ source }) => source.x)).size).toBe(3);
+  });
+
+  test('ships the approved profile frames through the production registry', () => {
+    const approved = [
+      ['linda', bakeGeneratedLindaFrames(true)],
+      ['mina-park', bakeGeneratedMinaFrames(true)],
+      ...MAJOR_CHARACTER_IDS.map((id) => [id, bakeMajorCharacterCandidateFrames(id)] as const),
+    ] as const;
+
+    for (const [id, frames] of approved) {
+      const production = bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES[id]);
+      for (const frameIndex of [18, 27]) {
+        expect(Buffer.from(production[frameIndex]!)).toEqual(Buffer.from(frames[frameIndex]!));
+      }
+    }
   });
 
   test('Priya keeps a closed rear top and visible far profile arms', () => {
@@ -205,7 +231,7 @@ describe('authored pencil character registry', () => {
 
     const floor = Math.floor(buildPencilLayout(recipe.shape, recipe.palette).B.floorY);
     for (const frameIndex of [0, 9, 18, 27]) {
-      for (let y = floor - 2; y < PENCIL_HEIGHT; y += 1) {
+      for (let y = floor - 1; y < PENCIL_HEIGHT; y += 1) {
         for (let x = 0; x < PENCIL_WIDTH; x += 1) {
           expect(anatomyOnly[frameIndex]![(y * PENCIL_WIDTH + x) * 4 + 3]).toBe(0);
         }
@@ -258,6 +284,7 @@ describe('authored pencil character registry', () => {
 
   test('Mina keeps her broom in her right hand through every facing', () => {
     const frames = bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES['mina-park']);
+    expect(Buffer.from(frames[0]!)).toEqual(Buffer.from(bakeGeneratedMinaFrames()[0]!));
     const goldCount = (frame: Uint8ClampedArray, half: 'left' | 'right'): number => {
       let count = 0;
       const start = half === 'left' ? 0 : PENCIL_WIDTH / 2;

@@ -2,7 +2,7 @@ import type { PencilLayout, PencilPalette } from '../layout';
 import { screenSideForAttachment, type VampirePose } from '../pose';
 import type { Point, Sketch } from '../sketch';
 
-type GhostOptions = Readonly<{ adorned: boolean; seated?: boolean }>;
+type GhostOptions = Readonly<{ adorned: boolean; seated?: boolean; flaredProfile?: boolean }>;
 type SheetColor = Extract<keyof PencilPalette, 'pale' | 'ash' | 'white'>;
 
 function sheetPoint(F: PencilLayout, x: number, bodyY: number): Point {
@@ -28,7 +28,7 @@ function darkHole(sketch: Sketch, F: PencilLayout, centre: Point, rx: number, ry
   F.media.edge(sketch, [...points, points[0]!], F.lwThin * 0.75);
 }
 
-function drawShroud(sketch: Sketch, F: PencilLayout, pose: VampirePose, seated = false): void {
+function drawShroud(sketch: Sketch, F: PencilLayout, pose: VampirePose, seated = false, flaredProfile = false): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const dir: -1 | 1 = pose.facing === 'right' ? 1 : -1;
   const hemShift = pose.moving ? (pose.gait === 0 ? -4 : 4) : 0;
@@ -52,6 +52,17 @@ function drawShroud(sketch: Sketch, F: PencilLayout, pose: VampirePose, seated =
         sheetPoint(F, -46, 209), sheetPoint(F, -61, 191), sheetPoint(F, -54, 171),
         sheetPoint(F, -34, 151), F.head(-31, 66),
       ])
+      : profile && flaredProfile
+    ? sketch.smooth([
+      F.head(-dir * 20, 51), F.head(-dir * 5, 42), F.head(dir * 10, 41),
+      F.head(dir * 26, 53), F.head(dir * 31, 76), sheetPoint(F, dir * 33, 168),
+      sheetPoint(F, dir * 39, 232), sheetPoint(F, dir * 54, 260),
+      sheetPoint(F, dir * 45, 276), sheetPoint(F, dir * 23, 260 + hemShift),
+      sheetPoint(F, dir * 4, 276), sheetPoint(F, -dir * 18, 261 - hemShift),
+      sheetPoint(F, -dir * 44, 277), sheetPoint(F, -dir * 54, 261),
+      sheetPoint(F, -dir * 40, 232), sheetPoint(F, -dir * 31, 164),
+      F.head(-dir * 29, 62),
+    ])
       : profile
     ? sketch.smooth([
       F.head(-dir * 20, 51), F.head(-dir * 5, 42), F.head(dir * 10, 41),
@@ -122,7 +133,7 @@ export function drawClassicSheetGhost(
   pose: VampirePose,
   options: GhostOptions = { adorned: true },
 ): void {
-  drawShroud(sketch, F, pose, options.seated);
+  drawShroud(sketch, F, pose, options.seated, options.flaredProfile);
   drawEyeHoles(sketch, F, pose);
   if (options.adorned) drawPermitTag(sketch, F, pose);
 }
