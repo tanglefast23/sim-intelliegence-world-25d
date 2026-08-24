@@ -6,6 +6,7 @@ import {
   evaluateRendererFps,
   findPackageArchive,
   findPackagedExecutable,
+  parseLoadingShellObserved,
   parseSmokeResult,
   validatePackageListing,
   validateScreenshotBuffers,
@@ -17,8 +18,10 @@ import { PNG } from 'pngjs';
 import {
   captureLoadingSmokeFrame,
   captureNonEmptySmokeFrame,
+  LOADING_SHELL_POLL_MILLISECONDS,
   retrySmokeCapture,
   SMOKE_CAPTURE_RETRY_MILLISECONDS,
+  waitForLoadingShell,
 } from '../../electron/main/smoke-capture';
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -38,6 +41,7 @@ describe('packaged Electron smoke evidence', () => {
     expect(main).toContain('backgroundThrottling: false');
     expect(main).toContain('window.webContents.setAudioMuted(true)');
     expect(main).toContain('capturePage(undefined, { stayHidden: true })');
+    expect(main).toContain('await waitForLoadingShell(loadingVisible, waitForSmokeRetry);');
   });
 
   test('runs the packaged WebGL 2 probe before renderer asset readiness', () => {
@@ -260,6 +264,24 @@ describe('packaged Electron smoke evidence', () => {
     });
   });
 
+  test('waits up to the loading-shell deadline without starting Electron', async () => {
+    const observedWaits: number[] = [];
+    let observedChecks = 0;
+    await expect(waitForLoadingShell(
+      async () => ++observedChecks === 3,
+      async (milliseconds) => { observedWaits.push(milliseconds); },
+    )).resolves.toBe(true);
+    expect(observedWaits).toEqual([LOADING_SHELL_POLL_MILLISECONDS, LOADING_SHELL_POLL_MILLISECONDS]);
+
+    const timedOutWaits: number[] = [];
+    await expect(waitForLoadingShell(
+      async () => false,
+      async (milliseconds) => { timedOutWaits.push(milliseconds); },
+      40,
+    )).resolves.toBe(false);
+    expect(timedOutWaits).toEqual([20, 20]);
+  });
+
   test('stops retries when the caller deadline expires', async () => {
     let now = 0;
     let attempts = 0;
@@ -425,6 +447,19 @@ describe('packaged Electron smoke evidence', () => {
       { requireSameDimensions: false },
     )).not.toThrow();
     expect(() => validateScreenshotBuffers(loading, loading)).toThrow('identical');
+    expect(() => validateScreenshotBuffers(
+      loading,
+      loading,
+      { requireDifferentBytes: false },
+    )).not.toThrow();
+  });
+
+  test('requires explicit loading-shell observation evidence', () => {
+    expect(parseLoadingShellObserved('SI_WORLD_SMOKE_LOADING_SHELL_OBSERVED true\n')).toBe(true);
+    expect(parseLoadingShellObserved('SI_WORLD_SMOKE_LOADING_SHELL_OBSERVED false\n')).toBe(false);
+    expect(() => parseLoadingShellObserved('')).toThrow('did not emit loading-shell observation');
+    expect(() => parseLoadingShellObserved('SI_WORLD_SMOKE_LOADING_SHELL_OBSERVED maybe\n'))
+      .toThrow('invalid loading-shell observation');
   });
 
   test('requires three distinct world zoom PNG screenshots', () => {
