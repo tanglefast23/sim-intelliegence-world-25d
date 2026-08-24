@@ -36,8 +36,8 @@ export function pencilWorldScale(visualId: PencilVisualId): number {
   return visualId === 'linda-boyfriend' ? MARCUS_WORLD_SCALE : 1;
 }
 
-/** World pixels of empty sheet below the boot soles. Sink the quad by this or he floats. */
-const CONTACT_SINK_WORLD_PIXELS = ((PENCIL_HEIGHT - PENCIL_CONTACT_ROW) / PENCIL_HEIGHT) * WORLD_CELL_HEIGHT;
+/** World pixels of empty sheet below the vampire's boot soles. Sink only his quad by this. */
+const VAMPIRE_CONTACT_SINK_WORLD_PIXELS = ((PENCIL_HEIGHT - PENCIL_CONTACT_ROW) / PENCIL_HEIGHT) * WORLD_CELL_HEIGHT;
 const SEATED_VISIBLE_RATIO = 0.82;
 const SEATED_LIFT_TILES = 0.08;
 /** Pull an authored sitter off the tile's standing foot edge and into the chair pan. */
@@ -166,7 +166,8 @@ export function pencilBillboards(frame: WorldFrameState): readonly BillboardDesc
       tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
       lift: seated && !hasAuthoredSeat
         ? SEATED_LIFT_TILES
-        : -(CONTACT_SINK_WORLD_PIXELS * scale) / TILE_SIZE - (hasAuthoredSeat ? AUTHORED_SEAT_DROP_TILES : 0),
+        : (visualId === 'vampire-01' ? -(VAMPIRE_CONTACT_SINK_WORLD_PIXELS * scale) / TILE_SIZE : 0)
+          - (hasAuthoredSeat ? AUTHORED_SEAT_DROP_TILES : 0),
       depthBias: hasAuthoredSeat && !chairOccludesBody
         ? visualId === 'tomas-reed'
           ? GHOST_SHEET_OVER_CHAIR_LAYER_TILES

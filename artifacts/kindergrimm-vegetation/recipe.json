@@ -1,0 +1,526 @@
+{
+  "version": 1,
+  "status": "integrated",
+  "brief": "Organic KinderGrimm trees and bushes for the active SI World 2.5D renderer.",
+  "upstreamCommit": "de339ad739d8cbd28ff2dd4a940af38c0ede86c8",
+  "medium": "graphite-and-charcoal",
+  "canvas": {
+    "width": 120,
+    "height": 180
+  },
+  "tileSize": 32,
+  "orderedParts": [
+    "trunk-or-root",
+    "rear-foliage",
+    "front-foliage",
+    "flowers",
+    "contour"
+  ],
+  "interactionAnchors": {},
+  "colors": {
+    "trunk": [
+      111,
+      72,
+      42
+    ],
+    "trunkDark": [
+      70,
+      48,
+      34
+    ],
+    "leaf": [
+      92,
+      126,
+      63
+    ],
+    "leafDark": [
+      57,
+      91,
+      52
+    ],
+    "leafLight": [
+      137,
+      156,
+      83
+    ],
+    "flower": [
+      211,
+      126,
+      92
+    ]
+  },
+  "assets": {
+    "canopy-tree": {
+      "assetId": "canopy-tree",
+      "brief": "Broad old shade tree with a leaning trunk and five uneven crown masses.",
+      "seed": 2501,
+      "world": {
+        "width": 1.75,
+        "height": 2.5,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.06,
+          "z": 0.06,
+          "width": 0.72,
+          "depth": 0.34
+        }
+      },
+      "views": {
+        "front": {
+          "transparentBounds": {
+            "x": 4,
+            "y": 4,
+            "width": 115,
+            "height": 166
+          },
+          "groundContact": {
+            "x": 60,
+            "y": 166
+          },
+          "crown": [
+            {
+              "x": 36,
+              "y": 67,
+              "rx": 29,
+              "ry": 34,
+              "rot": -0.18,
+              "shade": "leafDark"
+            },
+            {
+              "x": 65,
+              "y": 45,
+              "rx": 36,
+              "ry": 38,
+              "rot": 0.08,
+              "shade": "leafLight"
+            },
+            {
+              "x": 89,
+              "y": 69,
+              "rx": 27,
+              "ry": 32,
+              "rot": 0.18,
+              "shade": "leaf"
+            },
+            {
+              "x": 55,
+              "y": 84,
+              "rx": 35,
+              "ry": 32,
+              "rot": -0.08,
+              "shade": "leaf"
+            },
+            {
+              "x": 84,
+              "y": 92,
+              "rx": 29,
+              "ry": 28,
+              "rot": 0.1,
+              "shade": "leafDark"
+            }
+          ]
+        },
+        "side": {
+          "transparentBounds": {
+            "x": 10,
+            "y": 3,
+            "width": 105,
+            "height": 167
+          },
+          "groundContact": {
+            "x": 60,
+            "y": 166
+          },
+          "crown": [
+            {
+              "x": 40,
+              "y": 65,
+              "rx": 27,
+              "ry": 35,
+              "rot": -0.12,
+              "shade": "leafDark"
+            },
+            {
+              "x": 66,
+              "y": 43,
+              "rx": 31,
+              "ry": 37,
+              "rot": 0.1,
+              "shade": "leafLight"
+            },
+            {
+              "x": 83,
+              "y": 72,
+              "rx": 29,
+              "ry": 34,
+              "rot": 0.14,
+              "shade": "leaf"
+            },
+            {
+              "x": 57,
+              "y": 88,
+              "rx": 32,
+              "ry": 29,
+              "rot": -0.08,
+              "shade": "leaf"
+            }
+          ]
+        }
+      }
+    },
+    "young-palm": {
+      "assetId": "young-palm",
+      "brief": "Small wind-bent palm with a narrow trunk and six loose fronds.",
+      "seed": 2502,
+      "world": {
+        "width": 1.55,
+        "height": 2.15,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.05,
+          "z": 0.05,
+          "width": 0.46,
+          "depth": 0.22
+        }
+      },
+      "views": {
+        "front": {
+          "transparentBounds": {
+            "x": 18,
+            "y": 22,
+            "width": 87,
+            "height": 148
+          },
+          "groundContact": {
+            "x": 60,
+            "y": 166
+          },
+          "crown": [],
+          "fronds": [
+            {
+              "x": 12,
+              "y": 43,
+              "width": 13,
+              "shade": "leafDark"
+            },
+            {
+              "x": 26,
+              "y": 25,
+              "width": 14,
+              "shade": "leaf"
+            },
+            {
+              "x": 54,
+              "y": 18,
+              "width": 15,
+              "shade": "leafLight"
+            },
+            {
+              "x": 84,
+              "y": 27,
+              "width": 14,
+              "shade": "leaf"
+            },
+            {
+              "x": 108,
+              "y": 48,
+              "width": 13,
+              "shade": "leafDark"
+            },
+            {
+              "x": 75,
+              "y": 62,
+              "width": 14,
+              "shade": "leaf"
+            }
+          ]
+        },
+        "side": {
+          "transparentBounds": {
+            "x": 24,
+            "y": 23,
+            "width": 76,
+            "height": 147
+          },
+          "groundContact": {
+            "x": 60,
+            "y": 166
+          },
+          "crown": [],
+          "fronds": [
+            {
+              "x": 19,
+              "y": 40,
+              "width": 13,
+              "shade": "leafDark"
+            },
+            {
+              "x": 42,
+              "y": 20,
+              "width": 14,
+              "shade": "leafLight"
+            },
+            {
+              "x": 72,
+              "y": 19,
+              "width": 14,
+              "shade": "leaf"
+            },
+            {
+              "x": 101,
+              "y": 43,
+              "width": 13,
+              "shade": "leafDark"
+            },
+            {
+              "x": 73,
+              "y": 61,
+              "width": 13,
+              "shade": "leaf"
+            }
+          ]
+        }
+      }
+    },
+    "sapling": {
+      "assetId": "sapling",
+      "brief": "Young crooked tree with a thin trunk and three soft crown masses.",
+      "seed": 2503,
+      "world": {
+        "width": 1.05,
+        "height": 1.5,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.04,
+          "z": 0.04,
+          "width": 0.38,
+          "depth": 0.2
+        }
+      },
+      "views": {
+        "front": {
+          "transparentBounds": {
+            "x": 15,
+            "y": 25,
+            "width": 92,
+            "height": 145
+          },
+          "groundContact": {
+            "x": 60,
+            "y": 166
+          },
+          "crown": [
+            {
+              "x": 42,
+              "y": 73,
+              "rx": 24,
+              "ry": 28,
+              "rot": -0.16,
+              "shade": "leafDark"
+            },
+            {
+              "x": 66,
+              "y": 58,
+              "rx": 29,
+              "ry": 31,
+              "rot": 0.08,
+              "shade": "leafLight"
+            },
+            {
+              "x": 82,
+              "y": 84,
+              "rx": 23,
+              "ry": 26,
+              "rot": 0.14,
+              "shade": "leaf"
+            }
+          ]
+        },
+        "side": {
+          "transparentBounds": {
+            "x": 20,
+            "y": 27,
+            "width": 80,
+            "height": 143
+          },
+          "groundContact": {
+            "x": 60,
+            "y": 166
+          },
+          "crown": [
+            {
+              "x": 45,
+              "y": 75,
+              "rx": 22,
+              "ry": 28,
+              "rot": -0.12,
+              "shade": "leafDark"
+            },
+            {
+              "x": 67,
+              "y": 59,
+              "rx": 27,
+              "ry": 30,
+              "rot": 0.1,
+              "shade": "leafLight"
+            },
+            {
+              "x": 76,
+              "y": 88,
+              "rx": 21,
+              "ry": 24,
+              "rot": 0.12,
+              "shade": "leaf"
+            }
+          ]
+        }
+      }
+    },
+    "flowering-shrub": {
+      "assetId": "flowering-shrub",
+      "brief": "Low broad bush with six leaf clumps and a restrained coral flower scatter.",
+      "seed": 2504,
+      "world": {
+        "width": 1.2,
+        "height": 0.82,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.06,
+          "z": 0.06,
+          "width": 0.76,
+          "depth": 0.36
+        }
+      },
+      "views": {
+        "front": {
+          "transparentBounds": {
+            "x": 3,
+            "y": 72,
+            "width": 112,
+            "height": 95
+          },
+          "groundContact": {
+            "x": 60,
+            "y": 166
+          },
+          "crown": [
+            {
+              "x": 26,
+              "y": 126,
+              "rx": 20,
+              "ry": 25,
+              "rot": -0.12,
+              "shade": "leafDark"
+            },
+            {
+              "x": 45,
+              "y": 109,
+              "rx": 25,
+              "ry": 29,
+              "rot": 0.1,
+              "shade": "leaf"
+            },
+            {
+              "x": 68,
+              "y": 103,
+              "rx": 27,
+              "ry": 30,
+              "rot": -0.06,
+              "shade": "leafLight"
+            },
+            {
+              "x": 90,
+              "y": 119,
+              "rx": 22,
+              "ry": 27,
+              "rot": 0.14,
+              "shade": "leaf"
+            },
+            {
+              "x": 50,
+              "y": 139,
+              "rx": 27,
+              "ry": 24,
+              "rot": 0.02,
+              "shade": "leafDark"
+            },
+            {
+              "x": 79,
+              "y": 140,
+              "rx": 26,
+              "ry": 23,
+              "rot": -0.08,
+              "shade": "leaf"
+            }
+          ]
+        },
+        "side": {
+          "transparentBounds": {
+            "x": 9,
+            "y": 78,
+            "width": 97,
+            "height": 90
+          },
+          "groundContact": {
+            "x": 60,
+            "y": 166
+          },
+          "crown": [
+            {
+              "x": 33,
+              "y": 127,
+              "rx": 22,
+              "ry": 25,
+              "rot": -0.1,
+              "shade": "leafDark"
+            },
+            {
+              "x": 53,
+              "y": 108,
+              "rx": 26,
+              "ry": 29,
+              "rot": 0.08,
+              "shade": "leafLight"
+            },
+            {
+              "x": 78,
+              "y": 116,
+              "rx": 25,
+              "ry": 27,
+              "rot": 0.12,
+              "shade": "leaf"
+            },
+            {
+              "x": 55,
+              "y": 139,
+              "rx": 28,
+              "ry": 23,
+              "rot": -0.06,
+              "shade": "leafDark"
+            },
+            {
+              "x": 82,
+              "y": 141,
+              "rx": 21,
+              "ry": 21,
+              "rot": 0.08,
+              "shade": "leaf"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

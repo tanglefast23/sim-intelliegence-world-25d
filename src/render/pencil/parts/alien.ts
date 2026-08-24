@@ -3,7 +3,7 @@ import { gaitSwing, screenSideForAttachment, type VampirePose } from '../pose';
 import { seatedArmAnchors, seatedLegAnchors, segmentBox } from '../seated';
 import type { Point, Sketch } from '../sketch';
 
-type AlienOptions = Readonly<{ dressed: boolean; seated?: boolean }>;
+type AlienOptions = Readonly<{ dressed: boolean; seated?: boolean; sideProfile?: boolean }>;
 type AlienColor = Extract<keyof PencilPalette,
   'pale' | 'ash' | 'hollow' | 'hairEdge' | 'cloak' | 'cloakLift' | 'shirt' | 'lining' | 'fang'
 >;
@@ -51,7 +51,15 @@ function drawLegs(sketch: Sketch, F: PencilLayout, pose: VampirePose, seated = f
   }
 }
 
-function drawArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 1, far: boolean, seated = false): void {
+function drawArm(
+  sketch: Sketch,
+  F: PencilLayout,
+  pose: VampirePose,
+  side: -1 | 1,
+  far: boolean,
+  seated = false,
+  sideProfile = false,
+): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   if (seated) {
     const anchors = seatedArmAnchors(F, pose.facing, side, 0.95);
@@ -72,9 +80,11 @@ function drawArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 
     return;
   }
   const swing = pose.moving ? gaitSwing(pose.gait) * side * 0.3 : 0;
-  const shoulderX = profile ? side * (far ? 18 : 26) : side * 28;
-  const elbowX = profile ? side * (far ? 24 : 35) : side * 39;
-  const wristX = profile ? side * (far ? 27 : 40) : side * 44;
+  const dir = pose.facing === 'right' ? 1 : -1;
+  const centre = -dir * 5;
+  const shoulderX = profile && sideProfile ? centre + dir * 2 : profile ? side * (far ? 18 : 26) : side * 28;
+  const elbowX = profile && sideProfile ? centre - dir * 2 : profile ? side * (far ? 24 : 35) : side * 39;
+  const wristX = profile && sideProfile ? centre - dir * 5 : profile ? side * (far ? 27 : 40) : side * 44;
   mass(sketch, F, sketch.smooth([
     F.body(shoulderX - 5, 151), F.body(shoulderX + 5, 151),
     F.body(elbowX + 5, 197 + swing), F.body(wristX + 4, 244 + swing),
@@ -95,40 +105,59 @@ function drawArm(sketch: Sketch, F: PencilLayout, pose: VampirePose, side: -1 | 
   mass(sketch, F, sketch.blobPts(palm.x, palm.y, 4.2, 5.6, side * 0.06, 0.22), handColor);
 }
 
-function drawTorso(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawTorso(sketch: Sketch, F: PencilLayout, pose: VampirePose, sideProfile = false): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const dir = pose.facing === 'right' ? 1 : -1;
   const centre = profile ? -dir * 5 : 0;
-  mass(sketch, F, sketch.smooth([
-    F.body(centre - 24, 146), F.body(centre + 24, 146), F.body(centre + 26, 183),
-    F.body(centre + 19, 224), F.body(centre - 19, 224), F.body(centre - 26, 183),
-  ]), pose.facing === 'rear' ? 'ash' : 'pale', 'light', profile ? dir * 0.3 : -0.25);
+  const torso = profile && sideProfile
+    ? [
+      F.body(centre - dir * 12, 146), F.body(centre + dir * 17, 146),
+      F.body(centre + dir * 19, 183), F.body(centre + dir * 14, 224),
+      F.body(centre - dir * 11, 224), F.body(centre - dir * 15, 183),
+    ]
+    : [
+      F.body(centre - 24, 146), F.body(centre + 24, 146), F.body(centre + 26, 183),
+      F.body(centre + 19, 224), F.body(centre - 19, 224), F.body(centre - 26, 183),
+    ];
+  mass(sketch, F, sketch.smooth(torso), pose.facing === 'rear' ? 'ash' : 'pale', 'light', profile ? dir * 0.3 : -0.25);
 }
 
-function drawNeck(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawNeck(sketch: Sketch, F: PencilLayout, pose: VampirePose, sideProfile = false): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const dir = pose.facing === 'right' ? 1 : -1;
   const centre = profile ? -dir * 5 : 0;
+  const back = profile && sideProfile ? 5 : 8;
+  const front = profile && sideProfile ? 7 : 8;
   mass(sketch, F, [
-    F.body(centre - 8, 127), F.body(centre + 8, 127),
-    F.body(centre + 10, 160), F.body(centre - 10, 160),
+    F.body(centre - dir * back, 127), F.body(centre + dir * front, 127),
+    F.body(centre + dir * (front + 2), 160), F.body(centre - dir * (back + 2), 160),
   ], pose.facing === 'rear' ? 'ash' : 'pale');
 }
 
-function drawVest(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawVest(sketch: Sketch, F: PencilLayout, pose: VampirePose, sideProfile = false): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const dir = pose.facing === 'right' ? 1 : -1;
   const centre = profile ? -dir * 5 : 0;
-  const vest = sketch.smooth([
-    F.body(centre - 22, 151), F.body(centre - 8, 151), F.body(centre, pose.facing === 'rear' ? 169 : 188),
-    F.body(centre + 8, 151), F.body(centre + 22, 151), F.body(centre + 23, 218),
-    F.body(centre - 23, 218),
-  ]);
+  const vest = profile && sideProfile
+    ? sketch.smooth([
+      F.body(centre - dir * 11, 151), F.body(centre + dir * 14, 151),
+      F.body(centre + dir * 16, 218), F.body(centre - dir * 10, 218),
+    ])
+    : sketch.smooth([
+      F.body(centre - 22, 151), F.body(centre - 8, 151), F.body(centre, pose.facing === 'rear' ? 169 : 188),
+      F.body(centre + 8, 151), F.body(centre + 22, 151), F.body(centre + 23, 218),
+      F.body(centre - 23, 218),
+    ]);
   mass(sketch, F, vest, 'cloak', 'hatch', profile ? dir * 0.4 : 0.45);
-  mass(sketch, F, [
+  if (profile && sideProfile) {
+    F.media.edge(sketch, [F.body(centre - dir * 5, 151), F.body(centre + dir * 6, 166)], F.lwThin * 0.65);
+    return;
+  }
+  const collar = [
     F.body(centre - 13, 151), F.body(centre, pose.facing === 'rear' ? 164 : 174), F.body(centre + 13, 151),
     F.body(centre + 8, 148), F.body(centre, pose.facing === 'rear' ? 158 : 166), F.body(centre - 8, 148),
-  ], 'shirt', 'light');
+  ];
+  mass(sketch, F, collar, 'shirt', 'light');
 }
 
 function drawAntenna(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
@@ -222,13 +251,13 @@ export function drawLiteralAlien(
   const profile = pose.facing === 'left' || pose.facing === 'right';
   drawLegs(sketch, F, pose, options.seated);
   drawAntenna(sketch, F, pose);
-  if (profile) drawArm(sketch, F, pose, pose.facing === 'right' ? -1 : 1, true, options.seated);
-  drawNeck(sketch, F, pose);
-  drawTorso(sketch, F, pose);
-  if (options.dressed) drawVest(sketch, F, pose);
+  if (profile && !options.sideProfile) drawArm(sketch, F, pose, pose.facing === 'right' ? -1 : 1, true, options.seated);
+  drawNeck(sketch, F, pose, options.sideProfile);
+  drawTorso(sketch, F, pose, options.sideProfile);
+  if (options.dressed) drawVest(sketch, F, pose, options.sideProfile);
   if (options.dressed && profile) drawShakerHolster(sketch, F, pose);
   drawHead(sketch, F, pose);
-  if (profile) drawArm(sketch, F, pose, pose.facing === 'right' ? 1 : -1, false, options.seated);
+  if (profile) drawArm(sketch, F, pose, pose.facing === 'right' ? 1 : -1, false, options.seated, options.sideProfile);
   else {
     drawArm(sketch, F, pose, -1, false, options.seated);
     drawArm(sketch, F, pose, 1, false, options.seated);

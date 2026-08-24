@@ -3,7 +3,7 @@ import { gaitSwing, screenSideForAttachment, type VampirePose } from '../pose';
 import { seatedArmAnchors, seatedLegAnchors, segmentBox } from '../seated';
 import type { Point, Sketch } from '../sketch';
 
-type OrcOptions = Readonly<{ dressed: boolean; seated?: boolean }>;
+type OrcOptions = Readonly<{ dressed: boolean; seated?: boolean; sideProfile?: boolean }>;
 type Color = Extract<keyof PencilPalette,
   'pale' | 'ash' | 'hollow' | 'hair' | 'hairEdge' | 'cloak' | 'cloakLift' | 'shirt' | 'lining' | 'fang' | 'white'
 >;
@@ -64,21 +64,34 @@ function drawLegs(sketch: Sketch, F: PencilLayout, pose: VampirePose, seated = f
   }
 }
 
-function drawNeck(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawNeck(sketch: Sketch, F: PencilLayout, pose: VampirePose, sideProfile = false): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const dir = pose.facing === 'right' ? 1 : -1;
   const centre = profile ? -dir * 7 : 0;
-  mass(sketch, F, sketch.smooth([
-    F.body(centre - 31, 121), F.body(centre + 31, 121),
-    F.body(centre + 37, 170), F.body(centre - 37, 170),
-  ]), 'ash', 'light', 0.28);
+  const neck = profile && sideProfile
+    ? [
+      F.body(centre - dir * 20, 121), F.body(centre + dir * 23, 121),
+      F.body(centre + dir * 27, 170), F.body(centre - dir * 22, 170),
+    ]
+    : [
+      F.body(centre - 31, 121), F.body(centre + 31, 121),
+      F.body(centre + 37, 170), F.body(centre - 37, 170),
+    ];
+  mass(sketch, F, sketch.smooth(neck), 'ash', 'light', 0.28);
 }
 
-function drawTorso(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawTorso(sketch: Sketch, F: PencilLayout, pose: VampirePose, sideProfile = false): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const dir = pose.facing === 'right' ? 1 : -1;
   const centre = profile ? -dir * 8 : 0;
-  const torso = profile
+  const torso = profile && sideProfile
+    ? sketch.smooth([
+      F.body(centre - dir * 27, 147), F.body(centre + dir * 32, 145),
+      F.body(centre + dir * 39, 170), F.body(centre + dir * 32, 207),
+      F.body(centre + dir * 23, 239), F.body(centre - dir * 22, 239),
+      F.body(centre - dir * 31, 207), F.body(centre - dir * 35, 170),
+    ])
+    : profile
     ? sketch.smooth([
       F.body(centre - 42, 146), F.body(centre + 45, 144), F.body(centre + 56, 169),
       F.body(centre + 48, 205), F.body(centre + 33, 239), F.body(centre - 31, 239),
@@ -94,7 +107,7 @@ function drawTorso(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
   if (pose.facing === 'rear') {
     F.media.edge(sketch, [F.body(-39, 159), F.body(0, 177), F.body(39, 159)], F.lwThin * 0.58);
     F.media.edge(sketch, [F.body(0, 156), F.body(0, 224)], F.lwThin * 0.5);
-  } else {
+  } else if (!(profile && sideProfile)) {
     F.media.edge(sketch, [F.body(-35, 172), F.body(0, 183), F.body(35, 172)], F.lwThin * 0.58);
     F.media.edge(sketch, [F.body(-31, 201), F.body(0, 209), F.body(31, 201)], F.lwThin * 0.5);
   }
@@ -108,6 +121,7 @@ function drawArm(
   far: boolean,
   wrapped: boolean,
   seated = false,
+  sideProfile = false,
 ): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   if (seated) {
@@ -125,9 +139,11 @@ function drawArm(
     return;
   }
   const swing = pose.moving ? gaitSwing(pose.gait) * side * 0.28 : 0;
-  const shoulderX = profile ? side * (far ? 28 : 43) : side * 57;
-  const elbowX = profile ? side * (far ? 34 : 52) : side * 68;
-  const wristX = profile ? side * (far ? 31 : 57) : side * 70;
+  const dir = pose.facing === 'right' ? 1 : -1;
+  const centre = -dir * 8;
+  const shoulderX = profile && sideProfile ? centre + dir * 3 : profile ? side * (far ? 28 : 43) : side * 57;
+  const elbowX = profile && sideProfile ? centre - dir * 3 : profile ? side * (far ? 34 : 52) : side * 68;
+  const wristX = profile && sideProfile ? centre - dir * 6 : profile ? side * (far ? 31 : 57) : side * 70;
   mass(sketch, F, sketch.smooth([
     F.body(shoulderX - 15, 151), F.body(shoulderX + 15, 151),
     F.body(elbowX + 14, 190 + swing), F.body(wristX + 11, 224 + swing),
@@ -149,15 +165,20 @@ function drawArm(
   }
 }
 
-function drawApronAndShorts(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
+function drawApronAndShorts(sketch: Sketch, F: PencilLayout, pose: VampirePose, sideProfile = false): void {
   const profile = pose.facing === 'left' || pose.facing === 'right';
   const dir = pose.facing === 'right' ? 1 : -1;
   const centre = profile ? -dir * 6 : 0;
-  const shorts = sketch.smooth([
-    F.body(centre - 38, 222), F.body(centre + 38, 222),
-    F.body(centre + 35, 260), F.body(centre + 8, 257), F.body(centre, 246),
-    F.body(centre - 8, 257), F.body(centre - 35, 260),
-  ]);
+  const shorts = profile && sideProfile
+    ? sketch.smooth([
+      F.body(centre - dir * 23, 222), F.body(centre + dir * 27, 222),
+      F.body(centre + dir * 25, 259), F.body(centre - dir * 21, 259),
+    ])
+    : sketch.smooth([
+      F.body(centre - 38, 222), F.body(centre + 38, 222),
+      F.body(centre + 35, 260), F.body(centre + 8, 257), F.body(centre, 246),
+      F.body(centre - 8, 257), F.body(centre - 35, 260),
+    ]);
   mass(sketch, F, shorts, 'shirt', 'hatch', 0.48);
 
   if (pose.facing === 'rear') {
@@ -170,7 +191,13 @@ function drawApronAndShorts(sketch: Sketch, F: PencilLayout, pose: VampirePose):
     return;
   }
 
-  const apron = profile
+  const apron = profile && sideProfile
+    ? sketch.smooth([
+      F.body(centre + dir * 8, 150), F.body(centre + dir * 27, 150),
+      F.body(centre + dir * 29, 208), F.body(centre + dir * 30, 244),
+      F.body(centre + dir * 10, 244), F.body(centre + dir * 8, 205),
+    ])
+    : profile
     ? sketch.smooth([
       F.body(centre - 19, 150), F.body(centre + 20, 150), F.body(centre + 26, 207),
       F.body(centre + 34, 244), F.body(centre - 29, 244), F.body(centre - 25, 205),
@@ -181,8 +208,14 @@ function drawApronAndShorts(sketch: Sketch, F: PencilLayout, pose: VampirePose):
     ]);
   mass(sketch, F, apron, 'cloak', 'light', profile ? dir * 0.5 : -0.48);
   const strapY = 153;
-  F.media.edge(sketch, [F.body(centre - 42, strapY), F.body(centre + 42, strapY)], F.lwThin * 0.7);
-  F.media.edge(sketch, [F.body(centre - 33, 225), F.body(centre + 33, 225)], F.lwThin * 0.65);
+  const upperStrap = profile && sideProfile
+    ? [F.body(centre - dir * 20, strapY), F.body(centre + dir * 23, strapY)]
+    : [F.body(centre - 42, strapY), F.body(centre + 42, strapY)];
+  const waistStrap = profile && sideProfile
+    ? [F.body(centre - dir * 19, 225), F.body(centre + dir * 22, 225)]
+    : [F.body(centre - 33, 225), F.body(centre + 33, 225)];
+  F.media.edge(sketch, upperStrap, F.lwThin * 0.7);
+  F.media.edge(sketch, waistStrap, F.lwThin * 0.65);
 }
 
 function drawEars(sketch: Sketch, F: PencilLayout, pose: VampirePose): void {
@@ -326,14 +359,14 @@ export function drawLiteralOrc(
   const propSide = screenSideForAttachment('right', pose.facing, 'trailing');
 
   drawLegs(sketch, F, pose, options.seated);
-  if (profile) drawArm(sketch, F, pose, -propSide as -1 | 1, true, options.dressed, options.seated);
-  drawNeck(sketch, F, pose);
-  drawTorso(sketch, F, pose);
-  if (options.dressed) drawApronAndShorts(sketch, F, pose);
+  if (profile && !options.sideProfile) drawArm(sketch, F, pose, -propSide as -1 | 1, true, options.dressed, options.seated);
+  drawNeck(sketch, F, pose, options.sideProfile);
+  drawTorso(sketch, F, pose, options.sideProfile);
+  if (options.dressed) drawApronAndShorts(sketch, F, pose, options.sideProfile);
   drawEars(sketch, F, pose);
   drawHead(sketch, F, pose);
   if (options.dressed) drawHair(sketch, F, pose);
-  if (profile) drawArm(sketch, F, pose, propSide, false, options.dressed, options.seated);
+  if (profile) drawArm(sketch, F, pose, propSide, false, options.dressed, options.seated, options.sideProfile);
   else {
     drawArm(sketch, F, pose, -1, false, options.dressed, options.seated);
     drawArm(sketch, F, pose, 1, false, options.dressed, options.seated);

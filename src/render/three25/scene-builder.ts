@@ -675,7 +675,8 @@ function doorIsPassable(sprite: string): boolean {
  * Without this, every villa doorway is an open hole in the wall.
  *
  * A door is a low box filling the wall gap: one tile along its wall, thin across it, and roughly
- * two-thirds wall height. A passable door draws much shorter so the gap reads as walkable.
+ * two-thirds wall height. Opening and open sprites split at the centre and retract into the walls;
+ * their transparent centre must stay full-height so the door never sinks into the floor.
  */
 export function buildDoorBoxes(frame: WorldFrameState): readonly BoxDescriptor[] {
   // Door sprites are 80% opaque, the same trap walls had. A door stands in a wall GAP, so the
@@ -694,13 +695,13 @@ export function buildDoorBoxes(frame: WorldFrameState): readonly BoxDescriptor[]
   };
 
   return frame.doors.map((door) => {
-    const height = WALL_HEIGHT_TILES * (doorIsPassable(door.sprite) ? 0.25 : 0.7);
+    const height = WALL_HEIGHT_TILES * 0.7;
     const footprint = doorFootprint(door.sprite);
     return {
       id: door.id,
       sprite: door.sprite,
       source: door.source,
-      sideSource: neighbourWallSide(door.tile),
+      sideSource: doorIsPassable(door.sprite) ? door.source : neighbourWallSide(door.tile),
       x: door.tile.x + 0.5,
       y: height / 2,
       z: door.tile.y + 0.5,

@@ -226,14 +226,18 @@ describe('prop, door and roof boxes', () => {
     expect([...axes].sort()).toEqual(['horizontal', 'vertical']);
   });
 
-  test('a passable door draws shorter than a closed one', () => {
+  test('a passable door stays full-height and exposes its split panel texture', () => {
     const closed = frame.doors[0]!;
     const swap = (sprite: string) =>
-      buildDoorBoxes({ ...frame, doors: [{ ...closed, sprite }] })[0]!.height;
-    expect(swap('tile.open-door-horizontal')).toBeLessThan(swap('tile.closed-door-horizontal'));
-    expect(swap('tile.opening-door-horizontal')).toBeLessThan(swap('tile.closed-door-horizontal'));
-    // 'opening' contains the letters 'open', but 'closed-locked' must stay tall regardless.
-    expect(swap('tile.closed-locked-door-horizontal')).toBe(swap('tile.closed-door-horizontal'));
+      buildDoorBoxes({ ...frame, doors: [{ ...closed, sprite, source: atlasRectangle(sprite) }] })[0]!;
+    const closedBox = swap('tile.closed-door-horizontal');
+    for (const sprite of ['tile.opening-door-horizontal', 'tile.open-door-horizontal']) {
+      const passable = swap(sprite);
+      expect(passable.height).toBe(closedBox.height);
+      expect(passable.y).toBe(closedBox.y);
+      expect(passable.sideSource).toEqual(passable.source);
+    }
+    expect(swap('tile.closed-locked-door-horizontal').height).toBe(closedBox.height);
   });
 
   test('every door state and axis this builder branches on exists in the atlas', () => {
@@ -402,7 +406,7 @@ describe('door and fallback side texturing', () => {
    * Door sprites are 80% opaque, the same trap the walls had. A door stands in a wall GAP, so its
    * transparent margins show straight through the building rather than onto a wall behind it.
    */
-  test('doors take an opaque side texture from a neighbouring wall', () => {
+  test('closed doors take an opaque side texture from a neighbouring wall', () => {
     const doors = buildDoorBoxes(frame);
     expect(doors.length).toBeGreaterThan(0);
     for (const door of doors) {

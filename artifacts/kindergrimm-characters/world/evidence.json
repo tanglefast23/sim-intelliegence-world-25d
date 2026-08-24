@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "scenes": [
+    {
+      "name": "linda-approved-front",
+      "screenshot": "linda-approved-front.png",
+      "rendererKind": "threejs-2-5d",
+      "drawCalls": 10,
+      "meshCount": 927,
+      "atlasDrawCalls": 2,
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 8.9
+    },
+    {
+      "name": "mina-approved-front",
+      "screenshot": "mina-approved-front.png",
+      "rendererKind": "threejs-2-5d",
+      "drawCalls": 10,
+      "meshCount": 927,
+      "atlasDrawCalls": 2,
+      "frameMedianMs": 8.3,
+      "frameP95Ms": 9.1
+    }
+  ]
+}

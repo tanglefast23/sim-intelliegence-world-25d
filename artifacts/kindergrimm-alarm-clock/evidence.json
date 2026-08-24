@@ -1,0 +1,28 @@
+{
+  "deterministic": true,
+  "sourceFrames": {
+    "front": {
+      "width": 96,
+      "height": 66,
+      "sha256": "0ec548dc5d05c600cd1af38735f9286deb0cf1001f2b55487980d3f129e96869"
+    },
+    "side": {
+      "width": 96,
+      "height": 66,
+      "sha256": "826ff5e18c8c8ed0ebafa3ce5d5381a26ca567632c278b2b9b550945d10e1c0b"
+    }
+  },
+  "worldFrames": {
+    "width": 32,
+    "height": 22
+  },
+  "files": [
+    "alarm-clock-front.png",
+    "alarm-clock-side.png",
+    "alarm-clock-front-native.png",
+    "alarm-clock-side-native.png",
+    "alarm-clock-anchors.png",
+    "alarm-clock-review-1x.png",
+    "alarm-clock-review-3x.png"
+  ]
+}

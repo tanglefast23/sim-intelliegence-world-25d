@@ -1,0 +1,477 @@
+{
+  "version": 1,
+  "status": "shipping",
+  "visualId": "sora-tan",
+  "upstreamCommit": "de339ad739d8cbd28ff2dd4a940af38c0ede86c8",
+  "seed": 8243,
+  "species": "nightmare",
+  "base": "biped",
+  "media": "graphite",
+  "color": "auto",
+  "parts": {
+    "skull": {
+      "params": {
+        "s": 0.667283041602932,
+        "wf": 0.760711913742125,
+        "turn": -0.06340595674701036,
+        "shroud": true,
+        "round": 0.8506137945735827,
+        "shape": "bumpy",
+        "muzzle": 0.0832822591625154,
+        "muzzleY": 0.5525044829584659,
+        "fur": false,
+        "jaw": 0.9324298103805632,
+        "chinW": 1.248254240397364,
+        "skullY": 0.9049472280172631,
+        "chinY": 0.8059967672033235,
+        "press": 1.2481186856515707,
+        "shade": "none",
+        "hollows": false,
+        "construction": false,
+        "darkSkin": false,
+        "plain": false,
+        "skinOn": true,
+        "skinIdx": 2,
+        "skinScrib": false
+      }
+    },
+    "eyes": {
+      "params": {
+        "type": "spiral",
+        "type2": "none",
+        "scaleR": 1.135182707197964,
+        "scale": 1.4723689910024405,
+        "ehJit": 1.0330663800239563,
+        "fierce": 0.40449245939962575,
+        "gazeJit": -0.040878339158371094,
+        "sx": 0.49874664440751076,
+        "sink": 0.557805540994741,
+        "lashes": true,
+        "glint": false
+      }
+    },
+    "nose": {
+      "params": {
+        "style": "none",
+        "nostril": false,
+        "size": 1.1510050873272122,
+        "snoutLen": 1.270195351797156,
+        "snoutFat": 0.8888276468031109,
+        "snoutTip": 0.06289970636367798
+      }
+    },
+    "mouth": {
+      "params": {
+        "style": "fangs",
+        "myF": 0.4217614918807521,
+        "wF": 0.827995052363258,
+        "beakLen": 0.9251165869180114,
+        "upperLip": false,
+        "crease": false,
+        "nTeeth": 5,
+        "nStitch": 5
+      }
+    },
+    "hair": {
+      "params": {
+        "style": "messy",
+        "tone": "hatch",
+        "colOn": false,
+        "colIdx": 5,
+        "bang": "ragged",
+        "bangN": 8,
+        "cpart": true,
+        "longZig": true,
+        "longNt": 4,
+        "flare": 1.09134668701794,
+        "fall": 0.8974660222302191,
+        "spikyN": 11,
+        "bunsTop": false,
+        "afroR": 1.1600375811569392,
+        "mohawkN": 8,
+        "tailUp": false
+      }
+    },
+    "torso": {
+      "params": {
+        "shape": "tiny",
+        "wF": 0.46788497681729496,
+        "hF": 0.4814868587255478,
+        "lean": 0.044908084552735095,
+        "pattern": "pocket",
+        "clothOn": true,
+        "clothIdx": 6,
+        "tone": "black"
+      }
+    },
+    "arms": {
+      "params": {
+        "style": "noodle",
+        "len": 0.9714685192564503,
+        "droop": 0.8411455670604482,
+        "asym": -0.004076426643878223,
+        "hand": "claw"
+      }
+    },
+    "legs": {
+      "params": {
+        "style": "noodle",
+        "len": 0.3949974906630814,
+        "foot": "oval"
+      }
+    }
+  },
+  "rig": {
+    "profileHiddenJoints": [
+      "leftShoulder",
+      "leftElbow",
+      "leftHand"
+    ],
+    "partOrder": [
+      "legs",
+      "far-arm",
+      "neck",
+      "torso",
+      "garment",
+      "head",
+      "mottling",
+      "near-arm",
+      "face",
+      "necklace"
+    ],
+    "anchors": {
+      "front": {
+        "hips": [
+          "body",
+          0,
+          230
+        ],
+        "torso": [
+          "body",
+          0,
+          190
+        ],
+        "neck": [
+          "body",
+          0,
+          151
+        ],
+        "head": [
+          "head",
+          0,
+          88
+        ],
+        "leftEye": [
+          "head",
+          -17,
+          78
+        ],
+        "rightEye": [
+          "head",
+          17,
+          78
+        ],
+        "leftShoulder": [
+          "body",
+          -31,
+          158
+        ],
+        "leftElbow": [
+          "body",
+          -43,
+          198
+        ],
+        "leftHand": [
+          "body",
+          -50,
+          232
+        ],
+        "rightShoulder": [
+          "body",
+          31,
+          158
+        ],
+        "rightElbow": [
+          "body",
+          43,
+          198
+        ],
+        "rightHand": [
+          "body",
+          50,
+          232
+        ],
+        "leftHip": [
+          "body",
+          -15,
+          230
+        ],
+        "leftKnee": [
+          "body",
+          -17,
+          256
+        ],
+        "leftFoot": [
+          "body",
+          -20,
+          286
+        ],
+        "rightHip": [
+          "body",
+          15,
+          230
+        ],
+        "rightKnee": [
+          "body",
+          17,
+          256
+        ],
+        "rightFoot": [
+          "body",
+          20,
+          286
+        ],
+        "maw": [
+          "head",
+          0,
+          116
+        ],
+        "necklace": [
+          "body",
+          0,
+          183
+        ]
+      },
+      "profile": {
+        "hips": [
+          "body",
+          0,
+          230
+        ],
+        "torso": [
+          "body",
+          0,
+          190
+        ],
+        "neck": [
+          "body",
+          0,
+          151
+        ],
+        "head": [
+          "head",
+          0,
+          88
+        ],
+        "leftEye": [
+          "head",
+          18,
+          78
+        ],
+        "rightEye": [
+          "head",
+          21,
+          78
+        ],
+        "leftShoulder": [
+          "body",
+          -18,
+          158
+        ],
+        "leftElbow": [
+          "body",
+          -25,
+          198
+        ],
+        "leftHand": [
+          "body",
+          -30,
+          232
+        ],
+        "rightShoulder": [
+          "body",
+          25,
+          158
+        ],
+        "rightElbow": [
+          "body",
+          34,
+          198
+        ],
+        "rightHand": [
+          "body",
+          40,
+          232
+        ],
+        "leftHip": [
+          "body",
+          -5,
+          230
+        ],
+        "leftKnee": [
+          "body",
+          -7,
+          256
+        ],
+        "leftFoot": [
+          "body",
+          -8,
+          286
+        ],
+        "rightHip": [
+          "body",
+          7,
+          230
+        ],
+        "rightKnee": [
+          "body",
+          9,
+          256
+        ],
+        "rightFoot": [
+          "body",
+          10,
+          286
+        ],
+        "maw": [
+          "head",
+          38,
+          116
+        ],
+        "necklace": [
+          "body",
+          -6,
+          183
+        ]
+      }
+    },
+    "bones": [
+      [
+        "head",
+        "neck"
+      ],
+      [
+        "neck",
+        "torso"
+      ],
+      [
+        "torso",
+        "hips"
+      ],
+      [
+        "head",
+        "leftEye"
+      ],
+      [
+        "head",
+        "rightEye"
+      ],
+      [
+        "neck",
+        "leftShoulder"
+      ],
+      [
+        "leftShoulder",
+        "leftElbow"
+      ],
+      [
+        "leftElbow",
+        "leftHand"
+      ],
+      [
+        "neck",
+        "rightShoulder"
+      ],
+      [
+        "rightShoulder",
+        "rightElbow"
+      ],
+      [
+        "rightElbow",
+        "rightHand"
+      ],
+      [
+        "hips",
+        "leftHip"
+      ],
+      [
+        "leftHip",
+        "leftKnee"
+      ],
+      [
+        "leftKnee",
+        "leftFoot"
+      ],
+      [
+        "hips",
+        "rightHip"
+      ],
+      [
+        "rightHip",
+        "rightKnee"
+      ],
+      [
+        "rightKnee",
+        "rightFoot"
+      ],
+      [
+        "head",
+        "maw"
+      ],
+      [
+        "torso",
+        "necklace"
+      ]
+    ],
+    "contactJoints": [
+      "leftFoot",
+      "rightFoot"
+    ],
+    "handJoints": [
+      "leftHand",
+      "rightHand"
+    ],
+    "faceJoints": [
+      "head",
+      "leftEye",
+      "rightEye",
+      "maw"
+    ],
+    "motion": {
+      "gaitOffsets": {
+        "leftElbow": [
+          -1,
+          -2
+        ],
+        "leftHand": [
+          -2,
+          -3
+        ],
+        "rightElbow": [
+          1,
+          2
+        ],
+        "rightHand": [
+          2,
+          3
+        ],
+        "leftKnee": [
+          -2,
+          -3
+        ],
+        "leftFoot": [
+          -4,
+          -5
+        ],
+        "rightKnee": [
+          2,
+          3
+        ],
+        "rightFoot": [
+          4,
+          5
+        ]
+      }
+    }
+  }
+}

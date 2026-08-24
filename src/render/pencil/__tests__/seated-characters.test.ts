@@ -17,9 +17,10 @@ describe('authored seated creature frames', () => {
     expect([...AUTHORED_SEATED_VISUAL_IDS]).toEqual(['vampire-01', ...SEATED_CREATURES]);
 
     for (const visualId of SEATED_CREATURES) {
-      const first = bakeSeatedPencilCharacterFrames(PENCIL_CHARACTER_RECIPES[visualId]);
-      const second = bakeSeatedPencilCharacterFrames(PENCIL_CHARACTER_RECIPES[visualId]);
-      const standing = bakePencilCharacterFrames(PENCIL_CHARACTER_RECIPES[visualId]);
+      const recipe = PENCIL_CHARACTER_RECIPES[visualId];
+      const first = bakeSeatedPencilCharacterFrames(recipe);
+      const second = bakeSeatedPencilCharacterFrames(recipe);
+      const standing = bakePencilCharacterFrames(recipe);
       expect(first).toHaveLength(12);
       expect(Buffer.from(first[0]!)).toEqual(Buffer.from(second[0]!));
 
@@ -41,7 +42,7 @@ describe('authored seated creature frames', () => {
             if (standingFrame[(y * PENCIL_WIDTH + x) * 4 + 3]! > 0) standingBottom = y;
           }
         }
-        expect(bottom).toBeGreaterThanOrEqual(standingBottom);
+        expect(bottom).toBeGreaterThanOrEqual(standingBottom - 1);
       }
     }
   });

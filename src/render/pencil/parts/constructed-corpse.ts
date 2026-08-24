@@ -3,7 +3,7 @@ import { gaitSwing, screenSideForAttachment, type AnatomicalSide, type VampirePo
 import { seatedArmAnchors, seatedLegAnchors, segmentBox } from '../seated';
 import type { Point, Sketch } from '../sketch';
 
-type ConstructedCorpseOptions = Readonly<{ dressed: boolean; seated?: boolean }>;
+type ConstructedCorpseOptions = Readonly<{ dressed: boolean; seated?: boolean; sideProfile?: boolean }>;
 
 function fleshMass(
   sketch: Sketch,
@@ -373,7 +373,7 @@ export function drawConstructedCorpse(
     drawLeg(sketch, F, pose, -1, false, options.dressed, options.seated);
     drawLeg(sketch, F, pose, 1, false, options.dressed, options.seated);
   }
-  if (profile) drawArm(sketch, F, pose, far, true, options.seated);
+  if (profile && !options.sideProfile) drawArm(sketch, F, pose, far, true, options.seated);
   drawTorso(sketch, F, pose);
   drawNeck(sketch, F, pose);
   if (!profile) {

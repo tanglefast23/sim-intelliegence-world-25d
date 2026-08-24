@@ -6,10 +6,8 @@ import { drawEyes } from './parts/eyes';
 import { drawLegs } from './parts/legs';
 import { drawNose } from './parts/nose';
 import { drawConstructedCorpse } from './parts/constructed-corpse';
-import { drawLiteralBigfoot } from './parts/bigfoot';
 import { drawClassicSheetGhost } from './parts/ghost';
 import { drawPriyaSkeleton } from './parts/skeleton';
-import { drawClassicWitch } from './parts/witch';
 import { drawLiteralAlien } from './parts/alien';
 import { drawLiteralOrc } from './parts/orc';
 import { drawLiteralRobot } from './parts/robot';
@@ -20,6 +18,13 @@ import { drawSkull } from './parts/skull';
 import { BOIL_FRAMES, PENCIL_HEIGHT, PENCIL_WIDTH } from './vampire';
 import { hashSeed, type Point, Sketch } from './sketch';
 import { VAMPIRE_FACINGS, type VampirePose } from './pose';
+import { bakeGeneratedLindaFrames, drawGeneratedLinda, LINDA_PENCIL_PALETTE } from './generated-linda';
+import { bakeGeneratedMinaFrames, drawGeneratedMina, MINA_PENCIL_PALETTE } from './generated-mina';
+import {
+  bakeMajorCharacterCandidateFrames,
+  MAJOR_CHARACTER_IDS,
+  type MajorCharacterId,
+} from './generated-major-characters';
 
 export const PENCIL_RECIPE_VERSION = 2;
 
@@ -90,6 +95,11 @@ const REJECTED_HUMAN_TEMPLATE_ART = Object.freeze({
   dialoguePortrait: 'rejected-human-template',
 } as const);
 
+const APPROVED_WORLD_REJECTED_PORTRAIT_ART = Object.freeze({
+  worldBody: 'approved-literal-anatomy',
+  dialoguePortrait: 'rejected-human-template',
+} as const);
+
 const palette = (
   surface: readonly [number, number, number],
   hair: readonly [number, number, number],
@@ -133,14 +143,8 @@ export const PENCIL_CHARACTER_RECIPES: Readonly<Record<PencilVisualId, PencilCha
       canonicalFeatures: ['full-body fur', 'long reach', 'broad hands', 'oversized bare feet'],
       absentHumanFeatures: ['human skin face', 'styled human hair', 'normal shoes'],
     },
-    artStatus: REJECTED_HUMAN_TEMPLATE_ART, shape: 'lump',
-    palette: {
-      ...palette([132, 84, 56], [78, 50, 33], [78, 50, 33], [184, 166, 91]),
-      ash: [153, 112, 78],
-      hollow: [49, 32, 24],
-      hairEdge: [78, 50, 33],
-      cloakLift: [105, 69, 45],
-    },
+    artStatus: APPROVED_WORLD_REJECTED_PORTRAIT_ART, shape: 'lump',
+    palette: LINDA_PENCIL_PALETTE,
   },
   'linda-boyfriend': {
     version: 2, visualId: 'linda-boyfriend', kind: 'linda-boyfriend', archetype: 'werewolf',
@@ -174,15 +178,8 @@ export const PENCIL_CHARACTER_RECIPES: Readonly<Record<PencilVisualId, PencilCha
       canonicalFeatures: ['hooked profile', 'long hands', 'bent posture', 'bent cone hat'],
       absentHumanFeatures: ['smooth ordinary face', 'short fingers', 'neutral upright posture'],
     },
-    artStatus: REJECTED_HUMAN_TEMPLATE_ART, shape: 'drop',
-    palette: {
-      ...palette([128, 151, 96], [76, 72, 82], [42, 34, 48], [181, 142, 52]),
-      ash: [101, 126, 78],
-      hollow: [54, 67, 48],
-      hairEdge: [45, 42, 51],
-      cloakLift: [73, 57, 79],
-      shirt: [67, 51, 74],
-    },
+    artStatus: APPROVED_WORLD_REJECTED_PORTRAIT_ART, shape: 'drop',
+    palette: MINA_PENCIL_PALETTE,
   },
   'devon-price': {
     version: 2, visualId: 'devon-price', kind: 'devon-price', archetype: 'alien',
@@ -496,13 +493,14 @@ export function drawPencilCharacter(
     return;
   }
   if (recipe.kind === 'linda') {
-    drawLiteralBigfoot(sketch, buildPencilLayout(recipe.shape, recipe.palette), pose);
+    drawGeneratedLinda(sketch, pose, true);
     return;
   }
   if (recipe.kind === 'linda-boyfriend') {
     drawLiteralWerewolf(sketch, buildPencilLayout(recipe.shape, recipe.palette), pose, {
       dressed: options.hidePersonalLayers !== true,
       seated: options.seated === true,
+      sideProfile: true,
     });
     return;
   }
@@ -510,6 +508,7 @@ export function drawPencilCharacter(
     drawConstructedCorpse(sketch, buildPencilLayout(recipe.shape, recipe.palette), pose, {
       dressed: options.hidePersonalLayers !== true,
       seated: options.seated === true,
+      sideProfile: true,
     });
     return;
   }
@@ -517,6 +516,7 @@ export function drawPencilCharacter(
     drawClassicSheetGhost(sketch, buildPencilLayout(recipe.shape, recipe.palette), pose, {
       adorned: options.hidePersonalLayers !== true,
       seated: options.seated === true,
+      flaredProfile: true,
     });
     return;
   }
@@ -524,19 +524,19 @@ export function drawPencilCharacter(
     drawLiteralRobot(sketch, buildPencilLayout(recipe.shape, recipe.palette), pose, {
       adorned: options.hidePersonalLayers !== true,
       seated: options.seated === true,
+      sideProfile: true,
     });
     return;
   }
   if (recipe.kind === 'mina-park') {
-    drawClassicWitch(sketch, buildPencilLayout(recipe.shape, recipe.palette), pose, {
-      dressed: options.hidePersonalLayers !== true,
-    });
+    drawGeneratedMina(sketch, pose, options.hidePersonalLayers !== true, true);
     return;
   }
   if (recipe.kind === 'devon-price') {
     drawLiteralAlien(sketch, buildPencilLayout(recipe.shape, recipe.palette), pose, {
       dressed: options.hidePersonalLayers !== true,
       seated: options.seated === true,
+      sideProfile: true,
     });
     return;
   }
@@ -544,6 +544,7 @@ export function drawPencilCharacter(
     drawLiteralOrc(sketch, buildPencilLayout(recipe.shape, recipe.palette), pose, {
       dressed: options.hidePersonalLayers !== true,
       seated: options.seated === true,
+      sideProfile: true,
     });
     return;
   }
@@ -551,6 +552,7 @@ export function drawPencilCharacter(
     drawLiteralGhoul(sketch, buildPencilLayout(recipe.shape, recipe.palette), pose, {
       dressed: options.hidePersonalLayers !== true,
       seated: options.seated === true,
+      sideProfile: true,
     });
     return;
   }
@@ -558,6 +560,7 @@ export function drawPencilCharacter(
     drawLiteralGoblin(sketch, buildPencilLayout(recipe.shape, recipe.palette), pose, {
       dressed: options.hidePersonalLayers !== true,
       seated: options.seated === true,
+      sideProfile: true,
     });
     return;
   }
@@ -571,6 +574,12 @@ export function bakePencilCharacterFrames(
   recipe: PencilCharacterRecipe,
   options: PencilCharacterRenderOptions = {},
 ): readonly Uint8ClampedArray[] {
+  if (recipe.kind === 'linda' && !options.seated) return bakeGeneratedLindaFrames(true);
+  if (recipe.kind === 'mina-park' && !options.hidePersonalLayers && !options.seated) return bakeGeneratedMinaFrames(true);
+  if (
+    !options.hidePersonalLayers && !options.seated &&
+    MAJOR_CHARACTER_IDS.includes(recipe.kind as MajorCharacterId)
+  ) return bakeMajorCharacterCandidateFrames(recipe.kind as MajorCharacterId);
   const frames: Uint8ClampedArray[] = [];
   for (const facing of VAMPIRE_FACINGS) {
     for (const moving of [false, true] as const) {

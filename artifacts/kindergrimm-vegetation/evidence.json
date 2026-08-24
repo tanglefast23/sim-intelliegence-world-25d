@@ -1,0 +1,239 @@
+{
+  "status": "integrated",
+  "deterministic": true,
+  "integrated": true,
+  "frames": {
+    "canopy-tree-front": {
+      "width": 120,
+      "height": 180,
+      "sha256": "51804639cdeb0dcc1dfcc51c20249b40eb53a09d7b759ee601ec4fbd396c6262",
+      "transparentBounds": {
+        "x": 4,
+        "y": 4,
+        "width": 115,
+        "height": 166
+      },
+      "groundContact": {
+        "x": 60,
+        "y": 166
+      },
+      "world": {
+        "width": 1.75,
+        "height": 2.5,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.06,
+          "z": 0.06,
+          "width": 0.72,
+          "depth": 0.34
+        }
+      }
+    },
+    "canopy-tree-side": {
+      "width": 120,
+      "height": 180,
+      "sha256": "e8e1a0f9bec617195a4743f53df6e14ea46441ed25febaf08255240739d3b570",
+      "transparentBounds": {
+        "x": 10,
+        "y": 3,
+        "width": 105,
+        "height": 167
+      },
+      "groundContact": {
+        "x": 60,
+        "y": 166
+      },
+      "world": {
+        "width": 1.75,
+        "height": 2.5,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.06,
+          "z": 0.06,
+          "width": 0.72,
+          "depth": 0.34
+        }
+      }
+    },
+    "young-palm-front": {
+      "width": 120,
+      "height": 180,
+      "sha256": "242a88f128445ac33a908fd0807aa4c73d9beb222781532b1d6836ea063f856e",
+      "transparentBounds": {
+        "x": 18,
+        "y": 22,
+        "width": 87,
+        "height": 148
+      },
+      "groundContact": {
+        "x": 60,
+        "y": 166
+      },
+      "world": {
+        "width": 1.55,
+        "height": 2.15,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.05,
+          "z": 0.05,
+          "width": 0.46,
+          "depth": 0.22
+        }
+      }
+    },
+    "young-palm-side": {
+      "width": 120,
+      "height": 180,
+      "sha256": "307f7af20392b02cb2a05a92aed51dc6f3de9d7f4503d7575dfe834bc721d2e0",
+      "transparentBounds": {
+        "x": 24,
+        "y": 23,
+        "width": 76,
+        "height": 147
+      },
+      "groundContact": {
+        "x": 60,
+        "y": 166
+      },
+      "world": {
+        "width": 1.55,
+        "height": 2.15,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.05,
+          "z": 0.05,
+          "width": 0.46,
+          "depth": 0.22
+        }
+      }
+    },
+    "sapling-front": {
+      "width": 120,
+      "height": 180,
+      "sha256": "8223d8c1e42b52bd47209150149d895d8c90cc89633683fbb74a493700090d9f",
+      "transparentBounds": {
+        "x": 15,
+        "y": 25,
+        "width": 92,
+        "height": 145
+      },
+      "groundContact": {
+        "x": 60,
+        "y": 166
+      },
+      "world": {
+        "width": 1.05,
+        "height": 1.5,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.04,
+          "z": 0.04,
+          "width": 0.38,
+          "depth": 0.2
+        }
+      }
+    },
+    "sapling-side": {
+      "width": 120,
+      "height": 180,
+      "sha256": "59d60fde2a8afca0d92803b552c22cf42a96ed81875865d45f99712a0ad2001e",
+      "transparentBounds": {
+        "x": 20,
+        "y": 27,
+        "width": 80,
+        "height": 143
+      },
+      "groundContact": {
+        "x": 60,
+        "y": 166
+      },
+      "world": {
+        "width": 1.05,
+        "height": 1.5,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.04,
+          "z": 0.04,
+          "width": 0.38,
+          "depth": 0.2
+        }
+      }
+    },
+    "flowering-shrub-front": {
+      "width": 120,
+      "height": 180,
+      "sha256": "3713953cc190908e952981ca90815dcd6cabb17ecf4a3abdc1be5a37d51662c6",
+      "transparentBounds": {
+        "x": 3,
+        "y": 72,
+        "width": 112,
+        "height": 95
+      },
+      "groundContact": {
+        "x": 60,
+        "y": 166
+      },
+      "world": {
+        "width": 1.2,
+        "height": 0.82,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.06,
+          "z": 0.06,
+          "width": 0.76,
+          "depth": 0.36
+        }
+      }
+    },
+    "flowering-shrub-side": {
+      "width": 120,
+      "height": 180,
+      "sha256": "4c2191fc577e6d99d9e569e908bda9373b9138c2fea2891465050fc01b89fbd1",
+      "transparentBounds": {
+        "x": 9,
+        "y": 78,
+        "width": 97,
+        "height": 90
+      },
+      "groundContact": {
+        "x": 60,
+        "y": 166
+      },
+      "world": {
+        "width": 1.2,
+        "height": 0.82,
+        "collision": {
+          "width": 1,
+          "depth": 1
+        },
+        "contactShadow": {
+          "x": 0.06,
+          "z": 0.06,
+          "width": 0.76,
+          "depth": 0.36
+        }
+      }
+    }
+  }
+}

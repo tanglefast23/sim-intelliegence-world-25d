@@ -1,0 +1,350 @@
+{
+  "version": 1,
+  "status": "shipping",
+  "visualId": "tomas-reed",
+  "upstreamCommit": "de339ad739d8cbd28ff2dd4a940af38c0ede86c8",
+  "seed": 6181,
+  "species": "nightmare",
+  "base": "biped",
+  "media": "graphite",
+  "color": "auto",
+  "parts": {
+    "skull": {
+      "params": {
+        "s": 0.6123259187536314,
+        "wf": 0.9436060897447168,
+        "turn": 0.06128615578636529,
+        "shroud": true,
+        "round": 0.8692032987298444,
+        "shape": "bumpy",
+        "muzzle": 0.11858070428483188,
+        "muzzleY": 0.5877151606604457,
+        "fur": false,
+        "jaw": 0.9953431234229356,
+        "chinW": 1.208793832268566,
+        "skullY": 0.99357814877294,
+        "chinY": 0.7924295539036392,
+        "press": 1.5227241470478474,
+        "shade": "none",
+        "hollows": false,
+        "construction": false,
+        "darkSkin": false,
+        "plain": false,
+        "skinOn": false,
+        "skinIdx": 1,
+        "skinScrib": true
+      }
+    },
+    "eyes": {
+      "params": {
+        "type": "saucer",
+        "type2": "spiral",
+        "scaleR": 1.0022479625418783,
+        "scale": 1.4708841782063247,
+        "ehJit": 0.9212568989023566,
+        "fierce": 0.5016055274754763,
+        "gazeJit": -0.020680813165381548,
+        "sx": 0.47436717482283713,
+        "sink": 0.5491601344547234,
+        "lashes": false,
+        "glint": true
+      }
+    },
+    "nose": {
+      "params": {
+        "style": "skull",
+        "nostril": false,
+        "size": 0.9004316453821958,
+        "snoutLen": 0.9681757588405162,
+        "snoutFat": 1.0367449555313215,
+        "snoutTip": -0.0727085714135319
+      }
+    },
+    "mouth": {
+      "params": {
+        "style": "stitch",
+        "myF": 0.4616519932774827,
+        "wF": 0.708701156580355,
+        "beakLen": 1.00112555292435,
+        "upperLip": false,
+        "crease": false,
+        "nTeeth": 3,
+        "nStitch": 4
+      }
+    },
+    "hair": {
+      "params": {
+        "style": "bald",
+        "tone": "light",
+        "colOn": false,
+        "colIdx": 1,
+        "bang": "none",
+        "bangN": 7,
+        "cpart": true,
+        "longZig": false,
+        "longNt": 4,
+        "flare": 1.0711160108400508,
+        "fall": 0.9027692168834619,
+        "spikyN": 13,
+        "bunsTop": false,
+        "afroR": 1.0690569123998284,
+        "mohawkN": 8,
+        "tailUp": true
+      }
+    },
+    "torso": {
+      "params": {
+        "shape": "drop",
+        "wF": 0.5055986490519717,
+        "hF": 0.6407078359276057,
+        "lean": -0.032039841609075664,
+        "pattern": "stripes",
+        "clothOn": false,
+        "clothIdx": 4,
+        "tone": "black"
+      }
+    },
+    "arms": {
+      "params": {
+        "style": "behind",
+        "len": 1.2148182710632682,
+        "droop": 0.7538467995822429,
+        "asym": 0.04765788591001183,
+        "hand": "claw"
+      }
+    },
+    "legs": {
+      "params": {
+        "style": "stub",
+        "len": 0.5676133501343429,
+        "foot": "oval"
+      }
+    }
+  },
+  "rig": {
+    "partOrder": [
+      "shroud",
+      "eye-holes",
+      "permit-tag"
+    ],
+    "anchors": {
+      "front": {
+        "shroudRoot": [
+          "body",
+          0,
+          190
+        ],
+        "crown": [
+          "head",
+          0,
+          43
+        ],
+        "leftEye": [
+          "head",
+          -13,
+          76
+        ],
+        "rightEye": [
+          "head",
+          14,
+          79
+        ],
+        "leftWing": [
+          "body",
+          -67,
+          181
+        ],
+        "rightWing": [
+          "body",
+          67,
+          181
+        ],
+        "leftHem": [
+          "body",
+          -29,
+          274
+        ],
+        "centerHem": [
+          "body",
+          3,
+          274
+        ],
+        "rightHem": [
+          "body",
+          31,
+          274
+        ],
+        "hoverContact": [
+          "body",
+          0,
+          274
+        ],
+        "permitTag": [
+          "body",
+          -24,
+          192
+        ]
+      },
+      "profile": {
+        "shroudRoot": [
+          "body",
+          0,
+          190
+        ],
+        "crown": [
+          "head",
+          0,
+          43
+        ],
+        "leftEye": [
+          "head",
+          15,
+          77
+        ],
+        "rightEye": [
+          "head",
+          18,
+          77
+        ],
+        "leftWing": [
+          "body",
+          -31,
+          180
+        ],
+        "rightWing": [
+          "body",
+          33,
+          180
+        ],
+        "leftHem": [
+          "body",
+          -44,
+          277
+        ],
+        "centerHem": [
+          "body",
+          6,
+          259
+        ],
+        "rightHem": [
+          "body",
+          45,
+          276
+        ],
+        "hoverContact": [
+          "body",
+          0,
+          274
+        ],
+        "permitTag": [
+          "body",
+          -24,
+          192
+        ]
+      }
+    },
+    "bones": [
+      [
+        "shroudRoot",
+        "crown"
+      ],
+      [
+        "crown",
+        "leftEye"
+      ],
+      [
+        "crown",
+        "rightEye"
+      ],
+      [
+        "shroudRoot",
+        "leftWing"
+      ],
+      [
+        "shroudRoot",
+        "rightWing"
+      ],
+      [
+        "shroudRoot",
+        "leftHem"
+      ],
+      [
+        "leftHem",
+        "centerHem"
+      ],
+      [
+        "centerHem",
+        "rightHem"
+      ],
+      [
+        "centerHem",
+        "hoverContact"
+      ],
+      [
+        "shroudRoot",
+        "permitTag"
+      ]
+    ],
+    "contactJoints": [
+      "hoverContact"
+    ],
+    "handJoints": [],
+    "faceJoints": [
+      "crown",
+      "leftEye",
+      "rightEye"
+    ],
+    "motion": {
+      "gaitOffsets": {
+        "leftElbow": [
+          -1,
+          -2
+        ],
+        "leftHand": [
+          -2,
+          -3
+        ],
+        "rightElbow": [
+          1,
+          2
+        ],
+        "rightHand": [
+          2,
+          3
+        ],
+        "leftKnee": [
+          -2,
+          -3
+        ],
+        "leftFoot": [
+          -4,
+          -5
+        ],
+        "rightKnee": [
+          2,
+          3
+        ],
+        "rightFoot": [
+          4,
+          5
+        ],
+        "leftWing": [
+          0,
+          -4
+        ],
+        "rightWing": [
+          0,
+          4
+        ],
+        "leftHem": [
+          0,
+          3
+        ],
+        "rightHem": [
+          0,
+          -3
+        ]
+      }
+    }
+  }
+}

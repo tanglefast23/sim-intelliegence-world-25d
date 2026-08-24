@@ -4,6 +4,16 @@ Authoritative for Electron testing and for CI failures that are not yours.
 
 `CLAUDE.md` summarises this file. Where the two disagree, this one wins.
 
+## Canonical active project
+
+This is the user's only active Sim Intelligence World checkout. Generic names such as "SI World",
+"Sim Intelligence World", "the game", "the world", and "local Electron build" always mean this
+`25d` checkout.
+
+The sibling checkout at `/Users/joemacprom5/Documents/Vibecode/Sim Intelliegence World` is retired
+2D history. Never build, test, change, package, launch, screenshot, or show that world. Do not use it
+as a fallback. Only use it again if the user explicitly reverses this rule in the current task.
+
 ## Character art policy
 
 - Every character world body uses the 2.5D pencil method in
