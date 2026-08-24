@@ -7,8 +7,8 @@
     "tileX": 22,
     "tileY": 28
   },
-  "startMinute": 480,
-  "endMinute": 540,
+  "startMinute": 420,
+  "endMinute": 480,
   "energy": 99,
   "health": 100,
   "money": 940,
@@ -37,5 +37,5 @@
     "evidence_linda_protected"
   ],
   "journalMarkerVisible": true,
-  "revision": 34
+  "revision": 22
 }

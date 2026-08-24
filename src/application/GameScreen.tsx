@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { createInitialState } from '../domain/state/initial-state';
+import { rollTwoDice } from '../domain/action-check';
+import { createInitialState, INITIAL_STATE_SEED } from '../domain/state/initial-state';
 import { useAudioEnabled, useInterfaceSounds } from '../audio/halcyra-audio';
 import { setAudioVolumes } from '../audio/volume-store';
 import type { WorldState } from '../domain/state/schema';
@@ -16,6 +17,7 @@ import {
   type RendererPresentationPatch,
 } from './presentation/preferences';
 import type { ViewportSize } from '../render/camera';
+import { AlarmIntroOverlay, type AlarmIntroRoll } from '../ui/AlarmIntroOverlay';
 
 type GameSession = Readonly<{
   key: string;
@@ -30,14 +32,33 @@ type GameSession = Readonly<{
 type BootState =
   | Readonly<{ status: 'loading' }>
   | Readonly<{ status: 'new'; busy: boolean; preferences: PresentationPreferences; error?: string }>
+  | Readonly<{
+    status: 'intro';
+    state: WorldState;
+    preferences: PresentationPreferences;
+    roll?: AlarmIntroRoll;
+    saveStatus: 'idle' | 'saving' | 'saved' | 'failed';
+    saveGeneration?: number;
+    saveError?: string;
+  }>
   | Readonly<{ status: 'active'; session: GameSession }>
   | Readonly<{ status: 'failed'; detail: string }>;
 
 type GameScreenProps = Readonly<{ onWorldReady: () => void; rendererKind: RendererKind; surface: ViewportSize }>;
 
+export function newGameSeed(
+  smokeMode: boolean,
+  fillRandom: (values: Uint32Array<ArrayBuffer>) => Uint32Array<ArrayBuffer> = (values) => globalThis.crypto.getRandomValues(values),
+): number {
+  if (smokeMode) return INITIAL_STATE_SEED;
+  return fillRandom(new Uint32Array(1))[0]!;
+}
+
 export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenProps) {
   const [boot, setBoot] = useState<BootState>({ status: 'loading' });
   const startingNewGame = useRef(false);
+  const introRollCommitted = useRef(false);
+  const introSaveInFlight = useRef(false);
   const audioEnabled = useAudioEnabled();
   const playInterfaceSound = useInterfaceSounds(audioEnabled);
 
@@ -84,39 +105,80 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
     return () => { active = false; };
   }, []);
 
+  const saveIntro = useCallback((intro: Extract<BootState, { status: 'intro' }>) => {
+    if (!intro.roll || introSaveInFlight.current) return;
+    introSaveInFlight.current = true;
+    void getSavePort().requestSave({
+      slotId: 'slot-001', expectedSaveGeneration: null, trigger: 'manual', state: intro.state,
+    }).then((result) => {
+      introSaveInFlight.current = false;
+      setBoot((current) => {
+        if (current.status !== 'intro' || current.state !== intro.state) return current;
+        if (result.status === 'saved') {
+          return { ...current, saveStatus: 'saved', saveGeneration: result.saveGeneration, saveError: undefined };
+        }
+        return {
+          ...current,
+          saveStatus: 'failed',
+          saveError: 'The island is not at a stable save boundary. Retry the same save.',
+        };
+      });
+    }).catch(() => {
+      introSaveInFlight.current = false;
+      setBoot((current) => current.status === 'intro' && current.state === intro.state
+        ? { ...current, saveStatus: 'failed', saveError: 'The save write failed. Retry the same save.' }
+        : current);
+    });
+  }, []);
+
   const startNewGame = useCallback((displayName: string) => {
     if (startingNewGame.current) return;
     startingNewGame.current = true;
+    introRollCommitted.current = false;
     playInterfaceSound('confirm');
-    const state = createInitialState(displayName);
-    const savePort = getSavePort();
+    const smokeMode = typeof window !== 'undefined' && window.siWorldSmokeMode === true;
+    const state = createInitialState(displayName, newGameSeed(smokeMode));
     const preferences = boot.status === 'new' ? boot.preferences : DEFAULT_PRESENTATION_PREFERENCES;
-    setBoot({ status: 'new', busy: true, preferences });
-    void savePort.requestSave({
-      slotId: 'slot-001', expectedSaveGeneration: null, trigger: 'manual', state,
-    }).then((result) => {
-      if (result.status !== 'saved') {
-        startingNewGame.current = false;
-        setBoot({ status: 'new', busy: false, error: 'The island could not create a stable save. Try again.', preferences });
-        return;
-      }
-      setBoot({
-        status: 'active',
-        session: {
-          key: `new-${result.saveGeneration}`,
-          saveGeneration: result.saveGeneration,
-          saveStatus: `SAVED GEN ${result.saveGeneration}`,
-          state,
-          worldFeedback: 'WELCOME TO HALCYRA · $800 WEEKLY ALLOWANCE RECEIVED.',
-          preferences,
-          newGame: true,
-        },
-      });
-    }).catch(() => {
-      startingNewGame.current = false;
-      setBoot({ status: 'new', busy: false, error: 'The save write failed. No new game was started.', preferences });
-    });
+    setBoot({ status: 'intro', state, preferences, saveStatus: 'idle' });
   }, [boot, playInterfaceSound]);
+
+  const snoozeAlarm = useCallback(() => {
+    if (boot.status !== 'intro' || introRollCommitted.current) return;
+    introRollCommitted.current = true;
+    const rolled = rollTwoDice(boot.state.prng);
+    const intro: Extract<BootState, { status: 'intro' }> = {
+      ...boot,
+      state: { ...boot.state, prng: rolled.prng },
+      roll: { dice: rolled.dice, total: rolled.total },
+      saveStatus: 'saving',
+      saveError: undefined,
+    };
+    setBoot(intro);
+    saveIntro(intro);
+  }, [boot, saveIntro]);
+
+  const retryIntroSave = useCallback(() => {
+    if (boot.status !== 'intro' || !boot.roll || boot.saveStatus !== 'failed' || introSaveInFlight.current) return;
+    const intro: Extract<BootState, { status: 'intro' }> = { ...boot, saveStatus: 'saving', saveError: undefined };
+    setBoot(intro);
+    saveIntro(intro);
+  }, [boot, saveIntro]);
+
+  const completeIntro = useCallback(() => {
+    if (boot.status !== 'intro' || !boot.roll || boot.saveStatus !== 'saved' || boot.saveGeneration === undefined) return;
+    setBoot({
+      status: 'active',
+      session: {
+        key: `new-${boot.saveGeneration}`,
+        saveGeneration: boot.saveGeneration,
+        saveStatus: `SAVED GEN ${boot.saveGeneration}`,
+        state: boot.state,
+        worldFeedback: 'WELCOME TO HALCYRA · $800 WEEKLY ALLOWANCE RECEIVED.',
+        preferences: boot.preferences,
+        newGame: true,
+      },
+    });
+  }, [boot]);
 
   const savePresentationPreferences = useCallback((patch: RendererPresentationPatch) => {
     void getSavePort().savePresentationPreferences(patch);
@@ -126,6 +188,19 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
   if (boot.status === 'failed') return <LoadingShell detail={boot.detail} failed surface={surface} />;
   if (boot.status === 'new') {
     return <NewGameFlow audioEnabled={audioEnabled} busy={boot.busy} error={boot.error} onStart={startNewGame} surface={surface} />;
+  }
+  if (boot.status === 'intro') {
+    return <AlarmIntroOverlay
+      audioEnabled={audioEnabled}
+      onComplete={completeIntro}
+      onRetry={retryIntroSave}
+      onSnooze={snoozeAlarm}
+      roll={boot.roll}
+      saveError={boot.saveError}
+      saveGeneration={boot.saveGeneration}
+      saveStatus={boot.saveStatus}
+      surface={surface}
+    />;
   }
   return (
     <WorldErrorBoundary key={`boundary-${boot.session.key}`}>

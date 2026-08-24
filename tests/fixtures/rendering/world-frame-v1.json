@@ -59,7 +59,7 @@
         "vfxMode": "circle"
       },
       "expected": {
-        "frameHash": "f8095c86",
+        "frameHash": "85c29e6c",
         "mapHash": "ab126923",
         "presentationHash": "306d53f4",
         "atlasHash": "2b1a3c04d6144f65def54f173facc31bc1622ba786efdeb55416528800c93df4",

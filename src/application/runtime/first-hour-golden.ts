@@ -1,4 +1,5 @@
 import { reduceCommand } from '../../domain/commands/reducer';
+import { rollTwoDice } from '../../domain/action-check';
 import { DomainCommandSchema } from '../../domain/commands/types';
 import { LINDA_QUEST } from '../../domain/quests/quest-machine';
 import { createInitialState } from '../../domain/state/initial-state';
@@ -65,7 +66,7 @@ function placeAuthoredWitness(state: WorldState): WorldState {
   return current;
 }
 
-export function summarizeFirstHour(state: WorldState, startMinute = 480): FirstHourSummary {
+export function summarizeFirstHour(state: WorldState, startMinute = 7 * 60): FirstHourSummary {
   const quest = state.quests.linda_boyfriend_check;
   const linda = state.relationships.linda;
   const velvetTide = state.factions.velvet_tide;
@@ -103,8 +104,10 @@ export function runFirstHourGolden(displayName = 'MISTAKE'): Readonly<{
   state: WorldState;
   summary: FirstHourSummary;
 }> {
-  const startMinute = 8 * 60;
   let state = createInitialState(displayName);
+  const introRoll = rollTwoDice(state.prng);
+  state = { ...state, prng: introRoll.prng };
+  const startMinute = state.clock.absoluteMinute;
   const linda = state.npcs.linda?.presence;
   if (!linda || linda.kind !== 'active_local') throw new Error('First-hour Linda is not active.');
   state = walkProtagonist(state, linda.tileX + 1, linda.tileY);
@@ -121,9 +124,9 @@ export function runFirstHourGolden(displayName = 'MISTAKE'): Readonly<{
   if (protect.event?.type !== 'linda-quest-resolved' ||
       protect.event.resultId !== 'linda_protected' ||
       JSON.stringify(protect.event.actionCheck) !== JSON.stringify({
-        dice: [3, 5], modifier: 4, target: 9, total: 12, success: true,
+        dice: [6, 3], modifier: 4, target: 9, total: 13, success: true,
       })) {
-    throw new Error('First-hour Action Check must roll 3 and 5 with Readiness +4 and protect Linda.');
+    throw new Error('First-hour Action Check must roll 6 and 3 with Readiness +4 and protect Linda.');
   }
   state = protect.state;
   state = tickWorld(state, 60 * 1_000);

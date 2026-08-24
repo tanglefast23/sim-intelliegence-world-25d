@@ -51,6 +51,15 @@ declare global {
      */
     siWorldPinShootingScene?: (timeMs: number) => number;
     siWorldPinActionCheck?: (timeMs: number) => number;
+    siWorldPinAlarmIntro?: (timeMs: number) => number;
+    siWorldAlarmAudioEvidence?: () => Readonly<{
+      audioEnabled: boolean;
+      currentTime: number;
+      loaded: boolean;
+      playing: boolean;
+      userActivation: boolean;
+      visibilityState: DocumentVisibilityState;
+    }>;
     siWorldSmokeMode?: boolean;
     siWorldTestRenderer?: RendererKind;
     /** Explicit 2.5D shadow path for a packaged smoke. Never an FPS probe. */

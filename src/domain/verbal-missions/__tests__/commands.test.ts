@@ -70,7 +70,9 @@ function readyState(missionId: string, exactTerm: number | null = null): WorldSt
 }
 
 function agreementState(): WorldState {
-  return reduceCommand(readyState(PRIYA_ASSESSMENT_MISSION_ID, 600), command(
+  const ready = readyState(PRIYA_ASSESSMENT_MISSION_ID, 600);
+  const atEight = parseWorldState({ ...ready, clock: { ...ready.clock, absoluteMinute: 480 } });
+  return reduceCommand(atEight, command(
     'create-scheduled-commitment',
     'priya-agreement',
     {

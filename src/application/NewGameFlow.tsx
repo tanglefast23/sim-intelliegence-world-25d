@@ -93,7 +93,7 @@ function IslandBackdrop({ compact }: Readonly<{ compact: boolean }>) {
       </View>
       <View style={styles.arrivalTag}>
         <Text style={styles.arrivalKicker}>ARRIVAL WINDOW</Text>
-        <Text style={styles.arrivalValue}>DAY 1 · 08:00 · SUNWARD BAY</Text>
+        <Text style={styles.arrivalValue}>DAY 1 · 07:00 · SUNWARD BAY</Text>
       </View>
       {!compact ? <View style={styles.sceneLabel}><Text style={styles.sceneLabelText}>SUNWARD VILLAS · HALCYRA ISLAND</Text></View> : null}
       <View style={styles.vignetteTop} />

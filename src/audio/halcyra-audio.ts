@@ -96,11 +96,11 @@ export function useAudioEnabled(): boolean {
       userGestureReceived = true;
       setArmed(true);
     };
-    window.addEventListener('pointerdown', arm, { once: true });
-    window.addEventListener('keydown', arm, { once: true });
+    window.addEventListener('pointerdown', arm, { capture: true, once: true });
+    window.addEventListener('keydown', arm, { capture: true, once: true });
     return () => {
-      window.removeEventListener('pointerdown', arm);
-      window.removeEventListener('keydown', arm);
+      window.removeEventListener('pointerdown', arm, true);
+      window.removeEventListener('keydown', arm, true);
     };
   }, []);
 

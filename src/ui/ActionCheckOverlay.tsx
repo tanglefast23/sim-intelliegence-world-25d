@@ -1,26 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Asset } from 'expo-asset';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import actionCheckDiceAtlasJson from '../../assets/generated/action-check-dice.json';
 import type { ActionCheckResult } from '../domain/action-check';
 import type { ViewportSize } from '../render/camera';
 import type { UiScale } from '../render/responsive-layout';
 import { UI_LAYER } from './ui-layers';
 import { uiMetrics } from './ui-metrics';
 import type { ActionCheckPreview } from './action-check-copy';
-
-const actionCheckDiceImage = require('../../assets/generated/action-check-dice.png') as number;
-
-type DiceFrameId = `die-${1 | 2 | 3 | 4 | 5 | 6}` | 'soft-flight-shadow' | 'strong-contact-shadow';
-type DiceFrame = Readonly<{
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  anchors: Readonly<{ groundContact: Readonly<{ x: number; y: number }> }>;
-}>;
-const diceFrames = actionCheckDiceAtlasJson.frames as Readonly<Record<DiceFrameId, DiceFrame>>;
+import { DiceRollCanvas, diceRollEntryProgress, sampleDiceRollTimeline } from './DiceRollCanvas';
 
 export type ActionCheckPhase = 'preview' | 'rolling' | 'result';
 
@@ -29,8 +16,7 @@ export function escapeActionForPhase(phase: ActionCheckPhase): 'cancel' | 'conti
 }
 
 export function actionCheckEntryProgress(elapsedMs: number, reducedMotion: boolean, hasResult: boolean): number {
-  if (!hasResult) return 0;
-  return reducedMotion ? 1 : Math.min(1, Math.max(0, elapsedMs) / 500);
+  return diceRollEntryProgress(elapsedMs, reducedMotion, hasResult);
 }
 
 export function actionCheckResultAnnouncement(result: ActionCheckResult): string {
@@ -47,97 +33,7 @@ export type ActionCheckTimeline = Readonly<{
 }>;
 
 export function sampleActionCheckTimeline(elapsedMs: number, reducedMotion: boolean): ActionCheckTimeline {
-  const time = Math.max(0, elapsedMs);
-  if (reducedMotion) {
-    return {
-      elapsedMs: Math.min(time, 180), leftLanded: true, rightLanded: true,
-      showArithmetic: true, showResult: time >= 120, canContinue: time >= 180,
-    };
-  }
-  return {
-    elapsedMs: Math.min(time, 1_650),
-    leftLanded: time >= 780,
-    rightLanded: time >= 900,
-    showArithmetic: time >= 1_100,
-    showResult: time >= 1_350,
-    canContinue: time >= 1_650,
-  };
-}
-
-type DieLandingPose = Readonly<{ landed: boolean; rebound: number; squash: number }>;
-
-function landingPose(elapsedMs: number, landedAt: number, reducedMotion: boolean): DieLandingPose {
-  if (reducedMotion) return { landed: true, rebound: 0, squash: 0 };
-  const age = elapsedMs - landedAt;
-  if (age < 0) return { landed: false, rebound: 0, squash: 0 };
-  if (age < 70) return { landed: true, rebound: 0, squash: 2 };
-  if (age < 145) return { landed: true, rebound: -2, squash: 0 };
-  return { landed: true, rebound: 0, squash: 0 };
-}
-
-function drawFrame(
-  context: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  frame: DiceFrame,
-  x: number,
-  y: number,
-  width = frame.width,
-  height = frame.height,
-): void {
-  context.drawImage(image, frame.x, frame.y, frame.width, frame.height, x, y, width, height);
-}
-
-function drawDie(
-  context: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  centerX: number,
-  flightHeight: number,
-  face: number,
-  pose: DieLandingPose,
-): void {
-  const shadow = diceFrames[pose.landed ? 'strong-contact-shadow' : 'soft-flight-shadow'];
-  drawFrame(
-    context,
-    image,
-    shadow,
-    centerX + 9 - shadow.anchors.groundContact.x,
-    220 - shadow.anchors.groundContact.y,
-  );
-  const die = diceFrames[`die-${face}` as DiceFrameId];
-  const height = die.height - pose.squash;
-  const scaleY = height / die.height;
-  drawFrame(
-    context,
-    image,
-    die,
-    centerX - die.anchors.groundContact.x,
-    210 - flightHeight + pose.rebound - die.anchors.groundContact.y * scaleY,
-    die.width,
-    height,
-  );
-}
-
-function drawDice(
-  canvas: HTMLCanvasElement,
-  image: HTMLImageElement | undefined,
-  result: ActionCheckResult | undefined,
-  timeline: ActionCheckTimeline,
-  reducedMotion: boolean,
-): void {
-  const context = canvas.getContext('2d');
-  if (!context) return;
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  if (!image || !result) return;
-  context.imageSmoothingEnabled = false;
-  const tumble = Math.floor(timeline.elapsedMs / 90);
-  const leftFace = timeline.leftLanded ? result.dice[0] : (tumble % 6) + 1;
-  const rightFace = timeline.rightLanded ? result.dice[1] : ((tumble + 3) % 6) + 1;
-  const entry = actionCheckEntryProgress(timeline.elapsedMs, reducedMotion, true);
-  const leftX = Math.round(-80 + 235 * entry);
-  const rightX = Math.round(600 - 235 * entry);
-  const arc = Math.round(Math.sin(entry * Math.PI) * 55);
-  drawDie(context, image, leftX, arc, leftFace, landingPose(timeline.elapsedMs, 780, reducedMotion));
-  drawDie(context, image, rightX, arc, rightFace, landingPose(timeline.elapsedMs, 900, reducedMotion));
+  return sampleDiceRollTimeline(elapsedMs, reducedMotion);
 }
 
 export function ActionCheckOverlay({
@@ -164,8 +60,6 @@ export function ActionCheckOverlay({
   onRoll: () => void;
 }>) {
   const [elapsedMs, setElapsedMs] = useState(0);
-  const [diceAtlas, setDiceAtlas] = useState<HTMLImageElement>();
-  const canvasElement = useRef<HTMLCanvasElement | undefined>(undefined);
   const pinned = useRef(false);
   const timeline = sampleActionCheckTimeline(elapsedMs, reducedMotion);
   const phase: ActionCheckPhase = !result ? 'preview' : timeline.canContinue ? 'result' : 'rolling';
@@ -201,33 +95,6 @@ export function ActionCheckOverlay({
     frame = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frame);
   }, [reducedMotion, result]);
-  useEffect(() => {
-    const image = new window.Image();
-    let mounted = true;
-    image.onload = () => { if (mounted) setDiceAtlas(image); };
-    image.src = Asset.fromModule(actionCheckDiceImage).uri;
-    return () => { mounted = false; };
-  }, []);
-  useEffect(() => {
-    const host = document.querySelector('#action-check-canvas');
-    if (!(host instanceof HTMLElement)) return undefined;
-    const canvas = document.createElement('canvas');
-    canvas.width = 520;
-    canvas.height = 260;
-    canvas.style.display = 'block';
-    canvas.style.height = '100%';
-    canvas.style.imageRendering = 'pixelated';
-    canvas.style.width = '100%';
-    host.append(canvas);
-    canvasElement.current = canvas;
-    return () => {
-      canvasElement.current = undefined;
-      canvas.remove();
-    };
-  }, []);
-  useEffect(() => {
-    if (canvasElement.current) drawDice(canvasElement.current, diceAtlas, result, timeline, reducedMotion);
-  }, [diceAtlas, reducedMotion, result, timeline]);
   useEffect(() => {
     if (window.siWorldSmokeMode !== true) return undefined;
     window.siWorldPinActionCheck = (timeMs: number) => {
@@ -286,7 +153,7 @@ export function ActionCheckOverlay({
         <Text style={styles.chance}>{preview.chance}</Text>
         <Text style={styles.inputs}>{preview.inputs}</Text>
       </View>
-      <View nativeID="action-check-canvas" pointerEvents="none" style={[styles.canvas, compact && styles.canvasCompact]} />
+      <DiceRollCanvas compact={compact} dice={result?.dice} elapsedMs={elapsedMs} nativeID="action-check-canvas" reducedMotion={reducedMotion} />
       {result && timeline.showArithmetic ? <Text style={styles.arithmetic}>{arithmetic}</Text> : null}
       {result && timeline.showResult ? <Text style={[styles.result, result.success ? styles.success : styles.failure]}>{resultLabel}</Text> : null}
       <Text accessibilityLiveRegion="polite" style={styles.liveRegion}>
@@ -316,8 +183,6 @@ const styles = StyleSheet.create({
   arithmetic: { color: '#FFF0C7', fontFamily: 'Silkscreen', fontSize: 13, marginTop: 2, textAlign: 'center' },
   buttonText: { color: '#FFF0C7', fontFamily: 'Silkscreen', fontSize: 10 },
   buttons: { flexDirection: 'row', gap: 10, justifyContent: 'center', marginTop: 10 },
-  canvas: { alignSelf: 'center', aspectRatio: 2, maxWidth: 520, width: '94%' },
-  canvasCompact: { maxWidth: 360 },
   chance: { color: '#F1C65B', fontFamily: 'Silkscreen', fontSize: 10, marginTop: 5, textAlign: 'center' },
   eyebrow: { fontFamily: 'Silkscreen', fontSize: 8, textAlign: 'center' },
   failure: { backgroundColor: '#5A2C26', borderColor: '#E07A62' },

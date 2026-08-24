@@ -135,6 +135,7 @@ export function validatePackageListing(listing: string): void {
     /^\/dist\/assets\/assets\/generated\/audio\/laugh\.[a-f0-9]+\.wav$/u,
     /^\/dist\/assets\/assets\/generated\/audio\/sigh\.[a-f0-9]+\.wav$/u,
     /^\/dist\/assets\/assets\/generated\/audio\/consequence\.[a-f0-9]+\.wav$/u,
+    /^\/dist\/assets\/assets\/source\/audio\/sfx_alarm_clock\.[a-f0-9]+\.webm$/u,
     /^\/dist\/assets\/node_modules\/@expo-google-fonts\/silkscreen\/400Regular\/Silkscreen_400Regular\.[a-f0-9]+\.ttf$/u,
   ];
   for (const pattern of requiredResourcePatterns) {

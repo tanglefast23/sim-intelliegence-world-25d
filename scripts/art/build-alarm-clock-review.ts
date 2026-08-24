@@ -171,7 +171,19 @@ function assertPixels(view: AlarmClockView, frame: Bitmap): void {
 }
 
 function assertRecipe(front: Bitmap, side: Bitmap): void {
-  if (ALARM_CLOCK_RECIPE.time !== '7:30') throw new Error('The alarm-clock time changed.');
+  if (ALARM_CLOCK_RECIPE.time !== '7:00') throw new Error('The alarm-clock time must be 7:00.');
+  if (JSON.stringify(ALARM_CLOCK_RECIPE.display) !== JSON.stringify({
+    digits: [
+      { digit: '7', x: 26, y: 26 },
+      { digit: '0', x: 46, y: 26 },
+      { digit: '0', x: 60, y: 26 },
+    ],
+    colon: { x: 41, dotYs: [32, 39] },
+  })) throw new Error('The alarm-clock 7:00 glyph layout changed.');
+  const snooze = ALARM_CLOCK_RECIPE.views.front.anchors.snooze;
+  if (snooze.x < 31 || snooze.x > 65 || snooze.y < 10 || snooze.y > 18) {
+    throw new Error('The snooze anchor must stay inside the largest button.');
+  }
   if (ALARM_CLOCK_RECIPE.orderedParts.join(',') !== 'contact-shadow,feet,case,screen,time,buttons') {
     throw new Error('The alarm-clock part order changed.');
   }

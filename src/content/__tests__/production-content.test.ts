@@ -26,6 +26,7 @@ import { buildWorldFrameState, type WorldActors } from '../../render/world-frame
 import { WORLD_MAP_CATALOG } from '../../application/runtime/map-catalog';
 import { findPath } from '../../world/pathfinding/astar';
 import { tileKey } from '../../world/maps/schema';
+import { activeScheduleBlock } from '../../world/schedules/schedule';
 
 type ProductionBill = Readonly<{
   schemaVersion: 1;
@@ -55,11 +56,12 @@ describe('Phase 13 production content bill', () => {
     expect(new Set(bill.ambientNpcIds)).toEqual(new Set(Object.values(state.npcs).filter(({ tier }) => tier === 'ambient').map(({ id }) => id)));
     expect(new Set(bill.scheduleIds)).toEqual(new Set(Object.keys(state.schedules)));
     for (const character of PRODUCTION_FULL_AI_CAST) {
+      const block = activeScheduleBlock(state.schedules[`${character.id}_daily`]!, state.clock.absoluteMinute);
       expect(state.npcs[character.id]?.presence).toEqual(expect.objectContaining({
-        mapId: character.work.mapId,
-        locationId: character.work.locationId,
-        tileX: character.work.x,
-        tileY: character.work.y,
+        mapId: block.mapId,
+        locationId: block.locationId,
+        tileX: block.tileX,
+        tileY: block.tileY,
       }));
     }
     for (const relationship of Object.values(state.relationships).filter(({ npcId }) => state.npcs[npcId]?.tier === 'full_ai')) {

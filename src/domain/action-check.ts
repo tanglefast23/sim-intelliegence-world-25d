@@ -21,6 +21,16 @@ export const ActionCheckResultSchema = z.object({
 export type ActionCheckDefinition = z.infer<typeof ActionCheckDefinitionSchema>;
 export type ActionCheckResult = z.infer<typeof ActionCheckResultSchema>;
 
+export function rollTwoDice(prng: PrngState): Readonly<{
+  dice: [number, number];
+  total: number;
+  prng: PrngState;
+}> {
+  const random = createPrng(prng);
+  const dice: [number, number] = [random.nextInt(6) + 1, random.nextInt(6) + 1];
+  return { dice, total: dice[0] + dice[1], prng: random.snapshot() };
+}
+
 export function resolveActionCheck(
   prng: PrngState,
   modifier: number,
@@ -28,12 +38,11 @@ export function resolveActionCheck(
 ): Readonly<{ result: ActionCheckResult; prng: PrngState }> {
   if (!Number.isSafeInteger(modifier)) throw new RangeError('Action Check modifier must be an integer.');
   if (!Number.isSafeInteger(target)) throw new RangeError('Action Check target must be an integer.');
-  const random = createPrng(prng);
-  const dice: [number, number] = [random.nextInt(6) + 1, random.nextInt(6) + 1];
-  const total = dice[0] + dice[1] + modifier;
+  const roll = rollTwoDice(prng);
+  const total = roll.total + modifier;
   return {
-    result: ActionCheckResultSchema.parse({ dice, modifier, target, total, success: total >= target }),
-    prng: random.snapshot(),
+    result: ActionCheckResultSchema.parse({ dice: roll.dice, modifier, target, total, success: total >= target }),
+    prng: roll.prng,
   };
 }
 

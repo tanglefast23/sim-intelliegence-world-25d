@@ -114,6 +114,8 @@ export type SceneRequest = Readonly<{
   hideNpcs?: boolean;
   /** Remove interface panels from a close visual-art review. */
   hideHud?: boolean;
+  /** Capture the alarm overlay before the smoke presses snooze. */
+  alarmScreenshot?: boolean;
   /**
    * Relocate the protagonist to another map, through the app's own VFX fixture.
    *
@@ -128,6 +130,8 @@ export type SceneEvidence = Readonly<{
   yawDegrees: number;
   shadowPath: string;
   screenshot: string;
+  alarmScreenshot?: string;
+  resultScreenshot?: string;
   evidence: Readonly<{
     rendererKind: string;
     drawCalls: number;
@@ -186,6 +190,7 @@ const CONTENT_TYPES: Readonly<Record<string, string>> = {
   '.ttf': 'font/ttf',
   '.woff2': 'font/woff2',
   '.svg': 'image/svg+xml',
+  '.webm': 'audio/webm',
 };
 
 /** Loopback-only static server. Any path that escapes `dist/` is refused, not clamped. */
@@ -281,6 +286,11 @@ function ensureWindow() {
   return sharedWindow;
 }
 
+async function driveHiddenPaint(window) {
+  await window.webContents.capturePage(undefined, { stayHidden: true });
+  return window.webContents.capturePage(undefined, { stayHidden: true });
+}
+
 async function capture(scene) {
   const window = ensureWindow();
   // Every scene starts a NEW game, and the web build now saves to local storage. Scene 1's save
@@ -321,9 +331,66 @@ async function capture(scene) {
     throw new Error('The new-game flow never rendered.');
   })()\`);
 
+  const alarmDeadline = Date.now() + 15000;
+  let alarmContract;
+  while (Date.now() < alarmDeadline) {
+    alarmContract = await window.webContents.executeJavaScript(\`(() => {
+      const dialog = document.querySelector('#alarm-intro-overlay');
+      const button = document.querySelector('#alarm-intro-snooze');
+      if (!(dialog instanceof HTMLElement) || !(button instanceof HTMLElement)) return null;
+      const rect = button.getBoundingClientRect();
+      return {
+        dialogLabel: dialog.getAttribute('aria-label'),
+        buttonLabel: button.getAttribute('aria-label'),
+        height: rect.height,
+        width: rect.width,
+        prompt: dialog.textContent.includes('HIT SNOOZE!'),
+      };
+    })()\`);
+    if (alarmContract) break;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  if (!alarmContract || alarmContract.dialogLabel !== 'Alarm clock showing 7:00. Hit snooze.'
+      || alarmContract.buttonLabel !== 'Snooze alarm' || !alarmContract.prompt
+      || alarmContract.width < 44 || alarmContract.height < 44) {
+    throw new Error('Alarm intro contract failed: ' + JSON.stringify(alarmContract));
+  }
+  let alarmScreenshot;
+  if (scene.alarmScreenshot) {
+    const alarmFrame = await driveHiddenPaint(window);
+    alarmScreenshot = scene.name + '-alarm.png';
+    writeFileSync(join(outputDirectory, alarmScreenshot), alarmFrame.toPNG());
+  }
+  await window.webContents.executeJavaScript(\`(() => {
+    const button = document.querySelector('#alarm-intro-snooze');
+    if (!(button instanceof HTMLElement)) throw new Error('Snooze button is missing.');
+    button.click();
+    button.click();
+  })()\`);
+
+  const saveDeadline = Date.now() + 20000;
+  let saveStatus = '';
+  while (Date.now() < saveDeadline) {
+    saveStatus = await window.webContents.executeJavaScript(
+      \`document.querySelector('#alarm-intro-save-status')?.textContent ?? ''\`,
+    );
+    if (saveStatus.includes('SAVED GEN 1')) break;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  if (!saveStatus.includes('SAVED GEN 1')) throw new Error('Alarm intro save did not finish: ' + saveStatus);
+  let resultScreenshot;
+  if (scene.alarmScreenshot) {
+    await window.webContents.executeJavaScript(\`window.siWorldPinAlarmIntro?.(1350)\`);
+    const resultFrame = await driveHiddenPaint(window);
+    resultScreenshot = scene.name + '-result.png';
+    writeFileSync(join(outputDirectory, resultScreenshot), resultFrame.toPNG());
+  }
+  await window.webContents.executeJavaScript(\`window.siWorldPinAlarmIntro?.(2550)\`);
+
   const deadline = Date.now() + ${readyTimeoutMs};
   let evidence;
   while (Date.now() < deadline) {
+    await driveHiddenPaint(window);
     evidence = await window.webContents.executeJavaScript(
       'window.siWorld25dEvidence ? window.siWorld25dEvidence() : null',
     );
@@ -614,6 +681,8 @@ async function capture(scene) {
     yawDegrees: shotEvidence.yawDegrees,
     shadowPath,
     screenshot,
+    alarmScreenshot,
+    resultScreenshot,
     evidence: shotEvidence,
     weather,
     click,

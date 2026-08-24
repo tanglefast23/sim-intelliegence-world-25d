@@ -29,13 +29,13 @@ describe('world simulation', () => {
   test('pause, 1x, and 2x advance one authoritative clock without double ticks', () => {
     const initial = createInitialState();
     const atOne = tickWorld(initial, 1_000);
-    expect(atOne.clock.absoluteMinute).toBe(481);
+    expect(atOne.clock.absoluteMinute).toBe(421);
     const atTwoSpeed = tickWorld(setWorldSpeed(atOne, 2), 1_000);
-    expect(atTwoSpeed.clock.absoluteMinute).toBe(483);
+    expect(atTwoSpeed.clock.absoluteMinute).toBe(423);
     const paused = tickWorld(pause(atTwoSpeed), 10_000);
-    expect(paused.clock.absoluteMinute).toBe(483);
+    expect(paused.clock.absoluteMinute).toBe(423);
     expect(paused.eventLedger.at(-1)).toEqual(expect.objectContaining({
-      type: 'simulation-advanced', fromMinute: 483, toMinute: 483,
+      type: 'simulation-advanced', fromMinute: 423, toMinute: 423,
     }));
   });
 
@@ -46,7 +46,7 @@ describe('world simulation', () => {
     expect(result.eventLedger.at(-1)).toEqual(expect.objectContaining({
       type: 'simulation-advanced',
       energyDelta: -1,
-      milestoneIds: ['energy-protagonist-540'],
+      milestoneIds: expect.arrayContaining(['energy-protagonist-480']),
     }));
   });
 
