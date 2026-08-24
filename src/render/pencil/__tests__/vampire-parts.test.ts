@@ -12,6 +12,7 @@ import {
   PENCIL_WIDTH,
   VAMPIRE_SHEET_FRAMES,
   WORLD_CELL_HEIGHT,
+  WORLD_CELL_WIDTH,
 } from '../vampire';
 import { poseFromSprite, screenSideForAttachment, VAMPIRE_FACINGS, vampireSheetIndex } from '../pose';
 import { hashSeed, Sketch } from '../sketch';
@@ -19,6 +20,7 @@ import {
   AUTHORED_SEAT_DEPTH_TILES,
   blitPencilFrame,
   pencilBillboards,
+  pencilWorldSize,
   vampireBoilIndex,
   vampirePencilFrames,
 } from '../billboard';
@@ -26,6 +28,13 @@ import {
 const MAP = WORLD_MAP_CATALOG.northwest_residential;
 
 describe('vampire pencil character', () => {
+  test('shares the rendered pencil size with character hit targeting', () => {
+    expect(pencilWorldSize('linda', 7 / 6)).toEqual({ width: WORLD_CELL_WIDTH * 7 / 6, height: WORLD_CELL_HEIGHT * 7 / 6 });
+    const marcus = pencilWorldSize('linda-boyfriend', 7 / 6);
+    expect(marcus.width).toBeCloseTo(WORLD_CELL_WIDTH * 7 / 6 * 1.25, 10);
+    expect(marcus.height).toBeCloseTo(WORLD_CELL_HEIGHT * 7 / 6 * 1.25, 10);
+  });
+
   test('movementPresentation walks vampire-01 on the existing sheet', () => {
     expect(movementPresentation('vampire-01', 'up', 0).sprite).toBe('character.vampire-01.rear-1');
     expect(movementPresentation('vampire-01', 'down', 1).sprite).toBe('character.vampire-01.front-2');

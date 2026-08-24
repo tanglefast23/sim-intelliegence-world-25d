@@ -1670,8 +1670,22 @@ export async function createWorldRenderer25(
     }
   };
 
-  const onLost = (event: Event): void => { event.preventDefault(); onContextStateChange('lost'); };
+  let contextLost = false;
+  let lossTimer: ReturnType<typeof setTimeout> | undefined;
+  const onLost = (event: Event): void => {
+    event.preventDefault();
+    if (contextLost) return;
+    contextLost = true;
+    onContextStateChange('lost');
+    lossTimer = setTimeout(() => {
+      lossTimer = undefined;
+      if (contextLost) onContextStateChange('timed-out');
+    }, 10_000);
+  };
   const onRestored = (): void => {
+    if (lossTimer) clearTimeout(lossTimer);
+    lossTimer = undefined;
+    contextLost = false;
     onContextStateChange('restored');
     // The GPU dropped every buffer, so the delta cache no longer describes what exists, and the
     // atlas has to be re-uploaded. Without needsUpdate the villa comes back black.
@@ -1733,6 +1747,7 @@ export async function createWorldRenderer25(
     }),
     dispose: () => {
       running = false;
+      if (lossTimer) clearTimeout(lossTimer);
       renderer.setAnimationLoop(null);
       canvas.removeEventListener('webglcontextlost', onLost);
       canvas.removeEventListener('webglcontextrestored', onRestored);

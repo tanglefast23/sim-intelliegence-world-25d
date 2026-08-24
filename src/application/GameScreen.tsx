@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { createInitialState } from '../domain/state/initial-state';
 import { useAudioEnabled, useInterfaceSounds } from '../audio/halcyra-audio';
@@ -37,6 +37,7 @@ type GameScreenProps = Readonly<{ onWorldReady: () => void; rendererKind: Render
 
 export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenProps) {
   const [boot, setBoot] = useState<BootState>({ status: 'loading' });
+  const startingNewGame = useRef(false);
   const audioEnabled = useAudioEnabled();
   const playInterfaceSound = useInterfaceSounds(audioEnabled);
 
@@ -84,6 +85,8 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
   }, []);
 
   const startNewGame = useCallback((displayName: string) => {
+    if (startingNewGame.current) return;
+    startingNewGame.current = true;
     playInterfaceSound('confirm');
     const state = createInitialState(displayName);
     const savePort = getSavePort();
@@ -93,6 +96,7 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
       slotId: 'slot-001', expectedSaveGeneration: null, trigger: 'manual', state,
     }).then((result) => {
       if (result.status !== 'saved') {
+        startingNewGame.current = false;
         setBoot({ status: 'new', busy: false, error: 'The island could not create a stable save. Try again.', preferences });
         return;
       }
@@ -109,6 +113,7 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
         },
       });
     }).catch(() => {
+      startingNewGame.current = false;
       setBoot({ status: 'new', busy: false, error: 'The save write failed. No new game was started.', preferences });
     });
   }, [boot, playInterfaceSound]);

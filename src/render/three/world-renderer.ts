@@ -690,8 +690,11 @@ export class ThreeWorldRenderer {
   };
 
   readonly #handleContextRestored = (): void => {
-    if (this.#lossTimer) clearTimeout(this.#lossTimer);
-    if (this.#timedOut) return;
+    if (this.#lossTimer) {
+      clearTimeout(this.#lossTimer);
+      this.#lossTimer = undefined;
+    }
+    this.#timedOut = false;
     this.#lost = false;
     this.#restorePending = true;
     this.#presentedFrame = undefined;

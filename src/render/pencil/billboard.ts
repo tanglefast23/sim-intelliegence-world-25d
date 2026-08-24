@@ -36,6 +36,11 @@ export function pencilWorldScale(visualId: PencilVisualId): number {
   return visualId === 'linda-boyfriend' ? MARCUS_WORLD_SCALE : 1;
 }
 
+export function pencilWorldSize(visualId: PencilVisualId, characterScale: number): Readonly<{ width: number; height: number }> {
+  const scale = characterScale * pencilWorldScale(visualId);
+  return { width: WORLD_CELL_WIDTH * scale, height: WORLD_CELL_HEIGHT * scale };
+}
+
 /** World pixels of empty sheet below the vampire's boot soles. Sink only his quad by this. */
 const VAMPIRE_CONTACT_SINK_WORLD_PIXELS = ((PENCIL_HEIGHT - PENCIL_CONTACT_ROW) / PENCIL_HEIGHT) * WORLD_CELL_HEIGHT;
 const SEATED_VISIBLE_RATIO = 0.82;
@@ -150,6 +155,7 @@ export function pencilBillboards(frame: WorldFrameState): readonly BillboardDesc
     .filter((character) => isPencilVisualId(character.visualId))
     .map((character) => {
       const scale = character.scale * pencilWorldScale(character.visualId as PencilVisualId);
+      const size = pencilWorldSize(character.visualId as PencilVisualId, character.scale);
       const seated = character.pose === 'seated';
       const visualId = character.visualId as PencilVisualId;
       const hasAuthoredSeat = seated && AUTHORED_SEATED_VISUAL_IDS.has(visualId);
@@ -161,8 +167,8 @@ export function pencilBillboards(frame: WorldFrameState): readonly BillboardDesc
       source: seated ? { ...source, height: visibleHeight } : source,
       x: (character.shadowWorldX + CHARACTER_CONTACT_OFFSET) / TILE_SIZE,
       z: character.shadowWorldY / TILE_SIZE - (hasAuthoredSeat ? AUTHORED_SEAT_DEPTH_TILES : 0),
-      width: (WORLD_CELL_WIDTH * scale) / TILE_SIZE,
-      height: (WORLD_CELL_HEIGHT * scale * (visibleHeight / source.height)) / TILE_SIZE,
+      width: size.width / TILE_SIZE,
+      height: (size.height * (visibleHeight / source.height)) / TILE_SIZE,
       tint: tintForLighting(character.color, frame.lighting, UNLIT_NIGHT_STRENGTH),
       lift: seated && !hasAuthoredSeat
         ? SEATED_LIFT_TILES

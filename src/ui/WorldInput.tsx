@@ -17,6 +17,19 @@ type WorldInputProps = PropsWithChildren<Readonly<{
   isPointInteractive: (point: ScreenPoint) => boolean;
 }>>;
 
+export function worldInputKeyAction(input: Readonly<{
+  disabled: boolean;
+  key: string;
+  modified: boolean;
+  repeat: boolean;
+  typing: boolean;
+}>): 'cancel' | 'quests' | 'continue' | 'ignore' {
+  if (input.key === 'Escape') return 'cancel';
+  if (input.typing) return 'ignore';
+  if (!input.modified && !input.repeat && input.key.toLowerCase() === 'q') return 'quests';
+  return input.disabled ? 'ignore' : 'continue';
+}
+
 function eventPoint(event: PointerEvent | WheelEvent, element: HTMLElement): ScreenPoint {
   const viewport = element.querySelector('#world-input-viewport');
   if (!(viewport instanceof HTMLElement)) throw new Error('World input viewport is missing.');
@@ -160,9 +173,24 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
       queueZoom(event.deltaY < 0 ? 1 : -1, point);
     };
     const handleKey = (event: KeyboardEvent) => {
-      if (handlersRef.current.disabled) return;
       const target = event.target;
-      if (isTypingTarget(target)) return;
+      const action = worldInputKeyAction({
+        disabled: handlersRef.current.disabled,
+        key: event.key,
+        modified: event.metaKey || event.ctrlKey || event.altKey,
+        repeat: event.repeat,
+        typing: isTypingTarget(target),
+      });
+      if (action === 'cancel') {
+        handlersRef.current.onCancel();
+        return;
+      }
+      if (action === 'quests') {
+        event.preventDefault();
+        handlersRef.current.onQuests();
+        return;
+      }
+      if (action === 'ignore') return;
       if (event.code === 'Space' && !event.metaKey && !event.ctrlKey && !event.altKey) {
         // Without this the page scrolls and the button under the cursor activates.
         event.preventDefault();
@@ -179,11 +207,6 @@ export function WorldInput({ children, disabled = false, isPointInteractive, onC
       if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key.toLowerCase() === 'f') {
         handlersRef.current.onCenter();
       }
-      if (!event.metaKey && !event.ctrlKey && !event.altKey && !event.repeat && event.key.toLowerCase() === 'q') {
-        event.preventDefault();
-        handlersRef.current.onQuests();
-      }
-      if (event.key === 'Escape') handlersRef.current.onCancel();
     };
     // Not gated on `disabled`: a key that goes down while the world is live and comes up while a
     // panel is open must still clear, or Space stays stuck down and every mouse move pans.

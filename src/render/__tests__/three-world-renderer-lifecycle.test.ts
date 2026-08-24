@@ -185,6 +185,27 @@ describe('Three.js renderer lifecycle', () => {
     jest.useRealTimers();
   });
 
+  test('recovers when the context returns after the timeout', async () => {
+    jest.useFakeTimers();
+    const animation = installAnimationFrameQueue();
+    const states: string[] = [];
+    const canvas = fakeCanvas();
+    try {
+      const renderer = await ThreeWorldRenderer.create(canvas, 'atlas.png', true, jest.fn(), (state) => states.push(state));
+      renderer.setFrame(frameWithEffects(0, 0));
+      renderer.start();
+      canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true }));
+      jest.advanceTimersByTime(10_000);
+      canvas.dispatchEvent(new Event('webglcontextrestored'));
+      animation.callbacks.shift()!(0);
+      expect(states).toEqual(['lost', 'timed-out', 'restored']);
+      renderer.dispose();
+    } finally {
+      animation.restore();
+      jest.useRealTimers();
+    }
+  });
+
   test('disposes every owned resource across unmount and remount', async () => {
     const geometryDispose = jest.spyOn(BufferGeometry.prototype, 'dispose');
     const materialDispose = jest.spyOn(ShaderMaterial.prototype, 'dispose');

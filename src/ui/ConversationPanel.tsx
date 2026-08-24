@@ -295,6 +295,17 @@ export function ConversationPanel({
   const identity = conversationIdentity(npcId, locationName);
   const missionBusy = verbalMission !== undefined && ['generating', 'reacting', 'confirming', 'revealing'].includes(status);
   const headerActionLabel = missionSettlement ? 'END' : verbalMission && missionRead ? 'WALK AWAY' : confirmDiscard ? 'DISCARD?' : 'CANCEL';
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!missionBusy) cancel();
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [missionBusy, cancel]);
 
   return (
     <View nativeID="world-ui-conversation-overlay" style={styles.overlay}>

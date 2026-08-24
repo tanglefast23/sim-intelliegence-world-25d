@@ -114,6 +114,8 @@ import {
 import { automaticUiScale, automaticWorldZoom, type UiScale } from './responsive-layout';
 import { ThreeWorldSurface } from './ThreeWorldSurface';
 import type { RendererKind } from './renderer-selection';
+import { pencilWorldSize } from './pencil/billboard';
+import { isPencilVisualId } from './pencil/characters';
 import { inflatedFrameOrigin, inflatedViewport } from './three25/inflation';
 import { clampCameraTilted, panCameraTilted } from './three25/clamp';
 import {
@@ -179,6 +181,7 @@ import { actorFootPlant } from './gait';
 import { bottomPivotTransform, protagonistWobbleDegrees } from './protagonist-wobble';
 import {
   buildWorldFrameState,
+  CHARACTER_SCALE,
   DESTINATION_PULSE_MS,
   type WorldActors,
   type CharacterPose,
@@ -476,6 +479,7 @@ export function WorldScene({
   const [destinationPulseElapsedMs, setDestinationPulseElapsedMs] = useState(0);
   const [rendererParityPulseFrozen, setRendererParityPulseFrozen] = useState(false);
   const [rendererContextState, setRendererContextState] = useState<'ready' | 'lost' | 'timed-out'>('ready');
+  const [rendererGeneration, setRendererGeneration] = useState(0);
   const rendererSuspended = rendererContextState !== 'ready';
   const conversationPort = useMemo(
     () => persistenceDisabled ? createBrowserConversationPort() : getDesktopBridge() ?? createBrowserConversationPort(),
@@ -1253,8 +1257,11 @@ export function WorldScene({
       .find(([, actor]) => {
         const foot = actor.visualFoot ?? tileFootPoint(actor.tile);
         const screen = project(camera, foot);
-        return point.x >= screen.x - 12 * camera.zoom && point.x <= screen.x + 12 * camera.zoom &&
-          point.y >= screen.y - 27 * camera.zoom && point.y <= screen.y + 3 * camera.zoom;
+        const size = isPencilVisualId(actor.visualId)
+          ? pencilWorldSize(actor.visualId, CHARACTER_SCALE)
+          : { width: 24, height: 30 };
+        return point.x >= screen.x - size.width * camera.zoom / 2 && point.x <= screen.x + size.width * camera.zoom / 2 &&
+          point.y >= screen.y - size.height * camera.zoom && point.y <= screen.y + 3 * camera.zoom;
       });
     if (visibleNpc) {
       selectCharacter(visibleNpc[0]);
@@ -1977,6 +1984,14 @@ export function WorldScene({
   const handleRendererContextState = useCallback((state: 'lost' | 'restored' | 'timed-out') => {
     setRendererContextState(state === 'restored' ? 'ready' : state);
   }, []);
+  const handleRendererReady = useCallback(() => {
+    setRendererContextState('ready');
+    onWorldReady();
+  }, [onWorldReady]);
+  const restartRenderer = useCallback(() => {
+    setRendererContextState('lost');
+    setRendererGeneration((current) => current + 1);
+  }, []);
   const actionCheckEvidence = JSON.stringify({
     phase: actionCheck ? actionCheckPhase : 'idle',
     prngCursor: runtime.worldState.prng.cursor,
@@ -2009,8 +2024,9 @@ export function WorldScene({
             <ThreeWorldSurface
               camera={renderCamera}
               frame={worldFrame}
+              key={rendererGeneration}
               onContextStateChange={handleRendererContextState}
-              onReady={onWorldReady}
+              onReady={handleRendererReady}
               surface={surface}
             />
             <ZoneGateOverlay
@@ -2261,8 +2277,13 @@ export function WorldScene({
         ) : null}
         {transitioning ? <View nativeID="world-transition-overlay" style={styles.transitionOverlay}><Text style={styles.transitionText}>CROSSING NEIGHBORHOOD…</Text></View> : null}
         {rendererContextState !== 'ready' ? (
-          <View nativeID="world-renderer-recovery-overlay" style={styles.transitionOverlay}>
+          <View nativeID="world-renderer-recovery-overlay" pointerEvents="box-none" style={[styles.transitionOverlay, styles.rendererRecoveryOverlay]}>
             <Text style={styles.transitionText}>{rendererContextState === 'lost' ? 'RESTORING GRAPHICS…' : 'GRAPHICS RESTART REQUIRED'}</Text>
+            {rendererContextState === 'timed-out' ? (
+              <Pressable accessibilityLabel="Restart graphics" accessibilityRole="button" onPress={restartRenderer} style={({ pressed }) => [styles.talkButton, { minHeight: metrics.pointerTarget }, pressed && styles.buttonPressed]}>
+                <Text style={styles.talkText}>RESTART GRAPHICS</Text>
+              </Pressable>
+            ) : null}
           </View>
         ) : null}
         {conversationNpcId ? (
@@ -2378,6 +2399,7 @@ const styles = StyleSheet.create({
   frame: { overflow: 'hidden', position: 'relative' },
   loading: { alignItems: 'center', justifyContent: 'center' },
   proofState: { height: 1, left: 0, opacity: 0, position: 'absolute', top: 0, width: 1 },
+  rendererRecoveryOverlay: { gap: 16 },
   // The keybind legend is a one-time lesson sharing a band with the transient feedback line, so it
   // steps back rather than competing with it.
   status: { color: '#c3b18f', fontFamily: 'Silkscreen', fontSize: 9, opacity: 0.55 },
