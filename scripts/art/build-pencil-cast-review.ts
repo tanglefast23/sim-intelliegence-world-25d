@@ -9,6 +9,7 @@ import {
 } from '../../src/render/pencil/characters';
 import { ATLAS_INDEX } from '../../src/render/atlas';
 import { bakeVampireFrames, PENCIL_HEIGHT, PENCIL_WIDTH } from '../../src/render/pencil/vampire';
+import { vampirePencilFrames } from '../../src/render/pencil/billboard';
 import { bakeSeatedVampireFrames } from '../../src/render/pencil/seated-vampire';
 import { drawText } from './build-review-sheet';
 import { blitScaled, createBitmap, decodePng, encodePng, setPixel, type Bitmap } from './png';
@@ -291,14 +292,14 @@ function writeMotionReviews(prefix: string, frames: readonly Uint8ClampedArray[]
 }
 
 export function writeVampireMotionReviews(tag = 'baseline', root = process.cwd()): readonly string[] {
-  return writeMotionReviews(`vampire-${tag}`, bakeVampireFrames(), root);
+  return writeMotionReviews(`vampire-${tag}`, vampirePencilFrames(), root);
 }
 
 export function writeVampireFourFacingReview(tag = 'baseline', root = process.cwd()): string {
   const scale = 3;
   const labelHeight = 26;
   const rowHeight = PENCIL_HEIGHT * scale + labelHeight;
-  const frames = bakeVampireFrames();
+  const frames = vampirePencilFrames();
   const rows = [
     ['DRESSED', [246, 241, 229, 255] as const, false],
     ['BRIGHT GROUND', [213, 202, 136, 255] as const, false],

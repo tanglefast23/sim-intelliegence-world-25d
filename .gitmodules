@@ -1,0 +1,3 @@
+[submodule "vendor/kindergrimm-upstream"]
+	path = vendor/kindergrimm-upstream
+	url = https://github.com/albertobeiz/kindergrimm.git

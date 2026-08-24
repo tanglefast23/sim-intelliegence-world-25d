@@ -143,11 +143,9 @@ describe('vampire pencil character', () => {
     const player = frame.characters.find(({ id }) => id === 'protagonist')!;
     const target = new Uint8ClampedArray(PENCIL_WIDTH * PENCIL_HEIGHT * 4);
     blitPencilFrame(target, player, 2000, true);
-    const expected = new Sketch(PENCIL_WIDTH, PENCIL_HEIGHT);
-    expected.boil(hashSeed('vampire-01', 'right', 'idle', 0));
-    drawVampireCharacter(expected, buildVampireLayout(), { facing: 'right', gait: 0, moving: false });
+    const expected = vampirePencilFrames()[vampireSheetIndex({ facing: 'right', gait: 0, moving: false }, 0)]!;
     expect(player.sprite).toBe('character.vampire-01.right-1');
-    expect([...target]).toEqual([...expected.data]);
+    expect([...target]).toEqual([...expected]);
     expect(vampireBoilIndex(2000, true)).toBe(0);
   });
 

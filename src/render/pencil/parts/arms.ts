@@ -21,6 +21,31 @@ function hand(sketch: Sketch, F: VampireLayout, point: Point, radius: number): v
   });
 }
 
+function armSegment(start: Point, end: Point, width: number): readonly Point[] {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const length = Math.max(1, Math.hypot(dx, dy));
+  const nx = -dy / length * width;
+  const ny = dx / length * width;
+  return [
+    { x: start.x + nx, y: start.y + ny },
+    { x: end.x + nx, y: end.y + ny },
+    { x: end.x - nx, y: end.y - ny },
+    { x: start.x - nx, y: start.y - ny },
+  ];
+}
+
+export function drawRiggedArm(
+  sketch: Sketch,
+  F: VampireLayout,
+  points: Readonly<{ shoulder: Point; elbow: Point; hand: Point }>,
+  options: Readonly<{ near: boolean; showHand: boolean }>,
+): void {
+  sleeve(sketch, F, armSegment(points.shoulder, points.elbow, 4.2 * F.k), options.near);
+  sleeve(sketch, F, armSegment(points.elbow, points.hand, 3.7 * F.k), options.near);
+  if (options.showHand) hand(sketch, F, points.hand, (options.near ? 7 : 5) * F.k);
+}
+
 export function drawArms(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
   const swing = pose.moving ? gaitSwing(pose.gait) : 0;
 

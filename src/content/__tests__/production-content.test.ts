@@ -265,6 +265,11 @@ describe('Phase 13 production content bill', () => {
  * only symptom is a seated worker drawing with the wrong creature body.
  */
 describe('Ledger Annex staff', () => {
+  test('keeps the player as the only production vampire visual', () => {
+    const npcVisuals = Object.keys(createInitialState().npcs).map(visualIdForNpc);
+    expect(npcVisuals).not.toContain('vampire-01');
+  });
+
   test('puts the approved office cast in the occupied seats', () => {
     const visuals = PRODUCTION_OFFICE_STAFF.map(({ id }) => visualIdForNpc(id));
     expect(visuals).toEqual([

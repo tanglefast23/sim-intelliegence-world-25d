@@ -10,15 +10,21 @@ import type { VampirePose } from '../pose';
  * says "vampire" when it is clearly coming out of a mouth, so the dark mouth is drawn first and the
  * fangs hang from its lower edge.
  */
-export function drawFangs(sketch: Sketch, F: VampireLayout, pose: VampirePose): void {
+export function drawFangs(
+  sketch: Sketch,
+  F: VampireLayout,
+  pose: VampirePose,
+  options: Readonly<{ width?: number }> = {},
+): void {
   if (pose.facing === 'rear') return;
   const { colors } = F;
+  const width = options.width ?? 1;
 
   if (pose.facing === 'left' || pose.facing === 'right') {
     const dir = pose.facing === 'right' ? 1 : -1;
     const mouth = sketch.smooth([
-      F.head(dir * 13, 104), F.head(dir * 26, 104),
-      F.head(dir * 25, 113), F.head(dir * 13, 113),
+      F.head(dir * 13, 104), F.head(dir * (13 + 13 * width), 104),
+      F.head(dir * (13 + 12 * width), 113), F.head(dir * 13, 113),
     ]);
     F.media.tone(sketch, mouth, { style: 'black', paper: false });
     F.media.skin(sketch, mouth, colors.hollow, { paper: false, underdraw: false, alpha: 0.95 });
@@ -28,8 +34,8 @@ export function drawFangs(sketch: Sketch, F: VampireLayout, pose: VampirePose): 
   }
 
   const mouth = sketch.smooth([
-    F.head(-10, 104), F.head(10, 104),
-    F.head(9, 113), F.head(-9, 113),
+    F.head(-10 * width, 104), F.head(10 * width, 104),
+    F.head(9 * width, 113), F.head(-9 * width, 113),
   ]);
   F.media.tone(sketch, mouth, { style: 'black', paper: false });
   F.media.skin(sketch, mouth, colors.hollow, { paper: false, underdraw: false, alpha: 0.95 });

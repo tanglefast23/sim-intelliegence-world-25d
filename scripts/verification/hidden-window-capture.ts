@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 
 import { CAMERA_YAW_DEGREES, GROUND_Z_SCALE } from '../../src/render/three25/projection';
 import type { CharacterId } from '../../src/render/atlas';
+import type { PencilRigIntent } from '../../src/render/world-frame';
 
 /**
  * Drives the 2.5D renderer in a real Electron window with a real WebGL 2 context, and captures it.
@@ -97,6 +98,8 @@ export type SceneRequest = Readonly<{
   standOnTile?: Readonly<{ x: number; y: number }>;
   /** Capture the protagonist in a non-persistent authored pose. */
   playerPose?: 'idle' | 'seated';
+  /** Apply a non-persistent pencil-rig reach or held-item fixture. */
+  playerRigIntent?: PencilRigIntent;
   /** Replace the protagonist art for a hidden character-chair review. */
   playerVisualId?: CharacterId;
   /** Capture one exact screen-facing without moving the protagonist. */
@@ -369,6 +372,15 @@ async function capture(scene) {
       + ' ? (window.siWorldSetPlayerPose(' + JSON.stringify(scene.playerPose) + '), true) : false',
     );
     if (!posed) throw new Error('siWorldSetPlayerPose is missing.');
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
+  if (scene.playerRigIntent) {
+    const rigged = await window.webContents.executeJavaScript(
+      'typeof window.siWorldSetPlayerRigIntent === "function"'
+      + ' ? (window.siWorldSetPlayerRigIntent(' + JSON.stringify(scene.playerRigIntent) + '), true) : false',
+    );
+    if (!rigged) throw new Error('siWorldSetPlayerRigIntent is missing.');
     await new Promise((r) => setTimeout(r, 600));
   }
 

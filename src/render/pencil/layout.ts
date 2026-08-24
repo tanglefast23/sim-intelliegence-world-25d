@@ -132,18 +132,33 @@ export type PencilLayout = Readonly<{
 
 export type VampireLayout = PencilLayout;
 
+export type PencilLayoutTuning = Readonly<{
+  headWidthScale?: number;
+  bodyWidthScale?: number;
+  bodyLean?: number;
+  linePressure?: number;
+}>;
+
 export function buildPencilLayout(
   shape: HeadShape = 'tall',
   colors: PencilPalette = VAMPIRE_COLORS,
+  tuning: PencilLayoutTuning = {},
 ): PencilLayout {
   const cx = SHEET_WIDTH / 2;
+  const headWidthScale = tuning.headWidthScale ?? 1;
+  const bodyWidthScale = tuning.bodyWidthScale ?? 1;
+  const bodyLean = tuning.bodyLean ?? 0;
+  const linePressure = tuning.linePressure ?? 1;
   // Both mappers work in the authored 240x360 basis and land on the real sheet in one multiply.
   const head = (dx: number, dy: number): Point => ({
-    x: cx + dx * HEAD_SCALE * SHEET_SCALE,
+    x: cx + dx * HEAD_SCALE * SHEET_SCALE * headWidthScale,
     y: (FIGURE_TOP + (dy - HEAD_DESIGN_TOP) * HEAD_SCALE) * SHEET_SCALE,
   });
   const body = (dx: number, dy: number): Point => ({
-    x: cx + dx * BODY_WIDTH_SCALE * SHEET_SCALE,
+    x: cx + (
+      dx * BODY_WIDTH_SCALE * bodyWidthScale
+      + bodyLean * (BODY_DESIGN_FLOOR - dy)
+    ) * SHEET_SCALE,
     y: (SHOULDER_Y + (dy - BODY_DESIGN_SHOULDER) * BODY_SCALE_Y) * SHEET_SCALE,
   });
   return {
@@ -151,7 +166,7 @@ export function buildPencilLayout(
     shape,
     k: SHEET_SCALE,
     s: PEN_UNIT * HEAD_SCALE * SHEET_SCALE,
-    w: 30 * HEAD_SCALE * SHEET_SCALE,
+    w: 30 * HEAD_SCALE * SHEET_SCALE * headWidthScale,
     hs: HEAD_SCALE * SHEET_SCALE,
     head,
     body,
@@ -159,7 +174,7 @@ export function buildPencilLayout(
       skullY: head(0, 82).y,
       hairY: head(0, 28).y,
       earY: head(0, 66).y,
-      eyeX: (side) => side * 12 * HEAD_SCALE * SHEET_SCALE,
+      eyeX: (side) => side * 12 * HEAD_SCALE * SHEET_SCALE * headWidthScale,
       eyeY: head(0, 85).y,
       noseY: head(0, 86).y,
       my: head(0, 104).y,
@@ -172,8 +187,8 @@ export function buildPencilLayout(
       floorY: FLOOR * SHEET_SCALE,
       bootY: body(0, 284).y,
     },
-    lwMain: PEN_UNIT * 0.05,
-    lwThin: PEN_UNIT * 0.021,
+    lwMain: PEN_UNIT * 0.05 * linePressure,
+    lwThin: PEN_UNIT * 0.021 * linePressure,
     colors,
     media: GRAPHITE,
   };

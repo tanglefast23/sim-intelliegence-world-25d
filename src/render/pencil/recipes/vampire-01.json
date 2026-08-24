@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "status": "shipping",
+  "visualId": "vampire-01",
+  "upstreamCommit": "de339ad739d8cbd28ff2dd4a940af38c0ede86c8",
+  "seed": 737,
+  "species": "nightmare",
+  "base": "biped",
+  "media": "graphite",
+  "color": "auto",
+  "parts": {
+    "skull": {
+      "params": {
+        "s": 0.6079891818622127,
+        "wf": 0.8113019571267068,
+        "turn": 0.02226836192421615,
+        "shroud": true,
+        "round": 0.911303682711441,
+        "shape": "tall",
+        "muzzle": 0.1929451656807214,
+        "muzzleY": 0.7275841563474387,
+        "fur": false,
+        "jaw": 0.9890139889670536,
+        "chinW": 1.0900532972067594,
+        "skullY": 0.9998427941743284,
+        "chinY": 0.7087588734924792,
+        "press": 1.1911495374981313,
+        "shade": "scrib",
+        "hollows": false,
+        "construction": false,
+        "darkSkin": false,
+        "plain": false,
+        "skinOn": true,
+        "skinIdx": 2,
+        "skinScrib": false
+      },
+      "overrides": {
+        "turn": 0,
+        "shroud": false,
+        "muzzle": 0,
+        "hollows": true
+      }
+    },
+    "eyes": {
+      "params": {
+        "type": "saucer",
+        "type2": "none",
+        "scaleR": 1.1618075641454197,
+        "scale": 1.2138375137001276,
+        "ehJit": 0.9487683434505016,
+        "fierce": 0.5397392827551812,
+        "gazeJit": 0.06589918402023615,
+        "sx": 0.4687704653479159,
+        "sink": 0.8294855700456537,
+        "lashes": false,
+        "glint": true
+      }
+    },
+    "nose": {
+      "params": {
+        "style": "skull",
+        "nostril": true,
+        "size": 1.1423604847630486,
+        "snoutLen": 0.7755235863151029,
+        "snoutFat": 1.2996719708433375,
+        "snoutTip": 0.1587617827393115
+      },
+      "overrides": {
+        "style": "button"
+      }
+    },
+    "mouth": {
+      "params": {
+        "style": "fangs",
+        "myF": 0.4651093322830275,
+        "wF": 1.360630631959066,
+        "beakLen": 1.2164739455096423,
+        "upperLip": false,
+        "crease": true,
+        "nTeeth": 4,
+        "nStitch": 5
+      }
+    },
+    "hair": {
+      "params": {
+        "style": "long",
+        "tone": "scribble",
+        "colOn": false,
+        "colIdx": 2,
+        "bang": "clumps",
+        "bangN": 6,
+        "cpart": false,
+        "longZig": false,
+        "longNt": 3,
+        "flare": 1.0330283458717167,
+        "fall": 0.9286583368782885,
+        "spikyN": 9,
+        "bunsTop": false,
+        "afroR": 1.2362609400320799,
+        "mohawkN": 6,
+        "tailUp": true
+      }
+    },
+    "torso": {
+      "params": {
+        "shape": "tiny",
+        "wF": 0.45774249753914775,
+        "hF": 0.38733788043260575,
+        "lean": -0.055656552957370875,
+        "pattern": "pocket",
+        "clothOn": true,
+        "clothIdx": 5,
+        "tone": "scribble"
+      }
+    },
+    "arms": {
+      "params": {
+        "style": "noodle",
+        "len": 0.9398852918064222,
+        "droop": 0.5978814089088701,
+        "asym": 0.17604154811240733,
+        "hand": "claw"
+      },
+      "overrides": {
+        "hand": "mitten"
+      }
+    },
+    "legs": {
+      "params": {
+        "style": "stub",
+        "len": 0.3878448530100286,
+        "foot": "claw"
+      },
+      "overrides": {
+        "foot": "oval"
+      }
+    }
+  }
+}

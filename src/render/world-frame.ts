@@ -83,6 +83,19 @@ export const WORLD_COMPOSITE_ORDER = [
 export type WorldLayer = typeof WORLD_LAYER_ORDER[number];
 export type WorldCompositeLayer = typeof WORLD_COMPOSITE_ORDER[number];
 export type CharacterPose = 'idle' | 'seated' | 'reaction' | 'talk' | 'impact' | 'recoil' | 'falling' | 'down';
+export type PencilRigHand = 'left' | 'right';
+export type PencilRigIntent = Readonly<{
+  reach?: Readonly<{
+    hand: PencilRigHand;
+    /** Post-layout canvas pixels in the 120x180 pencil frame. */
+    target: Readonly<{ x: number; y: number }>;
+    weight?: number;
+  }>;
+  heldItem?: Readonly<{
+    item: 'brass-lantern';
+    hand: PencilRigHand;
+  }>;
+}>;
 export type WorldArtMode = 'enhanced' | 'legacy';
 export type WorldPoint = Readonly<{ x: number; y: number }>;
 
@@ -146,6 +159,7 @@ export type WorldCharacterPlacement = WorldAtlasPlacement & Readonly<{
    */
   moving: boolean;
   pose: CharacterPose;
+  rigIntent?: PencilRigIntent;
 }>;
 
 export type WorldGroundedEntry = Readonly<{
@@ -320,6 +334,7 @@ export type WorldActor = Readonly<{
   poseProgress?: number;
   /** Direction the force travels in screen x. */
   poseDirection?: -1 | 1;
+  rigIntent?: PencilRigIntent;
 }>;
 
 export type WorldActors = Readonly<Record<string, WorldActor>>;
@@ -778,6 +793,7 @@ export function buildWorldFrameState(
     stopProgress?: number;
     poseProgress?: number;
     poseDirection?: -1 | 1;
+    rigIntent?: PencilRigIntent;
   }>,
   viewInput?: Partial<WorldFrameView>,
 ): WorldFrameState {
@@ -827,6 +843,7 @@ export function buildWorldFrameState(
     stopProgress?: number;
     poseProgress: number;
     poseDirection: -1 | 1;
+    rigIntent?: PencilRigIntent;
   }>[] = [
     {
       id: 'protagonist',
@@ -845,6 +862,7 @@ export function buildWorldFrameState(
       stopProgress: playerPresentation?.stopProgress,
       poseProgress: playerPresentation?.poseProgress ?? 0,
       poseDirection: playerPresentation?.poseDirection ?? 1,
+      rigIntent: playerPresentation?.rigIntent,
     },
     ...Object.entries(actors).sort(([left], [right]) => left.localeCompare(right, 'en')).map(([id, actor]) => ({
       id,
@@ -863,6 +881,7 @@ export function buildWorldFrameState(
       stopProgress: actor.stopProgress,
       poseProgress: actor.poseProgress ?? 0,
       poseDirection: actor.poseDirection ?? 1,
+      rigIntent: actor.rigIntent,
     })),
   ];
   const allCharacters = characterInputs.map(({
@@ -882,6 +901,7 @@ export function buildWorldFrameState(
     stopProgress,
     poseProgress,
     poseDirection,
+    rigIntent,
   }): WorldCharacterPlacement => {
     // Reduced motion pins the idle pose. It already zeroes lean, bob and bounce below, but the
     // frame index itself used to be safe to leave alone because both cells of a pair held the
@@ -941,6 +961,7 @@ export function buildWorldFrameState(
       gaitBobPixels: reducedMotion ? 0 : gaitBob,
       moving,
       pose,
+      ...(rigIntent === undefined ? {} : { rigIntent }),
     };
   }).sort((left, right) => left.shadowWorldY - right.shadowWorldY || left.id.localeCompare(right.id, 'en'));
   const hiddenRoofGroupId = roofGroupAtV2(map, playerTile);

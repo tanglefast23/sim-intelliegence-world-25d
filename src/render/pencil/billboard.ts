@@ -22,6 +22,12 @@ import {
 } from './vampire';
 import { bakeSeatedVampireFrames, seatedVampireFrameIndex } from './seated-vampire';
 import { seatedFrameIndex } from './seated';
+import {
+  bakeGeneratedVampireFrames,
+  bakeRiggedGeneratedVampireFrames,
+  buildGeneratedVampireLayout,
+  renderRiggedGeneratedVampireFrame,
+} from './generated-vampire';
 
 const TILE_SIZE = 32;
 const MARCUS_WORLD_SCALE = 1.25;
@@ -61,9 +67,15 @@ export const PENCIL_SOURCE: AtlasRectangle = {
 };
 
 let cachedFrames: readonly Uint8ClampedArray[] | undefined;
+let cachedFallbackGeneratedFrames: readonly Uint8ClampedArray[] | undefined;
+let cachedLegacyVampireFrames: readonly Uint8ClampedArray[] | undefined;
 let cachedSeatedVampireFrames: readonly Uint8ClampedArray[] | undefined;
 const cachedCharacterFrames = new Map<PencilVisualId, readonly Uint8ClampedArray[]>();
 const cachedSeatedCharacterFrames = new Map<PencilVisualId, readonly Uint8ClampedArray[]>();
+let dynamicRigKey: string | undefined;
+let dynamicRigFrame: Uint8ClampedArray | undefined;
+let dynamicRigCompositions = 0;
+let rigFallbackLogged = false;
 
 export const AUTHORED_SEATED_VISUAL_IDS = new Set<PencilVisualId>([
   'vampire-01',
@@ -79,8 +91,34 @@ export const AUTHORED_SEATED_VISUAL_IDS = new Set<PencilVisualId>([
 ]);
 
 export function vampirePencilFrames(): readonly Uint8ClampedArray[] {
-  cachedFrames ??= bakeVampireFrames();
+  if (!cachedFrames) {
+    try {
+      cachedFrames = bakeRiggedGeneratedVampireFrames();
+    } catch (error) {
+      cachedFallbackGeneratedFrames ??= bakeGeneratedVampireFrames();
+      cachedFrames = cachedFallbackGeneratedFrames;
+      if (!rigFallbackLogged) {
+        rigFallbackLogged = true;
+        console.error('Pencil vampire rig fell back to the generated frames.', error);
+      }
+    }
+  }
   return cachedFrames;
+}
+
+export function vampireRigCompositionCountForTests(): number {
+  return dynamicRigCompositions;
+}
+
+export function resetVampireRigCacheForTests(): void {
+  dynamicRigKey = undefined;
+  dynamicRigFrame = undefined;
+  dynamicRigCompositions = 0;
+}
+
+export function legacyVampirePencilFrames(): readonly Uint8ClampedArray[] {
+  cachedLegacyVampireFrames ??= bakeVampireFrames();
+  return cachedLegacyVampireFrames;
 }
 
 export function pencilCharacterFrames(visualId: PencilVisualId): readonly Uint8ClampedArray[] {
@@ -150,7 +188,7 @@ export function blitPencilFrame(
   const pose = poseFromSprite(character.sprite, character.moving && !reducedMotion);
   const boil = vampireBoilIndex(animationTimestampMilliseconds, reducedMotion);
   if (character.visualId === 'vampire-01' && character.pose === 'seated') {
-    cachedSeatedVampireFrames ??= bakeSeatedVampireFrames();
+    cachedSeatedVampireFrames ??= bakeSeatedVampireFrames(buildGeneratedVampireLayout());
     const seated = cachedSeatedVampireFrames[seatedVampireFrameIndex(pose.facing, boil)]
       ?? cachedSeatedVampireFrames[0]!;
     blitSeatedFrame(target, seated, pose.facing === 'rear', targetWidth, targetX);
@@ -167,8 +205,46 @@ export function blitPencilFrame(
     return;
   }
   const index = vampireSheetIndex(pose, boil);
+  if (character.visualId === 'vampire-01' && character.rigIntent) {
+    const reach = character.rigIntent.reach;
+    const validReach = reach && Number.isFinite(reach.target.x) && Number.isFinite(reach.target.y) ? reach : undefined;
+    const held = character.rigIntent.heldItem;
+    const key = [
+      pose.facing, pose.gait, pose.moving ? 1 : 0, character.pose, boil, reducedMotion ? 1 : 0,
+      validReach?.hand ?? '', validReach ? Math.round(validReach.target.x) : '',
+      validReach ? Math.round(validReach.target.y) : '',
+      validReach ? Math.max(0, Math.min(1, Number.isFinite(validReach.weight) ? validReach.weight! : 1)) : '',
+      held?.item ?? '', held?.hand ?? '',
+    ].join(':');
+    if (key !== dynamicRigKey || !dynamicRigFrame) {
+      try {
+        dynamicRigFrame = renderRiggedGeneratedVampireFrame(pose, boil, reducedMotion, character.rigIntent);
+        dynamicRigKey = key;
+        dynamicRigCompositions += 1;
+      } catch (error) {
+        cachedFallbackGeneratedFrames ??= bakeGeneratedVampireFrames();
+        dynamicRigFrame = cachedFallbackGeneratedFrames[index] ?? cachedFallbackGeneratedFrames[0]!;
+        dynamicRigKey = key;
+        if (!rigFallbackLogged) {
+          rigFallbackLogged = true;
+          console.error('Pencil vampire rig fell back to the generated frame.', error);
+        }
+      }
+    }
+    blitFrame(target, dynamicRigFrame, targetWidth, targetX);
+    return;
+  }
   const frames = pencilCharacterFrames(character.visualId);
   const src = frames[index] ?? frames[0]!;
+  blitFrame(target, src, targetWidth, targetX);
+}
+
+function blitFrame(
+  target: Uint8ClampedArray,
+  src: Uint8ClampedArray,
+  targetWidth: number,
+  targetX: number,
+): void {
   if (targetWidth === PENCIL_WIDTH && targetX === 0) {
     target.set(src);
     return;
