@@ -6,6 +6,7 @@ import type { ViewportSize } from '../render/camera';
 import { responsivePanelLayout, responsiveSideSheetWidth, type UiScale } from '../render/responsive-layout';
 import { CharacterPortrait } from './CharacterPortrait';
 import { questActionCopy } from './quest-action-copy';
+import { actionCheckPreview } from './action-check-copy';
 import { UI_LAYER } from './ui-layers';
 import { uiMetrics } from './ui-metrics';
 
@@ -20,6 +21,7 @@ type JournalPanelProps = Readonly<{
   onAdvancePolice: () => void;
   surface: ViewportSize;
   uiScale: UiScale;
+  actionsDisabled?: boolean;
 }>;
 
 function label(id: string): string {
@@ -53,7 +55,7 @@ function questTitle(entry: WorldState['journal'][string]): string {
     : entry.subject.kind === 'quest' ? label(entry.subject.questId) : entry.summary.toUpperCase();
 }
 
-export function JournalPanel({ accent, actions, contextActions, state, onAction, onDismiss, onPurchaseSecurityReport, onAdvancePolice, surface, uiScale }: JournalPanelProps) {
+export function JournalPanel({ accent, actions, actionsDisabled = false, contextActions, state, onAction, onDismiss, onPurchaseSecurityReport, onAdvancePolice, surface, uiScale }: JournalPanelProps) {
   const entries = Object.values(state.journal);
   const questEntries = entries.filter((entry) => entry.subject.kind === 'quest');
   const invitations = Object.values(state.invitations);
@@ -90,7 +92,7 @@ export function JournalPanel({ accent, actions, contextActions, state, onAction,
             <Text style={[styles.eyebrow, { fontSize: metrics.secondaryText }]}>PRIVATE CASEBOARD · Q</Text>
             <Text style={[styles.title, { color: accent, fontSize: metrics.titleText }]}>QUESTS</Text>
           </View>
-          <Pressable accessibilityLabel="Close quests" onPress={onDismiss} role="button" style={[styles.close, { minHeight: metrics.pointerTarget }]}>
+          <Pressable accessibilityLabel="Close quests" disabled={actionsDisabled} nativeID="world-close-quests" onPress={onDismiss} role="button" style={[styles.close, { minHeight: metrics.pointerTarget }, actionsDisabled && styles.questActionDisabled]}>
             <Text style={[styles.closeText, { fontSize: metrics.secondaryText }]}>CLOSE</Text>
           </Pressable>
         </View>
@@ -168,22 +170,30 @@ export function JournalPanel({ accent, actions, contextActions, state, onAction,
                 <Text style={[styles.questActionsTitle, { color: accent }]}>QUEST ACTIONS</Text>
                 {entryActions.map((action) => {
                   const copy = questActionCopy(action, state.protagonist.displayName);
+                  const check = actionCheckPreview(action);
                   return <View key={action.id} style={styles.questAction}>
                     <Pressable
-                      accessibilityHint={[copy.result, action.socialConsequence, action.routeConsequence].join('. ')}
+                      accessibilityHint={check?.accessibilityText ?? [copy.result, action.socialConsequence, action.routeConsequence].join('. ')}
                       accessibilityLabel={action.label}
-                      disabled={!action.enabled}
+                      disabled={!action.enabled || actionsDisabled}
+                      nativeID={`world-quest-action-${action.id.replaceAll('_', '-')}`}
                       onPress={() => onAction(action.id)}
                       role="button"
-                      style={({ pressed }) => [styles.questActionButton, { minHeight: metrics.pointerTarget }, !action.enabled && styles.questActionDisabled, pressed && styles.questActionPressed]}
+                      style={({ pressed }) => [styles.questActionButton, { minHeight: metrics.pointerTarget }, (!action.enabled || actionsDisabled) && styles.questActionDisabled, pressed && styles.questActionPressed]}
                     >
                       <Text style={[styles.questActionButtonText, { fontSize: metrics.secondaryText }]}>{action.label.toUpperCase()}</Text>
                     </Pressable>
                     <Text style={[styles.actionLine, bodyText]}>ACTION · {copy.action}</Text>
-                    {action.readinessSummary ? <Text style={[styles.actionReadiness, bodyText]}>{action.readinessSummary}</Text> : null}
-                    <Text style={[styles.actionLine, bodyText]}>RESULT · {copy.result}</Text>
-                    <Text style={[styles.actionSocial, bodyText]}>SOCIAL · {action.socialConsequence}</Text>
-                    <Text style={[styles.actionRoute, bodyText]}>ROUTE · {action.routeConsequence}</Text>
+                    {check ? <>
+                      <Text style={[styles.actionReadiness, bodyText]}>ACTION CHECK · 2d6 + {check.modifier} VS {check.target}</Text>
+                      <Text style={[styles.actionReadiness, bodyText]}>{check.chance}</Text>
+                      <Text style={[styles.actionSocial, bodyText]}>{check.successStakes}</Text>
+                      <Text style={[styles.actionRoute, bodyText]}>{check.failureStakes}</Text>
+                    </> : <>
+                      <Text style={[styles.actionLine, bodyText]}>RESULT · {copy.result}</Text>
+                      <Text style={[styles.actionSocial, bodyText]}>SOCIAL · {action.socialConsequence}</Text>
+                      <Text style={[styles.actionRoute, bodyText]}>ROUTE · {action.routeConsequence}</Text>
+                    </>}
                     {action.disabledReason ? <Text style={[styles.actionDisabledReason, bodyText]}>{action.disabledReason.toUpperCase()}</Text> : null}
                   </View>;
                 })}
@@ -199,10 +209,10 @@ export function JournalPanel({ accent, actions, contextActions, state, onAction,
               return <View key={action.id} style={styles.questAction}>
                 <Pressable
                   accessibilityLabel={action.label}
-                  disabled={!action.enabled}
+                  disabled={!action.enabled || actionsDisabled}
                   onPress={() => onAction(action.id)}
                   role="button"
-                  style={({ pressed }) => [styles.questActionButton, { minHeight: metrics.pointerTarget }, !action.enabled && styles.questActionDisabled, pressed && styles.questActionPressed]}
+                  style={({ pressed }) => [styles.questActionButton, { minHeight: metrics.pointerTarget }, (!action.enabled || actionsDisabled) && styles.questActionDisabled, pressed && styles.questActionPressed]}
                 >
                   <Text style={[styles.questActionButtonText, { fontSize: metrics.secondaryText }]}>{action.label.toUpperCase()}</Text>
                 </Pressable>
@@ -223,10 +233,10 @@ export function JournalPanel({ accent, actions, contextActions, state, onAction,
         <Text style={[styles.section, bodyText]}>OPTIONAL PREPARATION</Text>
         <Pressable
           accessibilityLabel="Buy villa security report"
-          disabled={purchased || state.inventory.money < 60}
+          disabled={actionsDisabled || purchased || state.inventory.money < 60}
           onPress={onPurchaseSecurityReport}
           role="button"
-          style={[styles.purchase, { minHeight: metrics.pointerTarget }, purchased && styles.purchaseDone]}
+          style={[styles.purchase, { minHeight: metrics.pointerTarget }, purchased && styles.purchaseDone, actionsDisabled && styles.questActionDisabled]}
         >
           <Text style={[styles.purchaseText, bodyText]}>{purchased ? 'SECURITY REPORT PURCHASED' : 'BUY VILLA SECURITY REPORT · $60'}</Text>
         </Pressable>
@@ -234,7 +244,7 @@ export function JournalPanel({ accent, actions, contextActions, state, onAction,
         <Text style={[styles.detail, bodyText]}>POLICE · {state.policeAttention.toUpperCase()}</Text>
         <Text style={[styles.detail, bodyText]}>EVIDENCE · {Object.keys(state.evidence).length}</Text>
         {policeAction ? (
-          <Pressable accessibilityLabel={policeAction.label} onPress={onAdvancePolice} role="button" style={[styles.policeAction, { minHeight: metrics.pointerTarget }]}>
+          <Pressable accessibilityLabel={policeAction.label} disabled={actionsDisabled} onPress={onAdvancePolice} role="button" style={[styles.policeAction, { minHeight: metrics.pointerTarget }, actionsDisabled && styles.questActionDisabled]}>
             <Text style={[styles.purchaseText, bodyText]}>{policeAction.label.toUpperCase()}</Text>
             <Text style={[styles.detail, bodyText]}>{policeAction.result}</Text>
           </Pressable>

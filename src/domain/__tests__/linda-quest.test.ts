@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { reduceCommand } from '../commands/reducer';
 import { DomainCommandSchema } from '../commands/types';
 import { applyInjuredEscape } from '../consequences/defeat';
+import { resolveActionCheck } from '../action-check';
 import {
   LINDA_QUEST,
   assertNpcDeathPermitted,
@@ -208,7 +209,7 @@ describe('Phase 11 Linda quest and consequences', () => {
     expect(inspectLindaQuestContext(prepared).readinessScore).toBe(2);
   });
 
-  test('QUEST-07 security report changes the reachable protect branch and the player-visible prediction', () => {
+  test('QUEST-07 security report changes the exact Action Check odds without predicting a result', () => {
     const unprepared = discoveredState(createInitialState(), { authoredWitness: true });
     const unpreparedProtect = lindaContextActions(unprepared).find(({ id }) => id === 'protect_linda');
     expect(inspectLindaQuestContext(unprepared)).toEqual(expect.objectContaining({
@@ -218,9 +219,7 @@ describe('Phase 11 Linda quest and consequences', () => {
       witnessNpcIds: ['generic_resident', 'resident_05', 'resident_06'],
     }));
     expect(unpreparedProtect).toEqual(expect.objectContaining({
-      result: expect.stringContaining('INJURED ESCAPE'),
-      readinessSummary: expect.stringContaining('READINESS 3/4'),
-      routeConsequence: expect.stringContaining('POLICE ATTENTION BECOMES NOTICED'),
+      actionCheck: expect.objectContaining({ modifier: 3, target: 9, successesOutOf36: 26, witnessCount: 3 }),
     }));
     const purchased = reduceCommand(unprepared, command(unprepared, 'purchase-social-option', {
       offerId: 'security_report',
@@ -228,9 +227,7 @@ describe('Phase 11 Linda quest and consequences', () => {
     const preparedProtect = lindaContextActions(purchased).find(({ id }) => id === 'protect_linda');
     expect(inspectLindaQuestContext(purchased).readinessScore).toBe(4);
     expect(preparedProtect).toEqual(expect.objectContaining({
-      result: expect.stringContaining('LINDA PROTECTED'),
-      readinessSummary: expect.stringContaining('READINESS 4/4'),
-      routeConsequence: expect.stringContaining('VELVET TIDE -10 · REVEALED'),
+      actionCheck: expect.objectContaining({ modifier: 4, target: 9, successesOutOf36: 30 }),
     }));
   });
 
@@ -246,6 +243,7 @@ describe('Phase 11 Linda quest and consequences', () => {
       rewardAmount: fixture.protect.reward, policeFrom: 'none', policeTo: 'noticed',
     }));
     expect(result.state.inventory.money).toBe(moneyBefore + fixture.protect.reward);
+    expect(result.state.prng).toEqual(resolveActionCheck(ready.prng, 4, 9).prng);
     expect(result.state.relationships.linda?.values).toEqual({ familiarity: 13, trust: 12, attraction: 1 });
     expect(result.state.factions.velvet_tide).toEqual(expect.objectContaining({ standing: -10, revealed: true }));
     expect(result.state.quests.linda_boyfriend_check).toEqual(expect.objectContaining({
@@ -266,9 +264,10 @@ describe('Phase 11 Linda quest and consequences', () => {
     }, 'protect-success'));
     expect(duplicate.duplicate).toBe(true);
     expect(duplicate.state).toEqual(result.state);
-    expect(() => reduceCommand(result.state, command(result.state, 'resolve-linda-quest', {
+    const terminalDuplicate = reduceCommand(result.state, command(result.state, 'resolve-linda-quest', {
       approachId: 'protect_linda',
-    }, 'protect-new-event'))).toThrow('active unresolved quest');
+    }, 'protect-new-event'));
+    expect(terminalDuplicate).toEqual(expect.objectContaining({ duplicate: true, event: result.event }));
     expect(WorldStateSchema.parse(JSON.parse(JSON.stringify(result.state)) as unknown)).toEqual(result.state);
   });
 
@@ -288,6 +287,7 @@ describe('Phase 11 Linda quest and consequences', () => {
     expect(result.event).toEqual(expect.objectContaining({
       resultId: 'linda_betrayed', factionDelta: fixture.betray.velvetTideDelta, rewardAmount: fixture.betray.reward,
     }));
+    expect(result.state.prng).toEqual(ready.prng);
     expect(result.state.relationships.linda?.values).toEqual({ familiarity: 25, trust: 0, attraction: 0 });
     expect(result.state.relationships.linda?.rejections).toContainEqual(expect.objectContaining({
       reasonId: 'betrayed_linda', kind: 'permanent_boundary', resolved: false,
@@ -307,6 +307,7 @@ describe('Phase 11 Linda quest and consequences', () => {
       approachId: 'withdraw', resultId: 'linda_help_withdrawn', terminalStatus: 'withdrawn',
       rewardAmount: 0, healthDelta: 0, timeDeltaMinutes: 0, factionDelta: 0,
     }));
+    expect(result.state.prng).toEqual(started.prng);
     expect(result.state.relationships.linda?.values.familiarity).toBe(7);
     expect(result.state.quests.linda_boyfriend_check?.status).toBe('withdrawn');
     expect(result.state.evidence).toEqual({});
@@ -315,7 +316,9 @@ describe('Phase 11 Linda quest and consequences', () => {
   });
 
   test('QUEST-09 injured_escape applies the locked survival floor and four-hour cost exactly once', () => {
-    const ready = discoveredState(createInitialState(), { health: 30, confidence: 10 });
+    const initial = createInitialState();
+    const failureSeed = WorldStateSchema.parse({ ...initial, prng: { ...initial.prng, cursor: 0 } });
+    const ready = discoveredState(failureSeed, { health: 30, confidence: 10 });
     const minuteBefore = ready.clock.absoluteMinute;
     const result = reduceCommand(ready, command(ready, 'resolve-linda-quest', {
       approachId: 'protect_linda',
@@ -323,6 +326,7 @@ describe('Phase 11 Linda quest and consequences', () => {
     expect(result.event).toEqual(expect.objectContaining({
       resultId: 'injured_escape', terminalStatus: 'failed',
       healthDelta: -fixture.injuredEscape.healthCost, timeDeltaMinutes: fixture.injuredEscape.timeMinutes,
+      actionCheck: { dice: [2, 1], modifier: 1, target: 9, total: 4, success: false },
     }));
     expect(result.state.protagonist.health).toBe(5);
     expect(result.state.clock.absoluteMinute).toBe(minuteBefore + fixture.injuredEscape.timeMinutes);

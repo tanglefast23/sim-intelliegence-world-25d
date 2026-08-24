@@ -11,6 +11,12 @@ import { applyRelationshipDelta, upsertRejection } from '../relationships/relati
 import { StableIdSchema } from '../state/ids';
 import { GENERATED_LAYOUT } from '../state/generated-layout';
 import { parseWorldState, type WorldState } from '../state/schema';
+import {
+  ActionCheckDefinitionSchema,
+  resolveActionCheck,
+  successesOutOf36,
+  type ActionCheckResult,
+} from '../action-check';
 
 const RelationshipDeltaSchema = z.object({
   familiarity: z.number().int().min(-15).max(15),
@@ -52,6 +58,7 @@ const QuestApproachSchema = z.object({
   routeConsequence: z.string().trim().min(1).max(240),
   violent: z.boolean(),
   requiresExactDiscovery: z.boolean(),
+  actionCheck: ActionCheckDefinitionSchema.optional(),
   success: QuestEffectSchema,
   defeat: QuestEffectSchema.optional(),
 }).strict();
@@ -78,7 +85,6 @@ export const LindaQuestDefinitionSchema = z.object({
     sourceId: StableIdSchema,
   }).strict(),
   readiness: z.object({
-    minimumScore: z.number().int().min(1).max(4),
     healthAtLeast: z.number().int().min(1).max(100),
     confidenceAtLeast: z.number().int().min(1).max(100),
     equipmentIds: z.array(StableIdSchema).min(1),
@@ -90,6 +96,12 @@ export const LindaQuestDefinitionSchema = z.object({
   if (new Set(ids).size !== ids.length) context.addIssue({ code: 'custom', message: 'Quest approach IDs must be unique.' });
   if (!definition.approaches.some(({ violent, defeat }) => violent && defeat?.defeatPackageId === 'injured_escape')) {
     context.addIssue({ code: 'custom', message: 'The quest requires one injured_escape violence branch.' });
+  }
+  for (const approach of definition.approaches) {
+    const ownsCheck = approach.id === 'protect_linda';
+    if (Boolean(approach.actionCheck) !== ownsCheck || Boolean(approach.defeat) !== ownsCheck) {
+      context.addIssue({ code: 'custom', message: 'Only protect_linda must own the Action Check and defeat outcome.' });
+    }
   }
   for (const approach of definition.approaches) {
     for (const effect of [approach.success, approach.defeat].filter((candidate): candidate is z.infer<typeof QuestEffectSchema> => Boolean(candidate))) {
@@ -327,6 +339,7 @@ export type QuestOutcomePlan = Readonly<{
   witnessNpcIds: readonly string[];
   policeFrom: PoliceAttention;
   policeTo: PoliceAttention;
+  actionCheck?: ActionCheckResult;
 }>;
 
 export function planLindaQuestOutcome(state: WorldState, approachId: LindaQuestApproachId): QuestOutcomePlan {
@@ -339,16 +352,19 @@ export function planLindaQuestOutcome(state: WorldState, approachId: LindaQuestA
     if (!quest.flagIds.includes(LINDA_QUEST.discovery.flagId)) throw new Error('This approach requires the exact Linda villa discovery.');
     if (!context.positionReady) throw new Error('This approach requires the protagonist at Linda villa.');
   }
-  const defeated = approach.violent && context.readinessScore < LINDA_QUEST.readiness.minimumScore;
+  const check = approach.actionCheck
+    ? resolveActionCheck(state.prng, context.readinessScore, approach.actionCheck.target)
+    : undefined;
+  const defeated = check ? !check.result.success : false;
   const effect = defeated ? approach.defeat : approach.success;
   if (!effect) throw new Error('The contextual quest branch has no authored outcome.');
   assertNpcDeathPermitted(effect, effect.npcEffect.condition);
 
-  let baseState = state;
+  let baseState = check ? parseWorldState({ ...state, prng: check.prng }) : state;
   let healthDelta = 0;
   let timeDeltaMinutes = 0;
   if (effect.defeatPackageId === 'injured_escape') {
-    const defeat = applyInjuredEscape(state);
+    const defeat = applyInjuredEscape(baseState);
     baseState = defeat.state;
     healthDelta = defeat.healthDelta;
     timeDeltaMinutes = defeat.timeDeltaMinutes;
@@ -443,6 +459,7 @@ export function planLindaQuestOutcome(state: WorldState, approachId: LindaQuestA
     witnessNpcIds: context.witnessNpcIds,
     policeFrom,
     policeTo,
+    ...(check ? { actionCheck: check.result } : {}),
   };
 }
 
@@ -453,7 +470,17 @@ export type ContextQuestAction = Readonly<{
   result: string;
   socialConsequence: string;
   routeConsequence: string;
-  readinessSummary?: string;
+  actionCheck?: Readonly<{
+    dice: '2d6';
+    modifier: number;
+    target: number;
+    successesOutOf36: number;
+    healthReady: boolean;
+    confidenceReady: boolean;
+    equipmentReady: boolean;
+    preparationReady: boolean;
+    witnessCount: number;
+  }>;
   enabled: boolean;
   disabledReason?: string;
 }>;
@@ -510,32 +537,25 @@ export function lindaContextActions(state: WorldState, selectedNpcId?: string): 
   }
   return LINDA_QUEST.approaches.map((approach) => {
     const isProtect = approach.id === 'protect_linda';
-    const predictedEffect = isProtect && context.readinessScore < LINDA_QUEST.readiness.minimumScore
-      ? approach.defeat
-      : approach.success;
-    const witnessed = context.witnessNpcIds.length > 0;
-    const factionPrediction = predictedEffect?.factionDelta
-      ? ` VELVET TIDE ${predictedEffect.factionDelta.delta >= 0 ? '+' : ''}${predictedEffect.factionDelta.delta}${predictedEffect.factionDelta.reveal ? ' · REVEALED' : ''}.`
-      : '';
     return {
       id: approach.id,
       label: approach.label,
       cause: approach.cause,
-      result: isProtect && predictedEffect
-        ? predictedEffect.id === 'injured_escape'
-          ? 'PREDICTED: INJURED ESCAPE · -25 HEALTH · +4 HOURS · NO REWARD.'
-          : `PREDICTED: LINDA PROTECTED · $${predictedEffect.reward?.amount ?? 0} · NO DEFEAT COST.`
-        : approach.result,
-      socialConsequence: isProtect && predictedEffect
-        ? `LINDA · FAMILIARITY ${predictedEffect.relationshipDelta.familiarity >= 0 ? '+' : ''}${predictedEffect.relationshipDelta.familiarity} · TRUST ${predictedEffect.relationshipDelta.trust >= 0 ? '+' : ''}${predictedEffect.relationshipDelta.trust} · ATTRACTION ${predictedEffect.relationshipDelta.attraction >= 0 ? '+' : ''}${predictedEffect.relationshipDelta.attraction}.`
-        : approach.socialConsequence,
-      routeConsequence: isProtect
-        ? witnessed
-          ? `${context.witnessNpcIds.length} WITNESS · EVIDENCE NOTICED · POLICE ATTENTION BECOMES NOTICED.${factionPrediction}`
-          : `NO INDEPENDENT WITNESS · EVIDENCE STAYS UNNOTICED · POLICE ATTENTION DOES NOT RISE.${factionPrediction}`
-        : approach.routeConsequence,
+      result: approach.result,
+      socialConsequence: approach.socialConsequence,
+      routeConsequence: approach.routeConsequence,
       ...(isProtect ? {
-        readinessSummary: `READINESS ${context.readinessScore}/${LINDA_QUEST.readiness.minimumScore} · HEALTH ${context.healthReady ? 'READY' : 'LOW'} · CONFIDENCE ${context.confidenceReady ? 'READY' : 'LOW'} · FIRST AID ${context.equipmentIds.length > 0 ? 'READY' : 'MISSING'} · SECURITY REPORT ${context.preparationFlagIds.length > 0 ? 'READY' : 'MISSING'} · WITNESSES ${context.witnessNpcIds.length}`,
+        actionCheck: {
+          dice: '2d6' as const,
+          modifier: context.readinessScore,
+          target: approach.actionCheck!.target,
+          successesOutOf36: successesOutOf36(context.readinessScore, approach.actionCheck!.target),
+          healthReady: context.healthReady,
+          confidenceReady: context.confidenceReady,
+          equipmentReady: context.equipmentIds.length > 0,
+          preparationReady: context.preparationFlagIds.length > 0,
+          witnessCount: context.witnessNpcIds.length,
+        },
       } : {}),
       enabled: !approach.requiresExactDiscovery || context.positionReady,
       ...(!approach.requiresExactDiscovery || context.positionReady ? {} : { disabledReason: 'Go to Linda villa to use this approach.' }),

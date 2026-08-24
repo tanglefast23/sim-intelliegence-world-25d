@@ -153,7 +153,7 @@ export function resolveDueCommitments(state: WorldState): WorldState {
 export function reduceCommand(state: WorldState, candidate: DomainCommand): CommandResult {
   const command = DomainCommandSchema.parse(candidate);
   if (state.eventReceipts.includes(command.eventId)) {
-    return duplicateResult(state);
+    return duplicateResult(state, latestEvent(state, (event) => event.eventId === command.eventId));
   }
 
   switch (command.type) {
@@ -381,6 +381,11 @@ export function reduceCommand(state: WorldState, candidate: DomainCommand): Comm
       return commitEvent(state, event, plan.state);
     }
     case 'resolve-linda-quest': {
+      if (state.quests[LINDA_QUEST.id]?.status !== 'active') {
+        const prior = latestEvent(state, (event) => event.type === 'linda-quest-resolved' &&
+          event.questId === LINDA_QUEST.id && event.approachId === command.approachId);
+        if (prior) return duplicateResult(state, prior);
+      }
       const plan = planLindaQuestOutcome(state, command.approachId);
       const event: DomainEvent = {
         ...eventBase(state, command, plan.state.clock.absoluteMinute),
@@ -402,6 +407,7 @@ export function reduceCommand(state: WorldState, candidate: DomainCommand): Comm
         witnessNpcIds: [...plan.witnessNpcIds],
         policeFrom: plan.policeFrom,
         policeTo: plan.policeTo,
+        ...(plan.actionCheck ? { actionCheck: plan.actionCheck } : {}),
       };
       return offerMissions(
         recordInjuredEscapeEvidence(settleDueCommitments(commitEvent(state, event, plan.state))),

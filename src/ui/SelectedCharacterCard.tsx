@@ -10,6 +10,7 @@ export function SelectedCharacterCard({
   accent,
   availableWidth,
   compact = false,
+  disabled = false,
   onCenter,
   onTalk,
   pose,
@@ -19,6 +20,7 @@ export function SelectedCharacterCard({
   accent: string;
   availableWidth: number;
   compact?: boolean;
+  disabled?: boolean;
   onCenter: () => void;
   onTalk?: () => void;
   pose: 'idle' | 'reaction' | 'talk';
@@ -38,7 +40,7 @@ export function SelectedCharacterCard({
         <Text style={[styles.compactName, { color: accent, fontSize: px(14) }]}>{summary.displayName.toUpperCase()}</Text>
         <Text style={[styles.compactState, { fontSize: px(7), marginTop: px(2) }]}>{summary.mood} · {summary.activity}</Text>
       </View>
-      <Pressable accessibilityLabel={`Center view on ${summary.displayName}`} onPress={onCenter} role="button" style={({ pressed }) => [styles.compactButton, { minHeight: px(30), paddingHorizontal: px(12) }, pressed && styles.pressed]}>
+      <Pressable accessibilityLabel={`Center view on ${summary.displayName}`} disabled={disabled} onPress={onCenter} role="button" style={({ pressed }) => [styles.compactButton, { minHeight: px(30), paddingHorizontal: px(12) }, disabled && styles.disabled, pressed && styles.pressed]}>
         <Text style={[styles.secondaryButtonText, { fontSize: px(8) }]}>CENTER</Text>
       </Pressable>
     </View>
@@ -65,11 +67,11 @@ export function SelectedCharacterCard({
         <View style={[styles.factRow, { marginTop: px(4) }]}><Text style={[styles.factLabel, { fontSize: px(7), width: px(42) }]}>NOW</Text><Text numberOfLines={1} style={[styles.factValue, { fontSize: px(8) }]}>{summary.activity}</Text></View>
         <View style={[styles.factRow, { marginTop: px(4) }]}><Text style={[styles.factLabel, { fontSize: px(7), width: px(42) }]}>GOING</Text><Text numberOfLines={2} style={[styles.factValue, { fontSize: px(8) }]}>{summary.destination}</Text></View>
         <View style={[styles.actions, { gap: px(6), marginTop: px(8) }]}>
-          <Pressable accessibilityLabel={`Center view on ${summary.displayName}`} onPress={onCenter} role="button" style={({ pressed }) => [styles.secondaryButton, { minHeight: px(28) }, pressed && styles.pressed]}>
+          <Pressable accessibilityLabel={`Center view on ${summary.displayName}`} disabled={disabled} onPress={onCenter} role="button" style={({ pressed }) => [styles.secondaryButton, { minHeight: px(28) }, disabled && styles.disabled, pressed && styles.pressed]}>
             <Text style={[styles.secondaryButtonText, { fontSize: px(8) }]}>CENTER</Text>
           </Pressable>
           {onTalk ? (
-            <Pressable accessibilityLabel={`Talk to ${summary.displayName}`} onPress={onTalk} role="button" style={({ pressed }) => [styles.primaryButton, { backgroundColor: accent, minHeight: px(28) }, pressed && styles.pressed]}>
+            <Pressable accessibilityLabel={`Talk to ${summary.displayName}`} disabled={disabled} onPress={onTalk} role="button" style={({ pressed }) => [styles.primaryButton, { backgroundColor: accent, minHeight: px(28) }, disabled && styles.disabled, pressed && styles.pressed]}>
               <Text style={[styles.primaryButtonText, { fontSize: px(8) }]}>TALK</Text>
             </Pressable>
           ) : null}
@@ -97,6 +99,7 @@ const styles = StyleSheet.create({
   compactName: { fontFamily: 'Georgia', fontSize: 14, fontWeight: '700' },
   compactState: { color: '#dec69a', fontFamily: 'Silkscreen', fontSize: 7, marginTop: 2 },
   details: { flex: 1, minWidth: 0 },
+  disabled: { opacity: 0.35 },
   factLabel: { color: '#8e8069', fontFamily: 'Silkscreen', fontSize: 7, width: 42 },
   factRow: { flexDirection: 'row', marginTop: 4 },
   factValue: { color: '#dec69a', flex: 1, fontFamily: 'Silkscreen', fontSize: 8 },

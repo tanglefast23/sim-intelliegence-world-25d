@@ -42,7 +42,7 @@ describe('deterministic domain contracts', () => {
     const duplicate = reduceCommand(first.state, duplicateCommand);
 
     expect(duplicate.duplicate).toBe(true);
-    expect(duplicate.event).toBeUndefined();
+    expect(duplicate.event).toEqual(first.event);
     expect(duplicate.state).toBe(first.state);
     expect(JSON.stringify(duplicate.state)).toBe(JSON.stringify(first.state));
   });

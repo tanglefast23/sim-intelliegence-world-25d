@@ -31,6 +31,7 @@ type HudProps = Readonly<{
   accent: string;
   availableWidth: number;
   hidden: boolean;
+  disabled?: boolean;
   collapsed: boolean;
   onCollapsed: () => void;
   uiScale: UiScale;
@@ -56,7 +57,7 @@ type HudProps = Readonly<{
 }>;
 
 export function Hud({
-  state, mapName, areaName, zoom, saveStatus, accent, availableWidth, hidden, collapsed, onCollapsed, uiScale, onSpeed,
+  state, mapName, areaName, zoom, saveStatus, accent, availableWidth, hidden, disabled = false, collapsed, onCollapsed, uiScale, onSpeed,
   onJournal, onSocial, onSave, saveDisabled, onZoom, zoomOutDisabled, zoomInDisabled, onUiScale,
   musicVolume, sfxVolume, onMusicVolume, onSfxVolume, onPressSound,
   devMode, onDevMode, onJumpToMinute, onJumpForwardHour, jumpDisabled,
@@ -90,6 +91,7 @@ export function Hud({
             {([0, 1, 2] as const).map((speed) => (
               <Pressable
                 accessibilityLabel={speed === 0 ? 'Pause time' : `Set ${speed}x time`}
+                disabled={disabled}
                 key={speed}
                 onPress={() => { onPressSound(); onSpeed(speed); }}
                 role="button"
@@ -97,6 +99,7 @@ export function Hud({
                   styles.speedButton,
                   { height: metrics.pointerTarget, width: metrics.pointerTarget },
                   state.clock.selectedSpeed === speed && [styles.speedActive, { backgroundColor: accent }],
+                  disabled && styles.disabled,
                   pressed && styles.buttonPressed,
                 ]}
               >
@@ -109,10 +112,11 @@ export function Hud({
         </View>
         <Pressable
           accessibilityLabel={collapsed ? 'Expand interface' : 'Collapse interface'}
+          disabled={disabled}
           nativeID="world-ui-collapse"
           onPress={() => { onPressSound(); onCollapsed(); }}
           role="button"
-          style={({ pressed }) => [styles.collapseButton, { height: metrics.pointerTarget, width: metrics.pointerTarget }, pressed && styles.buttonPressed]}
+          style={({ pressed }) => [styles.collapseButton, { height: metrics.pointerTarget, width: metrics.pointerTarget }, disabled && styles.disabled, pressed && styles.buttonPressed]}
         >
           <Text style={[styles.collapseText, { fontSize: metrics.panelText }]}>{collapsed ? '▾' : '▴'}</Text>
         </Pressable>
@@ -141,10 +145,10 @@ export function Hud({
           <Text nativeID="world-save-status" style={[styles.saveStatus, { fontSize: metrics.secondaryText }]}>{saveStatus.toUpperCase()}</Text>
         </View>
         <View style={styles.actions}>
-          <Pressable accessibilityLabel="Open quests" onPress={onJournal} role="button" style={({ pressed }) => [styles.actionButton, { minHeight: metrics.pointerTarget }, pressed && styles.buttonPressed]}><Text style={[styles.actionText, { fontSize: metrics.secondaryText }]}>QUESTS · Q</Text></Pressable>
-          <Pressable accessibilityLabel="Open relationships" onPress={onSocial} role="button" style={({ pressed }) => [styles.actionButton, { minHeight: metrics.pointerTarget }, pressed && styles.buttonPressed]}><Text style={[styles.actionText, { fontSize: metrics.secondaryText }]}>SOCIAL</Text></Pressable>
-          <Pressable accessibilityLabel="Save game" disabled={saveDisabled} onPress={() => { onPressSound(); onSave(); }} role="button" style={({ pressed }) => [styles.actionButton, { minHeight: metrics.pointerTarget }, saveDisabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.actionText, { fontSize: metrics.secondaryText }]}>SAVE</Text></Pressable>
-          <Pressable accessibilityLabel="Open display settings" onPress={() => { onPressSound(); setSettingsOpen((open) => !open); }} role="button" style={({ pressed }) => [styles.settingsButton, { minHeight: metrics.pointerTarget }, settingsOpen && styles.settingsActive, pressed && styles.buttonPressed]}><Text style={[styles.settingsText, { fontSize: metrics.secondaryText }]}>SETTINGS</Text></Pressable>
+          <Pressable accessibilityLabel="Open quests" disabled={disabled} onPress={onJournal} role="button" style={({ pressed }) => [styles.actionButton, { minHeight: metrics.pointerTarget }, disabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.actionText, { fontSize: metrics.secondaryText }]}>QUESTS · Q</Text></Pressable>
+          <Pressable accessibilityLabel="Open relationships" disabled={disabled} onPress={onSocial} role="button" style={({ pressed }) => [styles.actionButton, { minHeight: metrics.pointerTarget }, disabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.actionText, { fontSize: metrics.secondaryText }]}>SOCIAL</Text></Pressable>
+          <Pressable accessibilityLabel="Save game" disabled={disabled || saveDisabled} onPress={() => { onPressSound(); onSave(); }} role="button" style={({ pressed }) => [styles.actionButton, { minHeight: metrics.pointerTarget }, (disabled || saveDisabled) && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.actionText, { fontSize: metrics.secondaryText }]}>SAVE</Text></Pressable>
+          <Pressable accessibilityLabel="Open display settings" disabled={disabled} onPress={() => { onPressSound(); setSettingsOpen((open) => !open); }} role="button" style={({ pressed }) => [styles.settingsButton, { minHeight: metrics.pointerTarget }, settingsOpen && styles.settingsActive, disabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.settingsText, { fontSize: metrics.secondaryText }]}>SETTINGS</Text></Pressable>
         </View>
       </View>
       {/* clickZoomButton in electron/main/index.ts finds the SETTINGS button by its exact
@@ -154,18 +158,19 @@ export function Hud({
         <View accessibilityLabel="Display settings" nativeID="world-ui-display-settings" style={styles.settingsDrawer}>
           <View nativeID="world-ui-zoom" style={styles.settingRow}>
             <Text style={[styles.settingLabel, { fontSize: metrics.secondaryText }]}>VIEW</Text>
-            <Pressable accessibilityLabel="Decrease world zoom" disabled={zoomOutDisabled} onPress={() => { onPressSound(); onZoom(-1); }} role="button" style={({ pressed }) => [styles.settingButton, { height: metrics.pointerTarget }, zoomOutDisabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>−</Text></Pressable>
+            <Pressable accessibilityLabel="Decrease world zoom" disabled={disabled || zoomOutDisabled} onPress={() => { onPressSound(); onZoom(-1); }} role="button" style={({ pressed }) => [styles.settingButton, { height: metrics.pointerTarget }, (disabled || zoomOutDisabled) && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>−</Text></Pressable>
             <Text nativeID="world-ui-zoom-value" style={[styles.settingValue, { fontSize: metrics.secondaryText }]}>{Math.round(zoom * 100)}%</Text>
-            <Pressable accessibilityLabel="Increase world zoom" disabled={zoomInDisabled} onPress={() => { onPressSound(); onZoom(1); }} role="button" style={({ pressed }) => [styles.settingButton, { height: metrics.pointerTarget }, zoomInDisabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>+</Text></Pressable>
+            <Pressable accessibilityLabel="Increase world zoom" disabled={disabled || zoomInDisabled} onPress={() => { onPressSound(); onZoom(1); }} role="button" style={({ pressed }) => [styles.settingButton, { height: metrics.pointerTarget }, (disabled || zoomInDisabled) && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>+</Text></Pressable>
           </View>
           <View nativeID="world-ui-scale" style={styles.settingRow}>
             <Text style={[styles.settingLabel, { fontSize: metrics.secondaryText }]}>UI SCALE</Text>
             {UI_SCALES.map((scale) => (
-              <Pressable accessibilityLabel={`Set ${Math.round(scale * 100)} percent interface scale`} key={scale} onPress={() => { onPressSound(); onUiScale(scale); }} role="button" style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, uiScale === scale && styles.settingsActive, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>{Math.round(scale * 100)}%</Text></Pressable>
+              <Pressable accessibilityLabel={`Set ${Math.round(scale * 100)} percent interface scale`} disabled={disabled} key={scale} onPress={() => { onPressSound(); onUiScale(scale); }} role="button" style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, uiScale === scale && styles.settingsActive, disabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>{Math.round(scale * 100)}%</Text></Pressable>
             ))}
           </View>
           <VolumeSlider
             accent={accent}
+            disabled={disabled}
             label="MUSIC"
             metrics={metrics}
             nativeID="world-ui-music-volume"
@@ -175,6 +180,7 @@ export function Hud({
           />
           <VolumeSlider
             accent={accent}
+            disabled={disabled}
             label="SFX"
             metrics={metrics}
             nativeID="world-ui-sfx-volume"
@@ -188,9 +194,10 @@ export function Hud({
             <Text style={[styles.settingLabel, { fontSize: metrics.secondaryText }]}>DEV</Text>
             <Pressable
               accessibilityLabel={`Turn dev mode ${devMode ? 'off' : 'on'}`}
+              disabled={disabled}
               onPress={() => { onPressSound(); onDevMode(); }}
               role="button"
-              style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, devMode && styles.settingsActive, pressed && styles.buttonPressed]}
+              style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, devMode && styles.settingsActive, disabled && styles.disabled, pressed && styles.buttonPressed]}
             >
               <Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>{devMode ? 'ON' : 'OFF'}</Text>
             </Pressable>
@@ -200,21 +207,21 @@ export function Hud({
               <Text style={[styles.settingLabel, { fontSize: metrics.secondaryText }]}>TIME JUMP</Text>
               {DEV_TIME_PRESETS.map((preset) => {
                 const onPreset = state.clock.absoluteMinute % 1_440 === preset;
-                const disabled = jumpDisabled || onPreset;
+                const actionDisabled = disabled || jumpDisabled || onPreset;
                 return (
                   <Pressable
                     accessibilityLabel={`Jump to ${presetLabel(preset)}`}
-                    disabled={disabled}
+                    disabled={actionDisabled}
                     key={preset}
                     onPress={() => { onPressSound(); onJumpToMinute(preset); }}
                     role="button"
-                    style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, disabled && styles.disabled, pressed && styles.buttonPressed]}
+                    style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, actionDisabled && styles.disabled, pressed && styles.buttonPressed]}
                   >
                     <Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>{presetLabel(preset)}</Text>
                   </Pressable>
                 );
               })}
-              <Pressable accessibilityLabel="Jump forward one hour" disabled={jumpDisabled} onPress={() => { onPressSound(); onJumpForwardHour(); }} role="button" style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, jumpDisabled && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>+1H</Text></Pressable>
+              <Pressable accessibilityLabel="Jump forward one hour" disabled={disabled || jumpDisabled} onPress={() => { onPressSound(); onJumpForwardHour(); }} role="button" style={({ pressed }) => [styles.scaleButton, { minHeight: metrics.pointerTarget }, (disabled || jumpDisabled) && styles.disabled, pressed && styles.buttonPressed]}><Text style={[styles.settingText, { fontSize: metrics.secondaryText }]}>+1H</Text></Pressable>
             </View>
           ) : null}
         </View>

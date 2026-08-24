@@ -16,6 +16,7 @@ export function volumeForKey(value: number, key: string): number | null {
 
 export function VolumeSlider({
   accent,
+  disabled = false,
   label,
   metrics,
   nativeID,
@@ -24,6 +25,7 @@ export function VolumeSlider({
   value,
 }: Readonly<{
   accent: string;
+  disabled?: boolean;
   label: string;
   metrics: UiMetrics;
   nativeID: string;
@@ -37,34 +39,36 @@ export function VolumeSlider({
   const knobWidth = Math.round(10 * metrics.scale);
   const knobHeight = trackHeight + Math.round(6 * metrics.scale);
   const scrub = (locationX: number) => {
+    if (disabled) return;
     if (trackWidth.current <= 0) return;
     onChange(clampStep(locationX / trackWidth.current));
   };
   // react-native-web supports keyboard props on View; the react-native types do not.
   const keyboardProps = {
-    focusable: true,
+    focusable: !disabled,
     onKeyDown: (event: { key: string; preventDefault: () => void }) => {
       const next = volumeForKey(value, event.key);
-      if (next === null) return;
+      if (disabled || next === null) return;
       event.preventDefault();
       onPressSound();
       onChange(next);
     },
-    tabIndex: 0,
+    tabIndex: disabled ? -1 : 0,
   } as object;
   return (
     <View nativeID={nativeID} style={styles.row}>
       <Text style={[styles.label, { fontSize: metrics.secondaryText, width: Math.round(62 * metrics.scale) }]}>{label}</Text>
       <View
         accessibilityLabel={`${label} volume ${percent} percent`}
+        accessibilityState={{ disabled }}
         accessibilityValue={{ max: 100, min: 0, now: percent }}
         onLayout={(event) => { trackWidth.current = event.nativeEvent.layout.width; }}
-        onMoveShouldSetResponder={() => true}
+        onMoveShouldSetResponder={() => !disabled}
         onResponderGrant={(event) => { onPressSound(); scrub(event.nativeEvent.locationX); }}
         onResponderMove={(event) => scrub(event.nativeEvent.locationX)}
-        onStartShouldSetResponder={() => true}
+        onStartShouldSetResponder={() => !disabled}
         role="slider"
-        style={[styles.hitArea, { height: metrics.pointerTarget }]}
+        style={[styles.hitArea, { height: metrics.pointerTarget }, disabled && styles.disabled]}
         {...keyboardProps}
       >
         <View style={[styles.track, { height: trackHeight }]}>
@@ -93,5 +97,6 @@ const styles = StyleSheet.create({
   label: { color: '#bda77e', fontFamily: 'Silkscreen' },
   row: { alignItems: 'center', flexDirection: 'row', gap: 4 },
   track: { backgroundColor: '#3b372d', borderColor: '#514838', borderWidth: 1, overflow: 'hidden' },
+  disabled: { opacity: 0.35 },
   value: { color: '#fff0c7', fontFamily: 'Silkscreen', textAlign: 'right' },
 });

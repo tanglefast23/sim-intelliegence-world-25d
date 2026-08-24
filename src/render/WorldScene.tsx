@@ -19,6 +19,7 @@ import { advanceMovementFrame } from '../application/runtime/movement-frame';
 import { effectiveSpeed } from '../domain/clock/clock';
 import { reduceCommand } from '../domain/commands/reducer';
 import { DomainCommandSchema } from '../domain/commands/types';
+import type { ActionCheckResult } from '../domain/action-check';
 import { lindaContextActions, type ContextQuestAction } from '../domain/quests/quest-machine';
 import {
   VERBAL_MISSION_DISCOVERY_FACTS,
@@ -32,6 +33,8 @@ import { relationshipSound } from '../audio/halcyra-audio-policy';
 import { useWorldAudio, type InterfaceSoundId } from '../audio/halcyra-audio';
 import { setAudioVolumes, useAudioVolumes } from '../audio/volume-store';
 import { BedActions } from '../ui/BedActions';
+import { ActionCheckOverlay, type ActionCheckPhase } from '../ui/ActionCheckOverlay';
+import { actionCheckPreview, type ActionCheckPreview } from '../ui/action-check-copy';
 import { ConversationPanel } from '../ui/ConversationPanel';
 import { Hud } from '../ui/Hud';
 import { JournalPanel } from '../ui/JournalPanel';
@@ -450,6 +453,8 @@ export function WorldScene({
   const [conversationNpcId, setConversationNpcId] = useState<string | undefined>(initialConversationFixtureId);
   const [conversationFixtureId, setConversationFixtureId] = useState<CharacterId | undefined>(initialConversationFixtureId);
   const [questOfferOpen, setQuestOfferOpen] = useState(false);
+  const [actionCheck, setActionCheck] = useState<Readonly<{ preview: ActionCheckPreview; result?: ActionCheckResult }>>();
+  const [actionCheckPhase, setActionCheckPhase] = useState<ActionCheckPhase | 'idle'>('idle');
   const [authoredDialogueFixtureId, setAuthoredDialogueFixtureId] = useState<AuthoredDialogueFixtureId>();
   const [openPanel, setOpenPanel] = useState<'journal' | 'relationships' | undefined>(initialOpenPanel);
   const [audioCaption, setAudioCaption] = useState<string>();
@@ -1125,15 +1130,15 @@ export function WorldScene({
   useEffect(() => {
     if (rendererSuspended) return undefined;
     const timer = setInterval(() => {
-      setRuntime((current) => questOfferOpen || effectiveSpeed(current.worldState.clock) === 0
+      setRuntime((current) => questOfferOpen || actionCheck || effectiveSpeed(current.worldState.clock) === 0
         ? current
         : { ...current, worldState: tickWorld(current.worldState, 1_000) });
     }, 1_000);
     return () => clearInterval(timer);
-  }, [questOfferOpen, rendererSuspended]);
+  }, [actionCheck, questOfferOpen, rendererSuspended]);
 
   useEffect(() => {
-    if (rendererSuspended || speed === 0 || transitioning || conversationNpcId || questOfferOpen || openPanel) return;
+    if (rendererSuspended || speed === 0 || transitioning || conversationNpcId || questOfferOpen || openPanel || actionCheck) return;
     let animationFrame = 0;
     let previousTime: number | undefined;
     const animate = (time: number) => {
@@ -1154,7 +1159,7 @@ export function WorldScene({
     };
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  }, [conversationNpcId, openPanel, questOfferOpen, rendererSuspended, speed, transitioning, wakeCameraClock]);
+  }, [actionCheck, conversationNpcId, openPanel, questOfferOpen, rendererSuspended, speed, transitioning, wakeCameraClock]);
 
   // Arms the portal zone the player stands on. The zone stays armed while the player is on it,
   // so the travel timer below runs once instead of restarting on every world tick.
@@ -1166,11 +1171,11 @@ export function WorldScene({
     const ready = portal !== undefined && !rendererSuspended && canStartPortalTransition({
       arrivalLocked: arrivalLock === key,
       transitioning,
-      conversationOpen: conversationNpcId !== undefined || questOfferOpen,
+      conversationOpen: conversationNpcId !== undefined || questOfferOpen || actionCheck !== undefined,
       panelOpen: openPanel !== undefined,
     });
     setArmedPortalId(ready ? portal?.id : undefined);
-  }, [arrivalLock, conversationNpcId, map, openPanel, questOfferOpen, rendererSuspended, runtime.worldState, transitioning]);
+  }, [actionCheck, arrivalLock, conversationNpcId, map, openPanel, questOfferOpen, rendererSuspended, runtime.worldState, transitioning]);
 
   useEffect(() => {
     if (armedPortalId === undefined) return undefined;
@@ -1224,7 +1229,7 @@ export function WorldScene({
   }, []);
 
   const handlePrimary = useCallback((point: Readonly<{ x: number; y: number }>) => {
-    if (conversationNpcId || questOfferOpen || openPanel) return;
+    if (conversationNpcId || questOfferOpen || openPanel || actionCheck) return;
     if (!insideMap(camera, point, MAP_PIXELS)) return;
     const visibleNpc = Object.entries(npcTiles)
       .sort(([, left], [, right]) => {
@@ -1296,7 +1301,7 @@ export function WorldScene({
     }
     if (resolved.tile) requestTile(resolved.tile);
     setOpeningShowcase(false);
-  }, [camera, conversationNpcId, emitTransientCue, insideMap, map, npcTiles, openPanel, openingShowcase, project, questOfferOpen, requestTile, runtime.movement.player, runtime.worldState, selectCharacter, unproject]);
+  }, [actionCheck, camera, conversationNpcId, emitTransientCue, insideMap, map, npcTiles, openPanel, openingShowcase, project, questOfferOpen, requestTile, runtime.movement.player, runtime.worldState, selectCharacter, unproject]);
 
   useEffect(() => {
     if (!destinationMarker || rendererSuspended || rendererParityPulseFrozen) return;
@@ -1315,14 +1320,14 @@ export function WorldScene({
   }, [destinationMarker, rendererParityPulseFrozen, rendererSuspended]);
 
   const handlePan = useCallback((delta: Readonly<{ x: number; y: number }>) => {
-    if (conversationNpcId || questOfferOpen || openPanel) return;
+    if (conversationNpcId || questOfferOpen || openPanel || actionCheck) return;
     // Panning means the player is looking at something. Follow stays off until Center says
     // otherwise; an idle timer would yank the view back out from under them.
     updateCameraMotion(suspendFollow);
     setCamera((current) => pan(current, delta, surface, MAP_PIXELS, clamp));
-  }, [clamp, conversationNpcId, openPanel, pan, questOfferOpen, surface, updateCameraMotion]);
+  }, [actionCheck, clamp, conversationNpcId, openPanel, pan, questOfferOpen, surface, updateCameraMotion]);
   const handleZoom = useCallback((direction: -1 | 1, anchor: Readonly<{ x: number; y: number }>) => {
-    if (conversationNpcId || questOfferOpen || openPanel) return;
+    if (conversationNpcId || questOfferOpen || openPanel || actionCheck) return;
     setExplicitWorldZoom(true);
     setCamera((current) => zoomCameraAt(
       current,
@@ -1332,13 +1337,14 @@ export function WorldScene({
       MAP_PIXELS,
       clamp,
     ));
-  }, [clamp, conversationNpcId, openPanel, questOfferOpen, surface]);
+  }, [actionCheck, clamp, conversationNpcId, openPanel, questOfferOpen, surface]);
   const center = useCallback(() => {
-    if (conversationNpcId || questOfferOpen || openPanel) return;
+    if (conversationNpcId || questOfferOpen || openPanel || actionCheck) return;
     setCamera((current) => centerCameraOnWorld(runtime.movement.visualFoot, current.zoom, surface, MAP_PIXELS, clamp));
     updateCameraMotion(armFollow);
-  }, [clamp, conversationNpcId, openPanel, questOfferOpen, runtime.movement.visualFoot, surface, updateCameraMotion]);
+  }, [actionCheck, clamp, conversationNpcId, openPanel, questOfferOpen, runtime.movement.visualFoot, surface, updateCameraMotion]);
   const changeWorldZoom = useCallback((direction: -1 | 1) => {
+    if (actionCheck) return;
     setExplicitWorldZoom(true);
     setCamera((current) => zoomCameraAt(
       current,
@@ -1348,7 +1354,7 @@ export function WorldScene({
       MAP_PIXELS,
       clamp,
     ));
-  }, [clamp, surface]);
+  }, [actionCheck, clamp, surface]);
   const selectUiScale = useCallback((scale: UiScale) => {
     setExplicitUiScale(true);
     setUiScale(scale);
@@ -1392,10 +1398,10 @@ export function WorldScene({
     setRuntime((current) => ({ ...current, movement: cancelMovement(current.movement) }));
   }, [authoredDialogueFixtureId, conversationNpcId, openPanel, playInterfaceSound, questOfferOpen]);
   const toggleQuests = useCallback(() => {
-    if (conversationNpcId || questOfferOpen) return;
+    if (conversationNpcId || questOfferOpen || actionCheck) return;
     playInterfaceSound(openPanel === 'journal' ? 'panel-close' : 'panel-open');
     setOpenPanel((current) => current === 'journal' ? undefined : 'journal');
-  }, [conversationNpcId, openPanel, playInterfaceSound, questOfferOpen]);
+  }, [actionCheck, conversationNpcId, openPanel, playInterfaceSound, questOfferOpen]);
   const changeSpeed = useCallback((nextSpeed: 0 | 1 | 2) => {
     setRuntime((current) => ({ ...current, worldState: setWorldSpeed(current.worldState, nextSpeed) }));
   }, []);
@@ -1475,8 +1481,22 @@ export function WorldScene({
       setWorldFeedback('SECURITY REPORT PURCHASE FAILED');
     }
   }, [conversationNpcId, requestAutosave, runtime.worldState]);
-  const runQuestAction = useCallback((actionId: ContextQuestAction['id']) => {
-    if (conversationNpcId || openPanel === 'relationships') return;
+  const runQuestAction = useCallback((actionId: ContextQuestAction['id'], commitActionCheck = false) => {
+    if (
+      conversationNpcId || openPanel === 'relationships' ||
+      (actionCheck && !(actionId === 'protect_linda' && commitActionCheck))
+    ) return;
+    if (actionId === 'protect_linda' && !commitActionCheck) {
+      const action = lindaQuestActions.find(({ id }) => id === actionId);
+      const preview = action ? actionCheckPreview(action) : undefined;
+      if (!preview) {
+        setWorldFeedback('QUEST BLOCKED · ACTION CHECK IS NOT AVAILABLE');
+        return;
+      }
+      setActionCheck({ preview });
+      setActionCheckPhase('preview');
+      return;
+    }
     try {
       const stableActionId = actionId.replaceAll('_', '-');
       if (actionId in VERBAL_MISSION_DISCOVERY_FACTS) {
@@ -1519,17 +1539,43 @@ export function WorldScene({
       } else if (result.event?.type === 'linda-villa-discovered') {
         setWorldFeedback('LINDA VILLA CONFIRMED · THREE CHOICES READY');
       } else if (result.event?.type === 'linda-quest-resolved') {
-        setWorldFeedback(`${result.event.resultId.replaceAll('_', ' ').toUpperCase()} · CONSEQUENCES SAVED`);
-        triggerVocalCue('consequence');
+        if (actionId === 'protect_linda') {
+          if (!result.event.actionCheck) throw new Error('The committed Action Check result is missing.');
+          const committedCheck = result.event.actionCheck;
+          setActionCheck((current) => current ? { ...current, result: committedCheck } : current);
+        } else {
+          setWorldFeedback(`${result.event.resultId.replaceAll('_', ' ').toUpperCase()} · CONSEQUENCES SAVED`);
+          triggerVocalCue('consequence');
+        }
       }
-      void requestAutosave(
+      if (!result.duplicate) void requestAutosave(
         result.state,
         result.event?.type === 'linda-quest-resolved' ? 'major_quest' : 'manual',
       );
     } catch (error) {
+      if (actionId === 'protect_linda') {
+        setActionCheck(undefined);
+        setActionCheckPhase('idle');
+        requestAnimationFrame(() => document.querySelector<HTMLElement>('#world-quest-action-protect-linda')?.focus());
+      }
       setWorldFeedback(error instanceof Error ? `QUEST BLOCKED · ${error.message.toUpperCase()}` : 'QUEST ACTION FAILED');
     }
-  }, [conversationNpcId, openPanel, playInterfaceSound, requestAutosave, runtime.worldState, triggerVocalCue]);
+  }, [actionCheck, conversationNpcId, lindaQuestActions, openPanel, playInterfaceSound, requestAutosave, runtime.worldState, triggerVocalCue]);
+  const cancelActionCheck = useCallback(() => {
+    setActionCheck(undefined);
+    setActionCheckPhase('idle');
+    requestAnimationFrame(() => document.querySelector<HTMLElement>('#world-quest-action-protect-linda')?.focus());
+  }, []);
+  const continueActionCheck = useCallback(() => {
+    const result = actionCheck?.result;
+    setActionCheck(undefined);
+    setActionCheckPhase('idle');
+    if (result) {
+      setWorldFeedback(`${result.success ? 'LINDA PROTECTED' : 'INJURED ESCAPE'} · CONSEQUENCES SAVED`);
+      triggerVocalCue('consequence');
+    }
+    requestAnimationFrame(() => document.querySelector<HTMLElement>('#world-close-quests')?.focus());
+  }, [actionCheck?.result, triggerVocalCue]);
   const advancePoliceHook = useCallback(() => {
     const hook = runtime.worldState.policeAttention === 'noticed'
       ? 'officer_contact'
@@ -1883,10 +1929,20 @@ export function WorldScene({
   const handleRendererContextState = useCallback((state: 'lost' | 'restored' | 'timed-out') => {
     setRendererContextState(state === 'restored' ? 'ready' : state);
   }, []);
+  const actionCheckEvidence = JSON.stringify({
+    phase: actionCheck ? actionCheckPhase : 'idle',
+    prngCursor: runtime.worldState.prng.cursor,
+    ...(actionCheck ? {
+      checkId: actionCheck.preview.checkId,
+      preview: actionCheck.preview,
+      ...(actionCheck.result ? actionCheck.result : {}),
+    } : {}),
+    reducedMotion,
+  });
 
   return (
     <WorldInput
-      disabled={rendererSuspended}
+      disabled={rendererSuspended || actionCheck !== undefined}
       isPointInteractive={isPointInteractive}
       onCancel={cancel}
       onCenter={center}
@@ -2062,6 +2118,7 @@ export function WorldScene({
           availableWidth={surface.width}
           collapsed={hudCollapsed}
           devMode={devMode}
+          disabled={actionCheck !== undefined}
           hidden={questOfferOpen}
           jumpDisabled={transitioning || runtime.worldState.clock.pauseTokens.length > 0}
           mapName={map.source.displayName}
@@ -2092,6 +2149,7 @@ export function WorldScene({
           accent={lighting.accent}
           availableWidth={surface.width}
           compact={selected === 'protagonist' && reactionId !== 'protagonist'}
+          disabled={actionCheck !== undefined}
           onCenter={() => {
             setCamera((current) => centerCameraOnWorld(selectedFoot, current.zoom, surface, MAP_PIXELS, clamp));
             updateCameraMotion(selected === 'protagonist' ? armFollow : suspendFollow);
@@ -2125,9 +2183,10 @@ export function WorldScene({
         >
           {`Interface scale ${Math.round(uiScale * 100)} percent`}
         </Text>
+        <Text accessibilityLabel={actionCheckEvidence} nativeID="world-action-check-state" style={styles.proofState}>{actionCheckEvidence}</Text>
         {inBedroom && !questOfferOpen ? (
           <BedActions
-            disabled={transitioning || runtime.worldState.clock.pauseTokens.length > 0}
+            disabled={actionCheck !== undefined || transitioning || runtime.worldState.clock.pauseTokens.length > 0}
             minuteOfDay={runtime.worldState.clock.absoluteMinute % 1_440}
             onSleep={sleep}
             uiScale={uiScale}
@@ -2211,6 +2270,7 @@ export function WorldScene({
           <JournalPanel
             accent={lighting.accent}
             actions={lindaQuestActions}
+            actionsDisabled={actionCheck !== undefined}
             contextActions={contextualMissionActions}
             onAction={runQuestAction}
             onDismiss={() => { playInterfaceSound('panel-close'); setOpenPanel(undefined); }}
@@ -2221,6 +2281,18 @@ export function WorldScene({
             uiScale={uiScale}
           />
         ) : null}
+        {actionCheck ? <ActionCheckOverlay
+          accent={lighting.accent}
+          onCancel={cancelActionCheck}
+          onContinue={continueActionCheck}
+          onPhaseChange={setActionCheckPhase}
+          onRoll={() => runQuestAction('protect_linda', true)}
+          preview={actionCheck.preview}
+          reducedMotion={reducedMotion}
+          result={actionCheck.result}
+          surface={surface}
+          uiScale={uiScale}
+        /> : null}
         {openPanel === 'relationships' ? (
           <RelationshipPanel
             accent={lighting.accent}

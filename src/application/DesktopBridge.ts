@@ -50,6 +50,7 @@ declare global {
      * watching it.
      */
     siWorldPinShootingScene?: (timeMs: number) => number;
+    siWorldPinActionCheck?: (timeMs: number) => number;
     siWorldSmokeMode?: boolean;
     siWorldTestRenderer?: RendererKind;
     /** Explicit 2.5D shadow path for a packaged smoke. Never an FPS probe. */

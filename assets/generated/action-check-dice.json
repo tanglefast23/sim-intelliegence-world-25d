@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "assetId": "action-check-dice-01",
+  "status": "approved",
+  "upstreamCommit": "de339ad739d8cbd28ff2dd4a940af38c0ede86c8",
+  "canvas": {
+    "width": 128,
+    "height": 128
+  },
+  "recipeSha256": "a41f5e2bb3e3a052879b08e6facb7dea29f8bfa69c8b3e86d7a0bd10a262d5a7",
+  "atlasSha256": "1dedd6ea9388d7e2c2ec7535ca68d855c6bbfa6f84a38a51e184394f31c63dcb",
+  "frames": {
+    "die-1": {
+      "x": 0,
+      "y": 0,
+      "width": 128,
+      "height": 128,
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-2": {
+      "x": 128,
+      "y": 0,
+      "width": 128,
+      "height": 128,
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-3": {
+      "x": 256,
+      "y": 0,
+      "width": 128,
+      "height": 128,
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-4": {
+      "x": 384,
+      "y": 0,
+      "width": 128,
+      "height": 128,
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-5": {
+      "x": 512,
+      "y": 0,
+      "width": 128,
+      "height": 128,
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-6": {
+      "x": 640,
+      "y": 0,
+      "width": 128,
+      "height": 128,
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "soft-flight-shadow": {
+      "x": 768,
+      "y": 0,
+      "width": 128,
+      "height": 128,
+      "anchors": {
+        "center": {
+          "x": 67,
+          "y": 106
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "strong-contact-shadow": {
+      "x": 896,
+      "y": 0,
+      "width": 128,
+      "height": 128,
+      "anchors": {
+        "center": {
+          "x": 67,
+          "y": 106
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    }
+  }
+}

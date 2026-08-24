@@ -117,7 +117,15 @@ export function runFirstHourGolden(displayName = 'MISTAKE'): Readonly<{
     LINDA_QUEST.targetTile.y,
   );
   state = reduceCommand(state, command(state, 'discover-linda-villa', {}, 'discover')).state;
-  state = reduceCommand(state, command(state, 'resolve-linda-quest', { approachId: 'protect_linda' }, 'protect')).state;
+  const protect = reduceCommand(state, command(state, 'resolve-linda-quest', { approachId: 'protect_linda' }, 'protect'));
+  if (protect.event?.type !== 'linda-quest-resolved' ||
+      protect.event.resultId !== 'linda_protected' ||
+      JSON.stringify(protect.event.actionCheck) !== JSON.stringify({
+        dice: [3, 5], modifier: 4, target: 9, total: 12, success: true,
+      })) {
+    throw new Error('First-hour Action Check must roll 3 and 5 with Readiness +4 and protect Linda.');
+  }
+  state = protect.state;
   state = tickWorld(state, 60 * 1_000);
   state = WorldStateSchema.parse(JSON.parse(JSON.stringify(state)) as unknown);
   return { state, summary: summarizeFirstHour(state, startMinute) };

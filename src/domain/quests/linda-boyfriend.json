@@ -17,7 +17,6 @@
     "sourceId": "linda_villa_arrival"
   },
   "readiness": {
-    "minimumScore": 4,
     "healthAtLeast": 50,
     "confidenceAtLeast": 40,
     "equipmentIds": ["first_aid_kit"],
@@ -28,15 +27,16 @@
       "id": "protect_linda",
       "label": "Protect Linda",
       "cause": "Confront her boyfriend and force him to leave the villa.",
-      "result": "Good preparation protects Linda. Poor preparation causes an injured escape: 25 Health and four hours lost.",
+      "result": "Roll 2d6 plus Readiness against target 9. Success protects Linda; failure causes an injured escape.",
       "socialConsequence": "Linda remembers whether the player made her safer or made the danger worse.",
       "routeConsequence": "The Velvet Tide notices the confrontation. A witness creates evidence and police attention.",
       "violent": true,
       "requiresExactDiscovery": true,
+      "actionCheck": {"dice": "2d6", "modifier": "readiness", "target": 9},
       "success": {
         "id": "linda_protected",
         "terminalStatus": "resolved",
-        "reason": "The protagonist forced Linda's abusive boyfriend out after arriving prepared.",
+        "reason": "The protagonist forced Linda's abusive boyfriend out after the confrontation.",
         "relationshipDelta": {"familiarity": 8, "trust": 12, "attraction": 1},
         "futureAvailability": "unchanged",
         "factionDelta": {"factionId": "velvet_tide", "delta": -10, "scale": "ordinary", "reveal": true},
@@ -49,7 +49,7 @@
       "defeat": {
         "id": "injured_escape",
         "terminalStatus": "failed",
-        "reason": "The protagonist confronted the boyfriend without enough Health, equipment, or preparation and escaped injured.",
+        "reason": "The protagonist confronted the boyfriend and escaped injured after the confrontation failed.",
         "relationshipDelta": {"familiarity": 5, "trust": -4, "attraction": 0},
         "futureAvailability": "unchanged",
         "questFlagIds": ["linda_protect_failed"],
