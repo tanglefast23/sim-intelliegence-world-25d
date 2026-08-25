@@ -6,7 +6,9 @@ import actionCheckDiceAtlasJson from '../../assets/generated/action-check-dice.j
 
 const diceImageModule = require('../../assets/generated/action-check-dice.png') as number;
 
-type DiceFrameId = `die-${1 | 2 | 3 | 4 | 5 | 6}` | 'soft-flight-shadow' | 'strong-contact-shadow';
+type DieFace = 1 | 2 | 3 | 4 | 5 | 6;
+type DieOrientationFrameId = `die-t${DieFace}-l${DieFace}-r${DieFace}`;
+type DiceFrameId = DieOrientationFrameId | 'soft-flight-shadow' | 'strong-contact-shadow';
 type DiceFrame = Readonly<{
   x: number;
   y: number;
@@ -14,7 +16,20 @@ type DiceFrame = Readonly<{
   height: number;
   anchors: Readonly<{ groundContact: Readonly<{ x: number; y: number }> }>;
 }>;
-const frames = actionCheckDiceAtlasJson.frames as Readonly<Record<DiceFrameId, DiceFrame>>;
+type DiceManifest = Readonly<{
+  canonicalFinals: Readonly<Record<`${DieFace}`, DieOrientationFrameId>>;
+  frames: Readonly<Record<DiceFrameId, DiceFrame>>;
+}>;
+const manifest = actionCheckDiceAtlasJson as unknown as DiceManifest;
+const frames = manifest.frames;
+const orientationFrameIds = Object.keys(frames).filter((frameId): frameId is DieOrientationFrameId => (
+  frameId.startsWith('die-t')
+));
+
+function dieFaceKey(value: number): `${DieFace}` {
+  if (!Number.isSafeInteger(value) || value < 1 || value > 6) throw new RangeError(`Invalid die face: ${value}`);
+  return `${value as DieFace}`;
+}
 
 export type DiceRollTimeline = Readonly<{
   elapsedMs: number;
@@ -27,24 +42,24 @@ export type DiceRollTimeline = Readonly<{
 
 export function diceRollEntryProgress(elapsedMs: number, reducedMotion: boolean, hasResult: boolean): number {
   if (!hasResult) return 0;
-  return reducedMotion ? 1 : Math.min(1, Math.max(0, elapsedMs) / 500);
+  return reducedMotion ? 1 : Math.min(1, Math.max(0, elapsedMs) / 1_150);
 }
 
 export function sampleDiceRollTimeline(elapsedMs: number, reducedMotion: boolean): DiceRollTimeline {
   const time = Math.max(0, elapsedMs);
   if (reducedMotion) {
     return {
-      elapsedMs: Math.min(time, 180), leftLanded: true, rightLanded: true,
-      showArithmetic: true, showResult: time >= 120, canContinue: time >= 180,
+      elapsedMs: Math.min(time, 2_980), leftLanded: time >= 80, rightLanded: time >= 80,
+      showArithmetic: time >= 180, showResult: time >= 180, canContinue: time >= 2_980,
     };
   }
   return {
-    elapsedMs: Math.min(time, 1_650),
-    leftLanded: time >= 780,
-    rightLanded: time >= 900,
-    showArithmetic: time >= 1_100,
-    showResult: time >= 1_350,
-    canContinue: time >= 1_650,
+    elapsedMs: Math.min(time, 4_850),
+    leftLanded: time >= 1_000,
+    rightLanded: time >= 1_150,
+    showArithmetic: time >= 1_950,
+    showResult: time >= 1_950,
+    canContinue: time >= 4_850,
   };
 }
 
@@ -74,17 +89,17 @@ function drawDie(
   image: HTMLImageElement,
   centerX: number,
   flightHeight: number,
-  face: number,
+  frameId: DieOrientationFrameId,
   pose: Readonly<{ landed: boolean; rebound: number; squash: number }>,
 ): void {
   const shadow = frames[pose.landed ? 'strong-contact-shadow' : 'soft-flight-shadow'];
-  drawFrame(context, image, shadow, centerX + 9 - shadow.anchors.groundContact.x, 220 - shadow.anchors.groundContact.y);
-  const die = frames[`die-${face}` as DiceFrameId];
+  drawFrame(context, image, shadow, centerX + 9 - shadow.anchors.groundContact.x, 280 - shadow.anchors.groundContact.y);
+  const die = frames[frameId];
   const height = die.height - pose.squash;
   drawFrame(
     context, image, die,
     centerX - die.anchors.groundContact.x,
-    210 - flightHeight + pose.rebound - die.anchors.groundContact.y * height / die.height,
+    270 - flightHeight + pose.rebound - die.anchors.groundContact.y * height / die.height,
     die.width, height,
   );
 }
@@ -102,12 +117,17 @@ function drawDice(
   if (!image || !dice) return;
   context.imageSmoothingEnabled = false;
   const tumble = Math.floor(timeline.elapsedMs / 90);
-  const leftFace = timeline.leftLanded ? dice[0] : (tumble % 6) + 1;
-  const rightFace = timeline.rightLanded ? dice[1] : ((tumble + 3) % 6) + 1;
+  const leftFrame = timeline.leftLanded
+    ? manifest.canonicalFinals[dieFaceKey(dice[0])]
+    : orientationFrameIds[(tumble * 5 + dice[0]) % orientationFrameIds.length]!;
+  const rightFrame = timeline.rightLanded
+    ? manifest.canonicalFinals[dieFaceKey(dice[1])]
+    : orientationFrameIds[(tumble * 7 + dice[1] + 9) % orientationFrameIds.length]!;
   const entry = diceRollEntryProgress(timeline.elapsedMs, reducedMotion, true);
-  const arc = Math.round(Math.sin(entry * Math.PI) * 55);
-  drawDie(context, image, Math.round(-80 + 235 * entry), arc, leftFace, landingPose(timeline.elapsedMs, 780, reducedMotion));
-  drawDie(context, image, Math.round(600 - 235 * entry), arc, rightFace, landingPose(timeline.elapsedMs, 900, reducedMotion));
+  const arc = Math.round(Math.sin(entry * Math.PI) * 78);
+  const bottomEntry = -240 * (1 - entry) + arc;
+  drawDie(context, image, Math.round(170 + 40 * entry), bottomEntry, leftFrame, landingPose(timeline.elapsedMs, 1_000, reducedMotion));
+  drawDie(context, image, Math.round(350 - 40 * entry), bottomEntry * 0.88, rightFrame, landingPose(timeline.elapsedMs, 1_150, reducedMotion));
 }
 
 export function DiceRollCanvas({
@@ -115,22 +135,27 @@ export function DiceRollCanvas({
   dice,
   elapsedMs,
   nativeID = 'dice-roll-canvas',
+  onReady,
   reducedMotion,
 }: Readonly<{
   compact?: boolean;
   dice?: readonly [number, number];
   elapsedMs: number;
   nativeID?: string;
+  onReady?: () => void;
   reducedMotion: boolean;
 }>) {
   const [image, setImage] = useState<HTMLImageElement>();
   const canvasElement = useRef<HTMLCanvasElement | undefined>(undefined);
+  const onReadyRef = useRef(onReady);
   const timeline = sampleDiceRollTimeline(elapsedMs, reducedMotion);
+
+  onReadyRef.current = onReady;
 
   useEffect(() => {
     const loaded = new window.Image();
     let mounted = true;
-    loaded.onload = () => { if (mounted) setImage(loaded); };
+    loaded.onload = () => { if (mounted) { setImage(loaded); onReadyRef.current?.(); } };
     loaded.src = Asset.fromModule(diceImageModule).uri;
     return () => { mounted = false; };
   }, []);
@@ -139,7 +164,7 @@ export function DiceRollCanvas({
     if (!(host instanceof HTMLElement)) return undefined;
     const canvas = document.createElement('canvas');
     canvas.width = 520;
-    canvas.height = 260;
+    canvas.height = 520;
     Object.assign(canvas.style, { display: 'block', height: '100%', imageRendering: 'pixelated', width: '100%' });
     host.append(canvas);
     canvasElement.current = canvas;
@@ -153,6 +178,6 @@ export function DiceRollCanvas({
 }
 
 const styles = StyleSheet.create({
-  canvas: { alignSelf: 'center', aspectRatio: 2, maxWidth: 520, width: '94%' },
-  compact: { maxWidth: 360 },
+  canvas: { alignSelf: 'center', height: 520, maxWidth: 520, width: '94%' },
+  compact: { height: 360, maxWidth: 360 },
 });

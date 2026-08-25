@@ -11,11 +11,9 @@ describe('alarm intro', () => {
     expect(() => alarmGrade(13)).toThrow('2 through 12');
   });
 
-  test('holds the settled result for 900 ms in both motion modes', () => {
-    expect(alarmIntroReady(2_549, false)).toBe(false);
-    expect(alarmIntroReady(2_550, false)).toBe(true);
-    expect(alarmIntroReady(1_079, true)).toBe(false);
-    expect(alarmIntroReady(1_080, true)).toBe(true);
+  test('holds the consumer grade for 900 ms', () => {
+    expect(alarmIntroReady(899)).toBe(false);
+    expect(alarmIntroReady(900)).toBe(true);
   });
 
   test('restarts one player every 2.5 seconds and cancels permanently', async () => {

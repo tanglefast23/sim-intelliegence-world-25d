@@ -1457,21 +1457,21 @@ export function WorldScene({
       setWorldFeedback('SECURITY REPORT PURCHASE FAILED');
     }
   }, [conversationNpcId, requestAutosave, runtime.worldState]);
-  const runQuestAction = useCallback((actionId: ContextQuestAction['id'], commitActionCheck = false) => {
+  const runQuestAction = useCallback((actionId: ContextQuestAction['id'], commitActionCheck = false): boolean => {
     if (
       conversationNpcId || openPanel === 'relationships' ||
       (actionCheck && !(actionId === 'protect_linda' && commitActionCheck))
-    ) return;
+    ) return false;
     if (actionId === 'protect_linda' && !commitActionCheck) {
       const action = lindaQuestActions.find(({ id }) => id === actionId);
       const preview = action ? actionCheckPreview(action) : undefined;
       if (!preview) {
         setWorldFeedback('QUEST BLOCKED · ACTION CHECK IS NOT AVAILABLE');
-        return;
+        return false;
       }
       setActionCheck({ preview });
       setActionCheckPhase('preview');
-      return;
+      return true;
     }
     try {
       const stableActionId = actionId.replaceAll('_', '-');
@@ -1488,7 +1488,7 @@ export function WorldScene({
         setRuntime((current) => ({ ...current, worldState: result.state }));
         setWorldFeedback(`${record.factId.replaceAll('_', ' ').toUpperCase()} · RECORDED`);
         void requestAutosave(result.state, 'manual');
-        return;
+        return true;
       }
       const base = {
         commandId: `command-linda-quest-${stableActionId}-r${runtime.worldState.revision}`,
@@ -1528,6 +1528,7 @@ export function WorldScene({
         result.state,
         result.event?.type === 'linda-quest-resolved' ? 'major_quest' : 'manual',
       );
+      return true;
     } catch (error) {
       if (actionId === 'protect_linda') {
         setActionCheck(undefined);
@@ -1535,6 +1536,7 @@ export function WorldScene({
         requestAnimationFrame(() => document.querySelector<HTMLElement>('#world-quest-action-protect-linda')?.focus());
       }
       setWorldFeedback(error instanceof Error ? `QUEST BLOCKED · ${error.message.toUpperCase()}` : 'QUEST ACTION FAILED');
+      return false;
     }
   }, [actionCheck, conversationNpcId, lindaQuestActions, openPanel, playInterfaceSound, requestAutosave, runtime.worldState, triggerVocalCue]);
   const cancelActionCheck = useCallback(() => {
@@ -2315,10 +2317,12 @@ export function WorldScene({
         ) : null}
         {actionCheck ? <ActionCheckOverlay
           accent={lighting.accent}
+          active={!rendererSuspended}
+          audioEnabled={audioEnabled}
           onCancel={cancelActionCheck}
           onContinue={continueActionCheck}
           onPhaseChange={setActionCheckPhase}
-          onRoll={() => runQuestAction('protect_linda', true)}
+          onRoll={() => runQuestAction('protect_linda', true) ? 'committed' : 'abort'}
           preview={actionCheck.preview}
           reducedMotion={reducedMotion}
           result={actionCheck.result}

@@ -85,6 +85,13 @@ describe('GameScreen new-game alarm intro', () => {
         alarm.props.onSnooze();
         alarm.props.onSnooze();
       });
+      expect(requestSave).not.toHaveBeenCalled();
+      const cup = renderer.root.findByType('AlarmIntroOverlay');
+      expect(cup.props.snoozed).toBe(true);
+      act(() => {
+        expect(cup.props.onRoll()).toBe('committed');
+        expect(cup.props.onRoll()).toBe('retry');
+      });
       expect(requestSave).toHaveBeenCalledTimes(1);
       expect(requestSave.mock.calls[0]![0].state.clock.absoluteMinute).toBe(420);
 
@@ -118,8 +125,9 @@ describe('GameScreen new-game alarm intro', () => {
 
     try {
       act(() => renderer.root.findByType('NewGameFlow').props.onStart('Rowan'));
+      act(() => renderer.root.findByType('AlarmIntroOverlay').props.onSnooze());
       await act(async () => {
-        renderer.root.findByType('AlarmIntroOverlay').props.onSnooze();
+        renderer.root.findByType('AlarmIntroOverlay').props.onRoll();
         await Promise.resolve();
       });
       expect(renderer.root.findByType('AlarmIntroOverlay').props.saveStatus).toBe('failed');

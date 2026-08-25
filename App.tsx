@@ -1,4 +1,3 @@
-import { Silkscreen_400Regular } from '@expo-google-fonts/silkscreen';
 import { Asset } from 'expo-asset';
 import * as Font from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
@@ -15,6 +14,8 @@ import GameSurfaceShell from './src/render/GameSurfaceShell';
 // Stage 7 removed the phase-2 proof assets. The generated world atlas and the generated vocal
 // cues are the shipped resources, so the gate proves those instead.
 const worldAtlas = require('./assets/generated/world-atlas.png') as number;
+const hfmSilkscreenRegular = require('./assets/fonts/HFMSilkscreen_400Regular.ttf') as number;
+const hfmSilkscreenBold = require('./assets/fonts/HFMSilkscreen_700Bold.ttf') as number;
 
 export default function App() {
   const [resources, setResources] = useState<ResourceState>({ status: 'loading' });
@@ -28,7 +29,7 @@ export default function App() {
     const startedAt = performance.now();
     void settleResourceGate(async () => {
       const [, loadedAssets] = await Promise.all([
-        Font.loadAsync({ Silkscreen: Silkscreen_400Regular }),
+        Font.loadAsync({ Silkscreen: hfmSilkscreenRegular, HFMSilkscreenBold: hfmSilkscreenBold }),
         Asset.loadAsync([worldAtlas, ...VOCAL_CUE_ASSETS]),
       ]);
       const worldImageAsset = loadedAssets.find((asset) => asset.name.includes('world-atlas'));

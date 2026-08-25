@@ -18,6 +18,7 @@ import {
 } from './presentation/preferences';
 import type { ViewportSize } from '../render/camera';
 import { AlarmIntroOverlay, type AlarmIntroRoll } from '../ui/AlarmIntroOverlay';
+import type { DiceRollCommitResult } from '../ui/DiceRollFlow';
 
 type GameSession = Readonly<{
   key: string;
@@ -36,6 +37,7 @@ type BootState =
     status: 'intro';
     state: WorldState;
     preferences: PresentationPreferences;
+    snoozed: boolean;
     roll?: AlarmIntroRoll;
     saveStatus: 'idle' | 'saving' | 'saved' | 'failed';
     saveGeneration?: number;
@@ -139,11 +141,16 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
     const smokeMode = typeof window !== 'undefined' && window.siWorldSmokeMode === true;
     const state = createInitialState(displayName, newGameSeed(smokeMode));
     const preferences = boot.status === 'new' ? boot.preferences : DEFAULT_PRESENTATION_PREFERENCES;
-    setBoot({ status: 'intro', state, preferences, saveStatus: 'idle' });
+    setBoot({ status: 'intro', state, preferences, saveStatus: 'idle', snoozed: false });
   }, [boot, playInterfaceSound]);
 
   const snoozeAlarm = useCallback(() => {
-    if (boot.status !== 'intro' || introRollCommitted.current) return;
+    if (boot.status !== 'intro' || boot.snoozed) return;
+    setBoot({ ...boot, snoozed: true });
+  }, [boot]);
+
+  const rollAlarm = useCallback((): DiceRollCommitResult => {
+    if (boot.status !== 'intro' || !boot.snoozed || introRollCommitted.current) return 'retry';
     introRollCommitted.current = true;
     const rolled = rollTwoDice(boot.state.prng);
     const intro: Extract<BootState, { status: 'intro' }> = {
@@ -155,6 +162,7 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
     };
     setBoot(intro);
     saveIntro(intro);
+    return 'committed';
   }, [boot, saveIntro]);
 
   const retryIntroSave = useCallback(() => {
@@ -194,11 +202,13 @@ export function GameScreen({ onWorldReady, rendererKind, surface }: GameScreenPr
       audioEnabled={audioEnabled}
       onComplete={completeIntro}
       onRetry={retryIntroSave}
+      onRoll={rollAlarm}
       onSnooze={snoozeAlarm}
       roll={boot.roll}
       saveError={boot.saveError}
       saveGeneration={boot.saveGeneration}
       saveStatus={boot.saveStatus}
+      snoozed={boot.snoozed}
       surface={surface}
     />;
   }

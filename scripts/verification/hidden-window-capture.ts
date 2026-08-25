@@ -131,6 +131,7 @@ export type SceneEvidence = Readonly<{
   shadowPath: string;
   screenshot: string;
   alarmScreenshot?: string;
+  cupScreenshot?: string;
   resultScreenshot?: string;
   evidence: Readonly<{
     rendererKind: string;
@@ -368,9 +369,32 @@ async function capture(scene) {
     button.click();
   })()\`);
 
+  const cupDeadline = Date.now() + 15000;
+  let cupReady = false;
+  while (Date.now() < cupDeadline) {
+    await driveHiddenPaint(window);
+    cupReady = await window.webContents.executeJavaScript(
+      \`Boolean(document.querySelector('#dice-roll-flow-roll'))\`,
+    );
+    if (cupReady) break;
+  }
+  if (!cupReady) throw new Error('Dice cup did not appear after snooze.');
+  let cupScreenshot;
+  if (scene.alarmScreenshot) {
+    const cupFrame = await driveHiddenPaint(window);
+    cupScreenshot = scene.name + '-cup.png';
+    writeFileSync(join(outputDirectory, cupScreenshot), cupFrame.toPNG());
+  }
+  await window.webContents.executeJavaScript(\`(() => {
+    const button = document.querySelector('#dice-roll-flow-roll');
+    if (!(button instanceof HTMLElement)) throw new Error('ROLL IT button is missing.');
+    button.click();
+  })()\`);
+
   const saveDeadline = Date.now() + 20000;
   let saveStatus = '';
   while (Date.now() < saveDeadline) {
+    await driveHiddenPaint(window);
     saveStatus = await window.webContents.executeJavaScript(
       \`document.querySelector('#alarm-intro-save-status')?.textContent ?? ''\`,
     );
@@ -380,12 +404,14 @@ async function capture(scene) {
   if (!saveStatus.includes('SAVED GEN 1')) throw new Error('Alarm intro save did not finish: ' + saveStatus);
   let resultScreenshot;
   if (scene.alarmScreenshot) {
-    await window.webContents.executeJavaScript(\`window.siWorldPinAlarmIntro?.(1350)\`);
+    await window.webContents.executeJavaScript(\`window.siWorldPinDiceRollFlow?.(1950)\`);
     const resultFrame = await driveHiddenPaint(window);
     resultScreenshot = scene.name + '-result.png';
     writeFileSync(join(outputDirectory, resultScreenshot), resultFrame.toPNG());
   }
-  await window.webContents.executeJavaScript(\`window.siWorldPinAlarmIntro?.(2550)\`);
+  await window.webContents.executeJavaScript(\`window.siWorldPinDiceRollFlow?.(4850)\`);
+  await driveHiddenPaint(window);
+  await window.webContents.executeJavaScript(\`window.siWorldPinDiceRollFlow?.(null)\`);
 
   const deadline = Date.now() + ${readyTimeoutMs};
   let evidence;
@@ -682,6 +708,7 @@ async function capture(scene) {
     shadowPath,
     screenshot,
     alarmScreenshot,
+    cupScreenshot,
     resultScreenshot,
     evidence: shotEvidence,
     weather,

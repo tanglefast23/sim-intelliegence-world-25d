@@ -1,9 +1,83 @@
 import { GRAPHITE, type Rgb } from './media';
 import { hashSeed, Sketch, type Point } from './sketch';
 
-export type ActionCheckDiceFrameId =
-  | 'die-1' | 'die-2' | 'die-3' | 'die-4' | 'die-5' | 'die-6'
-  | 'soft-flight-shadow' | 'strong-contact-shadow';
+export type DieFace = 1 | 2 | 3 | 4 | 5 | 6;
+export type DieOrientationFrameId = `die-t${DieFace}-l${DieFace}-r${DieFace}`;
+export type ActionCheckDiceFrameId = DieOrientationFrameId | 'soft-flight-shadow' | 'strong-contact-shadow';
+export type DieOrientation = Readonly<{
+  frameId: DieOrientationFrameId;
+  top: DieFace;
+  left: DieFace;
+  right: DieFace;
+}>;
+
+type Axis = readonly [-1 | 0 | 1, -1 | 0 | 1, -1 | 0 | 1];
+
+const AXES: readonly Axis[] = [
+  [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1],
+];
+const FACE_NORMALS: Readonly<Record<DieFace, Axis>> = {
+  1: [0, 1, 0], 2: [-1, 0, 0], 3: [0, 0, 1],
+  4: [0, 0, -1], 5: [1, 0, 0], 6: [0, -1, 0],
+};
+
+function dot(left: Axis, right: Axis): number {
+  return left[0] * right[0] + left[1] * right[1] + left[2] * right[2];
+}
+
+function cross(left: Axis, right: Axis): Axis {
+  return [
+    left[1] * right[2] - left[2] * right[1],
+    left[2] * right[0] - left[0] * right[2],
+    left[0] * right[1] - left[1] * right[0],
+  ] as Axis;
+}
+
+function transform(normal: Axis, xAxis: Axis, yAxis: Axis, zAxis: Axis): Axis {
+  return [
+    normal[0] * xAxis[0] + normal[1] * yAxis[0] + normal[2] * zAxis[0],
+    normal[0] * xAxis[1] + normal[1] * yAxis[1] + normal[2] * zAxis[1],
+    normal[0] * xAxis[2] + normal[1] * yAxis[2] + normal[2] * zAxis[2],
+  ] as Axis;
+}
+
+function sameAxis(left: Axis, right: Axis): boolean {
+  return left[0] === right[0] && left[1] === right[1] && left[2] === right[2];
+}
+
+function faceAt(direction: Axis, xAxis: Axis, yAxis: Axis, zAxis: Axis): DieFace {
+  const match = (Object.entries(FACE_NORMALS) as [string, Axis][]).find(([, normal]) => (
+    sameAxis(transform(normal, xAxis, yAxis, zAxis), direction)
+  ));
+  if (!match) throw new Error(`No die face occupies direction ${direction.join(',')}.`);
+  return Number(match[0]) as DieFace;
+}
+
+function buildOrientations(): readonly DieOrientation[] {
+  const orientations: DieOrientation[] = [];
+  for (const xAxis of AXES) {
+    for (const yAxis of AXES) {
+      if (dot(xAxis, yAxis) !== 0) continue;
+      const zAxis = cross(xAxis, yAxis);
+      const top = faceAt([0, 1, 0], xAxis, yAxis, zAxis);
+      const left = faceAt([-1, 0, 0], xAxis, yAxis, zAxis);
+      const right = faceAt([0, 0, 1], xAxis, yAxis, zAxis);
+      orientations.push({ frameId: `die-t${top}-l${left}-r${right}`, top, left, right });
+    }
+  }
+  const unique = new Map(orientations.map((orientation) => [orientation.frameId, orientation]));
+  if (unique.size !== 24) throw new Error(`A physical die must have 24 rotations, received ${unique.size}.`);
+  return [...unique.values()].sort((left, right) => left.frameId.localeCompare(right.frameId));
+}
+
+export const ACTION_CHECK_DICE_ORIENTATIONS = buildOrientations();
+export const ACTION_CHECK_DICE_CANONICAL_FINALS = Object.freeze(Object.fromEntries(
+  ([1, 2, 3, 4, 5, 6] as const).map((face) => {
+    const orientation = ACTION_CHECK_DICE_ORIENTATIONS.find((candidate) => candidate.top === face);
+    if (!orientation) throw new Error(`Missing canonical orientation for die face ${face}.`);
+    return [face, orientation.frameId];
+  }),
+) as Readonly<Record<DieFace, DieOrientationFrameId>>);
 
 const WIDTH = 128;
 const HEIGHT = 128;
@@ -30,8 +104,12 @@ const frame = (
   anchors,
 });
 
+const orientationFrames = Object.fromEntries(ACTION_CHECK_DICE_ORIENTATIONS.map(({ frameId }) => (
+  [frameId, frame('die', DICE_BOUNDS, DIE_ANCHORS)]
+))) as Readonly<Record<DieOrientationFrameId, ReturnType<typeof frame>>>;
+
 export const ACTION_CHECK_DICE_RECIPE = {
-  version: 1,
+  version: 2,
   status: 'approved',
   assetId: 'action-check-dice-01',
   brief: 'Warm isometric pencil dice for the deterministic Action Check overlay.',
@@ -48,13 +126,9 @@ export const ACTION_CHECK_DICE_RECIPE = {
     right: [177, 132, 83] as Rgb,
     shadow: [57, 39, 31] as Rgb,
   },
+  canonicalFinals: ACTION_CHECK_DICE_CANONICAL_FINALS,
   frames: {
-    'die-1': frame('die', DICE_BOUNDS, DIE_ANCHORS),
-    'die-2': frame('die', DICE_BOUNDS, DIE_ANCHORS),
-    'die-3': frame('die', DICE_BOUNDS, DIE_ANCHORS),
-    'die-4': frame('die', DICE_BOUNDS, DIE_ANCHORS),
-    'die-5': frame('die', DICE_BOUNDS, DIE_ANCHORS),
-    'die-6': frame('die', DICE_BOUNDS, DIE_ANCHORS),
+    ...orientationFrames,
     'soft-flight-shadow': frame('shadow', SHADOW_BOUNDS, SHADOW_ANCHORS),
     'strong-contact-shadow': frame('shadow', SHADOW_BOUNDS, SHADOW_ANCHORS),
   },
@@ -72,8 +146,6 @@ const PIPS: Readonly<Record<number, readonly [number, number][]>> = {
   5: [[0.25, 0.25], [0.75, 0.25], [0.5, 0.5], [0.25, 0.75], [0.75, 0.75]],
   6: [[0.25, 0.2], [0.75, 0.2], [0.25, 0.5], [0.75, 0.5], [0.25, 0.8], [0.75, 0.8]],
 };
-const SIDE_FACES = [[2, 3], [1, 3], [1, 2], [1, 2], [1, 3], [2, 3]] as const;
-
 function closed(points: readonly Point[]): readonly Point[] {
   return [...points, points[0]!];
 }
@@ -119,7 +191,7 @@ function drawSidePips(
   }
 }
 
-function drawDie(sketch: Sketch, face: number): void {
+function drawDie(sketch: Sketch, orientation: DieOrientation): void {
   const centerX = 64;
   const topY = 43;
   const halfWidth = 42;
@@ -146,10 +218,9 @@ function drawDie(sketch: Sketch, face: number): void {
   mass(sketch, left, ACTION_CHECK_DICE_RECIPE.colors.left, 0.28);
   mass(sketch, right, ACTION_CHECK_DICE_RECIPE.colors.right, -0.24);
   mass(sketch, top, ACTION_CHECK_DICE_RECIPE.colors.top, 0.04);
-  const [leftFace, rightFace] = SIDE_FACES[face - 1] ?? SIDE_FACES[0];
-  drawSidePips(sketch, leftFace, 'left', centerX, topY, halfWidth, halfTop, sideHeight);
-  drawSidePips(sketch, rightFace, 'right', centerX, topY, halfWidth, halfTop, sideHeight);
-  drawTopPips(sketch, face, centerX, topY, halfWidth, halfTop);
+  drawSidePips(sketch, orientation.left, 'left', centerX, topY, halfWidth, halfTop, sideHeight);
+  drawSidePips(sketch, orientation.right, 'right', centerX, topY, halfWidth, halfTop, sideHeight);
+  drawTopPips(sketch, orientation.top, centerX, topY, halfWidth, halfTop);
 }
 
 function drawShadow(sketch: Sketch, strong: boolean): void {
@@ -170,7 +241,10 @@ function drawShadow(sketch: Sketch, strong: boolean): void {
 export function bakeActionCheckDiceFrame(frameId: ActionCheckDiceFrameId): Uint8ClampedArray {
   const sketch = new Sketch(WIDTH, HEIGHT);
   sketch.boil(hashSeed(ACTION_CHECK_DICE_RECIPE.assetId, ACTION_CHECK_DICE_RECIPE.seed, frameId));
-  if (frameId.startsWith('die-')) drawDie(sketch, Number(frameId.slice(4)));
-  else drawShadow(sketch, frameId === 'strong-contact-shadow');
+  if (frameId.startsWith('die-')) {
+    const orientation = ACTION_CHECK_DICE_ORIENTATIONS.find((candidate) => candidate.frameId === frameId);
+    if (!orientation) throw new Error(`Unknown die orientation frame: ${frameId}`);
+    drawDie(sketch, orientation);
+  } else drawShadow(sketch, frameId === 'strong-contact-shadow');
   return sketch.data;
 }

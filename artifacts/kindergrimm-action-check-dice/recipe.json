@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "status": "approved",
   "assetId": "action-check-dice-01",
   "brief": "Warm isometric pencil dice for the deterministic Action Check overlay.",
@@ -58,8 +58,16 @@
       31
     ]
   },
+  "canonicalFinals": {
+    "1": "die-t1-l2-r3",
+    "2": "die-t2-l1-r4",
+    "3": "die-t3-l1-r2",
+    "4": "die-t4-l1-r5",
+    "5": "die-t5-l1-r3",
+    "6": "die-t6-l2-r4"
+  },
   "frames": {
-    "die-1": {
+    "die-t1-l2-r3": {
       "kind": "die",
       "transparentBounds": {
         "x": 2,
@@ -82,7 +90,7 @@
         }
       }
     },
-    "die-2": {
+    "die-t1-l3-r5": {
       "kind": "die",
       "transparentBounds": {
         "x": 2,
@@ -105,7 +113,7 @@
         }
       }
     },
-    "die-3": {
+    "die-t1-l4-r2": {
       "kind": "die",
       "transparentBounds": {
         "x": 2,
@@ -128,7 +136,7 @@
         }
       }
     },
-    "die-4": {
+    "die-t1-l5-r4": {
       "kind": "die",
       "transparentBounds": {
         "x": 2,
@@ -151,7 +159,7 @@
         }
       }
     },
-    "die-5": {
+    "die-t2-l1-r4": {
       "kind": "die",
       "transparentBounds": {
         "x": 2,
@@ -174,7 +182,421 @@
         }
       }
     },
-    "die-6": {
+    "die-t2-l3-r1": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t2-l4-r6": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t2-l6-r3": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t3-l1-r2": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t3-l2-r6": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t3-l5-r1": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t3-l6-r5": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t4-l1-r5": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t4-l2-r1": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t4-l5-r6": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t4-l6-r2": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t5-l1-r3": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t5-l3-r6": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t5-l4-r1": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t5-l6-r4": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t6-l2-r4": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t6-l3-r2": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t6-l4-r5": {
+      "kind": "die",
+      "transparentBounds": {
+        "x": 2,
+        "y": 2,
+        "width": 124,
+        "height": 124
+      },
+      "anchors": {
+        "topFace": {
+          "x": 64,
+          "y": 43
+        },
+        "center": {
+          "x": 64,
+          "y": 64
+        },
+        "groundContact": {
+          "x": 64,
+          "y": 112
+        }
+      }
+    },
+    "die-t6-l5-r3": {
       "kind": "die",
       "transparentBounds": {
         "x": 2,

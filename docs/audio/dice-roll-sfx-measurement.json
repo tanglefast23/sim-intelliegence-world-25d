@@ -1,0 +1,19 @@
+{
+  "measurement": "ffmpeg ebur128=peak=true",
+  "processing": {
+    "shake": "volume=9.5dB,alimiter=limit=0.79:attack=5:release=50:level=false",
+    "land": "volume=17dB,alimiter=limit=0.79:attack=5:release=50:level=false",
+    "note": "The true-peak ceiling takes priority for these short transient cues. The land cue stays below the nominal -16 LUFS target rather than flattening its impact shape."
+  },
+  "target": { "integratedLufs": -16, "maxTruePeakDbfs": -1.5, "minimumGainLu": 3 },
+  "files": {
+    "shake": {
+      "source": { "sha256": "d9ba8af22031a1996cb11457a18d9c87834bc9d5efc11d401b53a2d00051f74e", "integratedLufs": -20.9 },
+      "production": { "path": "assets/source/audio/sfx_dice_cup_shake.mp3", "sha256": "5b59f05bc49615605ed5ba95e8d85d4d9581eb8319d4d66161c0ac65b734287a", "durationSeconds": 2.089796, "integratedLufs": -16.2, "truePeakDbfs": -1.6 }
+    },
+    "land": {
+      "source": { "sha256": "14cdea424509ecac46fd686e9691d6ee9b637ad1b8d0f01e7f7c5c105ff2d730", "integratedLufs": -32.7 },
+      "production": { "path": "assets/source/audio/sfx_dice_land.mp3", "sha256": "3bdadc682ffc0a68d8d9e34a86724c7028f0bd1cff6871dad456205530c3e057", "durationSeconds": 2.089796, "integratedLufs": -21.3, "truePeakDbfs": -2.2 }
+    }
+  }
+}

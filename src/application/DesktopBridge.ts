@@ -52,6 +52,7 @@ declare global {
     siWorldPinShootingScene?: (timeMs: number) => number;
     siWorldPinActionCheck?: (timeMs: number) => number;
     siWorldPinAlarmIntro?: (timeMs: number) => number;
+    siWorldPinDiceRollFlow?: (timeMs: number | null) => number;
     siWorldAlarmAudioEvidence?: () => Readonly<{
       audioEnabled: boolean;
       currentTime: number;
