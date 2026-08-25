@@ -132,21 +132,23 @@ External research is not needed. The repository already contains the required pa
 
 - Add `assets/source/audio/sfx_dice_cup_shake.mp3`
 - Add `assets/source/audio/sfx_dice_land.mp3`
+- Add `assets/source/audio/sfx_dice_launch_woosh.webm`
+- Add `assets/source/audio/sfx_dice_roll_alt.mp3`
 - Add `docs/audio/dice-roll-sfx-measurement.json`
 - Add `scripts/audio/measure-dice-roll-sfx.ts`
 
 ### Work
 
 - [ ] Verify the source files still match their pinned SHA-256 values.
-- [ ] Leave the source files in Downloads unchanged.
-- [ ] Create production copies with FFmpeg `loudnorm` targeting `-16 LUFS` and `-1.5 dBTP`.
+- [ ] Leave every supplied source file unchanged.
+- [ ] Keep every production cue at or below `-1.5 dBTP`; preserve the supplied woosh waveform.
 - [ ] Do not gate on loudness range because each cue is about 2.09 seconds.
 - [ ] Measure the supplied and production files with the same command.
 - [ ] Record source-provenance hashes and measurements separately from production hashes and measurements.
-- [ ] Require at least `3 LU` gain for each production cue.
+- [ ] Require the committed shake and land copies to gain at least `3 LU`; record the altered roll transform separately.
 - [ ] Keep production true peak at or below `-1.5 dBTP`.
 - [ ] Inspect for decode errors.
-- [ ] Make the measurement script invoke FFmpeg on the committed production MP3s.
+- [ ] Make the measurement script invoke FFmpeg on every committed production cue.
 - [ ] Make the script assert production hashes and measured values against the JSON record.
 - [ ] Compare committed production loudness with the recorded source loudness; do not require Downloads files after creation.
 
@@ -231,16 +233,17 @@ The consumer owns its dialog and cancel control. The shared component owns `ROLL
 
 ### Audio work
 
-- [ ] Use one cup-shake player and one landing player.
+- [ ] Use one player for each of the shake, launch, original roll, and altered roll cues.
 - [ ] Start one shake loop only in the cup phase.
 - [ ] Set shake volume to `clamp(0.80 × sfx)`.
 - [ ] Stop and rewind shake on `ROLL IT` and unmount.
-- [ ] Play landing once at the main final impact.
-- [ ] Set landing volume to `clamp(1.00 × sfx)`.
-- [ ] Play landing at the reduced-motion impact flash.
+- [ ] Play the launch woosh immediately after a committed `ROLL IT` activation.
+- [ ] Start the original rolling cue when the woosh finishes.
+- [ ] Start the altered rolling cue `500 ms` later at `clamp(1.00 × sfx)`.
+- [ ] Do not play another sound at the reduced-motion or normal-motion impact cue.
 - [ ] Do not replay audio during smoke pinning.
 - [ ] Let audio failure fall back to silent visual play.
-- [ ] Pause and rewind both the shake and landing players on unmount.
+- [ ] Pause and rewind all audio players on unmount.
 
 ### Accessibility work
 
