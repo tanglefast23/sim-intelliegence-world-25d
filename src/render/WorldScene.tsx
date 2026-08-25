@@ -242,20 +242,6 @@ function gaitStopProgress(movement: MovementState): number | undefined {
     : undefined;
 }
 
-const OPENING_CAST_TILES = {
-  linda: { x: 22, y: 25 },
-  mina_park: { x: 24, y: 25 },
-  devon_price: { x: 26, y: 25 },
-  rafael_cruz: { x: 28, y: 25 },
-  linda_boyfriend: { x: 30, y: 25 },
-  tomas_reed: { x: 22, y: 27 },
-  priya_nair: { x: 24, y: 27 },
-  sora_tan: { x: 26, y: 27 },
-  elise_moreau: { x: 28, y: 27 },
-  resident_01: { x: 30, y: 27 },
-} as const;
-
-const OPENING_CAST_IDS = new Set<string>(Object.keys(OPENING_CAST_TILES));
 type AuthoredDialogueFixtureId = Exclude<CharacterId, 'protagonist' | 'vampire-01'>;
 
 function actorTiles(
@@ -270,7 +256,6 @@ function actorTiles(
   reactionId: string | undefined,
   poseFrame: 0 | 1,
   tilted: boolean,
-  openingShowcase: boolean,
 ): WorldActors {
   const output: Record<string, WorldActors[string]> = {};
   for (const [stateId, npc] of Object.entries(state.npcs)) {
@@ -301,25 +286,6 @@ function actorTiles(
         travelDistance: movement?.travelDistance ?? 0,
         turnCurve: movement?.latchedTurnCurve,
         stopProgress: movement ? gaitStopProgress(movement) : undefined,
-      };
-    }
-  }
-  if (openingShowcase && mapId === 'northwest_residential') {
-    for (const [stateId, tile] of Object.entries(OPENING_CAST_TILES)) {
-      output[stateId] = {
-        tile,
-        visualId: visualIdForNpc(stateId),
-        direction: tilted ? tiltedFacing('down') : 'down',
-        visualFoot: snapWorldPoint(tileFootPoint(tile), zoom, dpr),
-        walkFrame: 0,
-        moving: false,
-        reducedMotion,
-        horizontalRunDistance: 0,
-        pose: stateId === reactionId ? 'reaction' : stateId === conversationNpcId ? 'talk' : 'idle',
-        poseFrame: stateId === selectedId || stateId === conversationNpcId ? poseFrame : 0,
-        travelDistance: 0,
-        poseProgress: 0,
-        poseDirection: 1,
       };
     }
   }
@@ -425,13 +391,9 @@ export function WorldScene({
     y: initialState.protagonist.worldPosition.tileY,
   }), [initialState]);
   const initialMapId = initialState.protagonist.worldPosition.mapId as MapId;
-  const initialMap = WORLD_MAP_CATALOG[initialMapId];
   const automaticZoom = automaticWorldZoom(surface);
   const initialZoom = initialPresentationPreferences.worldZoom
     ?? (newGame && initialMapId === 'northwest_residential' ? Math.max(2, automaticZoom) : automaticZoom);
-  const initialAnchor = newGame
-    ? (initialMapId === 'northwest_residential' ? { x: 22, y: 27 } : initialMap.source.startComposition?.cameraAnchor ?? initialTile)
-    : initialTile;
   const [runtime, setRuntime] = useState<RuntimeViewState>(() => ({
     movement: createMovementState(initialTile),
     npcMovements: npcMovementState(initialState),
@@ -441,7 +403,7 @@ export function WorldScene({
     const saved = initialPresentationPreferences.camera;
     return !newGame && saved?.mapId === initialMapId
       ? clamp({ x: saved.x, y: saved.y, zoom: initialZoom }, surface, MAP_PIXELS)
-      : centerCameraOnTile(initialAnchor, initialZoom, surface, MAP_PIXELS, clamp);
+      : centerCameraOnTile(initialTile, initialZoom, surface, MAP_PIXELS, clamp);
   });
   const [explicitWorldZoom, setExplicitWorldZoom] = useState(initialPresentationPreferences.worldZoom !== null);
   const [uiScale, setUiScale] = useState<UiScale>(() => initialPresentationPreferences.uiScale ?? automaticUiScale(surface));
@@ -449,7 +411,6 @@ export function WorldScene({
   const [hudCollapsed, setHudCollapsed] = useState(initialPresentationPreferences.hudCollapsed);
   const volumes = useAudioVolumes();
   const [selected, setSelected] = useState<string>(initialConversationFixtureId ?? 'protagonist');
-  const [openingShowcase, setOpeningShowcase] = useState(newGame && initialMapId === 'northwest_residential');
   const [reactionId, setReactionId] = useState<string>();
   const [poseFrame, setPoseFrame] = useState<0 | 1>(0);
   const [playerPoseFixture, setPlayerPoseFixture] = useState<CharacterPose>();
@@ -600,8 +561,7 @@ export function WorldScene({
     reactionId,
     poseFrame,
     renderer2_5d,
-    openingShowcase,
-  ), [camera.zoom, conversationNpcId, dpr, mapId, openingShowcase, poseFrame, reactionId, reducedMotion, renderer2_5d, runtime.npcMovements, runtime.worldState, selected]);
+  ), [camera.zoom, conversationNpcId, dpr, mapId, poseFrame, reactionId, reducedMotion, renderer2_5d, runtime.npcMovements, runtime.worldState, selected]);
   const speed = effectiveSpeed(runtime.worldState.clock);
   const ambientRunning = !rendererSuspended && vfxMode === 'procedural' && (forceAmbientMotion || speed > 0);
   const selectedNpcId = stateNpcId(selected, runtime.worldState);
@@ -828,10 +788,10 @@ export function WorldScene({
               ...linda,
               scheduleGoal: {
                 mapId: 'northwest_residential',
-                locationId: 'linda_villa',
+                locationId: 'northwest_residential',
                 activityId: 'smoke-walk',
-                tileX: 23,
-                tileY: 28,
+                tileX: 28,
+                tileY: 30,
                 scheduledMinute: current.worldState.clock.absoluteMinute,
               },
             },
@@ -839,7 +799,7 @@ export function WorldScene({
         });
         return { ...current, npcMovements: npcMovementState(worldState), worldState };
       });
-      return { npcId: 'linda', source: 'fixture', target: { x: 23, y: 28 } };
+      return { npcId: 'linda', source: 'fixture', target: { x: 28, y: 30 } };
     };
     window.siWorldOpenRendererFeedbackFixture = () => {
       setOpenPanel(undefined);
@@ -1266,7 +1226,6 @@ export function WorldScene({
     if (visibleNpc) {
       selectCharacter(visibleNpc[0]);
       setRuntime((current) => ({ ...current, movement: cancelMovement(current.movement) }));
-      if (openingShowcase && OPENING_CAST_IDS.has(visibleNpc[0])) setConversationNpcId(visibleNpc[0]);
       return;
     }
     const tile = unproject(camera, point);
@@ -1281,7 +1240,6 @@ export function WorldScene({
     if (resolved.kind === 'npc') {
       selectCharacter(resolved.id);
       setRuntime((current) => ({ ...current, movement: cancelMovement(current.movement) }));
-      if (openingShowcase && OPENING_CAST_IDS.has(resolved.id)) setConversationNpcId(resolved.id);
       return;
     }
     if (resolved.kind === 'object') {
@@ -1319,8 +1277,7 @@ export function WorldScene({
       emitTransientCue(WATER_GROUND_SPRITES.has(ground.sprite) ? 'ripple' : 'dust', center, 'strong');
     }
     if (resolved.tile) requestTile(resolved.tile);
-    setOpeningShowcase(false);
-  }, [actionCheck, camera, conversationNpcId, emitTransientCue, insideMap, map, npcTiles, openPanel, openingShowcase, project, questOfferOpen, requestTile, runtime.movement.player, runtime.worldState, selectCharacter, unproject]);
+  }, [actionCheck, camera, conversationNpcId, emitTransientCue, insideMap, map, npcTiles, openPanel, project, questOfferOpen, requestTile, runtime.movement.player, runtime.worldState, selectCharacter, unproject]);
 
   useEffect(() => {
     if (!destinationMarker || rendererSuspended || rendererParityPulseFrozen) return;
@@ -1500,21 +1457,21 @@ export function WorldScene({
       setWorldFeedback('SECURITY REPORT PURCHASE FAILED');
     }
   }, [conversationNpcId, requestAutosave, runtime.worldState]);
-  const runQuestAction = useCallback((actionId: ContextQuestAction['id'], commitActionCheck = false) => {
+  const runQuestAction = useCallback((actionId: ContextQuestAction['id'], commitActionCheck = false): boolean => {
     if (
       conversationNpcId || openPanel === 'relationships' ||
       (actionCheck && !(actionId === 'protect_linda' && commitActionCheck))
-    ) return;
+    ) return false;
     if (actionId === 'protect_linda' && !commitActionCheck) {
       const action = lindaQuestActions.find(({ id }) => id === actionId);
       const preview = action ? actionCheckPreview(action) : undefined;
       if (!preview) {
         setWorldFeedback('QUEST BLOCKED · ACTION CHECK IS NOT AVAILABLE');
-        return;
+        return false;
       }
       setActionCheck({ preview });
       setActionCheckPhase('preview');
-      return;
+      return true;
     }
     try {
       const stableActionId = actionId.replaceAll('_', '-');
@@ -1531,7 +1488,7 @@ export function WorldScene({
         setRuntime((current) => ({ ...current, worldState: result.state }));
         setWorldFeedback(`${record.factId.replaceAll('_', ' ').toUpperCase()} · RECORDED`);
         void requestAutosave(result.state, 'manual');
-        return;
+        return true;
       }
       const base = {
         commandId: `command-linda-quest-${stableActionId}-r${runtime.worldState.revision}`,
@@ -1571,6 +1528,7 @@ export function WorldScene({
         result.state,
         result.event?.type === 'linda-quest-resolved' ? 'major_quest' : 'manual',
       );
+      return true;
     } catch (error) {
       if (actionId === 'protect_linda') {
         setActionCheck(undefined);
@@ -1578,6 +1536,7 @@ export function WorldScene({
         requestAnimationFrame(() => document.querySelector<HTMLElement>('#world-quest-action-protect-linda')?.focus());
       }
       setWorldFeedback(error instanceof Error ? `QUEST BLOCKED · ${error.message.toUpperCase()}` : 'QUEST ACTION FAILED');
+      return false;
     }
   }, [actionCheck, conversationNpcId, lindaQuestActions, openPanel, playInterfaceSound, requestAutosave, runtime.worldState, triggerVocalCue]);
   const cancelActionCheck = useCallback(() => {
@@ -2358,10 +2317,12 @@ export function WorldScene({
         ) : null}
         {actionCheck ? <ActionCheckOverlay
           accent={lighting.accent}
+          active={!rendererSuspended}
+          audioEnabled={audioEnabled}
           onCancel={cancelActionCheck}
           onContinue={continueActionCheck}
           onPhaseChange={setActionCheckPhase}
-          onRoll={() => runQuestAction('protect_linda', true)}
+          onRoll={() => runQuestAction('protect_linda', true) ? 'committed' : 'abort'}
           preview={actionCheck.preview}
           reducedMotion={reducedMotion}
           result={actionCheck.result}

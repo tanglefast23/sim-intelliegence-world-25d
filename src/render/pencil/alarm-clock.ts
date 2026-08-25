@@ -13,7 +13,7 @@ export const ALARM_CLOCK_RECIPE = {
   version: 1,
   status: 'review',
   assetId: 'modern-digital-alarm-clock-01',
-  brief: 'Modern soft-touch digital alarm clock with a dominant amber 7:30 display.',
+  brief: 'Modern soft-touch digital alarm clock with a dominant amber 7:00 display.',
   seed: 730,
   upstreamCommit: 'de339ad739d8cbd28ff2dd4a940af38c0ede86c8',
   medium: 'graphite',
@@ -26,7 +26,15 @@ export const ALARM_CLOCK_RECIPE = {
     depth: { mode: 'low' },
   },
   material: 'charcoal soft-touch plastic, smoked glass, rubber feet',
-  time: '7:30',
+  time: '7:00',
+  display: {
+    digits: [
+      { digit: '7', x: 26, y: 26 },
+      { digit: '0', x: 46, y: 26 },
+      { digit: '0', x: 60, y: 26 },
+    ],
+    colon: { x: 41, dotYs: [32, 39] },
+  },
   orderedParts: ['contact-shadow', 'feet', 'case', 'screen', 'time', 'buttons'],
   colors: {
     case: [54, 52, 59] as Rgb,
@@ -193,16 +201,12 @@ function drawDigit(sketch: Sketch, digit: keyof typeof DIGIT_SEGMENTS, x: number
 }
 
 function drawTime(sketch: Sketch): void {
-  const y = 26;
-  drawDigit(sketch, '7', 17, y);
-  drawDigit(sketch, '3', 30, y);
-  for (const dotY of [32, 39]) {
-    GRAPHITE.skin(sketch, sketch.blobPts(45, dotY, 1.8, 1.8, 0, 0.08), ALARM_CLOCK_RECIPE.colors.led, {
+  for (const { digit, x, y } of ALARM_CLOCK_RECIPE.display.digits) drawDigit(sketch, digit, x, y);
+  for (const dotY of ALARM_CLOCK_RECIPE.display.colon.dotYs) {
+    GRAPHITE.skin(sketch, sketch.blobPts(ALARM_CLOCK_RECIPE.display.colon.x, dotY, 1.8, 1.8, 0, 0.08), ALARM_CLOCK_RECIPE.colors.led, {
       alpha: 0.98, paper: false, underdraw: false,
     });
   }
-  drawDigit(sketch, '3', 49, y);
-  drawDigit(sketch, '0', 62, y);
 }
 
 function button(sketch: Sketch, points: readonly Point[], style: 'light' | 'hatch' = 'light'): void {

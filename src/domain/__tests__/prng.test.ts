@@ -1,5 +1,5 @@
 import { createPrng } from '../prng';
-import { resolveActionCheck, successesOutOf36 } from '../action-check';
+import { resolveActionCheck, rollTwoDice, successesOutOf36 } from '../action-check';
 
 function take(count: number, seed = 0x51_57_0a_1d): number[] {
   const prng = createPrng(seed);
@@ -54,5 +54,13 @@ describe('deterministic PRNG', () => {
     const next = resolveActionCheck(result.prng, 4, 9);
     expect(next.prng.cursor).not.toBe(result.prng.cursor);
     expect(next.result.dice.every((face) => face >= 1 && face <= 6)).toBe(true);
+  });
+
+  test('the intro roll advances the same two PRNG draws as an Action Check', () => {
+    const prng = createPrng(0x51_57_01).snapshot();
+    const roll = rollTwoDice(prng);
+    const actionCheck = resolveActionCheck(prng, 0, 9);
+
+    expect(roll).toEqual({ dice: [3, 5], total: 8, prng: actionCheck.prng });
   });
 });

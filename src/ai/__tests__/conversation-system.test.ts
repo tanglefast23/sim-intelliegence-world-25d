@@ -12,7 +12,7 @@ import { conversationPromptSuggestions, detectStructuredConversationAction } fro
 import { parseCharacterKnowledgeMarkdown } from '../knowledge/character-knowledge';
 import { classifyQuestionScope, parseWorldKnowledgeMarkdown } from '../knowledge/world-knowledge';
 import { buildPromptProjection, MAX_PROMPT_BYTES, promptUtf8Bytes } from '../projection/prompt-projection';
-import { buildSceneRegistry, type CharacterWriting } from '../registry/scene-registry';
+import { ambientDialogue, buildSceneRegistry, type CharacterWriting } from '../registry/scene-registry';
 import { FileCharacterWritingStore } from '../registry/file-writing-store';
 import { buildTurnCandidateRegistry, isPositiveFirstPersonCatClaim } from '../registry/turn-candidates';
 import { deterministicPolicyDecision } from '../policy/content-policy';
@@ -871,7 +871,7 @@ describe('validated local conversation system', () => {
     const state = createInitialState();
     const result = await service.begin({ conversationId: 'conversation-resident-1', npcId: 'generic_resident', state });
     expect(result.kind).toBe('ambient');
-    expect(result.kind === 'ambient' && result.dialogue).toContain('public version');
+    expect(result.kind === 'ambient' && result.dialogue).toBe(ambientDialogue('generic_resident', state.clock.absoluteMinute));
     expect(result.kind === 'ambient' && result.state).toEqual(state);
     expect(inference.requests).toHaveLength(0);
     expect(state.npcs.generic_resident?.memories).toEqual([]);

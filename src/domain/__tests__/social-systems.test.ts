@@ -297,6 +297,7 @@ describe('Phase 10 social systems', () => {
     const ready = resolvedLindaState();
     const crossMap = WorldStateSchema.parse({
       ...ready,
+      clock: { ...ready.clock, absoluteMinute: 480 },
       npcs: {
         ...ready.npcs,
         linda: {
@@ -354,13 +355,16 @@ describe('Phase 10 social systems', () => {
         },
       },
     });
+    const beforeDeparture = simulateWorldInterval({
+      state: collision, toAbsoluteMinute: 569, toSubMinuteMilliseconds: 0, awake: true, frameMovement: false,
+    }).state;
     const departed = simulateWorldInterval({
-      state: collision, toAbsoluteMinute: 570, toSubMinuteMilliseconds: 0, awake: true, frameMovement: false,
+      state: beforeDeparture, toAbsoluteMinute: 570, toSubMinuteMilliseconds: 0, awake: true, frameMovement: false,
     }).state;
     expect(departed.invitations.invitation_same_minute).toEqual(expect.objectContaining({
       status: 'accepted', preparedAtMinute: 570,
     }));
-    expect(departed.npcs.linda?.presence).toEqual(ready.npcs.linda?.presence);
+    expect(departed.npcs.linda?.presence).toEqual(beforeDeparture.npcs.linda?.presence);
     expect(departed.transfers).toEqual({});
   });
 

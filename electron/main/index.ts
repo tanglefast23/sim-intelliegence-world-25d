@@ -1425,7 +1425,7 @@ async function captureMovementPass(
     return window.siWorldStartNaturalMovementFixture();
   })()`, true) as unknown;
   if (JSON.stringify(npcMotionFixture) !== JSON.stringify({
-    npcId: 'linda', source: 'fixture', target: { x: 23, y: 28 },
+    npcId: 'linda', source: 'fixture', target: { x: 28, y: 30 },
   })) throw new Error('Natural-movement NPC fixture returned an invalid descriptor.');
   await waitForRendererPaint(window);
 
@@ -1637,9 +1637,102 @@ async function startResponsiveSmokeGame(window: BrowserWindow): Promise<void> {
     input.focus();
   })()`, true);
   sendKey(window, 'Enter');
-  await waitForSelector(window, '#world-state', 20_000);
-  await waitForRendererText(window, '#world-save-status', 'SAVED GEN 1');
+  await completeAlarmIntroForSmoke(window);
   await clickAriaButton(window, 'Pause time');
+}
+
+async function completeAlarmIntroForSmoke(window: BrowserWindow): Promise<void> {
+  await waitForSelector(window, '#alarm-intro-overlay');
+  await waitForRendererPaint(window);
+  const contract = await window.webContents.executeJavaScript(`(() => {
+    const dialog = document.querySelector('#alarm-intro-overlay');
+    const button = document.querySelector('#alarm-intro-snooze');
+    if (!(dialog instanceof HTMLElement) || !(button instanceof HTMLElement)) return null;
+    const rect = button.getBoundingClientRect();
+    return {
+      dialogLabel: dialog.getAttribute('aria-label'),
+      buttonLabel: button.getAttribute('aria-label'),
+      focusLabel: document.activeElement?.getAttribute('aria-label'),
+      height: rect.height,
+      width: rect.width,
+      prompt: dialog.textContent?.includes('HIT SNOOZE!') === true,
+    };
+  })()`, true) as Readonly<{
+    buttonLabel: string | null;
+    dialogLabel: string | null;
+    focusLabel: string | null;
+    height: number;
+    prompt: boolean;
+    width: number;
+  }> | null;
+  if (!contract || contract.dialogLabel !== 'Alarm clock showing 7:00. Hit snooze.' ||
+      contract.buttonLabel !== 'Snooze alarm' || contract.focusLabel !== 'Snooze alarm' ||
+      !contract.prompt ||
+      contract.width < 44 || contract.height < 44) {
+    throw new Error(`Alarm intro accessibility contract failed: ${JSON.stringify(contract)}`);
+  }
+  sendKey(window, 'Escape');
+  await waitForSelector(window, '#alarm-intro-overlay');
+
+  const audioDeadline = Date.now() + 8_000;
+  let previousTime = -1;
+  let audioAdvanced = false;
+  type AlarmAudioEvidence = Readonly<{
+    audioEnabled?: boolean;
+    currentTime?: number;
+    loaded?: boolean;
+    playing?: boolean;
+    userActivation?: boolean;
+    visibilityState?: string;
+  }>;
+  let lastAudio: AlarmAudioEvidence | null = null;
+  while (Date.now() < audioDeadline) {
+    lastAudio = await window.webContents.executeJavaScript(
+      `window.siWorldAlarmAudioEvidence?.() ?? null`,
+      true,
+    ) as AlarmAudioEvidence | null;
+    const currentTime = Number(lastAudio?.currentTime);
+    if (lastAudio?.loaded === true && lastAudio.playing === true && currentTime > previousTime + 0.02) {
+      audioAdvanced = true;
+      break;
+    }
+    if (Number.isFinite(currentTime)) previousTime = currentTime;
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
+  }
+  if (!audioAdvanced) throw new Error(`Alarm audio did not load, play, and advance: ${JSON.stringify(lastAudio)}`);
+
+  await window.webContents.executeJavaScript(`(() => {
+    const button = document.querySelector('#alarm-intro-snooze');
+    if (!(button instanceof HTMLElement)) throw new Error('Snooze button is missing.');
+    button.click();
+    button.click();
+  })()`, true);
+  await waitForSelectorMissing(window, '#alarm-intro-snooze');
+  await waitForSelector(window, '#dice-roll-flow-roll');
+  const cupLabel = await window.webContents.executeJavaScript(
+    `document.querySelector('#alarm-intro-overlay')?.getAttribute('aria-label') ?? ''`,
+    true,
+  ) as string;
+  if (cupLabel !== 'Dice cup ready. Roll the dice.') throw new Error(`Alarm intro did not enter the cup stage: ${cupLabel}`);
+  await clickAriaButton(window, 'Roll the dice');
+  await waitForRendererText(window, '#alarm-intro-save-status', 'SAVED GEN 1', 20_000);
+  await waitForSelector(window, '#dice-roll-flow-canvas');
+  await window.webContents.executeJavaScript(`window.siWorldPinDiceRollFlow?.(4850)`, true);
+  await waitForRendererPaint(window);
+  await window.webContents.executeJavaScript(`window.siWorldPinDiceRollFlow?.(null)`, true);
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline) {
+    await waitForRendererPaint(window);
+    const mounted = await window.webContents.executeJavaScript(
+      `Boolean(document.querySelector('#world-state'))`,
+      true,
+    ) as boolean;
+    if (mounted) {
+      await waitForRendererText(window, '#world-save-status', 'SAVED GEN 1');
+      return;
+    }
+  }
+  throw new Error('Alarm intro did not finish its fade into the world.');
 }
 
 async function openLindaConversationForResponsiveSmoke(window: BrowserWindow): Promise<Record<string, unknown>> {
@@ -2026,8 +2119,7 @@ async function beginWorldSmoke(window: BrowserWindow, directory: string): Promis
     input.focus();
   })()`, true);
   sendKey(window, 'Enter');
-  await waitForSelector(window, '#world-state', 20_000);
-  await waitForRendererText(window, '#world-save-status', 'SAVED GEN 1');
+  await completeAlarmIntroForSmoke(window);
   return { newGameFlow, newGameText };
 }
 
@@ -2599,7 +2691,7 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
   const actionCheckPreview = previewState.reducedMotion === false &&
     JSON.stringify(previewState.preview).includes('SUCCEED IF 2d6 + 4 >= 9') &&
     JSON.stringify(previewState.preview).includes('CHANCE 30/36 · 83.3%');
-  const actionCheckInitialFocus = await focusedAriaLabel(window) === 'Roll action check';
+  const actionCheckInitialFocus = await focusedAriaLabel(window) === 'Roll the dice';
   const actionCheckBackgroundDisabled = await window.webContents.executeJavaScript(`(() => {
     const overlay = document.querySelector('#world-action-check-overlay');
     const controls = [...document.querySelectorAll('#world-ui-hud [role="button"], #world-ui-journal-panel [role="button"], #world-ui-character-card [role="button"]')];
@@ -2614,7 +2706,7 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
   const tabToCancel = await focusedAriaLabel(window) === 'Cancel action check';
   sendTab(window);
   await waitForRendererPaint(window);
-  const tabCyclesToRoll = await focusedAriaLabel(window) === 'Roll action check';
+  const tabCyclesToRoll = await focusedAriaLabel(window) === 'Roll the dice';
   sendTab(window, true);
   await waitForRendererPaint(window);
   const shiftTabCyclesToCancel = await focusedAriaLabel(window) === 'Cancel action check';
@@ -2627,13 +2719,13 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
     await rendererText(window, '#world-save-status') === saveBeforePreview;
   await clickAriaButton(window, 'Protect Linda');
   await waitForActionCheckPhase(window, 'preview');
-  await clickAriaButton(window, 'Roll action check');
+  await clickAriaButton(window, 'Roll the dice');
   await waitForActionCheckPhase(window, 'rolling');
-  await window.webContents.executeJavaScript('window.siWorldPinActionCheck?.(450)', true);
+  await window.webContents.executeJavaScript('window.siWorldPinDiceRollFlow?.(700)', true);
   sendTab(window);
   await waitForRendererPaint(window);
   const actionCheckRollingFocusTrap = await window.webContents.executeJavaScript(
-    `document.activeElement?.id === 'world-action-check-overlay'`, true,
+    `document.activeElement?.id === 'dice-roll-flow-root'`, true,
   ) as boolean;
   sendKey(window, 'Escape');
   await waitForRendererPaint(window);
@@ -2643,24 +2735,28 @@ async function captureWorldSmoke(window: BrowserWindow, directory: string): Prom
   previousWorldBuffer = await captureDistinctSmokeScreenshot(
     window, join(directory, 'world-action-check-tumble.png'), [previousWorldBuffer],
   );
-  await window.webContents.executeJavaScript('window.siWorldPinActionCheck?.(900)', true);
+  await window.webContents.executeJavaScript('window.siWorldPinDiceRollFlow?.(1150)', true);
   previousWorldBuffer = await captureDistinctSmokeScreenshot(
     window, join(directory, 'world-action-check-landing.png'), [previousWorldBuffer],
   );
-  await window.webContents.executeJavaScript('window.siWorldPinActionCheck?.(1100)', true);
-  const actionCheckArithmetic = (await rendererText(window, '#world-action-check-overlay')).includes('3 + 5 + 4 = 12 · TARGET 9');
+  await window.webContents.executeJavaScript('window.siWorldPinDiceRollFlow?.(1950)', true);
+  const sharedTotalVisible = (await rendererText(window, '#world-action-check-overlay')).includes('9');
   previousWorldBuffer = await captureDistinctSmokeScreenshot(
     window, join(directory, 'world-action-check-arithmetic.png'), [previousWorldBuffer],
   );
-  await window.webContents.executeJavaScript('window.siWorldPinActionCheck?.(1350)', true);
-  const actionCheckResultVisible = (await rendererText(window, '#world-action-check-overlay')).includes('SUCCESS');
+  const actionCheckResultVisibleDuringHold = !(await rendererText(window, '#world-action-check-overlay')).includes('SUCCESS');
   previousWorldBuffer = await captureDistinctSmokeScreenshot(
     window, join(directory, 'world-action-check-result.png'), [previousWorldBuffer],
   );
-  await window.webContents.executeJavaScript('window.siWorldPinActionCheck?.(1650)', true);
+  await window.webContents.executeJavaScript('window.siWorldPinDiceRollFlow?.(4850)', true);
+  await waitForRendererPaint(window);
+  await window.webContents.executeJavaScript('window.siWorldPinDiceRollFlow?.(null)', true);
   const resultState = await waitForActionCheckPhase(window, 'result');
-  const actionCheckResult = JSON.stringify(resultState.dice) === '[3,5]' && resultState.modifier === 4 &&
-    resultState.target === 9 && resultState.total === 12 && resultState.success === true &&
+  const resultText = await rendererText(window, '#world-action-check-overlay');
+  const actionCheckArithmetic = sharedTotalVisible && resultText.includes('6 + 3 + 4 = 13 · TARGET 9');
+  const actionCheckResultVisible = actionCheckResultVisibleDuringHold && resultText.includes('SUCCESS');
+  const actionCheckResult = JSON.stringify(resultState.dice) === '[6,3]' && resultState.modifier === 4 &&
+    resultState.target === 9 && resultState.total === 13 && resultState.success === true &&
     resultState.reducedMotion === false && Number(resultState.prngCursor) !== cursorBeforePreview;
   await waitForRendererPaint(window);
   const actionCheckReadyFocus = await focusedAriaLabel(window) === 'Continue after action check';
@@ -2772,7 +2868,10 @@ async function emitSmokeResult(report: RendererReadyReport, window: BrowserWindo
       } else {
         await startResponsiveSmokeGame(window);
       }
-    })().catch((error: unknown) => { smokePreparationError = error; });
+    })().catch((error: unknown) => {
+      smokePreparationError = error;
+      process.stderr.write(`SI_WORLD_SMOKE_PREPARATION_FAILURE ${String(error)}\n`);
+    });
     return;
   }
   if (!rendererShellReady) throw new Error('World readiness arrived before shell readiness.');

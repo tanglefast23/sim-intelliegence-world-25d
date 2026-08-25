@@ -3,6 +3,8 @@ import { lindaContextActions } from '../../domain/quests/quest-machine';
 import { actionCheckPreview } from '../action-check-copy';
 import { actionCheckEntryProgress, actionCheckResultAnnouncement, escapeActionForPhase, sampleActionCheckTimeline } from '../ActionCheckOverlay';
 
+jest.mock('expo-audio', () => ({ useAudioPlayer: jest.fn(), useAudioPlayerStatus: jest.fn() }));
+
 describe('Action Check player surface', () => {
   test('the preview gives the complete rule, odds, inputs, and both stakes', () => {
     const action = lindaContextActions(createInitialState()).find(({ id }) => id === 'protect_linda');
@@ -28,18 +30,16 @@ describe('Action Check player surface', () => {
   });
 
   test('the timeline locks each die before revealing the final result', () => {
-    expect(sampleActionCheckTimeline(779, false).leftLanded).toBe(false);
-    expect(sampleActionCheckTimeline(780, false).leftLanded).toBe(true);
-    expect(sampleActionCheckTimeline(899, false).rightLanded).toBe(false);
-    expect(sampleActionCheckTimeline(900, false).rightLanded).toBe(true);
-    expect(sampleActionCheckTimeline(1_099, false).showArithmetic).toBe(false);
-    expect(sampleActionCheckTimeline(1_100, false).showArithmetic).toBe(true);
-    expect(sampleActionCheckTimeline(1_349, false).showResult).toBe(false);
-    expect(sampleActionCheckTimeline(1_350, false).showResult).toBe(true);
-    expect(sampleActionCheckTimeline(1_650, false).canContinue).toBe(true);
-    expect(sampleActionCheckTimeline(0, true).showArithmetic).toBe(true);
-    expect(sampleActionCheckTimeline(120, true).showResult).toBe(true);
-    expect(sampleActionCheckTimeline(180, true).canContinue).toBe(true);
+    expect(sampleActionCheckTimeline(999, false).leftLanded).toBe(false);
+    expect(sampleActionCheckTimeline(1_000, false).leftLanded).toBe(true);
+    expect(sampleActionCheckTimeline(1_149, false).rightLanded).toBe(false);
+    expect(sampleActionCheckTimeline(1_150, false).rightLanded).toBe(true);
+    expect(sampleActionCheckTimeline(1_949, false).showArithmetic).toBe(false);
+    expect(sampleActionCheckTimeline(1_950, false).showArithmetic).toBe(true);
+    expect(sampleActionCheckTimeline(4_850, false).canContinue).toBe(true);
+    expect(sampleActionCheckTimeline(179, true).showArithmetic).toBe(false);
+    expect(sampleActionCheckTimeline(180, true).showResult).toBe(true);
+    expect(sampleActionCheckTimeline(2_980, true).canContinue).toBe(true);
     expect(actionCheckEntryProgress(180, true, true)).toBe(1);
     expect(actionCheckEntryProgress(180, false, false)).toBe(0);
     expect(actionCheckResultAnnouncement({ dice: [3, 5], modifier: 4, target: 9, total: 12, success: true }))

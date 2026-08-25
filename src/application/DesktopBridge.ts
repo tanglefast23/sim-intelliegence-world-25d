@@ -51,6 +51,16 @@ declare global {
      */
     siWorldPinShootingScene?: (timeMs: number) => number;
     siWorldPinActionCheck?: (timeMs: number) => number;
+    siWorldPinAlarmIntro?: (timeMs: number) => number;
+    siWorldPinDiceRollFlow?: (timeMs: number | null) => number;
+    siWorldAlarmAudioEvidence?: () => Readonly<{
+      audioEnabled: boolean;
+      currentTime: number;
+      loaded: boolean;
+      playing: boolean;
+      userActivation: boolean;
+      visibilityState: DocumentVisibilityState;
+    }>;
     siWorldSmokeMode?: boolean;
     siWorldTestRenderer?: RendererKind;
     /** Explicit 2.5D shadow path for a packaged smoke. Never an FPS probe. */
@@ -96,7 +106,7 @@ declare global {
     siWorldStartNaturalMovementFixture?: () => Readonly<{
       npcId: 'linda';
       source: 'fixture';
-      target: Readonly<{ x: 23; y: 28 }>;
+      target: Readonly<{ x: 28; y: 30 }>;
     }>;
     siWorldOpenRendererFeedbackFixture?: () => void;
     siWorldOpenRendererMotionFixture?: (fixture: 'door-transition' | 'walk-east-frame-1') => void;

@@ -73,7 +73,7 @@ describe('dev-jump-to-minute', () => {
 
   test('snaps linda to her scheduled tile instead of walking her', () => {
     const initial = createInitialState();
-    const state = jump(initial, initial.clock.absoluteMinute + 720);
+    const state = jump(initial, 480);
     expect(npcTile(state, 'linda')).not.toBe(npcTile(initial, 'linda'));
     expect(state.npcs.linda?.scheduleGoal).toBeUndefined();
   });

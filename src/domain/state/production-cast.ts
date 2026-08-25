@@ -1,5 +1,6 @@
 import type { WorldState } from './schema';
 import { GENERATED_LAYOUT } from './generated-layout';
+import { activeScheduleBlock } from '../../world/schedules/schedule';
 
 export const PRODUCTION_FULL_AI_CAST = [
   {
@@ -167,12 +168,10 @@ function blankNpc(
 
 export function createProductionNpcs(
   schedules: Readonly<Record<string, ScheduleState>> = createProductionSchedules(),
+  absoluteMinute = 8 * 60,
 ): Record<string, NpcState> {
-  const atEight = (id: string) => schedules[`${id}_daily`]!.blocks.find(({ startMinuteOfDay }) => (
-    startMinuteOfDay === 480
-  ))!;
   const initialPlace = (id: string): Place => {
-    const block = atEight(id);
+    const block = activeScheduleBlock(schedules[`${id}_daily`]!, absoluteMinute);
     return { mapId: block.mapId, locationId: block.locationId, x: block.tileX, y: block.tileY };
   };
   return Object.fromEntries([
@@ -335,7 +334,7 @@ export function refreshProductionSchedules(state: WorldState): WorldState {
  */
 export function insertMissingProductionCast(state: WorldState): WorldState {
   const production = createProductionSchedules();
-  const productionNpcs = createProductionNpcs(production);
+  const productionNpcs = createProductionNpcs(production, state.clock.absoluteMinute);
   const schedules = { ...state.schedules };
   const npcs = { ...state.npcs };
   for (const id of RETIRED_OFFICE_STAFF_IDS) delete npcs[id];

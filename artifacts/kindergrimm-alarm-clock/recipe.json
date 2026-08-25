@@ -2,7 +2,7 @@
   "version": 1,
   "status": "review",
   "assetId": "modern-digital-alarm-clock-01",
-  "brief": "Modern soft-touch digital alarm clock with a dominant amber 7:30 display.",
+  "brief": "Modern soft-touch digital alarm clock with a dominant amber 7:00 display.",
   "seed": 730,
   "upstreamCommit": "de339ad739d8cbd28ff2dd4a940af38c0ede86c8",
   "medium": "graphite",
@@ -31,7 +31,33 @@
     }
   },
   "material": "charcoal soft-touch plastic, smoked glass, rubber feet",
-  "time": "7:30",
+  "time": "7:00",
+  "display": {
+    "digits": [
+      {
+        "digit": "7",
+        "x": 26,
+        "y": 26
+      },
+      {
+        "digit": "0",
+        "x": 46,
+        "y": 26
+      },
+      {
+        "digit": "0",
+        "x": 60,
+        "y": 26
+      }
+    ],
+    "colon": {
+      "x": 41,
+      "dotYs": [
+        32,
+        39
+      ]
+    }
+  },
   "orderedParts": [
     "contact-shadow",
     "feet",

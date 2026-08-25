@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "status": "approved",
+  "assetId": "dice-roll-cup-01",
+  "brief": "A worn warm-brown leather dice cup with a broad stitched button plate.",
+  "seed": 250825,
+  "upstreamCommit": "de339ad739d8cbd28ff2dd4a940af38c0ede86c8",
+  "medium": "graphite",
+  "material": "worn leather, dark felt opening, stitched paper label plate",
+  "canvas": {
+    "width": 160,
+    "height": 160
+  },
+  "orderedParts": [
+    "contact-shadow",
+    "body",
+    "opening",
+    "rim",
+    "seams",
+    "button-plate"
+  ],
+  "colors": {
+    "ink": [
+      55,
+      36,
+      28
+    ],
+    "leatherDark": [
+      91,
+      55,
+      37
+    ],
+    "leather": [
+      147,
+      92,
+      55
+    ],
+    "leatherLight": [
+      194,
+      139,
+      82
+    ],
+    "felt": [
+      35,
+      29,
+      27
+    ],
+    "plate": [
+      108,
+      63,
+      41
+    ],
+    "shadow": [
+      50,
+      34,
+      29
+    ]
+  },
+  "views": {
+    "front": {
+      "transparentBounds": {
+        "x": 18,
+        "y": 18,
+        "width": 124,
+        "height": 134
+      },
+      "anchors": {
+        "button": {
+          "x": 80,
+          "y": 89
+        },
+        "center": {
+          "x": 80,
+          "y": 84
+        },
+        "groundContact": {
+          "x": 80,
+          "y": 142
+        }
+      }
+    },
+    "side": {
+      "transparentBounds": {
+        "x": 36,
+        "y": 18,
+        "width": 88,
+        "height": 134
+      },
+      "anchors": {
+        "button": {
+          "x": 80,
+          "y": 89
+        },
+        "center": {
+          "x": 80,
+          "y": 84
+        },
+        "groundContact": {
+          "x": 80,
+          "y": 142
+        }
+      }
+    }
+  }
+}

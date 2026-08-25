@@ -94,7 +94,19 @@ function startedState(base = createInitialState()): WorldState {
 }
 
 function moveResidentToAuthoredGoal(base: WorldState): WorldState {
-  let state = base;
+  let state = WorldStateSchema.parse({
+    ...base,
+    npcs: {
+      ...base.npcs,
+      generic_resident: {
+        ...base.npcs.generic_resident,
+        scheduleGoal: {
+          mapId: 'northwest_residential', locationId: 'linda_villa', activityId: 'work',
+          tileX: fixture.witnessTile.x, tileY: fixture.witnessTile.y, scheduledMinute: 480,
+        },
+      },
+    },
+  });
   let movement = movementForNpc(state, 'generic_resident');
   if (!movement) throw new Error('Generic resident has no authored movement goal.');
   for (let step = 0; step < 30 && state.npcs.generic_resident?.scheduleGoal; step += 1) {
@@ -193,7 +205,7 @@ describe('Phase 11 Linda quest and consequences', () => {
       confidenceReady: false,
       equipmentIds: ['first_aid_kit'],
       preparationFlagIds: [],
-      witnessNpcIds: ['generic_resident', 'resident_05', 'resident_06'],
+      witnessNpcIds: ['generic_resident', 'resident_01', 'resident_02'],
       readinessScore: 1,
     }));
     const prepared = WorldStateSchema.parse({
@@ -216,7 +228,7 @@ describe('Phase 11 Linda quest and consequences', () => {
       readinessScore: 3,
       equipmentIds: ['first_aid_kit'],
       preparationFlagIds: [],
-      witnessNpcIds: ['generic_resident', 'resident_05', 'resident_06'],
+      witnessNpcIds: ['generic_resident', 'resident_01', 'resident_02'],
     }));
     expect(unpreparedProtect).toEqual(expect.objectContaining({
       actionCheck: expect.objectContaining({ modifier: 3, target: 9, successesOutOf36: 26, witnessCount: 3 }),
@@ -250,7 +262,7 @@ describe('Phase 11 Linda quest and consequences', () => {
       status: 'resolved', flagIds: expect.arrayContaining(['linda_protected', 'linda_relationship_resolved', 'velvet_tide_lead']),
     }));
     expect(result.state.evidence.evidence_linda_protected).toEqual(expect.objectContaining({
-      actionId: 'protect_linda', witnessNpcIds: ['generic_resident', 'resident_05', 'resident_06'], status: 'noticed',
+      actionId: 'protect_linda', witnessNpcIds: ['generic_resident', 'resident_01', 'resident_02'], status: 'noticed',
     }));
     expect(result.state.npcs.linda_boyfriend?.condition).toBe('injured');
     expect(result.state.journal.journal_linda_boyfriend?.outcomeReceipts).toEqual([

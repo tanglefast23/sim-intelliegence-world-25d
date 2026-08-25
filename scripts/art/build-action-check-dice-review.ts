@@ -3,8 +3,10 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import {
+  ACTION_CHECK_DICE_CANONICAL_FINALS,
   ACTION_CHECK_DICE_FRAME_IDS,
   ACTION_CHECK_DICE_HEIGHT,
+  ACTION_CHECK_DICE_ORIENTATIONS,
   ACTION_CHECK_DICE_RECIPE,
   ACTION_CHECK_DICE_WIDTH,
   bakeActionCheckDiceFrame,
@@ -90,7 +92,8 @@ function reviewCard(target: Bitmap, frameId: ActionCheckDiceFrameId, source: Bit
 }
 
 function buildReview(frames: ReadonlyMap<ActionCheckDiceFrameId, Bitmap>): Bitmap {
-  const output = createBitmap(CARD_WIDTH * 4 + 16, CARD_HEIGHT * 2 + 30, parseHexColor('#2a2730'));
+  const rows = Math.ceil(ACTION_CHECK_DICE_FRAME_IDS.length / 4);
+  const output = createBitmap(CARD_WIDTH * 4 + 16, CARD_HEIGHT * rows + 30, parseHexColor('#2a2730'));
   drawText(output, 'ACTION CHECK DICE / KINDERGRIMM GRAPHITE / DARK + LIGHT', 12, 8, PAPER, 2);
   ACTION_CHECK_DICE_FRAME_IDS.forEach((frameId, index) => {
     reviewCard(output, frameId, frames.get(frameId)!, 8 + index % 4 * CARD_WIDTH, 28 + Math.floor(index / 4) * CARD_HEIGHT);
@@ -133,13 +136,17 @@ function assertFrame(frameId: ActionCheckDiceFrameId, source: Bitmap): void {
 }
 
 function assertRecipe(frames: ReadonlyMap<ActionCheckDiceFrameId, Bitmap>): void {
-  if (ACTION_CHECK_DICE_FRAME_IDS.length !== 8) throw new Error('The recipe must contain six dice and two shadows.');
+  if (ACTION_CHECK_DICE_FRAME_IDS.length !== 26) throw new Error('The recipe must contain 24 die orientations and two shadows.');
+  if (ACTION_CHECK_DICE_ORIENTATIONS.length !== 24) throw new Error('The recipe must contain every proper cube rotation once.');
   if (ACTION_CHECK_DICE_RECIPE.upstreamCommit !== 'de339ad739d8cbd28ff2dd4a940af38c0ede86c8') {
     throw new Error('The pinned KinderGrimm commit changed.');
   }
   for (const frameId of ACTION_CHECK_DICE_FRAME_IDS) assertFrame(frameId, frames.get(frameId)!);
-  const dieHashes = new Set(ACTION_CHECK_DICE_FRAME_IDS.slice(0, 6).map((frameId) => sha256(frames.get(frameId)!.data)));
-  if (dieHashes.size !== 6) throw new Error('The six die faces are not distinct.');
+  const dieHashes = new Set(ACTION_CHECK_DICE_ORIENTATIONS.map(({ frameId }) => sha256(frames.get(frameId)!.data)));
+  if (dieHashes.size !== 24) throw new Error('The 24 visible die orientations are not distinct.');
+  if (new Set(Object.values(ACTION_CHECK_DICE_CANONICAL_FINALS)).size !== 6) {
+    throw new Error('Each top value must have one distinct canonical final orientation.');
+  }
   if (sha256(frames.get('soft-flight-shadow')!.data) === sha256(frames.get('strong-contact-shadow')!.data)) {
     throw new Error('The soft and strong shadow frames must be distinct.');
   }
@@ -178,6 +185,7 @@ function main(): void {
       width: atlas.width,
       height: atlas.height,
       pngSha256: atlasFile.pngSha256,
+      canonicalFinals: ACTION_CHECK_DICE_CANONICAL_FINALS,
       frames: Object.fromEntries(ACTION_CHECK_DICE_FRAME_IDS.map((frameId, index) => [frameId, {
         x: index * ACTION_CHECK_DICE_WIDTH,
         y: 0,
@@ -203,13 +211,14 @@ function main(): void {
     }]));
     writeFileSync(resolve(PRODUCTION_ROOT, 'action-check-dice.png'), readFileSync(atlasFile.path), { flush: true });
     writeFileSync(resolve(PRODUCTION_ROOT, 'action-check-dice.json'), `${JSON.stringify({
-      version: 1,
+      version: ACTION_CHECK_DICE_RECIPE.version,
       assetId: ACTION_CHECK_DICE_RECIPE.assetId,
       status: ACTION_CHECK_DICE_RECIPE.status,
       upstreamCommit: ACTION_CHECK_DICE_RECIPE.upstreamCommit,
       canvas: ACTION_CHECK_DICE_RECIPE.canvas,
       recipeSha256: sha256(recipeSource),
       atlasSha256: atlasFile.pngSha256,
+      canonicalFinals: ACTION_CHECK_DICE_CANONICAL_FINALS,
       frames: framesById,
     }, null, 2)}\n`, { flush: true });
   }

@@ -17,7 +17,7 @@ describe('selected character summary', () => {
     expect(summary).toMatchObject({
       activity: 'ON THE WAY',
       displayName: 'LINDA',
-      destination: 'SUNWARD VILLAS',
+      destination: 'LINDA VILLA',
       relationship: expect.stringContaining('TRUST'),
     });
   });

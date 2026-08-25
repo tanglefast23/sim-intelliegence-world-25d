@@ -59,6 +59,9 @@ describe('packaged Electron smoke evidence', () => {
     expect(main).toContain('window.siWorldMeasureResponsiveEvidence?.() ?? null');
     expect(main.match(/await window\.webContents\.capturePage\(undefined, \{ stayHidden: true \}\);/gu)).toHaveLength(2);
     expect(main).toContain('for (let attempt = 0; attempt < 2; attempt += 1) {');
+    expect(main.match(/await completeAlarmIntroForSmoke\(window\);/gu)).toHaveLength(2);
+    expect(main).toContain('window.siWorldAlarmAudioEvidence?.() ?? null');
+    expect(main).toContain("contract.dialogLabel !== 'Alarm clock showing 7:00. Hit snooze.'");
     expect(main).toContain("throw new Error('Hidden renderer did not produce two paint frames after two attempts.');");
     expect(main).toContain('while (Date.now() < deadline) {\n    await waitForRendererPaint(window);\n    try {');
     expect(main).toContain("button: 'middle' });\n  await waitForRendererPaint(window);\n  window.webContents.sendInputEvent({ type: 'mouseMove'");
@@ -407,7 +410,11 @@ describe('packaged Electron smoke evidence', () => {
       '/dist/assets/assets/generated/audio/laugh.abc123.wav',
       '/dist/assets/assets/generated/audio/sigh.abc123.wav',
       '/dist/assets/assets/generated/audio/consequence.abc123.wav',
-      '/dist/assets/node_modules/@expo-google-fonts/silkscreen/400Regular/Silkscreen_400Regular.abc123.ttf',
+      '/dist/assets/assets/source/audio/sfx_alarm_clock.abc123.webm',
+      '/dist/assets/assets/source/audio/sfx_dice_cup_shake.abc123.mp3',
+      '/dist/assets/assets/source/audio/sfx_dice_land.abc123.mp3',
+      '/dist/assets/assets/fonts/HFMSilkscreen_400Regular.abc123.ttf',
+      '/dist/assets/assets/fonts/HFMSilkscreen_700Bold.abc123.ttf',
       '/node_modules/zod/package.json',
       '/node_modules/three/package.json',
     ].join('\n');

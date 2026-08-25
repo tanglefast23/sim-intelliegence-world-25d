@@ -1,0 +1,18 @@
+{
+  "deterministic": true,
+  "frames": {
+    "front": {
+      "sha256": "56b31e90fee16c78acb2fdb4cdc3886ac8605a6b6c04c91b620616f903cd99bc"
+    },
+    "side": {
+      "sha256": "5e96201d5dd6d09237cacf61ac5d91d7c6f0f3c8693a0566d2a994e3d6bb7dc1"
+    }
+  },
+  "files": [
+    "dice-roll-cup-front.png",
+    "dice-roll-cup-side.png",
+    "dice-roll-cup-anchors.png",
+    "dice-roll-cup-review-1x.png",
+    "dice-roll-cup-review-3x.png"
+  ]
+}

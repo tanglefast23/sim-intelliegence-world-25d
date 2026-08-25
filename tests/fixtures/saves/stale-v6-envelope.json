@@ -3,8 +3,8 @@
   "slotId": "slot-001",
   "saveGeneration": 11,
   "trigger": "manual",
-  "stateChecksum": "d4eff91a104233c0ef9a8a841bde5312dce9911235fb838f123a5afded5f076a",
-  "payloadChecksum": "3981ce5eb4f8a094aaa26904717df463a848dd893a23833a2ef07c056f6df0ed",
+  "stateChecksum": "3e82c8d9f33b322cc270039c380919a64c99a0134279dabeffb13dd139badde9",
+  "payloadChecksum": "07b2ff543fc0600cdaffaceb4cbb922edf4da003728cef9acf6bd04e9807176a",
   "state": {
     "schemaVersion": 6,
     "engineVersion": "si-world-0.1.0",
@@ -31,7 +31,7 @@
       "cursor": 5330689
     },
     "clock": {
-      "absoluteMinute": 480,
+      "absoluteMinute": 420,
       "subMinuteMilliseconds": 0,
       "selectedSpeed": 1,
       "pauseTokens": []
@@ -56,9 +56,9 @@
         "presence": {
           "kind": "active_local",
           "mapId": "northwest_residential",
-          "locationId": "northwest_residential",
-          "tileX": 28,
-          "tileY": 30
+          "locationId": "linda_villa",
+          "tileX": 23,
+          "tileY": 28
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -72,8 +72,8 @@
           "kind": "active_local",
           "mapId": "northwest_residential",
           "locationId": "northwest_residential",
-          "tileX": 27,
-          "tileY": 28
+          "tileX": 29,
+          "tileY": 33
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -117,9 +117,9 @@
         "presence": {
           "kind": "inactive",
           "mapId": "southwest_commercial",
-          "locationId": "rafael_cafe",
-          "tileX": 44,
-          "tileY": 36
+          "locationId": "southwest_commercial",
+          "tileX": 50,
+          "tileY": 41
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -132,9 +132,9 @@
         "presence": {
           "kind": "inactive",
           "mapId": "southwest_commercial",
-          "locationId": "sora_boutique",
-          "tileX": 14,
-          "tileY": 14
+          "locationId": "southwest_commercial",
+          "tileX": 10,
+          "tileY": 19
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -147,9 +147,9 @@
         "presence": {
           "kind": "inactive",
           "mapId": "northeast_downtown",
-          "locationId": "devon_bar",
-          "tileX": 20,
-          "tileY": 13
+          "locationId": "northeast_downtown",
+          "tileX": 10,
+          "tileY": 17
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -162,9 +162,9 @@
         "presence": {
           "kind": "inactive",
           "mapId": "southeast_docks",
-          "locationId": "priya_clinic",
-          "tileX": 12,
-          "tileY": 12
+          "locationId": "southeast_docks",
+          "tileX": 10,
+          "tileY": 16
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -177,8 +177,8 @@
         "presence": {
           "kind": "inactive",
           "mapId": "southeast_docks",
-          "locationId": "tomas_marina",
-          "tileX": 41,
+          "locationId": "southeast_docks",
+          "tileX": 46,
           "tileY": 34
         },
         "knowledge": [],
@@ -192,9 +192,9 @@
         "presence": {
           "kind": "inactive",
           "mapId": "northeast_downtown",
-          "locationId": "elise_studio",
-          "tileX": 46,
-          "tileY": 36
+          "locationId": "northeast_downtown",
+          "tileX": 17,
+          "tileY": 38
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -208,8 +208,8 @@
           "kind": "active_local",
           "mapId": "northwest_residential",
           "locationId": "northwest_residential",
-          "tileX": 28,
-          "tileY": 31
+          "tileX": 22,
+          "tileY": 30
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -223,8 +223,8 @@
           "kind": "active_local",
           "mapId": "northwest_residential",
           "locationId": "northwest_residential",
-          "tileX": 31,
-          "tileY": 30
+          "tileX": 25,
+          "tileY": 31
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -238,8 +238,8 @@
           "kind": "active_local",
           "mapId": "northwest_residential",
           "locationId": "northwest_residential",
-          "tileX": 39,
-          "tileY": 28
+          "tileX": 28,
+          "tileY": 31
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -253,7 +253,7 @@
           "kind": "active_local",
           "mapId": "northwest_residential",
           "locationId": "northwest_residential",
-          "tileX": 52,
+          "tileX": 31,
           "tileY": 30
         },
         "knowledge": [],
@@ -268,8 +268,8 @@
           "kind": "active_local",
           "mapId": "northwest_residential",
           "locationId": "northwest_residential",
-          "tileX": 22,
-          "tileY": 30
+          "tileX": 39,
+          "tileY": 28
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -283,8 +283,8 @@
           "kind": "active_local",
           "mapId": "northwest_residential",
           "locationId": "northwest_residential",
-          "tileX": 25,
-          "tileY": 31
+          "tileX": 52,
+          "tileY": 30
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -298,8 +298,8 @@
           "kind": "inactive",
           "mapId": "northeast_downtown",
           "locationId": "northeast_downtown",
-          "tileX": 16,
-          "tileY": 21
+          "tileX": 17,
+          "tileY": 16
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -313,8 +313,8 @@
           "kind": "inactive",
           "mapId": "northeast_downtown",
           "locationId": "northeast_downtown",
-          "tileX": 18,
-          "tileY": 21
+          "tileX": 21,
+          "tileY": 16
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -328,7 +328,7 @@
           "kind": "inactive",
           "mapId": "northeast_downtown",
           "locationId": "northeast_downtown",
-          "tileX": 20,
+          "tileX": 16,
           "tileY": 21
         },
         "knowledge": [],
@@ -343,7 +343,7 @@
           "kind": "inactive",
           "mapId": "northeast_downtown",
           "locationId": "northeast_downtown",
-          "tileX": 22,
+          "tileX": 18,
           "tileY": 21
         },
         "knowledge": [],
@@ -358,8 +358,8 @@
           "kind": "inactive",
           "mapId": "northeast_downtown",
           "locationId": "northeast_downtown",
-          "tileX": 17,
-          "tileY": 16
+          "tileX": 20,
+          "tileY": 21
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -373,8 +373,8 @@
           "kind": "inactive",
           "mapId": "northeast_downtown",
           "locationId": "northeast_downtown",
-          "tileX": 21,
-          "tileY": 16
+          "tileX": 22,
+          "tileY": 21
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -388,7 +388,7 @@
           "kind": "inactive",
           "mapId": "southwest_commercial",
           "locationId": "southwest_commercial",
-          "tileX": 15,
+          "tileX": 9,
           "tileY": 36
         },
         "knowledge": [],
@@ -403,8 +403,8 @@
           "kind": "inactive",
           "mapId": "southwest_commercial",
           "locationId": "southwest_commercial",
-          "tileX": 19,
-          "tileY": 38
+          "tileX": 12,
+          "tileY": 36
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -418,8 +418,8 @@
           "kind": "inactive",
           "mapId": "southwest_commercial",
           "locationId": "southwest_commercial",
-          "tileX": 23,
-          "tileY": 38
+          "tileX": 15,
+          "tileY": 36
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -433,8 +433,8 @@
           "kind": "inactive",
           "mapId": "southwest_commercial",
           "locationId": "southwest_commercial",
-          "tileX": 25,
-          "tileY": 36
+          "tileX": 19,
+          "tileY": 38
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -448,8 +448,8 @@
           "kind": "inactive",
           "mapId": "southwest_commercial",
           "locationId": "southwest_commercial",
-          "tileX": 9,
-          "tileY": 36
+          "tileX": 23,
+          "tileY": 38
         },
         "knowledge": [],
         "unlockedInterestIds": [],
@@ -463,7 +463,7 @@
           "kind": "inactive",
           "mapId": "southwest_commercial",
           "locationId": "southwest_commercial",
-          "tileX": 12,
+          "tileX": 25,
           "tileY": 36
         },
         "knowledge": [],
@@ -478,7 +478,7 @@
           "kind": "inactive",
           "mapId": "southeast_docks",
           "locationId": "southeast_docks",
-          "tileX": 43,
+          "tileX": 37,
           "tileY": 34
         },
         "knowledge": [],
@@ -493,7 +493,7 @@
           "kind": "inactive",
           "mapId": "southeast_docks",
           "locationId": "southeast_docks",
-          "tileX": 46,
+          "tileX": 40,
           "tileY": 34
         },
         "knowledge": [],
@@ -508,7 +508,7 @@
           "kind": "inactive",
           "mapId": "southeast_docks",
           "locationId": "southeast_docks",
-          "tileX": 50,
+          "tileX": 43,
           "tileY": 34
         },
         "knowledge": [],
@@ -523,7 +523,7 @@
           "kind": "inactive",
           "mapId": "southeast_docks",
           "locationId": "southeast_docks",
-          "tileX": 53,
+          "tileX": 46,
           "tileY": 34
         },
         "knowledge": [],
@@ -538,7 +538,7 @@
           "kind": "inactive",
           "mapId": "southeast_docks",
           "locationId": "southeast_docks",
-          "tileX": 37,
+          "tileX": 50,
           "tileY": 34
         },
         "knowledge": [],
@@ -553,7 +553,7 @@
           "kind": "inactive",
           "mapId": "southeast_docks",
           "locationId": "southeast_docks",
-          "tileX": 40,
+          "tileX": 53,
           "tileY": 34
         },
         "knowledge": [],

@@ -81,7 +81,7 @@ describe('deterministic domain contracts', () => {
 
     const result = processCommandQueue(createInitialState(), commands);
     expect(result.state.clock.pauseTokens).toEqual(['pause:transition:docks']);
-    expect(result.state.clock.absoluteMinute).toBe(480);
+    expect(result.state.clock.absoluteMinute).toBe(420);
     expect(result.state.clock.subMinuteMilliseconds).toBe(0);
   });
 

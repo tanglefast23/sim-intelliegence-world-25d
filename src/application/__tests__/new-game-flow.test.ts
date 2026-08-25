@@ -15,8 +15,8 @@ describe('new game flow', () => {
     expect(normalizePlayerName('A'.repeat(40))).toHaveLength(32);
   });
 
-  test('matches the arrival card to the 08:00 initial state', () => {
+  test('matches the arrival card to the 07:00 initial state', () => {
     expect(readFileSync(join(process.cwd(), 'src/application/NewGameFlow.tsx'), 'utf8'))
-      .toContain('DAY 1 · 08:00 · SUNWARD BAY');
+      .toContain('DAY 1 · 07:00 · SUNWARD BAY');
   });
 });
