@@ -788,10 +788,10 @@ export function WorldScene({
               ...linda,
               scheduleGoal: {
                 mapId: 'northwest_residential',
-                locationId: 'linda_villa',
+                locationId: 'northwest_residential',
                 activityId: 'smoke-walk',
-                tileX: 23,
-                tileY: 28,
+                tileX: 28,
+                tileY: 30,
                 scheduledMinute: current.worldState.clock.absoluteMinute,
               },
             },
@@ -799,7 +799,7 @@ export function WorldScene({
         });
         return { ...current, npcMovements: npcMovementState(worldState), worldState };
       });
-      return { npcId: 'linda', source: 'fixture', target: { x: 23, y: 28 } };
+      return { npcId: 'linda', source: 'fixture', target: { x: 28, y: 30 } };
     };
     window.siWorldOpenRendererFeedbackFixture = () => {
       setOpenPanel(undefined);

@@ -1425,7 +1425,7 @@ async function captureMovementPass(
     return window.siWorldStartNaturalMovementFixture();
   })()`, true) as unknown;
   if (JSON.stringify(npcMotionFixture) !== JSON.stringify({
-    npcId: 'linda', source: 'fixture', target: { x: 23, y: 28 },
+    npcId: 'linda', source: 'fixture', target: { x: 28, y: 30 },
   })) throw new Error('Natural-movement NPC fixture returned an invalid descriptor.');
   await waitForRendererPaint(window);
 

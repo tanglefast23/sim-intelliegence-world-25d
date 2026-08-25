@@ -106,7 +106,7 @@ declare global {
     siWorldStartNaturalMovementFixture?: () => Readonly<{
       npcId: 'linda';
       source: 'fixture';
-      target: Readonly<{ x: 23; y: 28 }>;
+      target: Readonly<{ x: 28; y: 30 }>;
     }>;
     siWorldOpenRendererFeedbackFixture?: () => void;
     siWorldOpenRendererMotionFixture?: (fixture: 'door-transition' | 'walk-east-frame-1') => void;
