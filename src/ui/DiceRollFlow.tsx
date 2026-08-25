@@ -166,6 +166,7 @@ export function DiceRollFlow({
     {!committed ? <View style={[styles.cupWrap, { transform: [{ rotate: `${shakeStep * 2}deg` }, { translateX: shakeStep * 3 }] }]}>
       <View aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none" style={styles.motionLeft}><Text style={styles.motionText}>)))</Text></View>
       <CupCanvas />
+      <Text aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none" style={styles.cupLabel}>DICE</Text>
       <View aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none" style={styles.motionRight}><Text style={styles.motionText}>(((</Text></View>
       <Pressable accessibilityLabel="Roll the dice" nativeID="dice-roll-flow-roll" onPress={pressRoll} role="button" style={styles.rollButton}>
         <Text style={styles.rollText}>ROLL IT</Text>
@@ -184,6 +185,7 @@ export function DiceRollFlow({
 
 const styles = StyleSheet.create({
   cupCanvas: { aspectRatio: 1, width: 320 },
+  cupLabel: { color: '#FFF0C7', fontFamily: 'HFMSilkscreenBold', fontSize: 14, left: 94, lineHeight: 20, position: 'absolute', textAlign: 'center', top: 168, width: 132 },
   cupWrap: { alignItems: 'center', justifyContent: 'center', position: 'relative' },
   error: { color: '#F3A18F', fontFamily: 'Silkscreen', fontSize: 9, marginTop: 8 },
   impact: { alignItems: 'center', bottom: 24, left: 0, position: 'absolute', right: 0 },
