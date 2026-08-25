@@ -12,7 +12,33 @@ import {
 import { DiceRollCanvas, sampleDiceRollTimeline } from './DiceRollCanvas';
 
 const shakeSound = require('../../assets/source/audio/sfx_dice_cup_shake.mp3') as number;
-const landSound = require('../../assets/source/audio/sfx_dice_land.mp3') as number;
+const launchSound = require('../../assets/source/audio/sfx_dice_launch_woosh.webm') as number;
+const rollSound = require('../../assets/source/audio/sfx_dice_land.mp3') as number;
+const rollAltSound = require('../../assets/source/audio/sfx_dice_roll_alt.mp3') as number;
+
+export const DICE_ROLL_ALT_DELAY_MS = 500;
+
+type DiceCuePlayer = Readonly<{
+  pause: () => void;
+  play: () => void;
+}> & { volume: number };
+
+export function startDiceRollPair(
+  primary: DiceCuePlayer,
+  accent: DiceCuePlayer,
+  volume: number,
+): () => void {
+  const safeVolume = Math.max(0, Math.min(1, volume));
+  primary.volume = safeVolume;
+  accent.volume = safeVolume;
+  primary.play();
+  const timer = setTimeout(() => accent.play(), DICE_ROLL_ALT_DELAY_MS);
+  return () => {
+    clearTimeout(timer);
+    primary.pause();
+    accent.pause();
+  };
+}
 
 export type DiceRollCommitResult = 'committed' | 'retry' | 'abort';
 export type DiceRollFlowPhase = 'cup' | 'rolling' | 'result-hold' | 'exiting';
@@ -25,10 +51,6 @@ export function diceRollFlowPhase(elapsedMs: number, reducedMotion: boolean): Di
 
 export function diceRollFlowEnd(reducedMotion: boolean): number {
   return reducedMotion ? 2_980 : 4_850;
-}
-
-export function diceRollImpactAt(reducedMotion: boolean): number {
-  return reducedMotion ? 80 : 1_150;
 }
 
 function CupCanvas() {
@@ -66,8 +88,11 @@ export function DiceRollFlow({
   surface: ViewportSize;
 }>) {
   const shake = useAudioPlayer(shakeSound);
-  const land = useAudioPlayer(landSound);
+  const launch = useAudioPlayer(launchSound, { updateInterval: 50 });
+  const roll = useAudioPlayer(rollSound);
+  const rollAlt = useAudioPlayer(rollAltSound);
   const shakeStatus = useAudioPlayerStatus(shake);
+  const launchStatus = useAudioPlayerStatus(launch);
   const { sfx } = useAudioVolumes();
   const [committed, setCommitted] = useState(false);
   const [cupStep, setCupStep] = useState(0);
@@ -76,12 +101,12 @@ export function DiceRollFlow({
   const [pinVersion, setPinVersion] = useState(0);
   const [error, setError] = useState('');
   const pinned = useRef(false);
+  const rollAudioArmed = useRef(false);
+  const stopRollPair = useRef<(() => void) | undefined>(undefined);
   const elapsedRef = useRef(0);
   const completeOnce = useRef(false);
-  const landOnce = useRef(false);
   const rolledOnce = useRef(false);
   const running = committed && !!dice && diceReady;
-  const impactAt = diceRollImpactAt(reducedMotion);
   const timeline = sampleDiceRollTimeline(elapsedMs, reducedMotion);
   const phase = committed ? diceRollFlowPhase(elapsedMs, reducedMotion) : 'cup';
 
@@ -100,7 +125,23 @@ export function DiceRollFlow({
     const timer = setInterval(() => setCupStep((step) => (step + 1) % 3), 130);
     return () => clearInterval(timer);
   }, [committed, reducedMotion]);
-  useEffect(() => () => { stop(shake); stop(land); }, [land, shake, stop]);
+  useEffect(() => {
+    if (!rollAudioArmed.current || !launchStatus.didJustFinish || !audioEnabled || sfx <= 0) return;
+    rollAudioArmed.current = false;
+    stopRollPair.current?.();
+    stopRollPair.current = startDiceRollPair(roll, rollAlt, sfx);
+  }, [audioEnabled, launchStatus.didJustFinish, roll, rollAlt, sfx]);
+  useEffect(() => {
+    if (audioEnabled && sfx > 0) return;
+    rollAudioArmed.current = false;
+    stopRollPair.current?.(); stopRollPair.current = undefined;
+    stop(launch); stop(roll); stop(rollAlt);
+  }, [audioEnabled, launch, roll, rollAlt, sfx, stop]);
+  useEffect(() => () => {
+    rollAudioArmed.current = false;
+    stopRollPair.current?.();
+    stop(shake); stop(launch); stop(roll); stop(rollAlt);
+  }, [launch, roll, rollAlt, shake, stop]);
   useEffect(() => { onPhaseChange?.(phase); }, [onPhaseChange, phase]);
   useEffect(() => {
     document.querySelector<HTMLElement>(committed ? '#dice-roll-flow-root' : '#dice-roll-flow-roll')?.focus();
@@ -122,13 +163,6 @@ export function DiceRollFlow({
     return () => cancelAnimationFrame(frame);
   }, [active, reducedMotion, running]);
   useEffect(() => {
-    if (!running || elapsedMs < impactAt || landOnce.current || pinned.current) return;
-    landOnce.current = true;
-    if (audioEnabled && sfx > 0) {
-      land.volume = Math.min(1, sfx); land.play();
-    }
-  }, [audioEnabled, elapsedMs, impactAt, land, running, sfx]);
-  useEffect(() => {
     if (!running || elapsedMs < diceRollFlowEnd(reducedMotion) || completeOnce.current || pinned.current) return;
     completeOnce.current = true; onComplete();
   }, [elapsedMs, onComplete, pinVersion, reducedMotion, running]);
@@ -137,18 +171,24 @@ export function DiceRollFlow({
     window.siWorldPinDiceRollFlow = (timeMs: number | null) => {
       if (timeMs === null) { pinned.current = false; setPinVersion((version) => version + 1); return elapsedRef.current; }
       const next = Math.max(0, Math.min(diceRollFlowEnd(reducedMotion), timeMs));
-      if (next >= impactAt) landOnce.current = true;
       pinned.current = true; elapsedRef.current = next; setElapsedMs(next); return next;
     };
     return () => { delete window.siWorldPinDiceRollFlow; };
-  }, [impactAt, reducedMotion]);
+  }, [reducedMotion]);
 
   const pressRoll = () => {
     if (rolledOnce.current) return;
     rolledOnce.current = true; setError(''); stop(shake);
     let result: DiceRollCommitResult;
     try { result = onRoll(); } catch { result = 'retry'; }
-    if (result === 'committed') { setCommitted(true); return; }
+    if (result === 'committed') {
+      if (audioEnabled && sfx > 0) {
+        launch.volume = Math.min(1, 0.85 * sfx);
+        rollAudioArmed.current = true;
+        launch.play();
+      }
+      setCommitted(true); return;
+    }
     if (result === 'retry') {
       rolledOnce.current = false; setError('ROLL FAILED. TRY AGAIN.');
       requestAnimationFrame(() => document.querySelector<HTMLElement>('#dice-roll-flow-roll')?.focus());

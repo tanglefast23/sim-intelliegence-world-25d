@@ -3,7 +3,9 @@
   "processing": {
     "shake": "volume=9.5dB,alimiter=limit=0.79:attack=5:release=50:level=false",
     "land": "volume=17dB,alimiter=limit=0.79:attack=5:release=50:level=false",
-    "note": "The true-peak ceiling takes priority for these short transient cues. The land cue stays below the nominal -16 LUFS target rather than flattening its impact shape."
+    "woosh": "supplied slow_woosh.webm copied without waveform changes",
+    "rollAlt": "atrim=start=0.10:end=1.95,asetpts=PTS-STARTPTS,asetrate=40572,aresample=44100,atempo=1.18,highpass=f=120,lowpass=f=6500,volume=1.02,afade=t=in:st=0:d=0.015,afade=t=out:st=1.55:d=0.15",
+    "note": "The second roll is about 8% faster, about 1.5 semitones lower, shorter, darker, and overlapped 500 ms after the first roll."
   },
   "target": { "integratedLufs": -16, "maxTruePeakDbfs": -1.5, "minimumGainLu": 3 },
   "files": {
@@ -14,6 +16,14 @@
     "land": {
       "source": { "sha256": "14cdea424509ecac46fd686e9691d6ee9b637ad1b8d0f01e7f7c5c105ff2d730", "integratedLufs": -32.7 },
       "production": { "path": "assets/source/audio/sfx_dice_land.mp3", "sha256": "3bdadc682ffc0a68d8d9e34a86724c7028f0bd1cff6871dad456205530c3e057", "durationSeconds": 2.089796, "integratedLufs": -21.3, "truePeakDbfs": -2.2 }
+    },
+    "woosh": {
+      "source": { "sha256": "8016590b38381fa78558797144f0920aa41b43b1bcde5761b7f0df961c949565", "integratedLufs": -16.2, "minimumGainLu": 0 },
+      "production": { "path": "assets/source/audio/sfx_dice_launch_woosh.webm", "sha256": "8016590b38381fa78558797144f0920aa41b43b1bcde5761b7f0df961c949565", "durationSeconds": 0.69, "integratedLufs": -16.2, "truePeakDbfs": -5.0 }
+    },
+    "rollAlt": {
+      "source": { "sha256": "3bdadc682ffc0a68d8d9e34a86724c7028f0bd1cff6871dad456205530c3e057", "integratedLufs": -21.3, "minimumGainLu": -1 },
+      "production": { "path": "assets/source/audio/sfx_dice_roll_alt.mp3", "sha256": "f26022ab972fa53171c87fdaa92b7e1ca057d10978c5923d194187831c516625", "durationSeconds": 1.717891, "integratedLufs": -22.1, "truePeakDbfs": -1.6 }
     }
   }
 }

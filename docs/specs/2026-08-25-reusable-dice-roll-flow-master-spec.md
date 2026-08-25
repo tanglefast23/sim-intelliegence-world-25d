@@ -11,7 +11,7 @@ Every visible two-dice roll must use one shared presentation flow.
 
 The flow starts with a KinderGrimm pencil dice cup. The cup shakes until the player presses `ROLL IT`. The supplied cup-shaking sound repeats while the cup shakes.
 
-After the press, two dice fly upward from below the screen. They tumble toward the middle of the screen. Every visible die orientation must obey a standard six-sided die. The dice bounce, settle, and trigger the supplied landing sound and visible impact cues.
+After the press, the supplied launch woosh plays while two dice fly upward from below the screen. When the woosh finishes, the original dice cue plays. An altered, lower-pitched version joins `500 ms` later. Every visible die orientation must obey a standard six-sided die. The dice bounce, settle, and trigger visible impact cues without another impact-timed sound.
 
 The raw sum of both dice then appears as a large number. The number stays fully visible for 2.5 seconds. The flow then animates away and returns control to the feature that requested the roll.
 
@@ -45,10 +45,11 @@ The new-game alarm intro and the existing Action Check are the first two consume
 
 ## 4. Source assets
 
-The user supplied these two source files:
+The user supplied these three source files:
 
 - `ElevenLabs_Shaking_dice_in_a_cup,_anticipation_builds.mp3`
 - `dice_land.mp3`
+- `slow_woosh.webm`
 
 Source provenance:
 
@@ -56,11 +57,14 @@ Source provenance:
 |---|---|---|
 | Cup shake | `/Users/joemacprom5/Downloads/ElevenLabs_Shaking_dice_in_a_cup,_anticipation_builds.mp3` | `d9ba8af22031a1996cb11457a18d9c87834bc9d5efc11d401b53a2d00051f74e` |
 | Dice land | `/Users/joemacprom5/Downloads/dice_land.mp3` | `14cdea424509ecac46fd686e9691d6ee9b637ad1b8d0f01e7f7c5c105ff2d730` |
+| Launch woosh | `/Users/joemacprom5/Library/Mobile Documents/com~apple~CloudDocs/sounds/slow_woosh.webm` | `8016590b38381fa78558797144f0920aa41b43b1bcde5761b7f0df961c949565` |
 
 Create production copies with stable repository names:
 
 - `assets/source/audio/sfx_dice_cup_shake.mp3`
 - `assets/source/audio/sfx_dice_land.mp3`
+- `assets/source/audio/sfx_dice_launch_woosh.webm`
+- `assets/source/audio/sfx_dice_roll_alt.mp3`
 
 Keep the user’s source files unchanged. Production copies may use non-clipping loudness treatment. Do not print or store metadata that is unrelated to the game.
 
@@ -152,8 +156,8 @@ The current `SIDE_FACES` table in `src/render/pencil/action-check-dice.ts` is no
 - Each die briefly squashes or compresses its contact shadow.
 - Each die rebounds and loses height.
 - Both dice settle near the middle without overlap.
-- Play the landing sound once for the pair at the main final impact.
-- Never play one landing sound per animation frame.
+- Keep the visual impact independent from audio timing.
+- Do not play another cue at the final impact.
 
 Visible impact cues must include:
 
@@ -187,7 +191,7 @@ The normal-motion timeline uses these target windows. Small tuning is allowed du
 | Dice appear from below | `0 ms` |
 | Fast flight and tumble | `0–900 ms` |
 | First main die contact | about `1,000 ms` |
-| Second main die contact and landing SFX | about `1,150 ms` |
+| Second main die contact | about `1,150 ms` |
 | Small rebounds and extra rolls | `1,150–1,650 ms` |
 | Both dice fully settled | about `1,700 ms` |
 | Large number fully visible | about `1,950 ms` |
@@ -197,7 +201,7 @@ The normal-motion timeline uses these target windows. Small tuning is allowed du
 
 The cup stage has no time limit.
 
-The presentation clock advances only while the flow is visible and active. If the document becomes hidden or the renderer suspends, pause accumulated presentation time. Resume from the saved active elapsed time. Do not jump over the landing cue or the 2.5-second result hold. In smoke mode, treat the sanctioned hidden Electron window as active because its paired captures drive rendering.
+The presentation clock advances only while the flow is visible and active. If the document becomes hidden or the renderer suspends, pause accumulated presentation time. Resume from the saved active elapsed time. Do not jump over the 2.5-second result hold. In smoke mode, treat the sanctioned hidden Electron window as active because its paired captures drive rendering.
 
 ## 7. Reduced motion
 
@@ -208,7 +212,7 @@ Reduced motion keeps the interaction and result clear without simulated flight o
 - Keep the shaking sound loop unless audio is muted.
 - On `ROLL IT`, cross-fade the dice into their settled positions.
 - At about `80 ms`, use one brief static impact flash instead of bounce, spin, or recoil.
-- Play the landing sound once with that impact flash.
+- Use the same launch and rolling audio sequence as normal motion.
 - Make the large raw total fully visible by about `180 ms`.
 - Keep the total fully visible from about `180–2,680 ms`.
 - Use a short opacity exit and complete by about `2,980 ms`.
@@ -226,21 +230,25 @@ Reduced motion must not shorten the information-reading hold.
 - Resume correctly if audio becomes enabled while the cup remains visible.
 - Do not restart on unrelated component renders.
 
-### 8.2 Landing
+### 8.2 Launch and roll
 
-- Use a separate player instance.
-- Play once at the pair’s main final impact.
-- Rewind before reuse.
+- Play the launch woosh immediately after a committed `ROLL IT` activation.
+- Start the original rolling cue when the woosh reports that it finished.
+- Start the altered rolling cue `500 ms` after the original cue begins.
+- Derive the altered cue from the original with a slightly lower pitch, faster timing, a shorter tail, and darker filtering.
+- Use separate player instances and stop all three on mute or unmount.
 - Guard against repeated React effects and pinned smoke frames.
+- Audio failure must not delay the visual flow.
 
 ### 8.3 Loudness
 
 - Respect the global SFX setting.
-- Create non-clipping production copies with FFmpeg loudness normalization at `-16 LUFS` integrated and no more than `-1.5 dBTP`.
-- Verify each production copy is measurably louder than its supplied source with the same FFmpeg measurement command.
-- The production integrated loudness must improve by at least `3 LU` without exceeding the true-peak limit.
+- Keep every production cue at or below the `-1.5 dBTP` true-peak ceiling.
+- Keep the supplied woosh waveform unchanged.
+- Record the exact FFmpeg transform used for the altered rolling cue.
 - Target about `0.80 × sfx` for the shake cue.
-- Target up to `1.00 × sfx` for the landing cue.
+- Target about `0.85 × sfx` for the launch woosh.
+- Target up to `1.00 × sfx` for both rolling cues.
 - Clamp the final player volume to `0–1`.
 - Do not change the user’s saved SFX preference.
 - Do not allow audible clipping after source treatment and runtime gain.
@@ -310,7 +318,7 @@ The shared component owns:
 - dice canvas;
 - valid orientation selection;
 - flight, contact, rebound, and settle timing;
-- landing audio lifecycle;
+- launch and layered rolling audio lifecycle;
 - impact cues;
 - large raw-total display;
 - 2.5-second hold;
@@ -429,9 +437,9 @@ Existing smoke assertions at the old `1,100`, `1,350`, and `1,650 ms` points mus
 
 - Guard `ROLL IT` against double activation.
 - Never create two shake loops.
-- Never play the landing cue more than once.
+- Never start the launch or layered rolling sequence more than once per committed roll.
 - Cancel all animation frames and timers on unmount.
-- Pause and rewind both players on unmount.
+- Pause and rewind all audio players on unmount.
 - If the dice image is late, hold the roll stage until it is ready or show a stable fallback. Do not complete an invisible roll.
 - If audio is late or fails, continue silently.
 - If the consumer rejects the roll commit, return to a stable pre-roll error state without inventing dice.
@@ -470,10 +478,12 @@ Existing smoke assertions at the old `1,100`, `1,350`, and `1,650 ms` points mus
 - Shake repeats while the cup is active.
 - Shake stops and rewinds on `ROLL IT`.
 - Shake stops when muted or unmounted.
-- Landing plays once at the main impact.
-- Re-rendering and smoke pinning do not replay landing.
-- Both player volumes respect and clamp the global SFX value.
-- FFmpeg measurement proves each production cue gains at least `3 LU`, targets `-16 LUFS`, and stays at or below `-1.5 dBTP`. Loudness range is out of scope because both cues are shorter than three seconds.
+- Launch plays immediately after the committed activation.
+- The original rolling cue starts only after the launch cue finishes.
+- The altered rolling cue starts `500 ms` later and is measurably lower-pitched, faster, shorter, and darker.
+- Re-rendering and smoke pinning do not replay the sequence.
+- All player volumes respect and clamp the global SFX value.
+- FFmpeg measurement verifies every production cue hash, loudness, and true peak against the committed report.
 
 ### 15.4 Interaction tests
 
@@ -527,7 +537,7 @@ Existing smoke assertions at the old `1,100`, `1,350`, and `1,650 ms` points mus
 - [ ] The dice visibly tumble through valid physical orientations.
 - [ ] Both final top faces match the committed result.
 - [ ] The dice make several readable contacts and settle near the middle.
-- [ ] One landing sound and clear visual impact cues occur at the main impact.
+- [ ] The launch woosh starts on `ROLL IT`, followed by two distinct rolling cues; clear visual impact cues remain at the main impact.
 - [ ] Both production effects meet the measured loudness target, and their runtime gains exceed the current alarm’s `0.34 × sfx` gain while respecting SFX settings.
 - [ ] The raw sum appears large and holds fully visible for 2.5 seconds.
 - [ ] Consumer-specific consequences start after the shared flow exits.

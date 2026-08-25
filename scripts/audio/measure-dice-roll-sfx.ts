@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 type RecordFile = Readonly<{
-  source: Readonly<{ integratedLufs: number }>;
+  source: Readonly<{ integratedLufs: number; minimumGainLu?: number }>;
   production: Readonly<{ path: string; sha256: string; integratedLufs: number; truePeakDbfs: number }>;
 }>;
 const record = JSON.parse(readFileSync('docs/audio/dice-roll-sfx-measurement.json', 'utf8')) as Readonly<{
@@ -26,7 +26,8 @@ for (const [name, file] of Object.entries(record.files)) {
   if (Math.abs(measuredLoudness - file.production.integratedLufs) > 0.11 || Math.abs(measuredPeak - file.production.truePeakDbfs) > 0.11) {
     throw new Error(`${name} measurement changed: ${measuredLoudness} LUFS, ${measuredPeak} dBFS.`);
   }
-  if (measuredLoudness - file.source.integratedLufs < record.target.minimumGainLu) throw new Error(`${name} gained less than 3 LU.`);
+  const minimumGainLu = file.source.minimumGainLu ?? record.target.minimumGainLu;
+  if (measuredLoudness - file.source.integratedLufs < minimumGainLu) throw new Error(`${name} gained less than ${minimumGainLu} LU.`);
   if (measuredPeak > record.target.maxTruePeakDbfs) throw new Error(`${name} exceeds the true-peak ceiling.`);
   process.stdout.write(`${name}: ${measuredLoudness} LUFS, ${measuredPeak} dBFS, hash verified\n`);
 }

@@ -137,7 +137,9 @@ export function validatePackageListing(listing: string): void {
     /^\/dist\/assets\/assets\/generated\/audio\/consequence\.[a-f0-9]+\.wav$/u,
     /^\/dist\/assets\/assets\/source\/audio\/sfx_alarm_clock\.[a-f0-9]+\.webm$/u,
     /^\/dist\/assets\/assets\/source\/audio\/sfx_dice_cup_shake\.[a-f0-9]+\.mp3$/u,
+    /^\/dist\/assets\/assets\/source\/audio\/sfx_dice_launch_woosh\.[a-f0-9]+\.webm$/u,
     /^\/dist\/assets\/assets\/source\/audio\/sfx_dice_land\.[a-f0-9]+\.mp3$/u,
+    /^\/dist\/assets\/assets\/source\/audio\/sfx_dice_roll_alt\.[a-f0-9]+\.mp3$/u,
     /^\/dist\/assets\/assets\/fonts\/HFMSilkscreen_400Regular\.[a-f0-9]+\.ttf$/u,
     /^\/dist\/assets\/assets\/fonts\/HFMSilkscreen_700Bold\.[a-f0-9]+\.ttf$/u,
   ];
